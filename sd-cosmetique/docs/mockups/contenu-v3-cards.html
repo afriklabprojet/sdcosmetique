@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<title>V3 — Cartes visuelles cliquables</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0D0906;color:#E8DDD0;min-height:100vh;}
+
+/* ── HEADER ── */
+.header{padding:28px 28px 0;}
+.back{font-size:12px;color:#6B5840;cursor:pointer;display:inline-flex;align-items:center;gap:6px;margin-bottom:16px;}
+.back:hover{color:#C8974A;}
+.header h1{font-size:22px;font-weight:800;color:#F7EFE5;letter-spacing:-.01em;}
+.header p{font-size:13px;color:#6B5840;margin-top:5px;}
+
+/* ── SECTION CARDS GRID ── */
+.section-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:24px 28px;max-width:800px;}
+
+.sec-card{background:#14100C;border:1px solid #2E2218;border-radius:16px;padding:22px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.sec-card:hover{border-color:#3D2E1A;background:#1C1610;transform:translateY(-2px);}
+.sec-card.editing{border-color:#C8974A;background:#14100C;box-shadow:0 0 0 1px #C8974A30;}
+.sec-card.done{border-color:#2E2218;}
+
+.sec-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
+.sec-icon{font-size:28px;}
+.sec-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;}
+.badge-ok{background:#064E3B;color:#6EE7B7;}
+.badge-edit{background:#2A1A0A;color:#C8974A;border:1px solid #3D2E1A;}
+.badge-todo{background:#1C1610;color:#6B5840;border:1px solid #2E2218;}
+
+.sec-card h3{font-size:15px;font-weight:700;color:#F7EFE5;margin-bottom:5px;}
+.sec-card p{font-size:12px;color:#6B5840;line-height:1.5;margin-bottom:14px;}
+
+/* PREVIEW LINE */
+.preview-line{background:#0D0906;border:1px solid #2E2218;border-radius:7px;padding:9px 12px;font-size:12px;color:#A8957E;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+.edit-btn{display:flex;align-items:center;gap:6px;margin-top:12px;font-size:12px;font-weight:700;color:#C8974A;}
+.sec-card:hover .edit-btn{gap:8px;}
+
+/* ── FULL-WIDTH EDITOR (open card) ── */
+.editor-open{background:#14100C;border:1px solid #C8974A;border-radius:16px;padding:24px;cursor:default;max-width:800px;margin:0 28px 14px;}
+.editor-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.editor-header-left{display:flex;align-items:center;gap:12px;}
+.editor-big-icon{font-size:32px;}
+.editor-header h3{font-size:16px;font-weight:800;color:#F7EFE5;}
+.editor-header p{font-size:11px;color:#6B5840;margin-top:2px;}
+.close-btn{width:30px;height:30px;background:#1C1610;border:1px solid #2E2218;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;color:#6B5840;}
+.close-btn:hover{color:#E8DDD0;border-color:#3D2E1A;}
+
+.field{margin-bottom:18px;}
+.field label{display:block;font-size:13px;font-weight:700;color:#E8DDD0;margin-bottom:5px;}
+.field .desc{font-size:11px;color:#6B5840;margin-bottom:8px;line-height:1.4;}
+.field input,.field textarea{
+  background:#0D0906;border:1px solid #2E2218;border-radius:9px;
+  padding:11px 14px;color:#E8DDD0;font-size:13px;outline:none;
+  font-family:inherit;width:100%;transition:border-color .15s;
+}
+.field input:focus,.field textarea:focus{border-color:#C8974A;}
+.field textarea{resize:vertical;min-height:78px;}
+.field input::placeholder,.field textarea::placeholder{color:#3D2E1A;font-style:italic;}
+
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+
+/* IMAGE DROP */
+.img-drop{border:2px dashed #3D2E1A;border-radius:10px;background:#0D0906;padding:22px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .15s;}
+.img-drop:hover{border-color:#C8974A;background:#14100C;}
+.img-drop .drop-icon{font-size:28px;flex-shrink:0;}
+.img-drop .drop-text strong{display:block;font-size:13px;color:#C8974A;font-weight:600;}
+.img-drop .drop-text span{font-size:11px;color:#6B5840;}
+
+/* TRUST ITEMS */
+.trust-list{display:flex;flex-direction:column;gap:8px;}
+.trust-item-row{display:flex;align-items:center;gap:10px;background:#0D0906;border:1px solid #2E2218;border-radius:8px;padding:10px 12px;}
+.trust-num{font-size:11px;font-weight:700;color:#6B5840;width:18px;flex-shrink:0;}
+.trust-item-row input{flex:1;background:transparent;border:none;outline:none;color:#E8DDD0;font-size:13px;font-family:inherit;}
+.drag-handle{font-size:12px;color:#3D2E1A;cursor:grab;}
+
+/* SAVE ROW */
+.save-row{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid #1C1610;}
+.btn-cancel{padding:9px 16px;background:transparent;color:#6B5840;border:1px solid #2E2218;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;}
+.btn-cancel:hover{color:#A8957E;}
+.btn-save{padding:10px 20px;background:#D4A25A;color:#0D0906;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.btn-save:hover{background:#C8974A;}
+.btn-saved{background:#064E3B;color:#6EE7B7;}
+
+/* ── BOTTOM SAVE ALL ── */
+.save-all-bar{max-width:800px;margin:8px 28px 32px;background:#1C1610;border:1px solid #2E2218;border-radius:12px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.save-all-left{font-size:12px;color:#A8957E;display:flex;align-items:center;gap:8px;}
+.dot-ok{width:7px;height:7px;border-radius:50%;background:#6EE7B7;flex-shrink:0;}
+.dot-warn{width:7px;height:7px;border-radius:50%;background:#FCD34D;flex-shrink:0;animation:p 1.4s infinite;}
+@keyframes p{0%,100%{opacity:1;}50%{opacity:.3;}}
+.btn-save-all{padding:10px 22px;background:#D4A25A;color:#0D0906;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;}
+.btn-save-all:hover{background:#C8974A;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="back">← Tableau de bord</div>
+  <h1>Modifier votre site</h1>
+  <p>Cliquez sur une section pour la modifier. C'est simple !</p>
+</div>
+
+<!-- ── SECTION OUVERTE : Barre du haut ── -->
+<div class="editor-open">
+  <div class="editor-header">
+    <div class="editor-header-left">
+      <div class="editor-big-icon">📢</div>
+      <div>
+        <h3>Le bandeau en haut du site</h3>
+        <p>Visible sur toutes les pages de votre boutique</p>
+      </div>
+    </div>
+    <div class="close-btn">✕</div>
+  </div>
+
+  <div class="field">
+    <label>Votre message promotionnel</label>
+    <div class="desc">Ce texte défile en haut de votre site. Parlez de vos offres, délais de livraison, promotions…</div>
+    <input type="text" value="🌿 Livraison gratuite dès 25 000 FCFA — Paiement 100% sécurisé" />
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label>Votre numéro WhatsApp</label>
+      <div class="desc">Les clients pourront vous contacter directement.</div>
+      <input type="text" value="+221 77 000 00 00" placeholder="Ex : +221 77 000 00 00" />
+    </div>
+    <div class="field">
+      <label>Votre email de contact</label>
+      <div class="desc">Pour les demandes par email.</div>
+      <input type="email" value="contact@sdcosmetique.com" placeholder="votre@email.com" />
+    </div>
+  </div>
+
+  <div class="save-row">
+    <button class="btn-cancel">Annuler</button>
+    <button class="btn-save btn-saved">✓ Enregistré !</button>
+  </div>
+</div>
+
+<!-- ── SECTION CARDS GRID ── -->
+<div class="section-grid">
+
+  <!-- Card 2 : Page d'accueil -->
+  <div class="sec-card">
+    <div class="sec-card-top">
+      <div class="sec-icon">🖼</div>
+      <span class="sec-badge badge-edit">En cours...</span>
+    </div>
+    <h3>Page d'accueil</h3>
+    <p>Le grand titre, la description et la photo que voient vos visiteurs en arrivant.</p>
+    <div class="preview-line">"Révélez votre éclat naturel avec SD Cosmétique"</div>
+    <div class="edit-btn">✏️ Modifier →</div>
+  </div>
+
+  <!-- Card 3 : Rassurance -->
+  <div class="sec-card">
+    <div class="sec-card-top">
+      <div class="sec-icon">✅</div>
+      <span class="sec-badge badge-todo">À compléter</span>
+    </div>
+    <h3>Vos engagements</h3>
+    <p>Les 5 points forts de votre marque affichés en bandeau (livraison, naturel, service…)</p>
+    <div class="preview-line">Livraison rapide · Produits naturels · Satisfait ou remboursé…</div>
+    <div class="edit-btn">✏️ Modifier →</div>
+  </div>
+
+  <!-- Card 4 : Avis clients -->
+  <div class="sec-card">
+    <div class="sec-card-top">
+      <div class="sec-icon">💬</div>
+      <span class="sec-badge badge-ok">✓ Enregistré</span>
+    </div>
+    <h3>Avis de vos clientes</h3>
+    <p>3 témoignages affichés sur votre page d'accueil pour rassurer les nouveaux visiteurs.</p>
+    <div class="preview-line">Aïssatou B., Mariama K., Fatou D.</div>
+    <div class="edit-btn">✏️ Modifier →</div>
+  </div>
+
+  <!-- Card 5 : Paiement -->
+  <div class="sec-card">
+    <div class="sec-card-top">
+      <div class="sec-icon">💳</div>
+      <span class="sec-badge badge-ok">✓ Enregistré</span>
+    </div>
+    <h3>Moyens de paiement</h3>
+    <p>Les modes de paiement acceptés affichés sur votre site (Orange Money, Wave…)</p>
+    <div class="preview-line">Orange Money · Wave · MTN MoMo · Visa</div>
+    <div class="edit-btn">✏️ Modifier →</div>
+  </div>
+
+</div>
+
+<!-- SAVE ALL BAR -->
+<div class="save-all-bar">
+  <div class="save-all-left">
+    <div class="dot-warn"></div>
+    <span>Vous avez 1 section avec des modifications non enregistrées</span>
+  </div>
+  <button class="btn-save-all">✓ Tout enregistrer maintenant</button>
+</div>
+
+</body>
+</html>

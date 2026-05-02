@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 100" aria-hidden="true">
+  <ellipse cx="55" cy="92" rx="40" ry="4" fill="#C9A37C" opacity=".4"/>
+  <!-- pump 1 -->
+  <rect x="20" y="22" width="20" height="10" rx="2" fill="#A87529"/>
+  <rect x="14" y="32" width="32" height="60" rx="4" fill="#FAF4E8" stroke="#D9C5A4"/>
+  <rect x="20" y="58" width="20" height="14" rx="2" fill="#fff"/>
+  <text x="30" y="69" text-anchor="middle" font-size="8" fill="#5A2B0C" font-weight="700" font-family="Inter,sans-serif">SD</text>
+  <!-- pump 2 -->
+  <rect x="68" y="22" width="20" height="10" rx="2" fill="#A87529"/>
+  <rect x="62" y="32" width="32" height="60" rx="4" fill="#3D1A09"/>
+  <rect x="68" y="58" width="20" height="14" rx="2" fill="#F4E8D8"/>
+  <text x="78" y="69" text-anchor="middle" font-size="8" fill="#5A2B0C" font-weight="700" font-family="Inter,sans-serif">SD</text>
+</svg>

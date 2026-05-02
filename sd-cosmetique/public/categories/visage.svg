@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 100" aria-hidden="true">
+  <ellipse cx="60" cy="92" rx="46" ry="4" fill="#C9A37C" opacity=".4"/>
+  <!-- sérum brun -->
+  <rect x="22" y="18" width="14" height="8" fill="#A87529"/>
+  <path d="M14 26 Q14 22 18 22 L40 22 Q44 22 44 26 L44 88 Q44 92 40 92 L18 92 Q14 92 14 88 Z" fill="#3D1A09"/>
+  <!-- pot -->
+  <ellipse cx="82" cy="44" rx="26" ry="5" fill="#A87529"/>
+  <rect x="56" y="44" width="52" height="46" fill="#FAF4E8" stroke="#D9C5A4"/>
+  <ellipse cx="82" cy="90" rx="26" ry="5" fill="#EFE2CB" stroke="#D9C5A4"/>
+  <text x="82" y="72" text-anchor="middle" font-size="9" fill="#5A2B0C" font-weight="700" font-family="Inter,sans-serif">SD</text>
+</svg>

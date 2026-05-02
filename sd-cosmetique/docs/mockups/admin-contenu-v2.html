@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<title>Contenu du site — V2 Accordéons</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0D0906;color:#E8DDD0;min-height:100vh;}
+
+/* ── TOPBAR ── */
+.topbar{background:#14100C;border-bottom:1px solid #2E2218;padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;}
+.top-left h1{font-size:15px;font-weight:800;color:#F7EFE5;}
+.top-left p{font-size:11px;color:#6B5840;margin-top:1px;}
+.chips{display:flex;gap:8px;}
+.chip{font-size:11px;padding:4px 10px;border-radius:99px;font-weight:600;}
+.chip-ok{background:#064E3B;color:#6EE7B7;}
+.chip-warn{background:#2A200A;color:#FCD34D;border:1px solid #3D2E1A;}
+
+/* ── CONTENT ── */
+.content{max-width:680px;margin:0 auto;padding:28px 20px 60px;}
+
+/* ── ACCORDION ── */
+.acc{border:1px solid #2E2218;border-radius:14px;overflow:hidden;margin-bottom:12px;transition:border-color .2s;}
+.acc.open{border-color:#3D2E1A;}
+.acc.ok{border-left:3px solid #10B981;}
+.acc.warn{border-left:3px solid #FCD34D;}
+.acc.idle{border-left:3px solid #2E2218;}
+
+/* Accordion header */
+.acc-head{display:flex;align-items:center;gap:14px;padding:16px 18px;cursor:pointer;background:#14100C;transition:background .15s;}
+.acc-head:hover{background:#1C1610;}
+.acc.open .acc-head{background:#1C1610;border-bottom:1px solid #2E2218;}
+.acc-icon{font-size:22px;flex-shrink:0;width:32px;text-align:center;}
+.acc-meta{flex:1;}
+.acc-meta strong{display:block;font-size:14px;font-weight:700;color:#F7EFE5;}
+.acc.open .acc-meta strong{color:#C8974A;}
+.acc-meta p{font-size:11px;color:#6B5840;margin-top:2px;}
+.acc-preview{font-size:11px;color:#A8957E;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:12px;}
+.acc-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;flex-shrink:0;}
+.badge-ok{background:#064E3B;color:#6EE7B7;}
+.badge-warn{background:#2A200A;color:#FCD34D;border:1px solid #3D2E1A;}
+.badge-idle{background:#1C1610;color:#6B5840;border:1px solid #2E2218;}
+.acc-chevron{font-size:12px;color:#6B5840;flex-shrink:0;transition:transform .2s;}
+.acc.open .acc-chevron{transform:rotate(180deg);color:#C8974A;}
+
+/* Accordion body */
+.acc-body{background:#14100C;padding:22px 22px;display:flex;flex-direction:column;gap:18px;}
+
+/* Fields */
+.field{display:flex;flex-direction:column;gap:6px;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.field label{font-size:13px;font-weight:600;color:#E8DDD0;}
+.field .hint{font-size:11px;color:#6B5840;}
+.field input,.field textarea{
+  background:#0D0906;border:1px solid #2E2218;border-radius:8px;
+  padding:10px 13px;color:#E8DDD0;font-size:13px;outline:none;font-family:inherit;width:100%;
+  transition:border-color .15s,box-shadow .15s;
+}
+.field input:focus,.field textarea:focus{border-color:#C8974A;box-shadow:0 0 0 3px rgba(200,151,74,.07);}
+.field textarea{resize:vertical;min-height:78px;}
+.field input::placeholder,.field textarea::placeholder{color:#3D2E1A;}
+
+/* Section divider */
+.sec-div{display:flex;align-items:center;gap:10px;margin:4px 0;}
+.sec-div span{font-size:10px;font-weight:700;color:#6B5840;text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;}
+.sec-div::before,.sec-div::after{content:'';flex:1;height:1px;background:#1C1610;}
+
+/* Trust items */
+.trust-list{display:flex;flex-direction:column;gap:8px;}
+.trust-row{display:flex;align-items:center;gap:10px;}
+.trust-bullet{font-size:16px;flex-shrink:0;}
+.trust-row input{flex:1;background:#0D0906;border:1px solid #2E2218;border-radius:8px;padding:9px 12px;color:#E8DDD0;font-size:13px;outline:none;font-family:inherit;}
+.trust-row input:focus{border-color:#C8974A;}
+
+/* Testimonial cards */
+.testi-grid{display:flex;flex-direction:column;gap:12px;}
+.testi-card{background:#0D0906;border:1px solid #1C1610;border-radius:10px;padding:16px;}
+.testi-header{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.testi-avatar{width:48px;height:48px;border-radius:50%;background:#1C1610;border:1px solid #2E2218;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;flex-shrink:0;position:relative;}
+.avatar-edit{position:absolute;bottom:-2px;right:-2px;background:#C8974A;color:#0D0906;border-radius:50%;width:16px;height:16px;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:700;}
+.testi-header-info{flex:1;}
+.testi-header-info input{background:#14100C;border:1px solid #1C1610;border-radius:6px;padding:7px 10px;color:#E8DDD0;font-size:13px;font-weight:600;outline:none;font-family:inherit;width:100%;}
+.testi-header-info input:focus{border-color:#C8974A;}
+.testi-stars{display:flex;gap:2px;margin-bottom:6px;}
+.star{font-size:12px;}
+.testi-card textarea{background:#14100C;border:1px solid #1C1610;border-radius:6px;padding:9px 11px;color:#E8DDD0;font-size:12px;outline:none;font-family:inherit;width:100%;resize:vertical;min-height:64px;}
+.testi-card textarea:focus{border-color:#C8974A;}
+
+/* Image zone */
+.img-zone{display:flex;align-items:center;gap:14px;background:#0D0906;border:1px solid #1C1610;border-radius:8px;padding:14px;}
+.img-ph{width:72px;height:72px;border-radius:8px;background:#1C1610;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
+.img-info strong{display:block;font-size:12px;color:#E8DDD0;margin-bottom:3px;}
+.img-info span{font-size:11px;color:#6B5840;display:block;margin-bottom:7px;}
+.btn-img{font-size:11px;font-weight:600;color:#C8974A;background:transparent;border:1px solid #3D2E1A;border-radius:6px;padding:5px 12px;cursor:pointer;}
+.btn-img:hover{background:#2A1A0A;}
+
+/* Acc footer */
+.acc-footer{display:flex;align-items:center;justify-content:space-between;padding:14px 22px;background:#0D0906;border-top:1px solid #1C1610;}
+.acc-footer-info{font-size:11px;color:#6B5840;}
+.acc-footer-info strong{color:#A8957E;}
+.acc-footer-btns{display:flex;gap:8px;}
+.btn-cancel{padding:7px 14px;background:transparent;color:#6B5840;border:1px solid #2E2218;border-radius:7px;font-size:12px;cursor:pointer;}
+.btn-save{padding:8px 18px;background:#C8974A;color:#0D0906;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;}
+.btn-save:hover{background:#D4A25A;}
+.btn-saved{background:#064E3B;color:#6EE7B7;}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="top-left">
+    <h1>Contenu du site</h1>
+    <p>Modifiez les textes et images de votre boutique</p>
+  </div>
+  <div class="chips">
+    <div class="chip chip-ok">✓ 2 sections enregistrées</div>
+    <div class="chip chip-warn">● 1 modification en attente</div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- ── ACCORD 1 : Bandeau haut — FERMÉ ── -->
+  <div class="acc ok">
+    <div class="acc-head">
+      <div class="acc-icon">📢</div>
+      <div class="acc-meta">
+        <strong>Bandeau du haut</strong>
+        <p>Le message et le numéro affichés sur toutes vos pages</p>
+      </div>
+      <div class="acc-preview">"🌿 Livraison gratuite dès 25 000 FCFA"</div>
+      <div class="acc-badge badge-ok">✓ Enregistré</div>
+      <div class="acc-chevron">▼</div>
+    </div>
+  </div>
+
+  <!-- ── ACCORD 2 : Page d'accueil — OUVERT ── -->
+  <div class="acc warn open">
+    <div class="acc-head">
+      <div class="acc-icon">🖼</div>
+      <div class="acc-meta">
+        <strong>Page d'accueil</strong>
+        <p>Titre, sous-titre, bouton principal et photo de la bannière</p>
+      </div>
+      <div class="acc-badge badge-warn">● Modifiée</div>
+      <div class="acc-chevron">▼</div>
+    </div>
+    <div class="acc-body">
+
+      <div class="sec-div"><span>Le titre</span></div>
+
+      <div class="field">
+        <label>Phrase d'accroche</label>
+        <div class="hint">Petite phrase au-dessus du titre, en lettres fines</div>
+        <input type="text" value="✨ Cosmétiques naturels premium" />
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Grand titre</label>
+          <input type="text" value="Révélez votre éclat naturel" />
+        </div>
+        <div class="field">
+          <label>Partie en doré</label>
+          <div class="hint">Mis en valeur en couleur or</div>
+          <input type="text" value="avec SD Cosmétique" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Texte sous le titre</label>
+        <textarea>Des soins formulés pour sublimer votre beauté naturelle, adaptés à toutes les teintes de peau africaine.</textarea>
+      </div>
+
+      <div class="sec-div"><span>Le bouton</span></div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Texte du bouton</label>
+          <input type="text" value="Découvrir la boutique" />
+        </div>
+        <div class="field">
+          <label>Où le bouton mène</label>
+          <input type="text" value="/boutique" />
+        </div>
+      </div>
+
+      <div class="sec-div"><span>La photo</span></div>
+
+      <div class="img-zone">
+        <div class="img-ph">📸</div>
+        <div class="img-info">
+          <strong>Photo de la bannière</strong>
+          <span>Image affichée en grand sur la page d'accueil</span>
+          <button class="btn-img">🔄 Changer la photo</button>
+        </div>
+      </div>
+
+    </div>
+    <div class="acc-footer">
+      <div class="acc-footer-info">Dernière sauvegarde : <strong>aujourd'hui à 14h32</strong></div>
+      <div class="acc-footer-btns">
+        <button class="btn-cancel">Annuler</button>
+        <button class="btn-save">💾 Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ACCORD 3 : Engagements — FERMÉ ── -->
+  <div class="acc ok">
+    <div class="acc-head">
+      <div class="acc-icon">✅</div>
+      <div class="acc-meta">
+        <strong>Vos engagements</strong>
+        <p>Les 5 points forts de votre marque (bandeau de confiance)</p>
+      </div>
+      <div class="acc-preview">Livraison rapide · Naturel · Satisfait ou remboursé</div>
+      <div class="acc-badge badge-ok">✓ Enregistré</div>
+      <div class="acc-chevron">▼</div>
+    </div>
+  </div>
+
+  <!-- ── ACCORD 4 : Avis clients — FERMÉ ── -->
+  <div class="acc idle">
+    <div class="acc-head">
+      <div class="acc-icon">💬</div>
+      <div class="acc-meta">
+        <strong>Avis de vos clientes</strong>
+        <p>3 témoignages affichés sur la page d'accueil</p>
+      </div>
+      <div class="acc-preview">Aïssatou B., Mariama K., Fatou D.</div>
+      <div class="acc-badge badge-idle">Non modifié</div>
+      <div class="acc-chevron">▼</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

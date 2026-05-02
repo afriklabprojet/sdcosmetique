@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<title>Mockup V2 — Accordéon avec preview</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0D0906;color:#E8DDD0;min-height:100vh;}
+
+  .page-wrap{max-width:820px;margin:0 auto;padding:32px 24px;}
+
+  /* PAGE HEADER */
+  .page-header{margin-bottom:32px;}
+  .back-link{font-size:11px;color:#6B5840;display:inline-flex;align-items:center;gap:5px;margin-bottom:14px;cursor:pointer;}
+  .back-link:hover{color:#C8974A;}
+  .page-title-row{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;}
+  .page-title-row h1{font-size:22px;font-weight:800;color:#F7EFE5;letter-spacing:-.02em;}
+  .page-title-row p{font-size:12px;color:#6B5840;margin-top:3px;}
+  .summary-chips{display:flex;gap:8px;flex-wrap:wrap;}
+  .chip{padding:4px 10px;border-radius:99px;font-size:11px;font-weight:600;}
+  .chip-ok{background:#064E3B;color:#6EE7B7;}
+  .chip-warn{background:#4A3A1A;color:#FCD34D;}
+  .chip-gray{background:#1C1610;color:#6B5840;border:1px solid #2E2218;}
+
+  /* ACCORDION */
+  .accordion{display:flex;flex-direction:column;gap:10px;}
+
+  .acc-item{background:#14100C;border:1px solid #2E2218;border-radius:12px;overflow:hidden;transition:border-color .2s;}
+  .acc-item.open{border-color:#3D2E1A;}
+  .acc-item.modified{border-color:#4A3A1A;}
+
+  .acc-header{display:flex;align-items:center;gap:14px;padding:16px 20px;cursor:pointer;user-select:none;}
+  .acc-header:hover .acc-title{color:#F7EFE5;}
+
+  .acc-icon{width:38px;height:38px;border-radius:9px;background:#1C1610;border:1px solid #2E2218;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+
+  .acc-meta{flex:1;min-width:0;}
+  .acc-title{font-size:14px;font-weight:700;color:#E8DDD0;transition:color .15s;}
+  .acc-preview{font-size:11px;color:#6B5840;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:380px;}
+  .acc-preview em{color:#A8957E;font-style:normal;}
+
+  .acc-right{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+  .acc-status{display:flex;align-items:center;gap:5px;font-size:11px;}
+  .dot{width:7px;height:7px;border-radius:50%;}
+  .dot.saved{background:#6EE7B7;}
+  .dot.modified{background:#FCD34D;}
+  .dot.idle{background:#3D2E1A;}
+  .acc-chevron{font-size:12px;color:#6B5840;transition:transform .2s;}
+  .acc-item.open .acc-chevron{transform:rotate(180deg);}
+
+  /* FORM */
+  .acc-body{border-top:1px solid #2E2218;padding:20px 20px 24px;}
+
+  .form-section-label{font-size:10px;font-weight:700;color:#6B5840;text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+  .form-section-label::after{content:'';flex:1;height:1px;background:#2E2218;}
+
+  .fields{display:flex;flex-direction:column;gap:14px;margin-bottom:20px;}
+  .field-row{display:grid;gap:14px;}
+  .field-row.cols-2{grid-template-columns:1fr 1fr;}
+  .field-row.cols-3{grid-template-columns:1fr 1fr 1fr;}
+
+  .field{display:flex;flex-direction:column;gap:5px;}
+  .field label{font-size:11px;font-weight:600;color:#9A8A7A;letter-spacing:.04em;}
+  .field input,.field textarea{
+    background:#0D0906;border:1px solid #2E2218;border-radius:8px;
+    padding:9px 12px;color:#E8DDD0;font-size:13px;outline:none;
+    transition:border-color .15s,box-shadow .15s;font-family:inherit;
+  }
+  .field input:focus,.field textarea:focus{border-color:#C8974A;box-shadow:0 0 0 3px rgba(200,151,74,.1);}
+  .field textarea{resize:vertical;min-height:76px;}
+  .field .hint{font-size:10px;color:#6B5840;}
+
+  .img-preview{width:100%;height:90px;background:#1C1610;border:1px dashed #3D2E1A;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#6B5840;cursor:pointer;transition:border-color .15s;}
+  .img-preview:hover{border-color:#C8974A;color:#C8974A;}
+
+  .acc-footer{display:flex;align-items:center;justify-content:space-between;padding-top:16px;border-top:1px solid #1C1610;}
+  .last-saved{font-size:10px;color:#6B5840;}
+  .btn-row{display:flex;gap:8px;}
+  .btn{padding:8px 16px;border-radius:7px;font-size:12px;font-weight:600;border:none;cursor:pointer;display:flex;align-items:center;gap:5px;}
+  .btn-primary{background:#D4A25A;color:#0D0906;}
+  .btn-primary:hover{background:#C8974A;}
+  .btn-ghost{background:transparent;color:#6B5840;border:1px solid #2E2218;}
+  .btn-ghost:hover{color:#A8957E;border-color:#3D2E1A;}
+  .btn-success{background:#064E3B;color:#6EE7B7;}
+
+  /* TRUST ITEMS */
+  .trust-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+  .trust-item{background:#0D0906;border:1px solid #2E2218;border-radius:8px;padding:10px 12px;display:flex;gap:8px;align-items:flex-start;}
+  .trust-num{font-size:10px;font-weight:700;color:#6B5840;flex-shrink:0;padding-top:2px;}
+  .trust-item input{background:transparent;border:none;outline:none;color:#E8DDD0;font-size:12px;flex:1;font-family:inherit;}
+
+  /* TESTIMONIALS */
+  .testi-list{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
+  .testi-card{background:#0D0906;border:1px solid #2E2218;border-radius:10px;padding:14px;display:grid;grid-template-columns:64px 1fr;gap:12px;}
+  .avatar-box{width:64px;height:64px;background:#1C1610;border:1px dashed #3D2E1A;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#6B5840;text-align:center;cursor:pointer;line-height:1.3;}
+  .testi-fields{display:flex;flex-direction:column;gap:8px;}
+  .testi-fields input,.testi-fields textarea{background:#1C1610;border:1px solid #2E2218;border-radius:6px;padding:7px 10px;color:#E8DDD0;font-size:12px;outline:none;font-family:inherit;width:100%;}
+  .testi-fields textarea{resize:vertical;min-height:56px;}
+</style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="back-link">← Retour au tableau de bord</div>
+    <div class="page-title-row">
+      <div>
+        <h1>Contenu du site</h1>
+        <p>Chaque section se sauvegarde indépendamment.</p>
+      </div>
+      <div class="summary-chips">
+        <span class="chip chip-ok">✓ 3 sauvegardées</span>
+        <span class="chip chip-warn">⚑ 1 modifiée</span>
+        <span class="chip chip-gray">5 sections</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACCORDION -->
+  <div class="accordion">
+
+    <!-- SECTION 1 : Barre du haut (OUVERTE) -->
+    <div class="acc-item open modified">
+      <div class="acc-header">
+        <div class="acc-icon">📢</div>
+        <div class="acc-meta">
+          <div class="acc-title">Barre du haut</div>
+          <div class="acc-preview">Message : <em>"🌿 Livraison gratuite dès 25 000 FCFA"</em> · Tél : +221 77 000 00 00</div>
+        </div>
+        <div class="acc-right">
+          <div class="acc-status"><div class="dot modified"></div><span style="color:#FCD34D;font-size:11px;">Modifié</span></div>
+          <div class="acc-chevron">▲</div>
+        </div>
+      </div>
+      <div class="acc-body">
+        <div class="form-section-label">Contenu du bandeau</div>
+        <div class="fields">
+          <div class="field">
+            <label>Message</label>
+            <input type="text" value="🌿 Livraison gratuite dès 25 000 FCFA — Paiement 100% sécurisé" />
+          </div>
+          <div class="field-row cols-2">
+            <div class="field">
+              <label>Téléphone</label>
+              <input type="text" value="+221 77 000 00 00" />
+            </div>
+            <div class="field">
+              <label>Email contact</label>
+              <input type="email" value="contact@sdcosmetique.com" />
+            </div>
+          </div>
+        </div>
+        <div class="acc-footer">
+          <span class="last-saved">Dernière sauvegarde : il y a 2 jours</span>
+          <div class="btn-row">
+            <button class="btn btn-ghost">Réinitialiser</button>
+            <button class="btn btn-primary">💾 Sauvegarder cette section</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2 : Hero -->
+    <div class="acc-item">
+      <div class="acc-header">
+        <div class="acc-icon">🖼</div>
+        <div class="acc-meta">
+          <div class="acc-title">Bannière Hero</div>
+          <div class="acc-preview">Titre : <em>"Révélez votre éclat naturel"</em> · CTA : Découvrir la boutique</div>
+        </div>
+        <div class="acc-right">
+          <div class="acc-status"><div class="dot saved"></div><span style="color:#6EE7B7;font-size:11px;">Sauvegardé</span></div>
+          <div class="acc-chevron">▼</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3 : Confiance -->
+    <div class="acc-item">
+      <div class="acc-header">
+        <div class="acc-icon">✅</div>
+        <div class="acc-meta">
+          <div class="acc-title">Barre de confiance</div>
+          <div class="acc-preview">5 items : <em>Livraison rapide · Paiement sécurisé · Produits naturels…</em></div>
+        </div>
+        <div class="acc-right">
+          <div class="acc-status"><div class="dot idle"></div><span style="color:#6B5840;font-size:11px;">Inchangé</span></div>
+          <div class="acc-chevron">▼</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 4 : Témoignages (pour démo, semi-ouvert) -->
+    <div class="acc-item">
+      <div class="acc-header">
+        <div class="acc-icon">💬</div>
+        <div class="acc-meta">
+          <div class="acc-title">Témoignages accueil</div>
+          <div class="acc-preview">3 avis clients : <em>Aïssatou B., Mariama K., Fatou D.</em></div>
+        </div>
+        <div class="acc-right">
+          <div class="acc-status"><div class="dot saved"></div><span style="color:#6EE7B7;font-size:11px;">Sauvegardé</span></div>
+          <div class="acc-chevron">▼</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 5 : Paiement -->
+    <div class="acc-item">
+      <div class="acc-header">
+        <div class="acc-icon">💳</div>
+        <div class="acc-meta">
+          <div class="acc-title">Méthodes de paiement</div>
+          <div class="acc-preview">Orange Money · Wave · MTN MoMo · Visa · Mastercard</div>
+        </div>
+        <div class="acc-right">
+          <div class="acc-status"><div class="dot saved"></div><span style="color:#6EE7B7;font-size:11px;">Sauvegardé</span></div>
+          <div class="acc-chevron">▼</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /accordion -->
+
+</div>
+</body>
+</html>

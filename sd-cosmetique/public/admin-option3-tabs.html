@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Option 3 - Dashboard Onglets | SD Cosmetique</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0D0906;color:#E8DDD0;min-height:100vh;}
+
+/* ── HEADER ── */
+.header{background:#14100C;border-bottom:1px solid #2E2218;padding:20px 28px 0;position:sticky;top:0;z-index:10;}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.header-top h1{font-size:16px;font-weight:800;color:#F7EFE5;}
+.header-top p{font-size:11px;color:#6B5840;margin-top:2px;}
+.btn-save-all{padding:9px 20px;background:#C8974A;color:#0D0906;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.btn-save-all:hover{background:#D4A25A;}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:0;overflow-x:auto;}
+.tab{display:flex;align-items:center;gap:8px;padding:10px 18px;cursor:pointer;border-bottom:2px solid transparent;font-size:13px;font-weight:600;color:#6B5840;white-space:nowrap;transition:all .15s;}
+.tab:hover{color:#A8957E;}
+.tab.active{color:#C8974A;border-bottom-color:#C8974A;}
+.tab .tab-icon{font-size:16px;}
+.tab .tab-dot{width:6px;height:6px;border-radius:50%;background:#FCD34D;margin-left:2px;animation:pulse 1.4s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+.tab .tab-ok{width:6px;height:6px;border-radius:50%;background:#10B981;margin-left:2px;}
+
+/* ── CONTENT ── */
+.content{max-width:720px;margin:0 auto;padding:32px 24px 80px;}
+
+/* Section hero */
+.sec-hero{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:28px;}
+.sec-hero-left{display:flex;align-items:flex-start;gap:14px;}
+.sec-emoji{width:52px;height:52px;background:#1C1610;border:1px solid #2E2218;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+.sec-hero-text h2{font-size:18px;font-weight:800;color:#F7EFE5;}
+.sec-hero-text p{font-size:12px;color:#6B5840;margin-top:4px;}
+.sec-tags{display:flex;gap:6px;margin-top:8px;}
+.sec-tag{font-size:10px;padding:3px 8px;border-radius:99px;font-weight:600;}
+.tag-page{background:#1C1610;color:#A8957E;border:1px solid #2E2218;}
+.tag-status{background:#2A200A;color:#FCD34D;border:1px solid #3D2E1A;}
+
+/* Preview band */
+.preview-band{background:#1C1610;border:1px solid #2E2218;border-left:3px solid #C8974A;border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:28px;display:flex;align-items:center;gap:12px;}
+.preview-band .label{font-size:10px;font-weight:700;color:#6B5840;text-transform:uppercase;letter-spacing:.07em;flex-shrink:0;}
+.preview-band .value{font-size:12px;color:#A8957E;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-style:italic;}
+.preview-band a{font-size:11px;color:#C8974A;white-space:nowrap;}
+
+/* ── FORM BLOCKS ── */
+.block{margin-bottom:24px;}
+.block-label{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+.block-label .icon{font-size:16px;}
+.block-label strong{font-size:14px;font-weight:700;color:#F7EFE5;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.field{display:flex;flex-direction:column;gap:6px;}
+.field label{font-size:12px;font-weight:600;color:#E8DDD0;}
+.field input{background:#1C1610;border:1px solid #2E2218;border-radius:6px;padding:8px 12px;font-size:12px;color:#E8DDD0;}
+.field input:focus{outline:none;border-color:#C8974A;}
+
+.demo-badge{position:fixed;top:20px;right:20px;background:#C8974A;color:#0D0906;padding:8px 16px;border-radius:6px;font-size:12px;font-weight:700;z-index:1000;}
+
+/* Tab content sections */
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+</style>
+</head>
+<body>
+
+<!-- DEMO BADGE -->
+<div class="demo-badge">📑 Option 3 - Interface à Onglets</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div>
+      <h1>SD Cosmetique Admin</h1>
+      <p>Interface par domaines fonctionnels</p>
+    </div>
+    <button class="btn-save-all">💾 Sauvegarder tout</button>
+  </div>
+  
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" data-tab="dashboard">
+      <span class="tab-icon">🏠</span>
+      <span>Accueil</span>
+      <span class="tab-ok"></span>
+    </div>
+    <div class="tab" data-tab="products">
+      <span class="tab-icon">📦</span>
+      <span>Produits</span>
+      <span class="tab-dot"></span>
+    </div>
+    <div class="tab" data-tab="orders">
+      <span class="tab-icon">🛒</span>
+      <span>Commandes</span>
+      <span class="tab-dot"></span>
+    </div>
+    <div class="tab" data-tab="customers">
+      <span class="tab-icon">👥</span>
+      <span>Clients</span>
+      <span class="tab-ok"></span>
+    </div>
+    <div class="tab" data-tab="marketing">
+      <span class="tab-icon">📊</span>
+      <span>Marketing</span>
+      <span class="tab-dot"></span>
+    </div>
+    <div class="tab" data-tab="settings">
+      <span class="tab-icon">⚙️</span>
+      <span>Config</span>
+      <span class="tab-ok"></span>
+    </div>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- DASHBOARD TAB -->
+  <div class="tab-content active" id="dashboard">
+    <div class="sec-hero">
+      <div class="sec-hero-left">
+        <div class="sec-emoji">🏠</div>
+        <div class="sec-hero-text">
+          <h2>Dashboard Principal</h2>
+          <p>Vue d'ensemble de votre boutique cosmétique</p>
+          <div class="sec-tags">
+            <span class="sec-tag tag-page">Vue globale</span>
+            <span class="sec-tag tag-status">Données temps réel</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="preview-band">
+      <div class="label">Status</div>
+      <div class="value">Boutique opérationnelle • 24 produits • 125 000 CFA aujourd'hui</div>
+      <a href="#">Voir détails ›</a>
+    </div>
+    
+    <div class="form-grid">
+      <div class="field">
+        <label>Ventes aujourd'hui</label>
+        <input type="text" value="125 000 CFA" readonly/>
+      </div>
+      <div class="field">
+        <label>Commandes en attente</label>
+        <input type="text" value="12 commandes" readonly/>
+      </div>
+      <div class="field">
+        <label>Nouveaux clients</label>
+        <input type="text" value="8 cette semaine" readonly/>
+      </div>
+      <div class="field">
+        <label>Stock critique</label>
+        <input type="text" value="3 produits" readonly/>
+      </div>
+    </div>
+  </div>
+  
+  <!-- MARKETING TAB -->
+  <div class="tab-content" id="marketing">
+    <div class="sec-hero">
+      <div class="sec-hero-left">
+        <div class="sec-emoji">📊</div>
+        <div class="sec-hero-text">
+          <h2>Marketing & Promotions</h2>
+          <p>Gestion des campagnes et du tracking</p>
+          <div class="sec-tags">
+            <span class="sec-tag tag-page">5 modules</span>
+            <span class="sec-tag tag-status">Configuration requise</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="preview-band">
+      <div class="label">Campagnes</div>
+      <div class="value">2 campagnes actives • Tracking Facebook et Google à configurer</div>
+    </div>
+    
+    <div class="block">
+      <div class="block-label">
+        <span class="icon">📣</span>
+        <strong>Bannière Promotionnelle</strong>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Message principal</label>
+          <input type="text" value="Livraison gratuite dès 25 000 CFA"/>
+        </div>
+        <div class="field">
+          <label>Call-to-Action</label>
+          <input type="text" value="Profitez-en"/>
+        </div>
+      </div>
+    </div>
+    
+    <div class="block">
+      <div class="block-label">
+        <span class="icon">📱</span>
+        <strong>Tracking & Analytics</strong>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Facebook Pixel ID</label>
+          <input type="text" placeholder="Entrer votre Pixel ID"/>
+        </div>
+        <div class="field">
+          <label>Google Ads ID</label>
+          <input type="text" placeholder="AW-XXXXXXXXX"/>
+        </div>
+        <div class="field">
+          <label>Google Tag Manager</label>
+          <input type="text" placeholder="GTM-XXXXXXX"/>
+        </div>
+        <div class="field">
+          <label>TikTok Pixel</label>
+          <input type="text" placeholder="ID du pixel TikTok"/>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Other tab contents would be here... -->
+  <div class="tab-content" id="products">
+    <div class="sec-hero">
+      <div class="sec-hero-left">
+        <div class="sec-emoji">📦</div>
+        <div class="sec-hero-text">
+          <h2>Gestion Produits</h2>
+          <p>Catalogue cosmétique et inventaire</p>
+        </div>
+      </div>
+    </div>
+    <div class="preview-band">
+      <div class="label">Catalogue</div>
+      <div class="value">24 produits actifs • 3 en rupture de stock</div>
+    </div>
+  </div>
+  
+  <div class="tab-content" id="orders">
+    <div class="sec-hero">
+      <div class="sec-hero-left">
+        <div class="sec-emoji">🛒</div>
+        <div class="sec-hero-text">
+          <h2>Commandes</h2>
+          <p>Suivi des ventes et livraisons</p>
+        </div>
+      </div>
+    </div>
+    <div class="preview-band">
+      <div class="label">Ventes</div>
+      <div class="value">12 nouvelles commandes • 125 000 CFA aujourd'hui</div>
+    </div>
+  </div>
+  
+  <div class="tab-content" id="customers">
+    <div class="sec-hero">
+      <div class="sec-hero-left">
+        <div class="sec-emoji">👥</div>
+        <div class="sec-hero-text">
+          <h2>Clients</h2>
+          <p>Base de données clientèle</p>
+        </div>
+      </div>
+    </div>
+    <div class="preview-band">
+      <div class="label">Base client</div>
+      <div class="value">156 clients inscrits • 8 nouveaux cette semaine</div>
+    </div>
+  </div>
+  
+  <div class="tab-content" id="settings">
+    <div class="sec-hero">
+      <div class="sec-hero-left">
+        <div class="sec-emoji">⚙️</div>
+        <div class="sec-hero-text">
+          <h2>Configuration</h2>
+          <p>Paramètres de la boutique</p>
+        </div>
+      </div>
+    </div>
+    <div class="preview-band">
+      <div class="label">Status</div>
+      <div class="value">Site configuré • Paiements opérationnels</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Gestion des onglets
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', function() {
+    const tabId = this.dataset.tab;
+    
+    // Désactiver tous les onglets et contenus
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    
+    // Activer l'onglet et le contenu cliqué
+    this.classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+  });
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,314 @@
+.wrap {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  background: #050505;
+  overflow: hidden;
+}
+
+/* ── Côté gauche avec image ── */
+.leftSide {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background-image: url('/hero/admin-login-bg.jpg');
+  background-size: cover;
+  background-position: center;
+}
+
+.leftSide::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    radial-gradient(ellipse at 30% 60%, rgba(143, 89, 34, 0.30) 0%, transparent 55%),
+    linear-gradient(to right, rgba(4, 3, 2, 0.30) 0%, rgba(4, 3, 2, 0.50) 65%, rgba(5, 3, 2, 0.82) 100%);
+}
+
+.pattern {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  opacity: 0.04;
+  background-image: repeating-linear-gradient(
+    45deg,
+    #b8782e 0,
+    #b8782e 1px,
+    transparent 0,
+    transparent 50%
+  );
+  background-size: 24px 24px;
+}
+
+/* ── Quote left ── */
+.leftText {
+  position: absolute;
+  z-index: 3;
+  left: 72px;
+  bottom: 64px;
+  max-width: 480px;
+}
+
+.quote {
+  font-family: 'Playfair Display', 'Georgia', serif;
+  font-size: 72px;
+  font-weight: 400;
+  font-style: italic;
+  color: rgba(184, 120, 46, 0.13);
+  line-height: 1.0;
+  letter-spacing: -0.04em;
+  margin-bottom: 14px;
+}
+
+.quoteLabel {
+  font-size: 10px;
+  color: rgba(184, 120, 46, 0.28);
+  letter-spacing: 3.5px;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* ── Right panel ── */
+.panel {
+  position: relative;
+  z-index: 3;
+  margin-left: auto;
+  width: 480px;
+  min-height: 100vh;
+  background: rgba(8, 8, 8, 0.88);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border-left: 1px solid rgba(184, 120, 46, 0.12);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 64px 56px;
+}
+
+/* ── Badge ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 16px;
+  border-radius: 100px;
+  border: 1px solid rgba(184, 120, 46, 0.22);
+  background: rgba(143, 89, 34, 0.08);
+  margin-bottom: 10px;
+  width: fit-content;
+}
+
+.badgeDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #b8782e;
+  flex-shrink: 0;
+}
+
+.badgeText {
+  font-size: 9px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: #b8782e;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+}
+
+.brandLine {
+  font-size: 10px;
+  letter-spacing: 3.5px;
+  text-transform: uppercase;
+  color: #3a3530;
+  font-weight: 600;
+  margin-bottom: 48px;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* ── Heading ── */
+.heading {
+  font-family: 'Playfair Display', 'Georgia', serif;
+  font-size: 42px;
+  font-weight: 300;
+  color: #f0ede8;
+  line-height: 1.15;
+  margin-bottom: 12px;
+  letter-spacing: -0.02em;
+}
+
+.heading strong {
+  font-weight: 600;
+  font-style: italic;
+  color: #d4a96a;
+}
+
+.subtext {
+  font-size: 13px;
+  color: #3a3530;
+  font-weight: 300;
+  line-height: 1.75;
+  margin-bottom: 44px;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* ── Fields ── */
+.field {
+  margin-bottom: 28px;
+}
+
+.label {
+  display: block;
+  font-size: 9.5px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #5a5450;
+  font-weight: 600;
+  margin-bottom: 10px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.inputWrap {
+  position: relative;
+}
+
+.input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #2a2520;
+  color: #f0ede8;
+  font-family: 'Playfair Display', 'Georgia', serif;
+  font-size: 18px;
+  font-weight: 300;
+  font-style: italic;
+  padding: 10px 36px 10px 0;
+  outline: none;
+  transition: border-color 0.3s;
+  letter-spacing: 0.3px;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  border-bottom-color: #b8782e;
+}
+
+.input::placeholder {
+  color: #2a2520;
+  font-style: italic;
+}
+
+.pwdToggle {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #3a3530;
+  cursor: pointer;
+  padding: 0;
+  font-size: 15px;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.pwdToggle:hover {
+  color: #b8782e;
+}
+
+/* ── Error ── */
+.errorBox {
+  background: rgba(42, 10, 10, 0.6);
+  border: 1px solid rgba(90, 26, 26, 0.5);
+  border-radius: 8px;
+  padding: 10px 16px;
+  color: #f87171;
+  font-size: 12.5px;
+  margin-bottom: 20px;
+  font-family: 'Poppins', sans-serif;
+  letter-spacing: 0.2px;
+}
+
+/* ── Button ── */
+.btn {
+  width: 100%;
+  padding: 15px;
+  border: 1px solid rgba(184, 120, 46, 0.45);
+  border-radius: 2px;
+  background: transparent;
+  color: #d4a96a;
+  font-family: 'Poppins', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: color 0.3s, border-color 0.3s;
+  margin-top: 12px;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #c8892e, #8f5922);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.btn:hover:not(:disabled) {
+  color: #fff;
+  border-color: #b8782e;
+}
+
+.btn:hover:not(:disabled)::before {
+  opacity: 1;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btnInner {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Footer secured ── */
+.secured {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 32px;
+}
+
+.secDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.45);
+  flex-shrink: 0;
+}
+
+.secText {
+  font-size: 10px;
+  color: #2a2520;
+  letter-spacing: 0.5px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 300;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .leftSide { display: none; }
+  .panel {
+    width: 100%;
+    border-left: none;
+    padding: 48px 32px;
+  }
+}

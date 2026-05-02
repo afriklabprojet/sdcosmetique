@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Option 4 - Dashboard Cartes/Wizard | SD Cosmetique</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0D0906;color:#E8DDD0;min-height:100vh;}
+
+/* ── HEADER ── */
+.header{padding:28px 28px 0;}
+.back{font-size:12px;color:#6B5840;cursor:pointer;display:inline-flex;align-items:center;gap:6px;margin-bottom:16px;}
+.back:hover{color:#C8974A;}
+.header h1{font-size:22px;font-weight:800;color:#F7EFE5;letter-spacing:-.01em;}
+.header p{font-size:13px;color:#6B5840;margin-top:5px;}
+
+/* ── PROGRESS BAR ── */
+.progress-section{padding:20px 28px;background:#14100C;border-bottom:1px solid #2E2218;}
+.progress-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.progress-label span{font-size:12px;color:#A8957E;}
+.progress-label strong{font-size:12px;color:#C8974A;}
+.progress-track{height:5px;background:#1C1610;border-radius:99px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,#C8974A,#D4A25A);border-radius:99px;width:65%;transition:width .4s;}
+
+/* ── SECTION CARDS GRID ── */
+.section-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:16px;padding:24px 28px;max-width:1000px;margin:0 auto;}
+
+.sec-card{background:#14100C;border:1px solid #2E2218;border-radius:16px;padding:24px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.sec-card:hover{border-color:#3D2E1A;background:#1C1610;transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.3);}
+.sec-card.completed{border-color:#10B981;}
+.sec-card.in-progress{border-color:#C8974A;background:#14100C;box-shadow:0 0 0 1px #C8974A30;}
+.sec-card.pending{border-color:#FCD34D;}
+
+.sec-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;}
+.sec-icon{font-size:32px;}
+.sec-badge{font-size:10px;font-weight:700;padding:4px 10px;border-radius:99px;}
+.badge-completed{background:#064E3B;color:#6EE7B7;}
+.badge-progress{background:#2A1A0A;color:#C8974A;border:1px solid #3D2E1A;}
+.badge-pending{background:#2A200A;color:#FCD34D;border:1px solid #3D2E1A;}
+.badge-todo{background:#1C1610;color:#6B5840;border:1px solid #2E2218;}
+
+.sec-card h3{font-size:16px;font-weight:700;color:#F7EFE5;margin-bottom:6px;}
+.sec-card p{font-size:12px;color:#6B5840;line-height:1.5;margin-bottom:16px;}
+
+/* PROGRESS LINE */
+.progress-line{background:#0D0906;border:1px solid #2E2218;border-radius:8px;padding:10px 14px;margin-bottom:14px;}
+.progress-text{font-size:11px;color:#A8957E;margin-bottom:6px;}
+.progress-bar{height:4px;background:#1C1610;border-radius:2px;overflow:hidden;}
+.progress-bar-fill{height:100%;border-radius:2px;transition:width .3s;}
+.completed .progress-bar-fill{background:#10B981;width:100%;}
+.in-progress .progress-bar-fill{background:#C8974A;width:65%;}
+.pending .progress-bar-fill{background:#FCD34D;width:30%;}
+.todo .progress-bar-fill{background:#2E2218;width:0%;}
+
+.preview-line{background:#0D0906;border:1px solid #2E2218;border-radius:7px;padding:9px 12px;font-size:12px;color:#A8957E;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+.edit-btn{display:flex;align-items:center;gap:6px;margin-top:12px;font-size:12px;font-weight:700;color:#C8974A;}
+.sec-card:hover .edit-btn{gap:8px;}
+
+.demo-badge{position:fixed;top:20px;right:20px;background:#C8974A;color:#0D0906;padding:8px 16px;border-radius:6px;font-size:12px;font-weight:700;z-index:1000;}
+
+/* ── WIZARD MODAL (optionnel) ── */
+.wizard-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(13,9,6,0.9);z-index:1000;display:none;align-items:center;justify-content:center;}
+.wizard-modal{background:#14100C;border:1px solid #3D2E1A;border-radius:16px;padding:32px;max-width:600px;width:90%;max-height:80vh;overflow-y:auto;}
+.wizard-header{text-align:center;margin-bottom:24px;}
+.wizard-header h2{font-size:20px;font-weight:800;color:#F7EFE5;margin-bottom:8px;}
+.wizard-header p{font-size:13px;color:#A8957E;}
+.wizard-steps{display:flex;gap:12px;margin-bottom:24px;justify-content:center;}
+.wizard-step{width:8px;height:8px;border-radius:50%;background:#2E2218;}
+.wizard-step.active{background:#C8974A;}
+.wizard-step.completed{background:#10B981;}
+</style>
+</head>
+<body>
+
+<!-- DEMO BADGE -->
+<div class="demo-badge">🎯 Option 4 - Interface Cartes/Wizard</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="back">← Retour au tableau de bord</div>
+  <h1>Configuration SD Cosmetique</h1>
+  <p>Interface guidée pour la mise en place de votre boutique cosmétique</p>
+</div>
+
+<!-- PROGRESS SECTION -->
+<div class="progress-section">
+  <div class="progress-label">
+    <span>Progression globale</span>
+    <strong>65% terminé</strong>
+  </div>
+  <div class="progress-track">
+    <div class="progress-fill"></div>
+  </div>
+</div>
+
+<!-- SECTION CARDS GRID -->
+<div class="section-grid">
+
+  <!-- PRODUITS -->
+  <div class="sec-card completed">
+    <div class="sec-card-top">
+      <div class="sec-icon">📦</div>
+      <div class="sec-badge badge-completed">Terminé</div>
+    </div>
+    <h3>Catalogue Produits</h3>
+    <p>Ajoutez vos produits cosmétiques, définissez les prix et gérez l'inventaire</p>
+    <div class="progress-line">
+      <div class="progress-text">24 produits configurés</div>
+      <div class="progress-bar">
+        <div class="progress-bar-fill"></div>
+      </div>
+    </div>
+    <div class="preview-line">Sérums, crèmes, kits beauté - Prix de 5k à 35k CFA</div>
+    <div class="edit-btn">✓ Configurer les produits →</div>
+  </div>
+  
+  <!-- PAIEMENTS -->
+  <div class="sec-card completed">
+    <div class="sec-card-top">
+      <div class="sec-icon">💳</div>
+      <div class="sec-badge badge-completed">Opérationnel</div>
+    </div>
+    <h3>Système de Paiement</h3>
+    <p>Configuration des moyens de paiement et intégration Jeko Pay</p>
+    <div class="progress-line">
+      <div class="progress-text">Jeko Pay configuré</div>
+      <div class="progress-bar">
+        <div class="progress-bar-fill"></div>
+      </div>
+    </div>
+    <div class="preview-line">Orange Money, MTN Money, Wave - Commission 2.5%</div>
+    <div class="edit-btn">✓ Gérer les paiements →</div>
+  </div>
+  
+  <!-- MARKETING -->
+  <div class="sec-card in-progress">
+    <div class="sec-card-top">
+      <div class="sec-icon">📊</div>
+      <div class="sec-badge badge-progress">En cours</div>
+    </div>
+    <h3>Marketing & Tracking</h3>
+    <p>Configurez les campagnes promotionnelles et le suivi analytics</p>
+    <div class="progress-line">
+      <div class="progress-text">3 sur 5 modules configurés</div>
+      <div class="progress-bar">
+        <div class="progress-bar-fill"></div>
+      </div>
+    </div>
+    <div class="preview-line">Bannière OK, Popup OK - Facebook Pixel à configurer</div>
+    <div class="edit-btn">⚡ Continuer la configuration →</div>
+  </div>
+  
+  <!-- CLIENTS -->
+  <div class="sec-card completed">
+    <div class="sec-card-top">
+      <div class="sec-icon">👥</div>
+      <div class="sec-badge badge-completed">Actif</div>
+    </div>
+    <h3>Gestion Clients</h3>
+    <p>Base de données clients, comptes utilisateurs et fidélisation</p>
+    <div class="progress-line">
+      <div class="progress-text">156 clients inscrits</div>
+      <div class="progress-bar">
+        <div class="progress-bar-fill"></div>
+      </div>
+    </div>
+    <div class="preview-line">Inscription activée - 8 nouveaux cette semaine</div>
+    <div class="edit-btn">✓ Voir la base clients →</div>
+  </div>
+  
+  <!-- LIVRAISONS -->
+  <div class="sec-card pending">
+    <div class="sec-card-top">
+      <div class="sec-icon">🚚</div>
+      <div class="sec-badge badge-pending">À configurer</div>
+    </div>
+    <h3>Livraisons & Logistique</h3>
+    <p>Définissez les zones de livraison, tarifs et délais</p>
+    <div class="progress-line">
+      <div class="progress-text">Zones de base configurées</div>
+      <div class="progress-bar">
+        <div class="progress-bar-fill"></div>
+      </div>
+    </div>
+    <div class="preview-line">Abidjan: 2500 CFA - Gratuit dès 25k CFA</div>
+    <div class="edit-btn">⚙️ Finaliser la livraison →</div>
+  </div>
+  
+  <!-- ANALYTICS -->
+  <div class="sec-card todo">
+    <div class="sec-card-top">
+      <div class="sec-icon">📈</div>
+      <div class="sec-badge badge-todo">À faire</div>
+    </div>
+    <h3>Analytics & Rapports</h3>
+    <p>Tableau de bord des ventes, analyses de performance</p>
+    <div class="progress-line">
+      <div class="progress-text">Module à initialiser</div>
+      <div class="progress-bar">
+        <div class="progress-bar-fill"></div>
+      </div>
+    </div>
+    <div class="preview-line">Données de vente, conversion, clients top</div>
+    <div class="edit-btn">🚀 Démarrer la configuration →</div>
+  </div>
+  
+  <!-- SEO -->
+  <div class="sec-card pending">
+    <div class="sec-card-top">
+      <div class="sec-icon">🔍</div>
+      <div class="sec-badge badge-pending">Partiellement</div>
+    </div>
+    <h3>SEO & Référencement</h3>
+    <p>Optimisation pour les moteurs de recherche</p>
+    <div class="progress-line">
+      <div class="progress-text">Métas de base configurées</div>
+      <div class="progress-bar">
+        <div class="progress-bar-fill"></div>
+      </div>
+    </div>
+    <div class="preview-line">Titre, description - Schema.org à ajouter</div>
+    <div class="edit-btn">📝 Améliorer le SEO →</div>
+  </div>
+  
+  <!-- SÉCURITÉ -->
+  <div class="sec-card todo">
+    <div class="sec-card-top">
+      <div class="sec-icon">🔒</div>
+      <div class="sec-badge badge-todo">Recommandé</div>
+    </div>
+    <h3>Sécurité & Conformité</h3>
+    <p>HTTPS, politique de confidentialité, RGPD</p>
+    <div class="progress-line">
+      <div class="progress-text">SSL activé</div>
+      <div class="progress-bar">
+        <div class="progress-bar-fill"></div>
+      </div>
+    </div>
+    <div class="preview-line">HTTPS OK - CGV et mentions légales à ajouter</div>
+    <div class="edit-btn">🛡️ Sécuriser le site →</div>
+  </div>
+
+</div>
+
+<script>
+// Simulation d'interactivité
+document.querySelectorAll('.sec-card').forEach(card => {
+  card.addEventListener('click', function() {
+    const title = this.querySelector('h3').textContent;
+    alert(`Configuration de: ${title}\n\nCette démonstration vous emmènerait vers l'interface de configuration spécifique de ce module.`);
+  });
+});
+
+// Animation des barres de progression au chargement
+window.addEventListener('load', function() {
+  const fills = document.querySelectorAll('.progress-bar-fill');
+  fills.forEach((fill, index) => {
+    setTimeout(() => {
+      fill.style.transform = 'scaleX(1)';
+    }, index * 100);
+  });
+});
+</script>
+
+</body>
+</html>

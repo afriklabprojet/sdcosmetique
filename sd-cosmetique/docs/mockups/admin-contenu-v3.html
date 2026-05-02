@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<title>Contenu du site — V3 Onglets</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0D0906;color:#E8DDD0;min-height:100vh;}
+
+/* ── HEADER ── */
+.header{background:#14100C;border-bottom:1px solid #2E2218;padding:20px 28px 0;position:sticky;top:0;z-index:10;}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.header-top h1{font-size:16px;font-weight:800;color:#F7EFE5;}
+.header-top p{font-size:11px;color:#6B5840;margin-top:2px;}
+.btn-save-all{padding:9px 20px;background:#C8974A;color:#0D0906;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.btn-save-all:hover{background:#D4A25A;}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:0;overflow-x:auto;}
+.tab{display:flex;align-items:center;gap:8px;padding:10px 18px;cursor:pointer;border-bottom:2px solid transparent;font-size:13px;font-weight:600;color:#6B5840;white-space:nowrap;transition:all .15s;}
+.tab:hover{color:#A8957E;}
+.tab.active{color:#C8974A;border-bottom-color:#C8974A;}
+.tab .tab-icon{font-size:16px;}
+.tab .tab-dot{width:6px;height:6px;border-radius:50%;background:#FCD34D;margin-left:2px;animation:p 1.4s infinite;}
+@keyframes p{0%,100%{opacity:1;}50%{opacity:.3;}}
+.tab .tab-ok{width:6px;height:6px;border-radius:50%;background:#10B981;margin-left:2px;}
+
+/* ── CONTENT ── */
+.content{max-width:720px;margin:0 auto;padding:32px 24px 80px;}
+
+/* Section hero */
+.sec-hero{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:28px;}
+.sec-hero-left{display:flex;align-items:flex-start;gap:14px;}
+.sec-emoji{width:52px;height:52px;background:#1C1610;border:1px solid #2E2218;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+.sec-hero-text h2{font-size:18px;font-weight:800;color:#F7EFE5;}
+.sec-hero-text p{font-size:12px;color:#6B5840;margin-top:4px;}
+.sec-tags{display:flex;gap:6px;margin-top:8px;}
+.sec-tag{font-size:10px;padding:3px 8px;border-radius:99px;font-weight:600;}
+.tag-page{background:#1C1610;color:#A8957E;border:1px solid #2E2218;}
+.tag-status{background:#2A200A;color:#FCD34D;border:1px solid #3D2E1A;}
+
+/* Preview band */
+.preview-band{background:#1C1610;border:1px solid #2E2218;border-left:3px solid #C8974A;border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:28px;display:flex;align-items:center;gap:12px;}
+.preview-band .pl{font-size:10px;font-weight:700;color:#6B5840;text-transform:uppercase;letter-spacing:.07em;flex-shrink:0;}
+.preview-band .pv{font-size:12px;color:#A8957E;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-style:italic;}
+.preview-band a{font-size:11px;color:#C8974A;white-space:nowrap;}
+
+/* ── FORM BLOCKS ── */
+.block{margin-bottom:24px;}
+.block-label{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+.block-label span{font-size:11px;font-weight:700;color:#6B5840;text-transform:uppercase;letter-spacing:.1em;}
+.block-label::after{content:'';flex:1;height:1px;background:#1C1610;}
+
+/* Fields */
+.field{display:flex;flex-direction:column;gap:6px;}
+.field-row-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.field label{font-size:13px;font-weight:600;color:#E8DDD0;}
+.field .hint{font-size:11px;color:#6B5840;line-height:1.4;}
+.field input,.field textarea{
+  background:#14100C;border:1px solid #2E2218;border-radius:9px;
+  padding:11px 14px;color:#E8DDD0;font-size:13px;outline:none;font-family:inherit;width:100%;
+  transition:border-color .15s,box-shadow .15s;
+}
+.field input:focus,.field textarea:focus{border-color:#C8974A;box-shadow:0 0 0 3px rgba(200,151,74,.07);}
+.field textarea{resize:vertical;min-height:80px;}
+.field input::placeholder,.field textarea::placeholder{color:#3D2E1A;}
+
+/* Char counter */
+.field-footer{display:flex;justify-content:flex-end;margin-top:4px;}
+.char-count{font-size:10px;color:#3D2E1A;}
+
+/* Image zone */
+.img-zone{border:2px dashed #2E2218;border-radius:12px;background:#0D0906;padding:0;overflow:hidden;}
+.img-preview{width:100%;height:130px;background:linear-gradient(135deg,#1C1610 0%,#14100C 100%);display:flex;align-items:center;justify-content:center;font-size:40px;}
+.img-controls{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;}
+.img-name{font-size:12px;color:#A8957E;}
+.btn-change{font-size:12px;font-weight:600;color:#C8974A;background:transparent;border:1px solid #3D2E1A;border-radius:6px;padding:6px 14px;cursor:pointer;}
+.btn-change:hover{background:#2A1A0A;}
+
+/* Trust items */
+.trust-grid{display:flex;flex-direction:column;gap:8px;}
+.trust-row{display:flex;align-items:center;gap:12px;background:#14100C;border:1px solid #2E2218;border-radius:9px;padding:10px 14px;}
+.trust-emoji{font-size:18px;flex-shrink:0;}
+.trust-row input{flex:1;background:transparent;border:none;outline:none;color:#E8DDD0;font-size:13px;font-family:inherit;}
+
+/* Testimonials */
+.testi-grid{display:flex;flex-direction:column;gap:14px;}
+.testi-card{background:#14100C;border:1px solid #2E2218;border-radius:12px;padding:16px;}
+.testi-num{font-size:10px;font-weight:700;color:#6B5840;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;}
+.testi-top{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.testi-avatar-wrap{position:relative;cursor:pointer;}
+.testi-avatar{width:52px;height:52px;border-radius:50%;background:#1C1610;border:2px solid #2E2218;display:flex;align-items:center;justify-content:center;font-size:22px;}
+.testi-edit-overlay{position:absolute;inset:0;background:rgba(200,151,74,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;opacity:0;transition:opacity .2s;}
+.testi-avatar-wrap:hover .testi-edit-overlay{opacity:1;}
+.testi-info{flex:1;}
+.testi-info input{background:#0D0906;border:1px solid #1C1610;border-radius:7px;padding:8px 11px;color:#E8DDD0;font-size:13px;font-weight:600;outline:none;font-family:inherit;width:100%;}
+.testi-info input:focus{border-color:#C8974A;}
+.stars{display:flex;gap:2px;margin-top:6px;}
+.star{font-size:14px;cursor:pointer;}
+.testi-text textarea{background:#0D0906;border:1px solid #1C1610;border-radius:7px;padding:9px 11px;color:#E8DDD0;font-size:13px;outline:none;font-family:inherit;width:100%;resize:vertical;min-height:68px;}
+.testi-text textarea:focus{border-color:#C8974A;}
+
+/* ── SAVE BAR (sticky bottom) ── */
+.save-bar{position:fixed;bottom:0;left:0;right:0;background:#14100C;border-top:1px solid #2E2218;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;z-index:10;}
+.save-bar-left{font-size:11px;color:#6B5840;}
+.save-bar-left strong{color:#FCD34D;}
+.save-bar-right{display:flex;gap:8px;}
+.btn-cancel{padding:9px 16px;background:transparent;color:#6B5840;border:1px solid #2E2218;border-radius:7px;font-size:12px;cursor:pointer;}
+.btn-save-sec{padding:10px 22px;background:#C8974A;color:#0D0906;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;}
+.btn-save-sec:hover{background:#D4A25A;}
+</style>
+</head>
+<body>
+
+<!-- HEADER STICKY -->
+<div class="header">
+  <div class="header-top">
+    <div>
+      <h1>Contenu du site</h1>
+      <p>Modifiez les textes et images de votre boutique</p>
+    </div>
+    <button class="btn-save-all">💾 Tout enregistrer</button>
+  </div>
+  <div class="tabs">
+    <div class="tab"><span class="tab-icon">📢</span>Bandeau du haut <span class="tab-ok"></span></div>
+    <div class="tab active"><span class="tab-icon">🖼</span>Page d'accueil <span class="tab-dot"></span></div>
+    <div class="tab"><span class="tab-icon">✅</span>Vos engagements <span class="tab-ok"></span></div>
+    <div class="tab"><span class="tab-icon">💬</span>Avis clients</div>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- SECTION HERO -->
+  <div class="sec-hero">
+    <div class="sec-hero-left">
+      <div class="sec-emoji">🖼</div>
+      <div class="sec-hero-text">
+        <h2>Page d'accueil</h2>
+        <p>Ce que voient vos visiteurs en arrivant sur votre site</p>
+        <div class="sec-tags">
+          <span class="sec-tag tag-page">Affiché sur : Accueil</span>
+          <span class="sec-tag tag-status">● Modifiée</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PREVIEW -->
+  <div class="preview-band">
+    <div class="pl">Actuellement publié :</div>
+    <div class="pv">"Révélez votre éclat naturel avec SD Cosmétique"</div>
+    <a href="#">Voir sur le site ↗</a>
+  </div>
+
+  <!-- BLOCK 1 : TITRE -->
+  <div class="block">
+    <div class="block-label"><span>Le titre</span></div>
+
+    <div class="field" style="margin-bottom:14px;">
+      <label>Phrase d'accroche</label>
+      <div class="hint">Petite phrase au-dessus du titre (ex : "✨ Cosmétiques naturels")</div>
+      <input type="text" value="✨ Cosmétiques naturels premium" />
+    </div>
+
+    <div class="field-row-2" style="margin-bottom:14px;">
+      <div class="field">
+        <label>Grand titre</label>
+        <input type="text" value="Révélez votre éclat naturel" />
+        <div class="field-footer"><span class="char-count">28 / 60</span></div>
+      </div>
+      <div class="field">
+        <label>Partie en doré</label>
+        <div class="hint">S'affiche en couleur or à côté du titre</div>
+        <input type="text" value="avec SD Cosmétique" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Texte sous le titre</label>
+      <textarea>Des soins formulés pour sublimer votre beauté naturelle, adaptés à toutes les teintes de peau africaine.</textarea>
+      <div class="field-footer"><span class="char-count">104 / 200</span></div>
+    </div>
+  </div>
+
+  <!-- BLOCK 2 : BOUTON -->
+  <div class="block">
+    <div class="block-label"><span>Le bouton principal</span></div>
+    <div class="field-row-2">
+      <div class="field">
+        <label>Texte du bouton</label>
+        <input type="text" value="Découvrir la boutique" />
+      </div>
+      <div class="field">
+        <label>Où le bouton mène</label>
+        <div class="hint">La page qui s'ouvre au clic</div>
+        <input type="text" value="/boutique" />
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOCK 3 : PHOTO -->
+  <div class="block">
+    <div class="block-label"><span>Photo principale</span></div>
+    <div class="img-zone">
+      <div class="img-preview">📸</div>
+      <div class="img-controls">
+        <div class="img-name">hero-banner.jpg — Photo actuellement affichée</div>
+        <button class="btn-change">🔄 Changer la photo</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- STICKY SAVE BAR -->
+<div class="save-bar">
+  <div class="save-bar-left">Section <strong>Page d'accueil</strong> — modifications non enregistrées</div>
+  <div class="save-bar-right">
+    <button class="btn-cancel">Annuler</button>
+    <button class="btn-save-sec">💾 Enregistrer cette section</button>
+  </div>
+</div>
+
+</body>
+</html>

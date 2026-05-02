@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<title>Mockup V3 — Tabs horizontaux + grille 2 colonnes</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0D0906;color:#E8DDD0;min-height:100vh;}
+
+  /* ── HEADER ── */
+  .header{background:#14100C;border-bottom:1px solid #2E2218;padding:0 32px;}
+  .header-top{display:flex;align-items:center;justify-content:space-between;height:52px;}
+  .header-top .left{display:flex;align-items:center;gap:10px;}
+  .header-top .badge-admin{font-size:10px;font-weight:700;color:#C8974A;background:#2A1A0A;border:1px solid #3D2E1A;padding:2px 8px;border-radius:4px;letter-spacing:.08em;text-transform:uppercase;}
+  .header-top h1{font-size:14px;font-weight:700;color:#F7EFE5;}
+  .header-top .sub{font-size:11px;color:#6B5840;margin-left:6px;}
+  .header-right{display:flex;align-items:center;gap:10px;}
+  .save-all-btn{display:flex;align-items:center;gap:6px;padding:7px 16px;background:#D4A25A;color:#0D0906;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;}
+  .unsaved-indicator{font-size:11px;color:#FCD34D;display:flex;align-items:center;gap:5px;}
+  .pulse{width:7px;height:7px;border-radius:50%;background:#FCD34D;animation:pulse 1.4s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+  /* ── TABS ── */
+  .tabs{display:flex;gap:0;overflow-x:auto;scrollbar-width:none;margin-top:0;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{display:flex;align-items:center;gap:7px;padding:14px 18px;font-size:12px;font-weight:600;color:#6B5840;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:color .15s,border-color .15s;position:relative;}
+  .tab:hover{color:#A8957E;}
+  .tab.active{color:#C8974A;border-bottom-color:#C8974A;}
+  .tab .tab-dot{width:6px;height:6px;border-radius:50%;background:#FCD34D;position:absolute;top:10px;right:10px;}
+
+  /* ── CONTENT ── */
+  .content{padding:28px 32px;max-width:900px;}
+
+  /* Section header */
+  .section-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;gap:16px;}
+  .section-header-left{display:flex;align-items:flex-start;gap:14px;}
+  .section-emoji{width:48px;height:48px;background:#1C1610;border:1px solid #2E2218;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+  .section-title h2{font-size:18px;font-weight:800;color:#F7EFE5;letter-spacing:-.01em;}
+  .section-title p{font-size:12px;color:#6B5840;margin-top:3px;}
+  .section-title .tags{display:flex;gap:6px;margin-top:8px;}
+  .tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;}
+  .tag-ok{background:#064E3B;color:#6EE7B7;}
+  .tag-live{background:#1C1610;color:#9A8A7A;border:1px solid #2E2218;}
+
+  /* ── LIVE PREVIEW ── */
+  .live-preview{background:#1C1610;border:1px solid #2E2218;border-radius:10px;padding:14px 16px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .live-preview .live-label{font-size:10px;font-weight:700;color:#6B5840;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;}
+  .live-preview .live-value{font-size:12px;color:#A8957E;font-style:italic;}
+  .preview-btn{font-size:11px;color:#C8974A;cursor:pointer;white-space:nowrap;background:none;border:none;font-family:inherit;display:flex;align-items:center;gap:4px;}
+
+  /* ── FORM GRID ── */
+  .form-2col{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .form-full{display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:20px;}
+
+  .field{display:flex;flex-direction:column;gap:6px;}
+  .field label{font-size:11px;font-weight:700;color:#9A8A7A;letter-spacing:.05em;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between;}
+  .field label .required{color:#FCA5A5;font-size:10px;}
+  .field label .char-count{font-size:10px;color:#6B5840;text-transform:none;font-weight:400;letter-spacing:0;}
+  .input{background:#14100C;border:1px solid #2E2218;border-radius:9px;padding:10px 14px;color:#E8DDD0;font-size:13px;outline:none;transition:border-color .15s,box-shadow .15s;font-family:inherit;width:100%;}
+  .input:focus{border-color:#C8974A;box-shadow:0 0 0 3px rgba(200,151,74,.08);}
+  textarea.input{resize:vertical;min-height:80px;}
+  .field .field-hint{font-size:10px;color:#6B5840;}
+
+  /* ── IMAGE UPLOAD ── */
+  .img-upload{border:1px dashed #3D2E1A;border-radius:10px;background:#14100C;padding:20px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:border-color .15s,background .15s;}
+  .img-upload:hover{border-color:#C8974A;background:#1C1610;}
+  .img-upload .upload-icon{font-size:24px;color:#6B5840;}
+  .img-upload .upload-label{font-size:12px;color:#A8957E;}
+  .img-upload .upload-hint{font-size:10px;color:#6B5840;}
+
+  /* ── DIVIDER ── */
+  .divider{height:1px;background:#1C1610;margin:22px 0;}
+  .divider-label{display:flex;align-items:center;gap:10px;margin:22px 0;}
+  .divider-label span{font-size:10px;font-weight:700;color:#6B5840;text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;}
+  .divider-label::before,.divider-label::after{content:'';flex:1;height:1px;background:#2E2218;}
+
+  /* ── FOOTER ── */
+  .form-footer{display:flex;align-items:center;justify-content:space-between;padding:16px 0 0;border-top:1px solid #1C1610;margin-top:24px;}
+  .form-footer .meta{font-size:10px;color:#6B5840;}
+  .btn-row{display:flex;gap:8px;}
+  .btn{padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;transition:opacity .15s;}
+  .btn:hover{opacity:.88;}
+  .btn-primary{background:#D4A25A;color:#0D0906;}
+  .btn-ghost{background:transparent;color:#6B5840;border:1px solid #2E2218;}
+  .btn-success{background:#064E3B;color:#6EE7B7;}
+
+  /* ── HERO SPECIFIC ── */
+  .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .hero-image-col{display:flex;flex-direction:column;gap:12px;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div class="left">
+      <span class="badge-admin">Admin</span>
+      <h1>Contenu du site</h1>
+      <span class="sub">— édition du frontend</span>
+    </div>
+    <div class="header-right">
+      <div class="unsaved-indicator"><span class="pulse"></span>Section Hero modifiée</div>
+      <button class="save-all-btn">💾 Tout sauvegarder</button>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab">📢 Barre du haut</div>
+    <div class="tab active">🖼 Hero<div class="tab-dot"></div></div>
+    <div class="tab">✅ Confiance</div>
+    <div class="tab">💬 Témoignages</div>
+    <div class="tab">💳 Paiement</div>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- SECTION HEADER -->
+  <div class="section-header">
+    <div class="section-header-left">
+      <div class="section-emoji">🖼</div>
+      <div class="section-title">
+        <h2>Bannière Hero</h2>
+        <p>Section principale de la page d'accueil — première impression visiteur</p>
+        <div class="tags">
+          <span class="tag tag-ok">✓ Sauvegardé il y a 3 min</span>
+          <span class="tag tag-live">Page d'accueil</span>
+          <span class="tag tag-live">Au-dessus du fold</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIVE PREVIEW -->
+  <div class="live-preview">
+    <div>
+      <div class="live-label">Aperçu du titre actuel</div>
+      <div class="live-value">"Révélez votre éclat naturel avec <strong style="color:#C8974A">SD Cosmétique</strong>"</div>
+    </div>
+    <button class="preview-btn">Voir sur le site ↗</button>
+  </div>
+
+  <!-- FORM -->
+  <div class="divider-label"><span>Textes</span></div>
+
+  <div class="form-full">
+    <div class="field">
+      <label>Accroche <span class="char-count">23 / 60 car.</span></label>
+      <input class="input" type="text" value="✨ Cosmétiques naturels pour peaux africaines" />
+      <div class="field-hint">Petit texte au-dessus du titre principal.</div>
+    </div>
+  </div>
+
+  <div class="form-2col" style="margin-bottom:16px;">
+    <div class="field">
+      <label>Titre principal <span class="required">*</span></label>
+      <input class="input" type="text" value="Révélez votre éclat naturel" />
+    </div>
+    <div class="field">
+      <label>Titre (partie en or)</label>
+      <input class="input" type="text" value="avec SD Cosmétique" />
+    </div>
+  </div>
+
+  <div class="form-full">
+    <div class="field">
+      <label>Sous-titre / lead</label>
+      <textarea class="input">Des soins formulés pour sublimer votre beauté naturelle, adaptés à toutes les teintes de peau africaine.</textarea>
+    </div>
+  </div>
+
+  <div class="divider-label"><span>Bouton CTA</span></div>
+
+  <div class="form-2col" style="margin-bottom:16px;">
+    <div class="field">
+      <label>Texte du bouton <span class="required">*</span></label>
+      <input class="input" type="text" value="Découvrir la boutique" />
+    </div>
+    <div class="field">
+      <label>Lien destination</label>
+      <input class="input" type="text" value="/boutique" />
+    </div>
+  </div>
+
+  <div class="divider-label"><span>Image hero</span></div>
+
+  <div class="hero-grid">
+    <div class="img-upload">
+      <div class="upload-icon">🖼</div>
+      <div class="upload-label">Changer l'image du hero</div>
+      <div class="upload-hint">JPG ou WebP · 1200×800px min · max 2 Mo</div>
+    </div>
+    <div class="field">
+      <label>Texte alternatif (accessibilité)</label>
+      <input class="input" type="text" value="Femme africaine avec une peau lumineuse et éclatante" />
+      <div class="field-hint">Décrit l'image pour les lecteurs d'écran et le SEO.</div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="form-footer">
+    <div class="meta">Section hero · Modifiée il y a 5 min · Dernière sauvegarde : 27 avr. 2026</div>
+    <div class="btn-row">
+      <button class="btn btn-ghost">Annuler les modifications</button>
+      <button class="btn btn-primary">💾 Sauvegarder le hero</button>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

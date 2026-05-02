@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<title>Contenu du site — V1 Sidebar</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0D0906;color:#E8DDD0;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* ── TOPBAR ── */
+.topbar{background:#14100C;border-bottom:1px solid #2E2218;padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.topbar-left{display:flex;align-items:center;gap:10px;}
+.topbar-title{font-size:14px;font-weight:700;color:#F7EFE5;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.tag-unsaved{font-size:11px;color:#FCD34D;background:#2A200A;border:1px solid #3D2E1A;padding:4px 10px;border-radius:99px;display:flex;align-items:center;gap:5px;}
+.tag-unsaved::before{content:'';width:6px;height:6px;background:#FCD34D;border-radius:50%;animation:p 1.4s infinite;}
+@keyframes p{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+/* ── LAYOUT ── */
+.layout{display:flex;flex:1;overflow:hidden;}
+
+/* ── SIDEBAR ── */
+.sidebar{width:210px;background:#14100C;border-right:1px solid #2E2218;display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;}
+.sidebar-label{font-size:10px;font-weight:700;color:#6B5840;text-transform:uppercase;letter-spacing:.1em;padding:18px 16px 8px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;border-left:3px solid transparent;transition:all .15s;}
+.nav-item:hover{background:#1C1610;}
+.nav-item.active{background:#1C1610;border-left-color:#C8974A;}
+.nav-icon{font-size:18px;flex-shrink:0;width:26px;text-align:center;}
+.nav-text{flex:1;}
+.nav-text strong{display:block;font-size:12px;font-weight:600;color:#E8DDD0;}
+.nav-item.active .nav-text strong{color:#C8974A;}
+.nav-text span{font-size:10px;color:#6B5840;}
+.nav-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.dot-ok{background:#6EE7B7;}
+.dot-warn{background:#FCD34D;animation:p 1.4s infinite;}
+.dot-idle{background:#2E2218;}
+
+/* ── MAIN ── */
+.main{flex:1;overflow-y:auto;padding:28px 32px;}
+
+/* Section header */
+.sec-header{display:flex;align-items:center;gap:14px;margin-bottom:28px;}
+.sec-icon-big{width:48px;height:48px;background:#1C1610;border:1px solid #2E2218;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+.sec-header-text h2{font-size:18px;font-weight:800;color:#F7EFE5;}
+.sec-header-text p{font-size:12px;color:#6B5840;margin-top:4px;}
+
+/* Preview band */
+.preview-band{background:#1C1610;border:1px solid #2E2218;border-radius:8px;padding:11px 14px;margin-bottom:24px;display:flex;align-items:center;gap:10px;}
+.preview-label{font-size:10px;font-weight:700;color:#6B5840;text-transform:uppercase;letter-spacing:.07em;flex-shrink:0;}
+.preview-value{font-size:12px;color:#A8957E;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+.preview-link{font-size:11px;color:#C8974A;text-decoration:none;flex-shrink:0;white-space:nowrap;}
+
+/* Cards */
+.form-card{background:#14100C;border:1px solid #2E2218;border-radius:12px;margin-bottom:16px;overflow:hidden;}
+.form-card-head{padding:14px 18px;border-bottom:1px solid #1C1610;font-size:11px;font-weight:700;color:#6B5840;text-transform:uppercase;letter-spacing:.08em;}
+.form-card-body{padding:18px;display:flex;flex-direction:column;gap:16px;}
+
+/* Fields */
+.field{display:flex;flex-direction:column;gap:6px;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.field label{font-size:13px;font-weight:600;color:#E8DDD0;}
+.field .hint{font-size:11px;color:#6B5840;}
+.field input,.field textarea{
+  background:#0D0906;border:1px solid #2E2218;border-radius:8px;
+  padding:10px 13px;color:#E8DDD0;font-size:13px;outline:none;font-family:inherit;width:100%;
+  transition:border-color .15s,box-shadow .15s;
+}
+.field input:focus,.field textarea:focus{border-color:#C8974A;box-shadow:0 0 0 3px rgba(200,151,74,.07);}
+.field textarea{resize:vertical;min-height:72px;}
+.field input::placeholder,.field textarea::placeholder{color:#3D2E1A;}
+
+/* Image zone */
+.img-current{display:flex;align-items:center;gap:12px;background:#0D0906;border:1px solid #2E2218;border-radius:8px;padding:12px;}
+.img-thumb{width:64px;height:64px;object-fit:cover;border-radius:6px;background:#1C1610;flex-shrink:0;}
+.img-thumb-ph{width:64px;height:64px;border-radius:6px;background:#1C1610;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.img-actions{flex:1;}
+.img-actions strong{display:block;font-size:12px;color:#E8DDD0;margin-bottom:4px;}
+.img-actions span{font-size:11px;color:#6B5840;}
+.btn-change-img{margin-top:8px;font-size:11px;font-weight:600;color:#C8974A;background:transparent;border:1px solid #3D2E1A;border-radius:6px;padding:5px 12px;cursor:pointer;}
+.btn-change-img:hover{background:#2A1A0A;}
+
+/* Trust items */
+.trust-grid{display:flex;flex-direction:column;gap:8px;}
+.trust-row{display:flex;align-items:center;gap:10px;}
+.trust-num{font-size:11px;font-weight:700;color:#6B5840;width:20px;text-align:center;flex-shrink:0;}
+.trust-row input{flex:1;background:#0D0906;border:1px solid #2E2218;border-radius:8px;padding:9px 12px;color:#E8DDD0;font-size:12px;outline:none;font-family:inherit;}
+.trust-row input:focus{border-color:#C8974A;}
+
+/* Testimonials */
+.testi-card{background:#0D0906;border:1px solid #1C1610;border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:12px;}
+.testi-num{font-size:10px;font-weight:700;color:#6B5840;text-transform:uppercase;letter-spacing:.1em;}
+.testi-row{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;}
+.testi-avatar{width:56px;height:56px;border-radius:50%;background:#1C1610;border:1px solid #2E2218;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;flex-shrink:0;}
+.testi-fields{display:flex;flex-direction:column;gap:8px;}
+.testi-fields input,.testi-fields textarea{
+  background:#14100C;border:1px solid #1C1610;border-radius:6px;
+  padding:8px 10px;color:#E8DDD0;font-size:12px;outline:none;font-family:inherit;width:100%;
+}
+.testi-fields input:focus,.testi-fields textarea:focus{border-color:#C8974A;}
+.testi-fields textarea{resize:vertical;min-height:60px;}
+
+/* Stars row */
+.stars{display:flex;gap:2px;margin-bottom:4px;}
+.star{color:#C8974A;font-size:13px;}
+.star.off{color:#2E2218;}
+
+/* Save footer */
+.save-footer{position:sticky;bottom:0;background:#0D0906;border-top:1px solid #1C1610;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;margin:0 -32px -28px;}
+.save-info{font-size:11px;color:#6B5840;}
+.save-info strong{color:#A8957E;}
+.save-actions{display:flex;gap:8px;}
+.btn-cancel{padding:9px 16px;background:transparent;color:#6B5840;border:1px solid #2E2218;border-radius:7px;font-size:12px;cursor:pointer;}
+.btn-cancel:hover{color:#A8957E;}
+.btn-save{padding:10px 22px;background:#C8974A;color:#0D0906;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.btn-save:hover{background:#D4A25A;}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div style="font-size:11px;color:#6B5840;">Administration</div>
+    <div style="color:#2E2218;font-size:12px;">›</div>
+    <div class="topbar-title">Contenu du site</div>
+  </div>
+  <div class="topbar-right">
+    <div class="tag-unsaved">Modifications non enregistrées</div>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-label">Sections</div>
+
+    <div class="nav-item">
+      <div class="nav-icon">📢</div>
+      <div class="nav-text">
+        <strong>Bandeau du haut</strong>
+        <span>Message + téléphone</span>
+      </div>
+      <div class="nav-dot dot-ok"></div>
+    </div>
+
+    <div class="nav-item active">
+      <div class="nav-icon">🖼</div>
+      <div class="nav-text">
+        <strong>Page d'accueil</strong>
+        <span>Titre, photo, bouton</span>
+      </div>
+      <div class="nav-dot dot-warn"></div>
+    </div>
+
+    <div class="nav-item">
+      <div class="nav-icon">✅</div>
+      <div class="nav-text">
+        <strong>Vos engagements</strong>
+        <span>5 points forts</span>
+      </div>
+      <div class="nav-dot dot-ok"></div>
+    </div>
+
+    <div class="nav-item">
+      <div class="nav-icon">💬</div>
+      <div class="nav-text">
+        <strong>Avis clients</strong>
+        <span>3 témoignages</span>
+      </div>
+      <div class="nav-dot dot-idle"></div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- SECTION HEADER -->
+    <div class="sec-header">
+      <div class="sec-icon-big">🖼</div>
+      <div class="sec-header-text">
+        <h2>Page d'accueil</h2>
+        <p>Ce que voient vos visiteurs en arrivant sur votre site — titre, texte et photo principale.</p>
+      </div>
+    </div>
+
+    <!-- PREVIEW BAND -->
+    <div class="preview-band">
+      <div class="preview-label">Actuellement :</div>
+      <div class="preview-value">"Révélez votre éclat naturel avec SD Cosmétique"</div>
+      <a class="preview-link" href="#">Voir sur le site ↗</a>
+    </div>
+
+    <!-- CARD : Titre -->
+    <div class="form-card">
+      <div class="form-card-head">Le titre</div>
+      <div class="form-card-body">
+        <div class="field">
+          <label>Phrase d'accroche</label>
+          <div class="hint">Petite phrase au-dessus du titre (ex : "✨ Cosmétiques naturels")</div>
+          <input type="text" value="✨ Cosmétiques naturels premium" />
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Grand titre</label>
+            <input type="text" value="Révélez votre éclat naturel" />
+          </div>
+          <div class="field">
+            <label>Partie en doré</label>
+            <div class="hint">S'affiche en couleur or</div>
+            <input type="text" value="avec SD Cosmétique" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Texte sous le titre</label>
+          <textarea>Des soins formulés pour sublimer votre beauté naturelle, adaptés à toutes les teintes de peau africaine.</textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD : Bouton -->
+    <div class="form-card">
+      <div class="form-card-head">Le bouton principal</div>
+      <div class="form-card-body">
+        <div class="field-row">
+          <div class="field">
+            <label>Texte du bouton</label>
+            <input type="text" value="Découvrir la boutique" />
+          </div>
+          <div class="field">
+            <label>Lien du bouton</label>
+            <input type="text" value="/boutique" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD : Photo -->
+    <div class="form-card">
+      <div class="form-card-head">Photo principale</div>
+      <div class="form-card-body">
+        <div class="img-current">
+          <div class="img-thumb-ph">📸</div>
+          <div class="img-actions">
+            <strong>hero-banner.jpg</strong>
+            <span>Photo actuellement affichée sur votre site</span>
+            <div><button class="btn-change-img">🔄 Changer la photo</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SAVE FOOTER -->
+    <div class="save-footer">
+      <div class="save-info">Dernière sauvegarde : <strong>aujourd'hui à 14h32</strong></div>
+      <div class="save-actions">
+        <button class="btn-cancel">Annuler</button>
+        <button class="btn-save">💾 Enregistrer cette section</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

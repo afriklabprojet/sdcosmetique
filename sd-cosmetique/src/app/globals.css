@@ -1,0 +1,177 @@
+@import "tailwindcss";
+
+:root {
+  --gold: #8F5922;
+  --gold-light: #B8782E;
+  --gold-dark: #6B4019;
+  --gold-pale: #F5EBD9;
+  --gold-muted: #D4A96A;
+  --black: #0A0A0A;
+  --white: #FFFFFF;
+  --off-white: #FAF8F5;
+  --cream: #F7F2EA;
+  --charcoal: #1A1A1A;
+  --grey-100: #F5F5F5;
+  --grey-200: #E8E8E8;
+  --grey-300: #CCCCCC;
+  --grey-500: #888888;
+  --grey-700: #444444;
+  --skin-noir: #2C1810;
+  --skin-marron: #7B4A2D;
+  --skin-marron-clair: #C68642;
+  --skin-clair: #F5CBA7;
+  --skin-metisse: #A0714F;
+  --font-heading: 'Playfair Display', Georgia, serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --shadow-sm: 0 1px 3px rgba(143,89,34,0.08);
+  --shadow-md: 0 4px 16px rgba(143,89,34,0.12);
+  --shadow-lg: 0 8px 32px rgba(143,89,34,0.18);
+  --shadow-xl: 0 16px 64px rgba(143,89,34,0.22);
+  --shadow-gold: 0 4px 24px rgba(143,89,34,0.35);
+  --transition-base: 300ms cubic-bezier(0.4,0,0.2,1);
+  --transition-luxury: 600ms cubic-bezier(0.25,0.46,0.45,0.94);
+  --space-section: 80px;
+  --brown-deep: #5A2B0C;
+  --warm-grey: #9A8A7A;
+  --border-gold: #EDE8E0;
+}
+
+@theme inline {
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
+  --color-gold-dark: var(--gold-dark);
+  --color-gold-pale: var(--gold-pale);
+  --color-gold-muted: var(--gold-muted);
+  --color-cream: var(--cream);
+  --color-off-white: var(--off-white);
+  --color-charcoal: var(--charcoal);
+  --font-heading: var(--font-heading);
+  --font-body: var(--font-body);
+}
+
+*,*::before,*::after { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--white);
+  color: var(--charcoal);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+h1,h2,h3,h4,h5,h6 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--cream); }
+::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 9999px; }
+::selection { background: var(--gold-pale); color: var(--gold-dark); }
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-32px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+@keyframes pulse-gold {
+  0%,100% { box-shadow: 0 0 0 0 rgba(143,89,34,0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(143,89,34,0); }
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.animate-fade-up { animation: fadeInUp 0.6s ease forwards; }
+.animate-fade-in { animation: fadeIn 0.5s ease forwards; }
+.animate-slide-left { animation: slideInLeft 0.5s ease forwards; }
+.animate-pulse-gold { animation: pulse-gold 2s infinite; }
+.animate-marquee { animation: marquee 25s linear infinite; }
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+
+.skeleton {
+  background: linear-gradient(90deg, var(--grey-100) 25%, var(--grey-200) 50%, var(--grey-100) 75%);
+  background-size: 1000px 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+/* ── Animated Nav Underline ──────────────────────────────────── */
+.nav-link { position: relative; }
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1.5px;
+  background: var(--gold);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.nav-link:hover::after,
+.nav-active::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* ── Scroll Reveal — single element ─────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Scroll Reveal — stagger grid ───────────────────────────── */
+.reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.reveal-stagger.visible > * { opacity: 1; transform: translateY(0); }
+.reveal-stagger > *:nth-child(1) { transition-delay:   0ms; }
+.reveal-stagger > *:nth-child(2) { transition-delay:  80ms; }
+.reveal-stagger > *:nth-child(3) { transition-delay: 160ms; }
+.reveal-stagger > *:nth-child(4) { transition-delay: 240ms; }
+.reveal-stagger > *:nth-child(5) { transition-delay: 320ms; }
+.reveal-stagger > *:nth-child(6) { transition-delay: 400ms; }
+.reveal-stagger > *:nth-child(7) { transition-delay: 480ms; }
+.reveal-stagger > *:nth-child(8) { transition-delay: 560ms; }
+
+/* ── HeroBanner divider animation ───────────────────────────── */
+@keyframes scaleWidth {
+  from { transform: scaleX(0); opacity: 0; }
+  to   { transform: scaleX(1); opacity: 1; }
+}

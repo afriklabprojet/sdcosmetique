@@ -1,0 +1,233 @@
+'use client';
+
+import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import styles from '../static.module.css';
+import { fetchSiteConfigSection, DEFAULT_SITE_CONFIG, type LegalPage } from '@/lib/site-config';
+
+const SUBJECTS = [
+  'Question sur une commande',
+  'Conseil produit personnalisé',
+  'Service après-vente',
+  'Partenariat & Presse',
+  'Recrutement',
+  'Autre demande',
+];
+
+export default function ContactPage() {
+  const [form, setForm] = useState({ nom: '', email: '', sujet: SUBJECTS[0], message: '' });
+  const [sent, setSent] = useState(false);
+  const [legal, setLegal] = useState<LegalPage>(DEFAULT_SITE_CONFIG.legal_contact);
+  useEffect(() => {
+    fetchSiteConfigSection('legal_contact').then(v => v && setLegal(v)).catch(() => {});
+  }, []);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // TODO: brancher endpoint email (Resend/Supabase function)
+    console.log(form);
+    setSent(true);
+  };
+
+  return (
+    <div className={styles.page}>
+      <section className={styles.hero}>
+        <div className={styles.heroInner}>
+          <nav className={styles.crumbs}>
+            <Link href="/">Accueil</Link>
+            <span className={styles.sep}>›</span>
+            <span>Contact</span>
+          </nav>
+          <span className={styles.eyebrow}>{legal.eyebrow || 'Une question · une attention'}</span>
+          <h1 className={styles.title}>{legal.title || 'Parlons beauté.'}</h1>
+          <p className={styles.lede}>
+            {legal.lead || 'Notre équipe vous répond en moins de 24h ouvrées. Posez-nous votre question, nous sommes ravis de vous accompagner.'}
+          </p>
+          {legal.updatedAt ? <p className={styles.meta}>{legal.updatedAt}</p> : null}
+        </div>
+      </section>
+
+      <article className={styles.content} style={{ maxWidth: 1080 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.5fr) minmax(260px, 1fr)', gap: '3rem' }}>
+          {/* FORM */}
+          <div>
+            {!sent ? (
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                  <Field label="Nom complet" id="nom">
+                    <input
+                      id="nom"
+                      type="text"
+                      required
+                      value={form.nom}
+                      onChange={(e) => setForm({ ...form, nom: e.target.value })}
+                      style={inputStyle}
+                    />
+                  </Field>
+                  <Field label="Adresse e-mail" id="email">
+                    <input
+                      id="email"
+                      type="email"
+                      required
+                      value={form.email}
+                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                      style={inputStyle}
+                    />
+                  </Field>
+                </div>
+
+                <Field label="Sujet" id="sujet">
+                  <select
+                    id="sujet"
+                    value={form.sujet}
+                    onChange={(e) => setForm({ ...form, sujet: e.target.value })}
+                    style={{ ...inputStyle, cursor: 'pointer' }}
+                  >
+                    {SUBJECTS.map((s) => (
+                      <option key={s}>{s}</option>
+                    ))}
+                  </select>
+                </Field>
+
+                <Field label="Votre message" id="message">
+                  <textarea
+                    id="message"
+                    rows={6}
+                    required
+                    value={form.message}
+                    onChange={(e) => setForm({ ...form, message: e.target.value })}
+                    placeholder="Décrivez-nous votre demande en quelques lignes…"
+                    style={{ ...inputStyle, resize: 'vertical', minHeight: 140, fontFamily: 'inherit' }}
+                  />
+                </Field>
+
+                <button type="submit" style={submitStyle}>
+                  Envoyer le message
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
+                  </svg>
+                </button>
+
+                <p style={{ fontSize: '0.78rem', color: 'rgba(26,14,5,0.5)', margin: 0, lineHeight: 1.6 }}>
+                  En envoyant ce formulaire, vous acceptez notre{' '}
+                  <Link href="/confidentialite" style={{ color: '#8F5922' }}>politique de confidentialité</Link>.
+                </p>
+              </form>
+            ) : (
+              <div className={styles.callout} style={{ marginTop: 0 }}>
+                <p style={{ fontFamily: 'var(--font-playfair), Georgia, serif', fontSize: '1.2rem', color: '#1A0E05', marginBottom: '0.5rem' }}>
+                  Message envoyé avec succès.
+                </p>
+                <p>
+                  Merci <strong>{form.nom}</strong>, nous vous répondons à <strong>{form.email}</strong>{' '}
+                  sous 24h ouvrées.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* INFO SIDEBAR */}
+          <aside style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <InfoBlock
+              title="Service client"
+              items={[
+                { label: 'contact@sdcosmetique.com', href: 'mailto:contact@sdcosmetique.com' },
+                { label: '+221 33 869 42 18', href: 'tel:+221338694218' },
+                { label: 'Lun–Ven · 9h–18h GMT', muted: true },
+              ]}
+            />
+            <InfoBlock
+              title="Atelier Dakar"
+              items={[
+                { label: 'Route des Almadies', muted: true },
+                { label: 'BP 21850 · Dakar, Sénégal', muted: true },
+                { label: 'Mar–Sam · 10h–19h', muted: true },
+              ]}
+            />
+            <InfoBlock
+              title="Presse & Partenariats"
+              items={[
+                { label: 'presse@sdcosmetique.com', href: 'mailto:presse@sdcosmetique.com' },
+                { label: 'partenariats@sdcosmetique.com', href: 'mailto:partenariats@sdcosmetique.com' },
+              ]}
+            />
+          </aside>
+        </div>
+      </article>
+    </div>
+  );
+}
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  padding: '0.85rem 1rem',
+  fontSize: '0.95rem',
+  fontFamily: 'var(--font-inter), Inter, sans-serif',
+  color: '#1A0E05',
+  background: '#fff',
+  border: '1px solid rgba(143, 89, 34, 0.2)',
+  borderRadius: '8px',
+  outline: 'none',
+  transition: 'border-color 0.2s ease',
+};
+
+const submitStyle: React.CSSProperties = {
+  alignSelf: 'flex-start',
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 12,
+  background: '#8F5922',
+  color: '#fff',
+  border: 'none',
+  padding: '1rem 2rem',
+  borderRadius: '10px',
+  fontFamily: 'var(--font-inter), Inter, sans-serif',
+  fontSize: '0.78rem',
+  fontWeight: 600,
+  letterSpacing: '0.18em',
+  textTransform: 'uppercase',
+  cursor: 'pointer',
+  transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+  boxShadow: '0 4px 14px rgba(143, 89, 34, 0.3)',
+};
+
+function Field({ label, id, children }: { label: string; id: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <label htmlFor={id} style={{ fontSize: '0.78rem', fontWeight: 500, color: '#1A0E05', letterSpacing: '0.04em' }}>
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+function InfoBlock({
+  title,
+  items,
+}: {
+  title: string;
+  items: { label: string; href?: string; muted?: boolean }[];
+}) {
+  return (
+    <div style={{ background: '#FAF6EE', borderRadius: 12, padding: '1.5rem 1.5rem' }}>
+      <p style={{ fontSize: '0.7rem', letterSpacing: '0.22em', textTransform: 'uppercase', color: '#8F5922', fontWeight: 600, margin: '0 0 0.75rem' }}>
+        {title}
+      </p>
+      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {items.map((item) => (
+          <li key={item.label} style={{ fontSize: '0.9rem', color: item.muted ? 'rgba(26,14,5,0.6)' : '#1A0E05' }}>
+            {item.href ? (
+              <a href={item.href} style={{ color: '#1A0E05', textDecoration: 'none', borderBottom: '1px solid rgba(143,89,34,0.3)' }}>
+                {item.label}
+              </a>
+            ) : (
+              item.label
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}

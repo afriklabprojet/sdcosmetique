@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<title>V1 — Éditeur simple, une section à la fois</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0D0906;color:#E8DDD0;min-height:100vh;}
+
+/* ── TOP NAV ── */
+.topnav{background:#14100C;border-bottom:1px solid #2E2218;padding:0 24px;display:flex;align-items:center;gap:0;height:56px;}
+.topnav-back{display:flex;align-items:center;gap:7px;font-size:12px;color:#6B5840;cursor:pointer;padding:0 14px 0 0;border-right:1px solid #2E2218;margin-right:14px;}
+.topnav-back:hover{color:#C8974A;}
+.topnav h1{font-size:14px;font-weight:700;color:#F7EFE5;}
+.topnav-sub{font-size:12px;color:#6B5840;margin-left:5px;}
+
+/* ── SECTION PILLS ── */
+.pills-bar{background:#14100C;border-bottom:1px solid #2E2218;padding:0 24px;display:flex;gap:8px;align-items:center;height:52px;overflow-x:auto;}
+.pill{display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid transparent;white-space:nowrap;transition:all .15s;}
+.pill .pico{font-size:14px;}
+.pill:hover{background:#1C1610;}
+.pill.active{background:#2A1A0A;border-color:#3D2E1A;color:#C8974A;}
+.pill.done::after{content:'✓';font-size:10px;color:#6EE7B7;margin-left:2px;}
+.pill.unsaved::after{content:'●';font-size:8px;color:#FCD34D;margin-left:2px;}
+
+/* ── MAIN CONTENT ── */
+.main{max-width:640px;margin:0 auto;padding:32px 24px;}
+
+/* Section intro */
+.sec-intro{display:flex;align-items:flex-start;gap:14px;margin-bottom:28px;}
+.sec-emoji{width:52px;height:52px;background:#1C1610;border:1px solid #2E2218;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+.sec-intro-text h2{font-size:20px;font-weight:800;color:#F7EFE5;letter-spacing:-.01em;}
+.sec-intro-text p{font-size:13px;color:#A8957E;margin-top:4px;line-height:1.5;}
+
+/* ── FORM ── */
+.card{background:#14100C;border:1px solid #2E2218;border-radius:12px;padding:22px;margin-bottom:16px;}
+.card-title{font-size:11px;font-weight:700;color:#6B5840;text-transform:uppercase;letter-spacing:.1em;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.card-title::after{content:'';flex:1;height:1px;background:#2E2218;}
+
+.field{display:flex;flex-direction:column;gap:7px;margin-bottom:18px;}
+.field:last-child{margin-bottom:0;}
+.field label{font-size:13px;font-weight:600;color:#E8DDD0;}
+.field .field-desc{font-size:12px;color:#6B5840;line-height:1.5;}
+.field input,.field textarea{
+  background:#0D0906;border:1px solid #2E2218;border-radius:9px;
+  padding:12px 14px;color:#E8DDD0;font-size:14px;outline:none;
+  transition:border-color .15s,box-shadow .15s;font-family:inherit;width:100%;
+}
+.field input:focus,.field textarea:focus{border-color:#C8974A;box-shadow:0 0 0 3px rgba(200,151,74,.08);}
+.field textarea{resize:vertical;min-height:88px;}
+.field input::placeholder,.field textarea::placeholder{color:#3D2E1A;}
+
+/* PAGE SELECTOR */
+.page-select{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.page-opt{padding:10px 8px;background:#0D0906;border:1px solid #2E2218;border-radius:8px;text-align:center;font-size:12px;color:#A8957E;cursor:pointer;transition:all .15s;}
+.page-opt:hover{border-color:#3D2E1A;color:#E8DDD0;}
+.page-opt.selected{background:#2A1A0A;border-color:#C8974A;color:#C8974A;font-weight:700;}
+.page-opt .page-icon{font-size:18px;display:block;margin-bottom:4px;}
+
+/* IMAGE UPLOAD */
+.img-zone{border:2px dashed #3D2E1A;border-radius:12px;background:#0D0906;padding:32px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;transition:all .15s;}
+.img-zone:hover{border-color:#C8974A;background:#14100C;}
+.img-zone .upload-big{font-size:36px;}
+.img-zone .upload-cta{font-size:14px;font-weight:600;color:#C8974A;}
+.img-zone .upload-sub{font-size:12px;color:#6B5840;}
+
+/* ── SAVE FOOTER ── */
+.save-footer{background:#14100C;border:1px solid #2E2218;border-radius:12px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;bottom:24px;}
+.save-status{display:flex;align-items:center;gap:8px;}
+.save-status .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.save-status .dot.ok{background:#6EE7B7;}
+.save-status .dot.warn{background:#FCD34D;animation:p 1.4s infinite;}
+@keyframes p{0%,100%{opacity:1;}50%{opacity:.3;}}
+.save-status .save-text{font-size:12px;color:#A8957E;}
+.save-btn{padding:11px 22px;background:#D4A25A;color:#0D0906;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;}
+.save-btn:hover{background:#C8974A;}
+.next-btn{padding:11px 22px;background:transparent;color:#6B5840;border:1px solid #2E2218;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;margin-left:8px;}
+.next-btn:hover{color:#A8957E;border-color:#3D2E1A;}
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<div class="topnav">
+  <div class="topnav-back">← Retour</div>
+  <h1>Modifier le contenu du site</h1>
+</div>
+
+<!-- SECTION PILLS -->
+<div class="pills-bar">
+  <div class="pill done"><span class="pico">📢</span>Bandeau haut</div>
+  <div class="pill active unsaved"><span class="pico">🖼</span>Page d'accueil</div>
+  <div class="pill"><span class="pico">✅</span>Rassurance</div>
+  <div class="pill done"><span class="pico">💬</span>Avis clients</div>
+  <div class="pill"><span class="pico">💳</span>Paiement</div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- INTRO -->
+  <div class="sec-intro">
+    <div class="sec-emoji">🖼</div>
+    <div class="sec-intro-text">
+      <h2>Page d'accueil</h2>
+      <p>Ce que voient vos visiteurs en arrivant sur votre site. Modifiez le titre, le texte et la photo principale.</p>
+    </div>
+  </div>
+
+  <!-- CARD : Titre et texte -->
+  <div class="card">
+    <div class="card-title">Le grand titre</div>
+
+    <div class="field">
+      <label>Titre principal</label>
+      <div class="field-desc">Le texte en grand que voient vos visiteurs en premier.</div>
+      <input type="text" value="Révélez votre éclat naturel" placeholder="Ex : Sublimez votre beauté naturelle" />
+    </div>
+
+    <div class="field">
+      <label>Mot(s) mis en valeur <span style="color:#6B5840;font-weight:400;font-size:12px;">— s'affichent en doré</span></label>
+      <input type="text" value="avec SD Cosmétique" placeholder="Ex : SD Cosmétique" />
+    </div>
+
+    <div class="field">
+      <label>Texte sous le titre</label>
+      <div class="field-desc">Une ou deux phrases pour présenter votre marque.</div>
+      <textarea placeholder="Décrivez votre marque en quelques mots...">Des soins formulés pour sublimer votre beauté naturelle, adaptés à toutes les teintes de peau africaine.</textarea>
+    </div>
+  </div>
+
+  <!-- CARD : Bouton -->
+  <div class="card">
+    <div class="card-title">Le bouton principal</div>
+
+    <div class="field">
+      <label>Texte du bouton</label>
+      <input type="text" value="Découvrir la boutique" placeholder="Ex : Voir nos produits" />
+    </div>
+
+    <div class="field">
+      <label>Où ce bouton mène-t-il ?</label>
+      <div class="field-desc">Choisissez la page qui s'ouvrira quand on clique.</div>
+      <div class="page-select">
+        <div class="page-opt selected"><span class="page-icon">🛍</span>Boutique</div>
+        <div class="page-opt"><span class="page-icon">✨</span>Nouveautés</div>
+        <div class="page-opt"><span class="page-icon">🏆</span>Bestsellers</div>
+        <div class="page-opt"><span class="page-icon">💆</span>Visage</div>
+        <div class="page-opt"><span class="page-icon">🧴</span>Corps</div>
+        <div class="page-opt"><span class="page-icon">📞</span>Contact</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD : Photo -->
+  <div class="card">
+    <div class="card-title">La photo principale</div>
+    <div class="field">
+      <label>Photo de la bannière</label>
+      <div class="field-desc">Choisissez une belle photo pour la section d'accueil. Idéalement une femme avec une belle peau.</div>
+      <div class="img-zone">
+        <span class="upload-big">📸</span>
+        <span class="upload-cta">Cliquez pour changer la photo</span>
+        <span class="upload-sub">ou faites glisser votre image ici</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="save-footer">
+    <div class="save-status">
+      <div class="dot warn"></div>
+      <div class="save-text">Vous avez des modifications non enregistrées</div>
+    </div>
+    <div style="display:flex;gap:0;">
+      <button class="next-btn">Passer à la suite →</button>
+      <button class="save-btn">✓ Enregistrer</button>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
