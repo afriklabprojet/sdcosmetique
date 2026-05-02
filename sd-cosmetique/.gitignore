@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Fichiers de test temporaires
+test-*.js
+test-*.sh
+*test-screenshot.png
+tests-results*.txt
+validate-*.js
+test-results/
+playwright-report/
+*.spec.js.map
