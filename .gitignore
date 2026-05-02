@@ -49,3 +49,8 @@ validate-*.js
 test-results/
 playwright-report/
 *.spec.js.map
+
+# Fichiers de configuration privés
+AGENTS.md
+CLAUDE.md
+DESIGN.md
