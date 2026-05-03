@@ -803,7 +803,7 @@ function DashboardTab({
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', height: '100px' }}>
             {last7Days.map((d, i) => (
-              <div key={`chart-bar-${i}`} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+              <div key={`chart-bar-${d.label}-${i}`} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
                 <div style={{ width: '100%', height: `${(() => {
                   if (maxDay <= 0) return '2px';
                   const ratio = d.value / maxDay;
@@ -1281,7 +1281,7 @@ export default function AdminPage() {
     <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
       <p className="text-sm font-semibold" style={{ color: GOLD }}>✅ Barre de confiance (5 items)</p>
       {siteContent.trust_items.map((item, i: number) => (
-        <label key={`trust-item-${i}`} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <label key={`trust-item-${i}-${item.label.slice(0, 12)}`} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <span className="text-xs" style={{ color: TEXT2 }}>Item {i + 1}</span>
           <textarea value={item.label} rows={2} onChange={e => setSiteContent((c) => ({ ...c, trust_items: c.trust_items.map((it, j: number) => j === i ? { ...it, label: e.target.value } : it) }))}
             style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '13px', resize: 'vertical', outline: 'none' }} />
@@ -1359,7 +1359,7 @@ export default function AdminPage() {
             ] as [keyof typeof f, string][]).map(([key, label]) => (
               <label key={String(key)} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 <span className="text-xs" style={{ color: TEXT2 }}>{label}</span>
-                <input value={f[key] as string} onChange={e => setSiteContent((c) => ({ ...c, hero: { ...c.hero, [key]: e.target.value } }))}
+                <input value={f[key]} onChange={e => setSiteContent((c) => ({ ...c, hero: { ...c.hero, [key]: e.target.value } }))}
                   style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '13px', outline: 'none' }} />
               </label>
             ))}
@@ -1840,11 +1840,11 @@ export default function AdminPage() {
                       </div>
                       <div className="flex items-center gap-3">
                         <label htmlFor="category-visible" className="text-xs" style={{ color: TEXT_M }}>Visible (actif)</label>
-                        <input type="checkbox" checked={catModal.active ?? true} onChange={e => setCatModal(prev => prev ? { ...prev, active: e.target.checked } : prev)} />
+                        <input id="category-visible" type="checkbox" checked={catModal.active ?? true} onChange={e => setCatModal(prev => prev ? { ...prev, active: e.target.checked } : prev)} />
                       </div>
                       {catModal.image && (
                         <div>
-                          <label className="text-xs block mb-1" style={{ color: TEXT_M }}>Aperçu</label>
+                          <p className="text-xs block mb-1" style={{ color: TEXT_M }}>Aperçu</p>
                           <Image src={catModal.image} alt="" width={60} height={60} style={{  objectFit: 'cover', borderRadius: '50%', border: `1px solid ${BORDER}`  }} />
                         </div>
                       )}
@@ -2043,8 +2043,9 @@ export default function AdminPage() {
                       {/* ID — seulement pour les nouveaux */}
                       {quizModal.data._isNew && (
                         <div>
-                          <label className="text-xs block mb-1" style={{ color: TEXT_M }}>ID unique (ex: taches, eclat) *</label>
+                          <label htmlFor="quiz-modal-id" className="text-xs block mb-1" style={{ color: TEXT_M }}>ID unique (ex: taches, eclat) *</label>
                           <input
+                            id="quiz-modal-id"
                             type="text"
                             value={quizModal.data.id ?? ''}
                             onChange={e => setQuizModal(prev => prev ? { ...prev, data: { ...prev.data, id: e.target.value.toLowerCase().replaceAll(/\s+/g, '_') } } : prev)}
@@ -2070,8 +2071,9 @@ export default function AdminPage() {
                         </div>
                       ))}
                       <div className="flex items-center gap-3">
-                        <label className="text-xs" style={{ color: TEXT_M }}>Actif</label>
+                        <label htmlFor="quiz-modal-active" className="text-xs" style={{ color: TEXT_M }}>Actif</label>
                         <input
+                          id="quiz-modal-active"
                           type="checkbox"
                           checked={quizModal.data.active ?? true}
                           onChange={e => setQuizModal(prev => prev ? { ...prev, data: { ...prev.data, active: e.target.checked } } : prev)}
@@ -2260,14 +2262,18 @@ export default function AdminPage() {
                         <span style={{ fontSize: '13px', fontWeight: 700, color: GOLD }}>Option #{idx + 1}</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                           {/* Toggle active */}
-                          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '11px', color: opt.active ? S_OK_T : TEXT3 }}>
-                            <div
-                              onClick={() => updateOpt(opt.id, { active: !opt.active })}
-                              style={{ width: '34px', height: '18px', borderRadius: '99px', background: opt.active ? S_OK_BG : BORDER, position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
+                          <button
+                            type="button"
+                            role="switch"
+                            aria-checked={opt.active}
+                            onClick={() => updateOpt(opt.id, { active: !opt.active })}
+                            onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); updateOpt(opt.id, { active: !opt.active }); } }}
+                            style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '11px', color: opt.active ? S_OK_T : TEXT3, background: 'none', border: 'none', padding: 0 }}>
+                            <div style={{ width: '34px', height: '18px', borderRadius: '99px', background: opt.active ? S_OK_BG : BORDER, position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
                               <div style={{ position: 'absolute', top: '2px', left: opt.active ? '18px' : '2px', width: '14px', height: '14px', borderRadius: '50%', background: opt.active ? S_OK_T : TEXT3, transition: 'left 0.2s' }} />
                             </div>
                             {opt.active ? 'Active' : 'Inactive'}
-                          </label>
+                          </button>
                           {/* Delete */}
                           <button onClick={() => removeOpt(opt.id)} style={{ fontSize: '11px', color: '#DC2626', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 8px', borderRadius: '4px' }}>
                             Supprimer
@@ -2360,7 +2366,7 @@ export default function AdminPage() {
                   <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
                     <p className="text-sm font-semibold" style={{ color: GOLD }}>💬 Témoignages (page d&apos;accueil)</p>
                     {siteContent.testimonials_home.map((t, i: number) => (
-                      <div key={i} style={{ background: BG, borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <div key={`testimonial-home-${t.name.slice(0,12)}-${t.text.slice(0,8)}`} style={{ background: BG, borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         <p className="text-xs font-semibold" style={{ color: TEXT2 }}>Témoignage {i + 1}</p>
                         <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                           <span className="text-xs" style={{ color: TEXT3 }}>Nom</span>
@@ -2417,7 +2423,7 @@ export default function AdminPage() {
                 };
                 const save = async () => {
                   setContentSaving(s => ({ ...s, [key]: true }));
-                  await saveSiteConfigSection(key, siteContent[key] as SiteConfig[typeof key]);
+                  await saveSiteConfigSection(key, siteContent[key]);
                   setContentSaving(s => ({ ...s, [key]: false }));
                   setContentSaved(s => ({ ...s, [key]: true }));
                   setTimeout(() => setContentSaved(s => ({ ...s, [key]: false })), 2500);
@@ -2454,7 +2460,7 @@ export default function AdminPage() {
                     />
                     <button onClick={save} disabled={contentSaving[key]}
                       style={{ alignSelf: 'flex-end', background: contentSaved[key] ? S_SAVE_BG : GOLD2, color: contentSaved[key] ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                      {contentSaved[key] ? '✓ Sauvegardé' : contentSaving[key] ? '…' : '💾 Sauvegarder'}
+                      {getSaveButtonText(contentSaved[key], contentSaving[key])}
                     </button>
                   </div>
                 );
@@ -2492,7 +2498,7 @@ export default function AdminPage() {
                       <p className="text-xs" style={{ color: TEXT3 }}>Aucun code promo. Cliquez sur « + Nouveau code » pour en créer un.</p>
                     )}
                     {codes.map((c: PromoCode, i: number) => (
-                      <div key={i} style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <div key={c.code ? `code-${c.code}` : `code-idx-${i}`} style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr 1fr 1fr 1fr auto', gap: '8px', alignItems: 'end' }}>
                           <label style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                             <span className="text-xs" style={{ color: TEXT2 }}>Code</span>
@@ -2543,7 +2549,7 @@ export default function AdminPage() {
                     ))}
                     <button onClick={save} disabled={contentSaving.promo_codes}
                       style={{ alignSelf: 'flex-end', background: contentSaved.promo_codes ? S_SAVE_BG : GOLD2, color: contentSaved.promo_codes ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                      {contentSaved.promo_codes ? '✓ Sauvegardé' : contentSaving.promo_codes ? '…' : '💾 Sauvegarder'}
+                      {getSaveButtonText(contentSaved.promo_codes, contentSaving.promo_codes)}
                     </button>
                   </div>
                 );
@@ -2578,7 +2584,7 @@ export default function AdminPage() {
                     </div>
                     {faq.length === 0 && <p style={{ fontSize: '12px', color: TEXT3 }}>Aucune catégorie. Ajoutez-en une.</p>}
                     {faq.map((cat: typeof faq[number], ci: number) => (
-                      <div key={ci} style={{ background: SURFACE2, border: `1px solid ${BORDER2}`, borderRadius: '6px', padding: '12px' }}>
+                      <div key={`faq-cat-${ci}-${cat.cat.slice(0, 12)}`} style={{ background: SURFACE2, border: `1px solid ${BORDER2}`, borderRadius: '6px', padding: '12px' }}>
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '10px' }}>
                           <input value={cat.cat} onChange={e => updateCatTitle(ci, e.target.value)}
                             style={{ flex: 1, background: SURFACE, color: TEXT, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '7px 10px', fontSize: '12px', fontWeight: 600 }} />
@@ -2586,7 +2592,7 @@ export default function AdminPage() {
                           <button onClick={() => removeCat(ci)} style={{ background: 'transparent', color: S_ERR_T, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 10px', fontSize: '11px', cursor: 'pointer' }}>🗑</button>
                         </div>
                         {cat.items.map((it: {q: string; a: string}, qi: number) => (
-                          <div key={qi} style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '10px', borderTop: `1px solid ${BORDER2}` }}>
+                          <div key={`faq-item-${ci}-${qi}`} style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '10px', borderTop: `1px solid ${BORDER2}` }}>
                             <div style={{ display: 'flex', gap: '6px' }}>
                               <input placeholder="Question" value={it.q} onChange={e => updateItem(ci, qi, { q: e.target.value })}
                                 style={{ flex: 1, background: SURFACE, color: TEXT, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 9px', fontSize: '12px' }} />
@@ -2600,7 +2606,7 @@ export default function AdminPage() {
                     ))}
                     <button onClick={save} disabled={contentSaving.faq}
                       style={{ alignSelf: 'flex-end', background: contentSaved.faq ? S_SAVE_BG : GOLD2, color: contentSaved.faq ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                      {contentSaved.faq ? '✓ Sauvegardé' : contentSaving.faq ? '…' : '💾 Sauvegarder'}
+                      {getSaveButtonText(contentSaved.faq, contentSaving.faq)}
                     </button>
                   </div>
                 );
@@ -2621,8 +2627,7 @@ export default function AdminPage() {
                   <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     <h3 style={{ color: TEXT, fontSize: '14px', fontWeight: 700 }}>Newsletter — Affichage</h3>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: TEXT2 }}>
-                      <input type="checkbox" checked={n.enabled} onChange={e => update({ enabled: e.target.checked })} />
-                      Afficher le bloc newsletter
+                      <input type="checkbox" checked={n.enabled} onChange={e => update({ enabled: e.target.checked })} id="newsletter-enabled" />{' '}Afficher le bloc newsletter
                     </label>
                     {(['title', 'subtitle', 'ctaLabel', 'successMessage'] as const).map(k => (
                       <div key={k} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -2633,7 +2638,7 @@ export default function AdminPage() {
                     ))}
                     <button onClick={save} disabled={contentSaving.newsletter}
                       style={{ alignSelf: 'flex-end', background: contentSaved.newsletter ? S_SAVE_BG : GOLD2, color: contentSaved.newsletter ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                      {contentSaved.newsletter ? '✓ Sauvegardé' : contentSaving.newsletter ? '…' : '💾 Sauvegarder'}
+                      {getSaveButtonText(contentSaved.newsletter, contentSaving.newsletter)}
                     </button>
                   </div>
                 );
@@ -2687,7 +2692,7 @@ export default function AdminPage() {
                             </div>
                             <button onClick={save} disabled={contentSaving[key]}
                               style={{ alignSelf: 'flex-end', background: contentSaved[key] ? S_SAVE_BG : GOLD2, color: contentSaved[key] ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                              {contentSaved[key] ? '✓ Sauvegardé' : contentSaving[key] ? '…' : '💾 Sauvegarder'}
+                              {getSaveButtonText(contentSaved[key], contentSaving[key])}
                             </button>
                           </div>
                         </details>
@@ -2791,13 +2796,18 @@ export default function AdminPage() {
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <span style={{ fontSize: '13px', fontWeight: 700, color: GOLD }}>Bannière #{idx + 1}</span>
                           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '11px', color: b.active ? S_OK_T : TEXT3 }}>
-                              <div onClick={() => updBanner(b.id, { active: !b.active })}
-                                style={{ width: '34px', height: '18px', borderRadius: '99px', background: b.active ? S_OK_BG : BORDER, position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={b.active}
+                              onClick={() => updBanner(b.id, { active: !b.active })}
+                              onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); updBanner(b.id, { active: !b.active }); } }}
+                              style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '11px', color: b.active ? S_OK_T : TEXT3, background: 'none', border: 'none', padding: 0 }}>
+                              <div style={{ width: '34px', height: '18px', borderRadius: '99px', background: b.active ? S_OK_BG : BORDER, position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
                                 <div style={{ position: 'absolute', top: '2px', left: b.active ? '18px' : '2px', width: '14px', height: '14px', borderRadius: '50%', background: b.active ? S_OK_T : TEXT3, transition: 'left 0.2s' }} />
                               </div>
                               {b.active ? 'Active' : 'Inactive'}
-                            </label>
+                            </button>
                             <button onClick={() => delBanner(b.id)} style={{ fontSize: '11px', color: '#DC2626', background: 'none', border: 'none', cursor: 'pointer' }}>Supprimer</button>
                           </div>
                         </div>
@@ -2861,7 +2871,7 @@ export default function AdminPage() {
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                       <button onClick={saveMkt} disabled={contentSaving.marketing}
                         style={{ background: contentSaved.marketing ? S_SAVE_BG : GOLD2, color: contentSaved.marketing ? S_SAVE_T : BG, border: 'none', borderRadius: '8px', padding: '10px 24px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
-                        {contentSaved.marketing ? '✓ Sauvegardé' : contentSaving.marketing ? '…' : '💾 Sauvegarder'}
+                        {getSaveButtonText(contentSaved.marketing, contentSaving.marketing)}
                       </button>
                     </div>
                   </div>
@@ -2877,13 +2887,18 @@ export default function AdminPage() {
                       <p style={{ fontSize: '12px', color: TEXT3 }}>Affiché une seule fois au visiteur (flag localStorage) après le délai configuré. Utilisez un code promo existant pour inciter à l&apos;achat.</p>
                       <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                         {/* Toggle */}
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-                          <div onClick={() => updPopup({ enabled: !p.enabled })}
-                            style={{ width: '40px', height: '22px', borderRadius: '99px', background: p.enabled ? S_OK_BG : BORDER, position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={p.enabled}
+                          onClick={() => updPopup({ enabled: !p.enabled })}
+                          onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); updPopup({ enabled: !p.enabled }); } }}
+                          style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}>
+                          <div style={{ width: '40px', height: '22px', borderRadius: '99px', background: p.enabled ? S_OK_BG : BORDER, position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
                             <div style={{ position: 'absolute', top: '3px', left: p.enabled ? '20px' : '3px', width: '16px', height: '16px', borderRadius: '50%', background: p.enabled ? S_OK_T : TEXT3, transition: 'left 0.2s' }} />
                           </div>
                           <span style={{ fontSize: '13px', fontWeight: 600, color: p.enabled ? S_OK_T : TEXT2 }}>{p.enabled ? 'Pop-up activé' : 'Pop-up désactivé'}</span>
-                        </label>
+                        </button>
 
                         {([
                           ['title', 'Titre', 'Bienvenue chez SD Cosmétique'],
@@ -2927,7 +2942,7 @@ export default function AdminPage() {
                       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                         <button onClick={saveMkt} disabled={contentSaving.marketing}
                           style={{ background: contentSaved.marketing ? S_SAVE_BG : GOLD2, color: contentSaved.marketing ? S_SAVE_T : BG, border: 'none', borderRadius: '8px', padding: '10px 24px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
-                          {contentSaved.marketing ? '✓ Sauvegardé' : contentSaving.marketing ? '…' : '💾 Sauvegarder'}
+                          {getSaveButtonText(contentSaved.marketing, contentSaving.marketing)}
                         </button>
                       </div>
                     </div>
@@ -2939,17 +2954,22 @@ export default function AdminPage() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     <p style={{ fontSize: '12px', color: TEXT3 }}>Les codes s&apos;appliquent au checkout. Le client saisit le code et la réduction est calculée en temps réel.</p>
                     {promos.map((pc, i) => (
-                      <div key={i} style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div key={pc.code ? `promo-${pc.code}` : `promo-idx-${i}`} style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <span style={{ fontSize: '13px', fontWeight: 700, color: GOLD, letterSpacing: '0.08em' }}>{pc.code || `Code #${i + 1}`}</span>
                           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '11px', color: pc.active ? S_OK_T : TEXT3 }}>
-                              <div onClick={() => updPromo(i, { active: !pc.active })}
-                                style={{ width: '34px', height: '18px', borderRadius: '99px', background: pc.active ? S_OK_BG : BORDER, position: 'relative', cursor: 'pointer', flexShrink: 0 }}>
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={pc.active}
+                              onClick={() => updPromo(i, { active: !pc.active })}
+                              onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); updPromo(i, { active: !pc.active }); } }}
+                              style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '11px', color: pc.active ? S_OK_T : TEXT3, background: 'none', border: 'none', padding: 0 }}>
+                              <div style={{ width: '34px', height: '18px', borderRadius: '99px', background: pc.active ? S_OK_BG : BORDER, position: 'relative', flexShrink: 0 }}>
                                 <div style={{ position: 'absolute', top: '2px', left: pc.active ? '18px' : '2px', width: '14px', height: '14px', borderRadius: '50%', background: pc.active ? S_OK_T : TEXT3, transition: 'left 0.2s' }} />
                               </div>
                               {pc.active ? 'Actif' : 'Inactif'}
-                            </label>
+                            </button>
                             <button onClick={() => delPromo(i)} style={{ fontSize: '11px', color: '#DC2626', background: 'none', border: 'none', cursor: 'pointer' }}>Supprimer</button>
                           </div>
                         </div>
@@ -2993,7 +3013,7 @@ export default function AdminPage() {
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                       <button onClick={savePromos} disabled={contentSaving.promo_codes}
                         style={{ background: contentSaved.promo_codes ? S_SAVE_BG : GOLD2, color: contentSaved.promo_codes ? S_SAVE_T : BG, border: 'none', borderRadius: '8px', padding: '10px 24px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
-                        {contentSaved.promo_codes ? '✓ Sauvegardé' : contentSaving.promo_codes ? '…' : '💾 Sauvegarder'}
+                        {getSaveButtonText(contentSaved.promo_codes, contentSaving.promo_codes)}
                       </button>
                     </div>
                   </div>
@@ -3008,13 +3028,18 @@ export default function AdminPage() {
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <span style={{ fontSize: '13px', fontWeight: 700, color: GOLD }}>Règle #{idx + 1}</span>
                           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '11px', color: u.active ? S_OK_T : TEXT3 }}>
-                              <div onClick={() => updUpsell(u.id, { active: !u.active })}
-                                style={{ width: '34px', height: '18px', borderRadius: '99px', background: u.active ? S_OK_BG : BORDER, position: 'relative', cursor: 'pointer', flexShrink: 0 }}>
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={u.active}
+                              onClick={() => updUpsell(u.id, { active: !u.active })}
+                              onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); updUpsell(u.id, { active: !u.active }); } }}
+                              style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '11px', color: u.active ? S_OK_T : TEXT3, background: 'none', border: 'none', padding: 0 }}>
+                              <div style={{ width: '34px', height: '18px', borderRadius: '99px', background: u.active ? S_OK_BG : BORDER, position: 'relative', flexShrink: 0 }}>
                                 <div style={{ position: 'absolute', top: '2px', left: u.active ? '18px' : '2px', width: '14px', height: '14px', borderRadius: '50%', background: u.active ? S_OK_T : TEXT3, transition: 'left 0.2s' }} />
                               </div>
                               {u.active ? 'Active' : 'Inactive'}
-                            </label>
+                            </button>
                             <button onClick={() => delUpsell(u.id)} style={{ fontSize: '11px', color: '#DC2626', background: 'none', border: 'none', cursor: 'pointer' }}>Supprimer</button>
                           </div>
                         </div>
@@ -3045,7 +3070,7 @@ export default function AdminPage() {
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                       <button onClick={saveMkt} disabled={contentSaving.marketing}
                         style={{ background: contentSaved.marketing ? S_SAVE_BG : GOLD2, color: contentSaved.marketing ? S_SAVE_T : BG, border: 'none', borderRadius: '8px', padding: '10px 24px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
-                        {contentSaved.marketing ? '✓ Sauvegardé' : contentSaving.marketing ? '…' : '💾 Sauvegarder'}
+                        {getSaveButtonText(contentSaved.marketing, contentSaving.marketing)}
                       </button>
                     </div>
                   </div>
@@ -3139,7 +3164,7 @@ export default function AdminPage() {
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                       <button onClick={saveMkt} disabled={contentSaving.marketing}
                         style={{ background: contentSaved.marketing ? S_SAVE_BG : GOLD2, color: contentSaved.marketing ? S_SAVE_T : BG, border: 'none', borderRadius: '8px', padding: '10px 24px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
-                        {contentSaved.marketing ? '✓ Sauvegardé' : contentSaving.marketing ? '…' : '💾 Sauvegarder'}
+                        {getSaveButtonText(contentSaved.marketing, contentSaving.marketing)}
                       </button>
                     </div>
                   </div>
@@ -3178,12 +3203,15 @@ export default function AdminPage() {
 
                 {/* Sub-tab nav */}
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  {(['config', 'membres', 'transactions'] as const).map(st => (
+                  {(['config', 'membres', 'transactions'] as const).map(st => {
+                    const jekoTabLabel: Record<string, string> = { config: '⚙️ Configuration', membres: '👥 Membres', transactions: '📋 Transactions' };
+                    return (
                     <button key={st} onClick={() => setJekoSubTab(st)}
                       style={{ padding: '8px 18px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', border: `1px solid ${jekoSubTab === st ? GOLD : BORDER}`, background: jekoSubTab === st ? `${GOLD}22` : 'transparent', color: jekoSubTab === st ? GOLD : TEXT2, textTransform: 'capitalize' }}>
-                      {st === 'config' ? '⚙️ Configuration' : st === 'membres' ? '👥 Membres' : '📋 Transactions'}
+                      {jekoTabLabel[st]}
                     </button>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {/* ── CONFIG SUB-TAB ── */}
@@ -3220,12 +3248,12 @@ export default function AdminPage() {
                       <p style={{ color: GOLD, fontSize: '13px', fontWeight: 700, marginBottom: '16px' }}>🏆 Paliers</p>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {jekoTiersConf.map((t, i) => (
-                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', background: SURFACE2, borderRadius: '8px', border: `1px solid ${BORDER}` }}>
+                          <div key={`tier-${t.label}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', background: SURFACE2, borderRadius: '8px', border: `1px solid ${BORDER}` }}>
                             <span style={{ fontSize: '20px', width: '28px', textAlign: 'center' }}>{t.emoji}</span>
                             <div style={{ flex: 1 }}>
                               <p style={{ fontWeight: 700, color: TEXT, fontSize: '13px' }}>{t.label}</p>
                               <p style={{ color: TEXT3, fontSize: '11px' }}>
-                                {t.min} pts → {t.next !== null ? `${t.next} pts` : '∞'}
+                                {t.min} pts → {t.next === null ? '∞' : `${t.next} pts`}
                                 {i < jekoTiersConf.length - 1 && ` • prochain: ${jekoTiersConf[i + 1]?.label}`}
                               </p>
                             </div>
@@ -3246,7 +3274,7 @@ export default function AdminPage() {
                       <p style={{ color: GOLD, fontSize: '13px', fontWeight: 700, marginBottom: '16px' }}>🎁 Récompenses</p>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {jekoRewardsConf.map((r, i) => (
-                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', background: SURFACE2, borderRadius: '8px', border: `1px solid ${BORDER}` }}>
+                          <div key={`reward-${r.label}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', background: SURFACE2, borderRadius: '8px', border: `1px solid ${BORDER}` }}>
                             <span style={{ fontSize: '20px', width: '28px', textAlign: 'center' }}>{r.icon}</span>
                             <div style={{ flex: 1 }}>
                               <p style={{ fontWeight: 700, color: TEXT, fontSize: '13px' }}>{r.label}</p>
@@ -3340,7 +3368,7 @@ export default function AdminPage() {
                                         {jekoMemberTxns[m.id].slice(0, 8).map(tx => (
                                           <div key={tx.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px' }}>
                                             <span style={{ color: tx.points > 0 ? '#4ade80' : '#f87171', fontWeight: 700, minWidth: '50px' }}>
-                                              {tx.points > 0 ? '+' : ''}{tx.points}
+                                              {tx.points > 0 ? `+${tx.points}` : tx.points}
                                             </span>
                                             <span style={{ color: TEXT2 }}>{tx.label ?? tx.reason}</span>
                                             <span style={{ color: TEXT3, marginLeft: 'auto', fontSize: '10px' }}>
@@ -3392,7 +3420,7 @@ export default function AdminPage() {
                               {tx.user_id.slice(0, 8)}…
                             </td>
                             <td style={{ padding: '9px 14px', fontWeight: 800, fontSize: '13px', color: tx.points > 0 ? '#4ade80' : '#f87171' }}>
-                              {tx.points > 0 ? '+' : ''}{tx.points}
+                              {tx.points > 0 ? `+${tx.points}` : tx.points}
                             </td>
                             <td style={{ padding: '9px 14px' }}>
                               <span style={{ fontSize: '10px', padding: '2px 7px', borderRadius: '99px', background: SURFACE2, color: TEXT2, fontWeight: 600 }}>{tx.reason}</span>
@@ -3443,7 +3471,7 @@ export default function AdminPage() {
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {orderDetail.items.map((item, idx) => (
-                  <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: SURFACE2, borderRadius: '8px', padding: '10px' }}>
+                  <div key={`${item.product.id}-${idx}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: SURFACE2, borderRadius: '8px', padding: '10px' }}>
                     {item.product.images?.[0] && (
                       <Image src={item.product.images[0]} alt={item.product.name} width={42} height={42} style={{ objectFit: 'cover', borderRadius: '6px', flexShrink: 0 }} />
                     )}
@@ -3561,14 +3589,18 @@ export default function AdminPage() {
               <p style={{ color: GOLD, fontWeight: 700, fontSize: '14px' }}>Modifier le palier</p>
               <button onClick={() => setJekoTierEdit(null)} style={{ background: 'none', border: 'none', color: TEXT3, fontSize: '18px', cursor: 'pointer' }}>✕</button>
             </div>
-            {(['emoji', 'label', 'color', 'min', 'next'] as const).map(k => (
+            {(['emoji', 'label', 'color', 'min', 'next'] as const).map(k => {
+              const tierFieldLabel: Record<string, string> = { min: 'Points min', next: 'Points max (vide = ∞)' };
+              const fieldLabel = tierFieldLabel[k] ?? (k.charAt(0).toUpperCase() + k.slice(1));
+              return (
               <label key={k} style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                <span style={{ fontSize: '11px', color: TEXT2 }}>{k === 'min' ? 'Points min' : k === 'next' ? 'Points max (vide = ∞)' : k.charAt(0).toUpperCase() + k.slice(1)}</span>
+                <span style={{ fontSize: '11px', color: TEXT2 }}>{fieldLabel}</span>
                 <input type={k === 'min' || k === 'next' ? 'number' : 'text'} value={jekoTierEdit[k] ?? ''}
                   onChange={e => setJekoTierEdit(t => t ? { ...t, [k]: k === 'min' || k === 'next' ? (e.target.value ? Number.parseInt(e.target.value, 10) : null) : e.target.value } : t)}
                   style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '13px', outline: 'none' }} />
               </label>
-            ))}
+              );
+            })}
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '4px' }}>
               <button onClick={() => setJekoTierEdit(null)}
                 style={{ padding: '8px 16px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', border: `1px solid ${BORDER}`, background: 'transparent', color: TEXT2 }}>
@@ -3626,7 +3658,7 @@ export default function AdminPage() {
             <p style={{ color: TEXT, marginBottom: '8px', fontWeight: 600 }}>Supprimer ce produit ?</p>
             <p style={{ color: TEXT3, fontSize: '12px', marginBottom: '24px' }}>Cette action est irréversible.</p>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={() => handleDeleteProduct(confirmDelete!)} style={{ flex: 1, padding: '9px', borderRadius: '6px', background: S_ERR_BG, color: S_ERR_T, fontSize: '13px', fontWeight: 600, cursor: 'pointer', border: 'none' }}>Supprimer</button>
+              <button onClick={() => confirmDelete && handleDeleteProduct(confirmDelete)} style={{ flex: 1, padding: '9px', borderRadius: '6px', background: S_ERR_BG, color: S_ERR_T, fontSize: '13px', fontWeight: 600, cursor: 'pointer', border: 'none' }}>Supprimer</button>
               <button onClick={() => setConfirmDelete(null)} style={{ flex: 1, padding: '9px', borderRadius: '6px', background: SURFACE2, color: TEXT2, fontSize: '13px', cursor: 'pointer', border: 'none' }}>Annuler</button>
             </div>
           </div>
