@@ -214,9 +214,9 @@ function ProductEditModal({
           {(productModal.images ?? []).length === 0 && (
             <p style={{ fontSize: '11px', color: TEXT3, textAlign: 'center', padding: '10px 0' }}>Aucune image — cliquez + Ajouter (au moins 1 image requise)</p>
           )}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <ul aria-label="Images du produit — réordonnables" style={{ display: 'flex', flexDirection: 'column', gap: '10px', listStyle: 'none', margin: 0, padding: 0 }}>
             {(productModal.images ?? []).map((img: string, idx: number) => (
-              <div key={`product-img-${idx}-${img.slice(-10)}`}
+              <li key={`product-img-${idx}-${img.slice(-10)}`}
                 draggable
                 onDragStart={(e) => { e.dataTransfer.setData('text/img-idx', String(idx)); e.dataTransfer.effectAllowed = 'move'; }}
                 onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
@@ -232,8 +232,9 @@ function ProductEditModal({
                     return { ...p, images: imgs };
                   });
                 }}
+                aria-label={`Image ${idx + 1}${idx === 0 ? ' (principale)' : ''} — utilisez les flèches ↑↓ pour réordonner`}
                 style={{ position: 'relative', cursor: 'grab', border: `1px dashed ${BORDER}`, borderRadius: '8px', padding: '8px', background: SURFACE2 }}
-                title="Glissez pour réordonner"
+                title="Glissez ou utilisez ↑↓ pour réordonner"
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
                   <span style={{ color: TEXT3, fontSize: '14px', userSelect: 'none' }}>⋮⋮</span>
@@ -280,9 +281,9 @@ function ProductEditModal({
                   })}
                   style={{ position: 'absolute', top: 6, right: 6, background: S_ERR_BG, color: S_ERR_T, border: 'none', borderRadius: '4px', padding: '2px 7px', fontSize: '11px', cursor: 'pointer' }}
                 >✕ Supprimer</button>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
         <div>
           <fieldset>
@@ -3331,7 +3332,17 @@ export default function AdminPage() {
                                     setJekoMemberSearch(prev => prev);
                                     loadMemberTxns(m.id); // uses component-level loadMemberTxns
                                     setJekoMemberTxns(prev => ({ ...prev }));
-                                  }}>
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      e.preventDefault();
+                                      loadMemberTxns(m.id);
+                                      setJekoMemberTxns(prev => ({ ...prev }));
+                                    }
+                                  }}
+                                  tabIndex={0}
+                                  aria-expanded={!!jekoMemberTxns[m.id]}
+                                  aria-label={`Voir les transactions de ${[m.prenom, m.nom].filter(Boolean).join(' ') || m.email}`}>
                                   <td style={{ padding: '10px 14px', color: TEXT, fontSize: '13px', fontWeight: 600 }}>
                                     {[m.prenom, m.nom].filter(Boolean).join(' ') || '—'}
                                   </td>
@@ -3443,10 +3454,9 @@ export default function AdminPage() {
 
       {/* ─── ORDER DETAIL MODAL ─── */}
       {orderDetail && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex' }} onClick={() => setOrderDetail(null)}>
-          <div style={{ flex: 1, background: 'rgba(0,0,0,0.7)', cursor: 'pointer' }} />
-          <div style={{ width: '500px', background: SURFACE, borderLeft: `1px solid `, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}
-            onClick={e => e.stopPropagation()}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex' }}>
+          <button type="button" onClick={() => setOrderDetail(null)} aria-label="Fermer le détail de la commande" style={{ flex: 1, background: 'rgba(0,0,0,0.7)', cursor: 'pointer', border: 'none', padding: 0 }} />
+          <div style={{ width: '500px', background: SURFACE, borderLeft: `1px solid `, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
               <div>
                 <h2 style={{ color: GOLD, fontSize: '16px', fontWeight: 700 }}>{orderDetail.orderNumber}</h2>
@@ -3563,7 +3573,7 @@ export default function AdminPage() {
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: TEXT2, cursor: 'pointer' }}>
               <input type="checkbox" checked={jekoAdjModal.notify}
                 onChange={e => setJekoAdjModal(m => m ? { ...m, notify: e.target.checked } : m)}
-                style={{ accentColor: GOLD2 }} />
+                style={{ accentColor: GOLD2 }} />{' '}
               ✉ Notifier le client par email
             </label>
             {jekoAdjMsg && <p style={{ fontSize: '12px', color: jekoAdjMsg.ok ? '#4ade80' : '#f87171', fontWeight: 600 }}>{jekoAdjMsg.text}</p>}
@@ -3596,7 +3606,13 @@ export default function AdminPage() {
               <label key={k} style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                 <span style={{ fontSize: '11px', color: TEXT2 }}>{fieldLabel}</span>
                 <input type={k === 'min' || k === 'next' ? 'number' : 'text'} value={jekoTierEdit[k] ?? ''}
-                  onChange={e => setJekoTierEdit(t => t ? { ...t, [k]: k === 'min' || k === 'next' ? (e.target.value ? Number.parseInt(e.target.value, 10) : null) : e.target.value } : t)}
+                  onChange={e => setJekoTierEdit(t => {
+                    if (!t) return t;
+                    const parsed = (k === 'min' || k === 'next')
+                      ? (e.target.value ? Number.parseInt(e.target.value, 10) : null)
+                      : e.target.value;
+                    return { ...t, [k]: parsed };
+                  })}
                   style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '13px', outline: 'none' }} />
               </label>
               );
