@@ -71,18 +71,9 @@ export default function Footer() {
       }}>
         {/* Colonne logo */}
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-            <div style={{
-              width: 44, height: 44, borderRadius: '50%',
-              background: 'linear-gradient(135deg, #D4A24E, #8F5922)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: 'var(--font-playfair), Georgia, serif',
-              fontWeight: 700, color: '#3D1400', fontSize: '0.95rem',
-            }}>SD</div>
-            <div style={{
-              fontFamily: 'var(--font-playfair), Georgia, serif',
-              fontWeight: 700, fontSize: '0.95rem', letterSpacing: '0.04em',
-            }}>SD COSMETIQUE</div>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '14px' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.svg" alt="SD Cosmetique" style={{ height: 40, width: 'auto', filter: 'brightness(0) invert(1) sepia(1) saturate(2) hue-rotate(5deg)' }} />
           </div>
           <p style={{
             fontFamily: 'var(--font-inter), Inter, sans-serif',

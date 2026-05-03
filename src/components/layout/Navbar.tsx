@@ -96,50 +96,15 @@ export default function Navbar() {
         }}
       >
         {/* LOGO */}
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-          <div
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: '50%',
-              border: '2px solid #8F5922',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontFamily: 'var(--font-playfair), Georgia, serif',
-              color: '#8F5922',
-              fontSize: '1.2rem',
-              fontWeight: 600,
-              fontStyle: 'italic',
-            }}
-          >
-            <span style={{ marginRight: -4 }}>S</span>
-            <span style={{ marginLeft: -2 }}>D</span>
-          </div>
-          <div style={{ lineHeight: 1.1 }}>
-            <div
-              style={{
-                fontFamily: 'var(--font-playfair), Georgia, serif',
-                fontSize: '1.1rem',
-                fontWeight: 600,
-                color: '#8F5922',
-                letterSpacing: '0.06em',
-              }}
-            >
-              SD COSMETIQUE
-            </div>
-            <div
-              style={{
-                fontFamily: 'var(--font-inter), Inter, sans-serif',
-                fontSize: '0.55rem',
-                color: '#8F5922',
-                letterSpacing: '0.18em',
-                marginTop: 2,
-              }}
-            >
-              RÉVÉLEZ VOTRE ÉCLAT NATUREL
-            </div>
-          </div>
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+          <Image
+            src="/logo.svg"
+            alt="SD Cosmetique"
+            width={200}
+            height={52}
+            priority
+            style={{ height: 44, width: 'auto' }}
+          />
         </Link>
 
         {/* NAV */}

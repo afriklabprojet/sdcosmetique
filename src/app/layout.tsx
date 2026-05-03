@@ -24,15 +24,37 @@ const inter = Inter({
   display: 'swap',
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sdcosmetique.com';
+
 export const metadata: Metadata = {
-  title: "SD Cosmetique — Beauté Africaine de Prestige",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "SD Cosmetique — Beauté Africaine de Prestige",
+    template: "%s | SD Cosmetique",
+  },
   description: "Découvrez des soins cosmétiques haut de gamme formulés pour sublimer chaque carnation africaine. Sérum, crème, kits beauté et plus.",
-  keywords: "cosmétique africaine, soin peau noire, teint unifié, beauté inclusive, SD Cosmetique",
+  keywords: "cosmétique africaine, soin peau noire, teint unifié, beauté inclusive, SD Cosmetique, Côte d'Ivoire",
+  authors: [{ name: 'SD Cosmetique' }],
+  creator: 'SD Cosmetique',
+  publisher: 'SD Cosmetique',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true },
+  },
   openGraph: {
     title: "SD Cosmetique — Beauté Africaine de Prestige",
     description: "Des formules pensées pour sublimer votre éclat naturel.",
     type: "website",
     locale: "fr_FR",
+    url: SITE_URL,
+    siteName: "SD Cosmetique",
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "SD Cosmetique — Beauté Africaine de Prestige",
+    description: "Des formules pensées pour sublimer votre éclat naturel.",
+    creator: '@sdcosmetique',
   },
 };
 
