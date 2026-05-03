@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
@@ -10,7 +10,7 @@ import { formatPrice, PRODUCTS } from '@/lib/products';
 import { Product, Category, SkinTone, Review } from '@/types';
 import { fetchAllOrdersFromDB, updateOrderStatusInDB, updateProductInDB, fetchProductsFromDB, addProductToDB, deleteProductFromDB, fetchAllReviewsFromDB, deleteReviewFromDB, approveReviewInDB } from '@/lib/orders-db';
 import { DEFAULT_SITE_CONFIG } from '@/lib/site-config';
-import type { SiteConfig, PromoCode, ShippingOption, MarketingConfig, PromoBanner, WelcomePopup, UpsellRule } from '@/lib/site-config';
+import type { SiteConfig, PromoCode, ShippingOption, MarketingConfig, PromoBanner, WelcomePopup, UpsellRule, BrandingConfig } from '@/lib/site-config';
 import { saveSiteConfigSection } from './actions';
 import ImageUpload from '@/components/ui/ImageUpload';
 import { fetchAllTestimonialsAdmin, approveTestimonialInDB, deleteTestimonialFromDB } from '@/lib/testimonials-db';
@@ -33,7 +33,7 @@ import Pagination from '@/components/admin/Pagination';
 type OrderStatus = OrderDraft['status'];
 type ReviewRow = Review & { productId?: string };
 type ProductModalState = Partial<Product> & { _isNew?: boolean };
-type Tab = 'dashboard' | 'commandes' | 'produits' | 'avis' | 'temoignages' | 'categories' | 'quiz' | 'clients' | 'contenu' | 'jeko' | 'newsletter' | 'livraison' | 'marketing';
+type Tab = 'dashboard' | 'commandes' | 'produits' | 'avis' | 'temoignages' | 'categories' | 'quiz' | 'clients' | 'contenu' | 'jeko' | 'newsletter' | 'livraison' | 'marketing' | 'branding';
 type NewsletterSub = { id: string; email: string; source: string | null; unsubscribed: boolean; created_at: string };
 
 type ProductEditModalProps = {
@@ -938,8 +938,34 @@ const getNewsletterFilterText = (filter: string) => {
   return 'Désinscrits';
 };
 
+async function applySiteConfigRows(setSiteContent: (cfg: SiteConfig) => void) {
+  const { data: cfgRows } = await createClient().from('site_config').select('key, value');
+  if (cfgRows?.length) {
+    const cfg = structuredClone(DEFAULT_SITE_CONFIG) as SiteConfig;
+    for (const row of cfgRows) {
+      if (row.key in cfg) (cfg as Record<string, unknown>)[row.key] = row.value;
+    }
+    setSiteContent(cfg);
+  }
+}
 
-export default function AdminPage() {
+function fetchNewsletterSubs(setNewsletterSubs: (subs: NewsletterSub[]) => void) {
+  fetch('/api/newsletter/list')
+    .then(r => r.ok ? r.json() : { subscribers: [] })
+    .then((d: { subscribers?: NewsletterSub[] }) => setNewsletterSubs(d.subscribers ?? []))
+    .catch(() => setNewsletterSubs([]));
+}
+
+function loadEditableProducts(setEditableProducts: (p: Product[]) => void) {
+  fetchProductsFromDB().then(rows =>
+    setEditableProducts((rows ?? []).length > 0
+      ? (rows as Product[]).map(p => ({ ...p }))
+      : PRODUCTS.map(p => ({ ...p }))
+    )
+  );
+}
+
+export default function AdminPage() { // NOSONAR typescript:S3776
   const router = useRouter();
   const [tab, setTab] = useState<Tab>('dashboard');
   const [orders, setOrders] = useState<OrderDraft[]>([]);
@@ -1007,23 +1033,13 @@ export default function AdminPage() {
   const [newsletterSearch, setNewsletterSearch] = useState('');
   const [newsletterFilter, setNewsletterFilter] = useState<'all' | 'active' | 'unsubscribed'>('all');
 
-  const reloadNewsletter = () => {
-    fetch('/api/newsletter/list')
-      .then(r => r.ok ? r.json() : { subscribers: [] })
-      .then(d => setNewsletterSubs(d.subscribers ?? []))
-      .catch(() => setNewsletterSubs([]));
-  };
+  const reloadNewsletter = () => fetchNewsletterSubs(setNewsletterSubs);
 
-  const initAfterAuth = async (user: { email?: string | null }) => {
+  const initAfterAuth = useCallback(async (user: { email?: string | null }) => {
     setAuthChecked(true);
     setUserEmail(user.email ?? '');
     fetchAllOrdersFromDB().then(setOrders);
-    fetchProductsFromDB().then(rows =>
-      setEditableProducts((rows ?? []).length > 0
-        ? (rows as Product[]).map(p => ({ ...p }))
-        : PRODUCTS.map(p => ({ ...p }))
-      )
-    );
+    loadEditableProducts(setEditableProducts);
     fetchAllReviewsFromDB().then(rows => setReviews(rows as ReviewRow[]));
     fetchAllTestimonialsAdmin().then(setTestimonials);
     fetchAllCategoriesAdmin().then(setCategories);
@@ -1036,26 +1052,19 @@ export default function AdminPage() {
     getJekoMembers().then(setJekoMembers);
     getAllJekoTransactions().then(setJekoTxns);
     getJekoStats().then(setJekoStats);
-    createClient().from('site_config').select('key, value').then(({ data: cfgRows }) => {
-      if (cfgRows?.length) {
-        const cfg = structuredClone(DEFAULT_SITE_CONFIG) as SiteConfig;
-        for (const row of cfgRows) {
-          if (row.key in cfg) (cfg as Record<string, unknown>)[row.key] = row.value;
-        }
-        setSiteContent(cfg);
-      }
-    });
-  };
+    void applySiteConfigRows(setSiteContent);
+   
+  }, []);
 
   useEffect(() => {
     createClient().auth.getUser().then(({ data }) => {
-      if (!data.user) {
-        router.replace('/admin/login');
+      if (data.user) {
+        void initAfterAuth(data.user);
       } else {
-        initAfterAuth(data.user);
+        router.replace('/admin/login');
       }
     });
-  }, [router]);
+  }, [router, initAfterAuth]);
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -1493,6 +1502,7 @@ export default function AdminPage() {
               { id: 'marketing', label: 'Marketing',   icon: '📣', status: 'important' },
               { id: 'livraison', label: 'Livraison',  icon: '🚚', status: 'normal' },
               { id: 'contenu',   label: 'Contenu',    icon: '✏️', status: 'normal' },
+              { id: 'branding',  label: 'Branding',   icon: '🎨', status: 'normal' },
             ] as { id: Tab; label: string; icon: string; status: string }[]).map(item => {
               const isActive = tab === item.id;
               let bgColor = isActive ? 'linear-gradient(90deg, rgba(212,162,90,0.18) 0%, rgba(212,162,90,0.08) 100%)' : 'transparent';
@@ -2565,6 +2575,12 @@ export default function AdminPage() {
               {(() => {
                 const faq = siteContent.faq;
                 const save = async () => { await saveConfigSection('faq', faq); };
+                const handleFaqItemInput = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+                  updateFaqItem(Number(e.currentTarget.dataset.ci), Number(e.currentTarget.dataset.qi), { [e.currentTarget.dataset.field as 'q' | 'a']: e.currentTarget.value });
+                };
+                const handleFaqItemRemove = (e: React.MouseEvent<HTMLButtonElement>) => {
+                  removeFaqItem(Number(e.currentTarget.dataset.ci), Number(e.currentTarget.dataset.qi));
+                };
                 return (
                   <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -2583,11 +2599,11 @@ export default function AdminPage() {
                         {cat.items.map((it: {q: string; a: string}, qi: number) => (
                           <div key={`faq-item-${ci}-${qi}`} style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '10px', borderTop: `1px solid ${BORDER2}` }}>
                             <div style={{ display: 'flex', gap: '6px' }}>
-                              <input placeholder="Question" value={it.q} onChange={e => updateFaqItem(ci, qi, { q: e.target.value })}
+                              <input placeholder="Question" value={it.q} data-ci={ci} data-qi={qi} data-field="q" onChange={handleFaqItemInput}
                                 style={{ flex: 1, background: SURFACE, color: TEXT, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 9px', fontSize: '12px' }} />
-                              <button onClick={() => removeFaqItem(ci, qi)} style={{ background: 'transparent', color: S_ERR_T, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '4px 8px', fontSize: '10px', cursor: 'pointer' }}>×</button>
+                              <button data-ci={ci} data-qi={qi} onClick={handleFaqItemRemove} style={{ background: 'transparent', color: S_ERR_T, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '4px 8px', fontSize: '10px', cursor: 'pointer' }}>×</button>
                             </div>
-                            <textarea placeholder="Réponse" value={it.a} onChange={e => updateFaqItem(ci, qi, { a: e.target.value })} rows={3}
+                            <textarea placeholder="Réponse" value={it.a} data-ci={ci} data-qi={qi} data-field="a" onChange={handleFaqItemInput} rows={3}
                               style={{ width: '100%', background: SURFACE, color: TEXT, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 9px', fontSize: '12px', resize: 'vertical', fontFamily: 'inherit' }} />
                           </div>
                         ))}
@@ -2643,14 +2659,10 @@ export default function AdminPage() {
                     </p>
                     {KEYS.map(({ key, label, slug }) => {
                       const lp = siteContent[key];
-                      const update = (patch: Partial<typeof lp>) => setSiteContent((c: SiteConfig) => ({ ...c, [key]: { ...c[key], ...patch } }));
-                      const save = async () => {
-                        setContentSaving(s => ({ ...s, [key]: true }));
-                        await saveSiteConfigSection(key, lp);
-                        setContentSaving(s => ({ ...s, [key]: false }));
-                        setContentSaved(s => ({ ...s, [key]: true }));
-                        setTimeout(() => setContentSaved(s => ({ ...s, [key]: false })), 2500);
-                      };
+                      const update = (patch: Partial<typeof lp>) => setSiteContent({ ...siteContent, [key]: { ...siteContent[key], ...patch } } as SiteConfig);
+                      const save = () => saveConfigSection(key, lp);
+                      const handleLpField = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                        update({ [e.currentTarget.dataset.k as string]: e.currentTarget.value } as Partial<typeof lp>);
                       return (
                         <details key={key} style={{ border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '10px 12px', background: SURFACE2 }}>
                           <summary style={{ cursor: 'pointer', color: GOLD, fontSize: '12px', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
@@ -2664,7 +2676,7 @@ export default function AdminPage() {
                             {(['eyebrow', 'title', 'lead', 'updatedAt'] as const).map(k => (
                               <div key={k} style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                                 <span style={{ fontSize: '10px', color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{k}</span>
-                                <input value={lp[k] ?? ''} onChange={e => update({ [k]: e.target.value } as Partial<typeof lp>)}
+                                <input value={lp[k] ?? ''} data-k={k} onChange={handleLpField}
                                   style={{ background: SURFACE, color: TEXT, border: `1px solid ${BORDER2}`, borderRadius: '4px', padding: '7px 10px', fontSize: '12px' }} />
                               </div>
                             ))}
@@ -2696,6 +2708,145 @@ export default function AdminPage() {
             </div>
           )}
 
+          {/* ─── BRANDING TAB ─── */}
+          {tab === 'branding' && (() => {
+            const DEFAULT_BR: BrandingConfig = {
+              siteName: 'SD Cosmetique', tagline: 'Beauté Africaine de Prestige',
+              description: 'Soins premium formulés pour les peaux mélanisées.',
+              seoTitle: 'SD Cosmetique — Beauté Africaine de Prestige',
+              seoDescription: "Soins premium pour peaux mélanisées. Livraison rapide en Côte d'Ivoire.",
+              ogTitle: 'SD Cosmetique — Beauté Africaine de Prestige',
+              ogDescription: 'Révélez la beauté naturelle de votre teint avec nos soins exclusifs.',
+              twitterHandle: '@sdcosmetique', themeColor: '#8F5922',
+              instagramUrl: '', tiktokUrl: '', facebookUrl: '', youtubeUrl: '', linkedinUrl: '',
+            };
+            const br: BrandingConfig = siteContent.branding ?? DEFAULT_BR;
+            const save = async () => { await saveConfigSection('branding', siteContent.branding ?? DEFAULT_BR); };
+            const update = (patch: Partial<BrandingConfig>) =>
+              setSiteContent((c: SiteConfig) => ({ ...c, branding: { ...(c.branding ?? DEFAULT_BR), ...patch } }));
+
+            const fieldStyle = { background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '13px', outline: 'none', width: '100%', boxSizing: 'border-box' as const };
+            const labelStyle = { fontSize: '11px', color: TEXT2, marginBottom: '5px', display: 'block' as const };
+            const sectionCard = { background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '20px 22px', marginBottom: '16px' };
+            const sectionTitle = { fontSize: '13px', fontWeight: 700, color: GOLD, marginBottom: '16px' };
+            const grid2 = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' };
+
+            return (
+              <div style={{ maxWidth: '760px' }}>
+                {/* Header */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+                  <div>
+                    <h2 style={{ fontSize: '20px', fontWeight: 700, color: TEXT, margin: 0 }}>🎨 Branding & Identité</h2>
+                    <p style={{ fontSize: '12px', color: TEXT2, marginTop: '4px' }}>Nom du site, SEO, réseaux sociaux et couleurs.</p>
+                  </div>
+                  <button onClick={save} disabled={contentSaving.branding}
+                    style={{ padding: '10px 22px', borderRadius: '8px', border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer', background: contentSaved.branding ? S_SAVE_BG : GOLD2, color: contentSaved.branding ? S_SAVE_T : BG }}>
+                    {getSaveButtonText(contentSaved.branding, contentSaving.branding)}
+                  </button>
+                </div>
+
+                {/* Identité */}
+                <div style={sectionCard}>
+                  <p style={sectionTitle}>🏷️ Identité du site</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <label>
+                      <span style={labelStyle}>Nom du site</span>
+                      <input type="text" value={br.siteName} onChange={e => update({ siteName: e.target.value })} style={fieldStyle} placeholder="SD Cosmetique" />
+                    </label>
+                    <label>
+                      <span style={labelStyle}>Tagline</span>
+                      <input type="text" value={br.tagline} onChange={e => update({ tagline: e.target.value })} style={fieldStyle} placeholder="Beauté Africaine de Prestige" />
+                    </label>
+                    <label>
+                      <span style={labelStyle}>Description (meta description par défaut)</span>
+                      <textarea value={br.description} onChange={e => update({ description: e.target.value })}
+                        style={{ ...fieldStyle, minHeight: '72px', resize: 'vertical' }} placeholder="Soins premium formulés pour les peaux mélanisées..." />
+                    </label>
+                  </div>
+                </div>
+
+                {/* SEO */}
+                <div style={sectionCard}>
+                  <p style={sectionTitle}>🔍 SEO</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <label>
+                      <span style={labelStyle}>Titre SEO (balise &lt;title&gt; de l&apos;accueil)</span>
+                      <input type="text" value={br.seoTitle} onChange={e => update({ seoTitle: e.target.value })} style={fieldStyle} />
+                      <span style={{ fontSize: '10px', color: TEXT3, marginTop: '3px', display: 'block' }}>{br.seoTitle.length}/70 caractères recommandés</span>
+                    </label>
+                    <label>
+                      <span style={labelStyle}>Meta description SEO</span>
+                      <textarea value={br.seoDescription} onChange={e => update({ seoDescription: e.target.value })}
+                        style={{ ...fieldStyle, minHeight: '72px', resize: 'vertical' }} />
+                      <span style={{ fontSize: '10px', color: TEXT3, marginTop: '3px', display: 'block' }}>{br.seoDescription.length}/160 caractères recommandés</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Open Graph */}
+                <div style={sectionCard}>
+                  <p style={sectionTitle}>📢 Partage social (Open Graph)</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <label>
+                      <span style={labelStyle}>Titre OG (aperçu lors du partage d&apos;un lien)</span>
+                      <input type="text" value={br.ogTitle} onChange={e => update({ ogTitle: e.target.value })} style={fieldStyle} />
+                    </label>
+                    <label>
+                      <span style={labelStyle}>Description OG</span>
+                      <textarea value={br.ogDescription} onChange={e => update({ ogDescription: e.target.value })}
+                        style={{ ...fieldStyle, minHeight: '60px', resize: 'vertical' }} />
+                    </label>
+                    <label>
+                      <span style={labelStyle}>Handle Twitter / X (ex : @sdcosmetique)</span>
+                      <input type="text" value={br.twitterHandle} onChange={e => update({ twitterHandle: e.target.value })} style={fieldStyle} placeholder="@sdcosmetique" />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Couleur */}
+                <div style={sectionCard}>
+                  <p style={sectionTitle}>🎨 Couleur de marque</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <input type="color" value={br.themeColor} onChange={e => update({ themeColor: e.target.value })}
+                      style={{ width: '48px', height: '40px', borderRadius: '8px', border: `1px solid ${BORDER}`, background: 'transparent', cursor: 'pointer', padding: '2px' }} />
+                    <input type="text" value={br.themeColor} onChange={e => update({ themeColor: e.target.value })}
+                      style={{ ...fieldStyle, maxWidth: '120px' }} placeholder="#8F5922" />
+                    <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: br.themeColor, border: `1px solid ${BORDER}`, flexShrink: 0 }} />
+                    <span style={{ fontSize: '11px', color: TEXT3 }}>Utilisée pour le manifeste PWA et les meta `theme-color`.</span>
+                  </div>
+                </div>
+
+                {/* Réseaux sociaux */}
+                <div style={sectionCard}>
+                  <p style={sectionTitle}>🌐 Liens réseaux sociaux</p>
+                  <div style={grid2}>
+                    {([
+                      { key: 'instagramUrl', label: 'Instagram', placeholder: 'https://instagram.com/sdcosmetique' },
+                      { key: 'tiktokUrl',    label: 'TikTok',    placeholder: 'https://tiktok.com/@sdcosmetique' },
+                      { key: 'facebookUrl',  label: 'Facebook',  placeholder: 'https://facebook.com/sdcosmetique' },
+                      { key: 'youtubeUrl',   label: 'YouTube',   placeholder: 'https://youtube.com/@sdcosmetique' },
+                      { key: 'linkedinUrl',  label: 'LinkedIn',  placeholder: 'https://linkedin.com/company/sdcosmetique' },
+                    ] as { key: keyof BrandingConfig; label: string; placeholder: string }[]).map(({ key, label, placeholder }) => (
+                      <label key={key}>
+                        <span style={labelStyle}>{label}</span>
+                        <input type="url" value={br[key]} onChange={e => update({ [key]: e.target.value })}
+                          style={fieldStyle} placeholder={placeholder} />
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Save bottom */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '4px' }}>
+                  <button onClick={save} disabled={contentSaving.branding}
+                    style={{ padding: '10px 28px', borderRadius: '8px', border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer', background: contentSaved.branding ? S_SAVE_BG : GOLD2, color: contentSaved.branding ? S_SAVE_T : BG }}>
+                    {getSaveButtonText(contentSaved.branding, contentSaving.branding)}
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
+
           {/* ─── MARKETING TAB ─── */}
           {tab === 'marketing' && (() => {
             const mkt: MarketingConfig = siteContent.marketing ?? { banners: [], welcomePopup: { enabled: false, title: '', subtitle: '', delaySeconds: 5, bgColor: '#1C1610', ctaLabel: "Profiter de l'offre" }, upsellRules: [] };
@@ -2719,8 +2870,14 @@ export default function AdminPage() {
             const promos: PromoCode[] = siteContent.promo_codes ?? [];
             const savePromos = async () => { await saveConfigSection('promo_codes', siteContent.promo_codes); };
             const addPromo = () => setSiteContent((c: SiteConfig) => ({ ...c, promo_codes: [...(c.promo_codes ?? []), { code: '', type: 'percent', value: 10, active: true }] }));
-            const updPromo = (i: number, patch: Partial<PromoCode>) => setSiteContent((c: SiteConfig) => ({ ...c, promo_codes: (c.promo_codes ?? []).map((p: PromoCode, j: number) => j === i ? { ...p, ...patch } : p) }));
-            const delPromo = (i: number) => setSiteContent((c: SiteConfig) => ({ ...c, promo_codes: (c.promo_codes ?? []).filter((_: PromoCode, j: number) => j !== i) }));
+            const updPromo = (i: number, patch: Partial<PromoCode>) => {
+              const next = (siteContent.promo_codes ?? []).map((p: PromoCode, j: number) => j === i ? { ...p, ...patch } : p);
+              setSiteContent((c: SiteConfig) => ({ ...c, promo_codes: next }));
+            };
+            const delPromo = (i: number) => {
+              const next = (siteContent.promo_codes ?? []).filter((_: PromoCode, j: number) => j !== i);
+              setSiteContent((c: SiteConfig) => ({ ...c, promo_codes: next }));
+            };
 
             // Upsell
             const addUpsell = () => {
@@ -2856,6 +3013,9 @@ export default function AdminPage() {
                 {/* ── Pop-up Bienvenue ── */}
                 {mktSubTab === 'popup' && (() => {
                   const p = mkt.welcomePopup;
+                  const handlePopupStringField = (e: React.ChangeEvent<HTMLInputElement>) => {
+                    updPopup({ [e.currentTarget.dataset.field as keyof WelcomePopup]: e.currentTarget.value });
+                  };
                   return (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '640px' }}>
                       <p style={{ fontSize: '12px', color: TEXT3 }}>Affiché une seule fois au visiteur (flag localStorage) après le délai configuré. Utilisez un code promo existant pour inciter à l&apos;achat.</p>
@@ -2873,7 +3033,6 @@ export default function AdminPage() {
                           </div>
                           <span style={{ fontSize: '13px', fontWeight: 600, color: p.enabled ? S_OK_T : TEXT2 }}>{p.enabled ? 'Pop-up activé' : 'Pop-up désactivé'}</span>
                         </button>
-
                         {([
                           ['title', 'Titre', 'Bienvenue chez SD Cosmétique'],
                           ['subtitle', 'Sous-titre', 'Bénéficiez de 10% sur votre première commande'],
@@ -2882,8 +3041,8 @@ export default function AdminPage() {
                         ] as [keyof WelcomePopup, string, string][]).map(([key, label, ph]) => (
                           <label key={key} style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                             <span style={{ fontSize: '11px', color: TEXT2 }}>{label}</span>
-                            <input value={(p[key] as string) ?? ''} placeholder={ph}
-                              onChange={e => updPopup({ [key]: e.target.value })}
+                            <input value={(p[key] as string) ?? ''} placeholder={ph} data-field={key}
+                              onChange={handlePopupStringField}
                               style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '9px 12px', color: TEXT, fontSize: '13px', outline: 'none' }} />
                           </label>
                         ))}
