@@ -1014,45 +1014,45 @@ export default function AdminPage() {
       .catch(() => setNewsletterSubs([]));
   };
 
+  const initAfterAuth = async (user: { email?: string | null }) => {
+    setAuthChecked(true);
+    setUserEmail(user.email ?? '');
+    fetchAllOrdersFromDB().then(setOrders);
+    fetchProductsFromDB().then(rows =>
+      setEditableProducts((rows ?? []).length > 0
+        ? (rows as Product[]).map(p => ({ ...p }))
+        : PRODUCTS.map(p => ({ ...p }))
+      )
+    );
+    fetchAllReviewsFromDB().then(rows => setReviews(rows as ReviewRow[]));
+    fetchAllTestimonialsAdmin().then(setTestimonials);
+    fetchAllCategoriesAdmin().then(setCategories);
+    fetchAllConcernsAdmin().then(setQuizConcerns);
+    fetchAllRoutinesAdmin().then(setQuizRoutines);
+    reloadNewsletter();
+    getJekoSettings().then(s => { setJekoSettingsEdit(s); });
+    getJekoTiersConfig().then(setJekoTiersConf);
+    getJekoRewardsConfig().then(setJekoRewardsConf);
+    getJekoMembers().then(setJekoMembers);
+    getAllJekoTransactions().then(setJekoTxns);
+    getJekoStats().then(setJekoStats);
+    createClient().from('site_config').select('key, value').then(({ data: cfgRows }) => {
+      if (cfgRows?.length) {
+        const cfg = structuredClone(DEFAULT_SITE_CONFIG) as SiteConfig;
+        for (const row of cfgRows) {
+          if (row.key in cfg) (cfg as Record<string, unknown>)[row.key] = row.value;
+        }
+        setSiteContent(cfg);
+      }
+    });
+  };
+
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user === null || data.user === undefined) {
+    createClient().auth.getUser().then(({ data }) => {
+      if (!data.user) {
         router.replace('/admin/login');
       } else {
-        setAuthChecked(true);
-        setUserEmail(data.user.email ?? '');
-        fetchAllOrdersFromDB().then(setOrders);
-        fetchProductsFromDB().then(rows =>
-          setEditableProducts((rows ?? []).length > 0
-            ? (rows as Product[]).map(p => ({ ...p }))
-            : PRODUCTS.map(p => ({ ...p }))
-          )
-        );
-        fetchAllReviewsFromDB().then(data => setReviews(data as ReviewRow[]));
-        fetchAllTestimonialsAdmin().then(setTestimonials);
-        fetchAllCategoriesAdmin().then(setCategories);
-        fetchAllConcernsAdmin().then(setQuizConcerns);
-        fetchAllRoutinesAdmin().then(setQuizRoutines);
-        // Newsletter
-        reloadNewsletter();
-        // Jeko
-        getJekoSettings().then(s => { setJekoSettingsEdit(s); });
-        getJekoTiersConfig().then(setJekoTiersConf);
-        getJekoRewardsConfig().then(setJekoRewardsConf);
-        getJekoMembers().then(setJekoMembers);
-        getAllJekoTransactions().then(setJekoTxns);
-        getJekoStats().then(setJekoStats);
-        // Charger le contenu du site depuis Supabase
-        supabase.from('site_config').select('key, value').then(({ data: cfgRows }) => {
-          if (cfgRows?.length) {
-            const cfg = structuredClone(DEFAULT_SITE_CONFIG) as SiteConfig;
-            for (const row of cfgRows) {
-              if (row.key in cfg) (cfg as Record<string, unknown>)[row.key] = row.value;
-            }
-            setSiteContent(cfg);
-          }
-        });
+        initAfterAuth(data.user);
       }
     });
   }, [router]);
@@ -1137,6 +1137,51 @@ export default function AdminPage() {
     await approveReviewInDB(id, !current);
     setReviews(prev => prev.map(r => r.id === id ? { ...r, verified: !current } : r));
   };
+
+  // ── section-save helpers ──
+  const clearSectionSaved = (key: string) => setContentSaved(s => ({ ...s, [key]: false }));
+  const saveConfigSection = async (key: string, value: unknown) => {
+    setContentSaving(s => ({ ...s, [key]: true }));
+    await saveSiteConfigSection(key as keyof SiteConfig, value as SiteConfig[keyof SiteConfig]);
+    setContentSaving(s => ({ ...s, [key]: false }));
+    setContentSaved(s => ({ ...s, [key]: true }));
+    setTimeout(() => clearSectionSaved(key), 2500);
+  };
+
+  // ── testimonials handlers ──
+  const handleApproveTestimonial = async (t: TestimonialRow) => {
+    await approveTestimonialInDB(t.id, !t.approved);
+    setTestimonials(testimonials.map(x => x.id === t.id ? { ...x, approved: !t.approved } : x));
+  };
+  const handleDeleteTestimonial = async (t: TestimonialRow) => {
+    await deleteTestimonialFromDB(t.id);
+    setTestimonials(testimonials.filter(x => x.id !== t.id));
+  };
+
+  // ── trust_items helper ──
+  const updTrustItem = (i: number, val: string) => {
+    const updated = siteContent.trust_items.map((it, j) => j === i ? { ...it, label: val } : it);
+    setSiteContent({ ...siteContent, trust_items: updated });
+  };
+
+  // ── FAQ helpers (définis ici pour réduire l'imbrication dans l'IIFE FAQ) ──
+  const setFaqData = (next: SiteConfig['faq']) => setSiteContent(c => ({ ...c, faq: next }));
+  const addFaqCat = () => setFaqData([...siteContent.faq, { cat: 'Nouvelle catégorie', items: [] }]);
+  const removeFaqCat = (ci: number) => setFaqData(siteContent.faq.filter((_, i) => i !== ci));
+  const updateFaqCatTitle = (ci: number, title: string) =>
+    setFaqData(siteContent.faq.map((c, i) => i === ci ? { ...c, cat: title } : c));
+  const addFaqItem = (ci: number) =>
+    setFaqData(siteContent.faq.map((c, i) => i === ci ? { ...c, items: [...c.items, { q: '', a: '' }] } : c));
+  const removeFaqItem = (ci: number, qi: number) =>
+    setFaqData(siteContent.faq.map((c, i) => {
+      if (i !== ci) return c;
+      return { ...c, items: c.items.filter((_, j) => j !== qi) };
+    }));
+  const updateFaqItem = (ci: number, qi: number, patch: { q?: string; a?: string }) =>
+    setFaqData(siteContent.faq.map((c, i) => {
+      if (i !== ci) return c;
+      return { ...c, items: c.items.map((it, j) => j === qi ? { ...it, ...patch } : it) };
+    }));
 
   // ── filtered & paginated data ──
   const filteredOrders = useMemo(() => 
@@ -1284,18 +1329,12 @@ export default function AdminPage() {
       {siteContent.trust_items.map((item, i: number) => (
         <label key={`trust-item-${i}-${item.label.slice(0, 12)}`} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <span className="text-xs" style={{ color: TEXT2 }}>Item {i + 1}</span>
-          <textarea value={item.label} rows={2} onChange={e => setSiteContent((c) => ({ ...c, trust_items: c.trust_items.map((it, j: number) => j === i ? { ...it, label: e.target.value } : it) }))}
+          <textarea value={item.label} rows={2} onChange={e => updTrustItem(i, e.target.value)}
             style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '13px', resize: 'vertical', outline: 'none' }} />
         </label>
       ))}
       <button
-        onClick={async () => {
-          setContentSaving(s => ({ ...s, trust_items: true }));
-          await saveSiteConfigSection('trust_items', siteContent.trust_items);
-          setContentSaving(s => ({ ...s, trust_items: false }));
-          setContentSaved(s => ({ ...s, trust_items: true }));
-          setTimeout(() => setContentSaved(s => ({ ...s, trust_items: false })), 2500);
-        }}
+        onClick={() => saveConfigSection('trust_items', siteContent.trust_items)}
         disabled={contentSaving.trust_items}
         style={{ alignSelf: 'flex-end', background: contentSaved.trust_items ? S_SAVE_BG : GOLD2, color: contentSaved.trust_items ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
         {getSaveButtonText(contentSaved.trust_items, contentSaving.trust_items)}
@@ -1308,13 +1347,7 @@ export default function AdminPage() {
     <>
       {/* ── Barre du haut ── */}
       {(() => {
-        const save = async () => {
-          setContentSaving(s => ({ ...s, topbar: true }));
-          await saveSiteConfigSection('topbar', siteContent.topbar);
-          setContentSaving(s => ({ ...s, topbar: false }));
-          setContentSaved(s => ({ ...s, topbar: true }));
-          setTimeout(() => setContentSaved(s => ({ ...s, topbar: false })), 2500);
-        };
+        const save = async () => { await saveConfigSection('topbar', siteContent.topbar); };
         return (
           <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <p className="text-sm font-semibold" style={{ color: GOLD }}>📢 Barre du haut</p>
@@ -1338,13 +1371,7 @@ export default function AdminPage() {
 
       {/* ── Bannière Hero ── */}
       {(() => {
-        const save = async () => {
-          setContentSaving(s => ({ ...s, hero: true }));
-          await saveSiteConfigSection('hero', siteContent.hero);
-          setContentSaving(s => ({ ...s, hero: false }));
-          setContentSaved(s => ({ ...s, hero: true }));
-          setTimeout(() => setContentSaved(s => ({ ...s, hero: false })), 2500);
-        };
+        const save = async () => { await saveConfigSection('hero', siteContent.hero); };
         const f = siteContent.hero;
         return (
           <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -1360,13 +1387,13 @@ export default function AdminPage() {
             ] as [keyof typeof f, string][]).map(([key, label]) => (
               <label key={String(key)} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 <span className="text-xs" style={{ color: TEXT2 }}>{label}</span>
-                <input value={f[key]} onChange={e => setSiteContent((c) => ({ ...c, hero: { ...c.hero, [key]: e.target.value } }))}
+                <input value={f[key]} onChange={e => setSiteContent({ ...siteContent, hero: { ...siteContent.hero, [key]: e.target.value } })}
                   style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '13px', outline: 'none' }} />
               </label>
             ))}
             <ImageUpload
               value={f.image}
-              onChange={(url: string) => setSiteContent((c) => ({ ...c, hero: { ...c.hero, image: url } }))}
+              onChange={(url: string) => setSiteContent({ ...siteContent, hero: { ...siteContent.hero, image: url } })}
               folder="hero"
               label="Image du hero"
               previewSize={160}
@@ -1687,19 +1714,13 @@ export default function AdminPage() {
                               <td style={tdStyle}>
                                 <div className="flex gap-1">
                                   <button
-                                    onClick={async () => {
-                                      await approveTestimonialInDB(t.id, !t.approved);
-                                      setTestimonials(prev => prev.map(x => x.id === t.id ? { ...x, approved: !t.approved } : x));
-                                    }}
+                                    onClick={() => handleApproveTestimonial(t)}
                                     className="text-xs px-2 py-1 rounded border transition-all hover:opacity-80"
                                     style={{ borderColor: t.approved ? BORDER3 : S_OK_BG, color: t.approved ? TEXT2 : S_OK_T }}>
                                     {t.approved ? 'Retirer' : '✓ Approuver'}
                                   </button>
                                   <button
-                                    onClick={async () => {
-                                      await deleteTestimonialFromDB(t.id);
-                                      setTestimonials(prev => prev.filter(x => x.id !== t.id));
-                                    }}
+                                    onClick={() => handleDeleteTestimonial(t)}
                                     className="text-xs px-2 py-1 rounded transition-all hover:opacity-80"
                                     style={{ background: S_ERR_BG, color: S_ERR_T }}>✕
                                   </button>
@@ -1768,7 +1789,7 @@ export default function AdminPage() {
                                   style={{ borderColor: BORDER2, color: TEXT2 }}
                                 >Éditer</button>
                                 <button
-                                  onClick={async () => { if (confirm(`Supprimer "${cat.label}" ?`)) { await deleteCategoryFromDB(cat.id); setCategories(prev => prev.filter(c => c.id !== cat.id)); } }}
+                                  onClick={async () => { if (confirm(`Supprimer "${cat.label}" ?`)) { await deleteCategoryFromDB(cat.id); setCategories(categories.filter(c => c.id !== cat.id)); } }}
                                   className="text-xs px-2 py-1 rounded transition-all hover:opacity-80"
                                   style={{ background: S_ERR_BG, color: S_ERR_T }}
                                 >✕</button>
@@ -1973,7 +1994,7 @@ export default function AdminPage() {
                               <td style={tdStyle}>
                                 <div className="flex gap-1">
                                   <button onClick={() => setQuizModal({ type: 'concern', data: { ...c, _isNew: false } })} className="text-xs px-2 py-1 rounded border transition-all hover:opacity-80" style={{ borderColor: BORDER2, color: TEXT2 }}>Éditer</button>
-                                  <button onClick={async () => { if (confirm(`Supprimer "${c.label}" ?`)) { await deleteConcern(c.id); setQuizConcerns(prev => prev.filter(x => x.id !== c.id)); } }} className="text-xs px-2 py-1 rounded transition-all hover:opacity-80" style={{ background: S_ERR_BG, color: S_ERR_T }}>✕</button>
+                                  <button onClick={async () => { if (confirm(`Supprimer "${c.label}" ?`)) { await deleteConcern(c.id); setQuizConcerns(quizConcerns.filter(x => x.id !== c.id)); } }} className="text-xs px-2 py-1 rounded transition-all hover:opacity-80" style={{ background: S_ERR_BG, color: S_ERR_T }}>✕</button>
                                 </div>
                               </td>
                             </tr>
@@ -2018,7 +2039,7 @@ export default function AdminPage() {
                               <td style={tdStyle}>
                                 <div className="flex gap-1">
                                   <button onClick={() => setQuizModal({ type: 'routine', data: { ...r, _isNew: false } })} className="text-xs px-2 py-1 rounded border transition-all hover:opacity-80" style={{ borderColor: BORDER2, color: TEXT2 }}>Éditer</button>
-                                  <button onClick={async () => { if (confirm(`Supprimer "${r.label}" ?`)) { await deleteRoutine(r.id); setQuizRoutines(prev => prev.filter(x => x.id !== r.id)); } }} className="text-xs px-2 py-1 rounded transition-all hover:opacity-80" style={{ background: S_ERR_BG, color: S_ERR_T }}>✕</button>
+                                  <button onClick={async () => { if (confirm(`Supprimer "${r.label}" ?`)) { await deleteRoutine(r.id); setQuizRoutines(quizRoutines.filter(x => x.id !== r.id)); } }} className="text-xs px-2 py-1 rounded transition-all hover:opacity-80" style={{ background: S_ERR_BG, color: S_ERR_T }}>✕</button>
                                 </div>
                               </td>
                             </tr>
@@ -2223,13 +2244,7 @@ export default function AdminPage() {
           {tab === 'livraison' && (() => {
             const s = siteContent.shipping;
             const opts: ShippingOption[] = s.options ?? [];
-            const save = async () => {
-              setContentSaving(x => ({ ...x, shipping: true }));
-              await saveSiteConfigSection('shipping', siteContent.shipping);
-              setContentSaving(x => ({ ...x, shipping: false }));
-              setContentSaved(x => ({ ...x, shipping: true }));
-              setTimeout(() => setContentSaved(x => ({ ...x, shipping: false })), 2500);
-            };
+            const save = async () => { await saveConfigSection('shipping', siteContent.shipping); };
             const addOpt = () => {
               const newOpt: ShippingOption = { 
                 id: `opt-${Date.now()}`, 
@@ -2242,10 +2257,12 @@ export default function AdminPage() {
               setSiteContent((c) => ({ ...c, shipping: { ...c.shipping, options: [...(c.shipping.options ?? []), newOpt] } }));
             };
             const updateOpt = (id: string, patch: Partial<ShippingOption>) => {
-              setSiteContent((c) => ({ ...c, shipping: { ...c.shipping, options: (c.shipping.options ?? []).map((o) => o.id === id ? { ...o, ...patch } : o) } }));
+              const options = (siteContent.shipping.options ?? []).map((o) => o.id === id ? { ...o, ...patch } : o);
+              setSiteContent((c) => ({ ...c, shipping: { ...c.shipping, options } }));
             };
             const removeOpt = (id: string) => {
-              setSiteContent((c) => ({ ...c, shipping: { ...c.shipping, options: (c.shipping.options ?? []).filter((o) => o.id !== id) } }));
+              const options = (siteContent.shipping.options ?? []).filter((o) => o.id !== id);
+              setSiteContent((c) => ({ ...c, shipping: { ...c.shipping, options } }));
             };
             return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -2356,12 +2373,10 @@ export default function AdminPage() {
 
               {/* ── Témoignages accueil ── */}
               {(() => {
-                const save = async () => {
-                  setContentSaving(s => ({ ...s, testimonials_home: true }));
-                  await saveSiteConfigSection('testimonials_home', siteContent.testimonials_home);
-                  setContentSaving(s => ({ ...s, testimonials_home: false }));
-                  setContentSaved(s => ({ ...s, testimonials_home: true }));
-                  setTimeout(() => setContentSaved(s => ({ ...s, testimonials_home: false })), 2500);
+                const save = async () => { await saveConfigSection('testimonials_home', siteContent.testimonials_home); };
+                const updThome = (i: number, field: string, val: string) => {
+                  const updated = siteContent.testimonials_home.map((x, j) => j === i ? { ...x, [field]: val } : x);
+                  setSiteContent({ ...siteContent, testimonials_home: updated });
                 };
                 return (
                   <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
@@ -2371,17 +2386,17 @@ export default function AdminPage() {
                         <p className="text-xs font-semibold" style={{ color: TEXT2 }}>Témoignage {i + 1}</p>
                         <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                           <span className="text-xs" style={{ color: TEXT3 }}>Nom</span>
-                          <input value={t.name} onChange={e => setSiteContent((c) => ({ ...c, testimonials_home: c.testimonials_home.map((x, j: number) => j === i ? { ...x, name: e.target.value } : x) }))}
+                          <input value={t.name} onChange={e => updThome(i, 'name', e.target.value)}
                             style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '7px 10px', color: TEXT, fontSize: '12px', outline: 'none' }} />
                         </label>
                         <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                           <span className="text-xs" style={{ color: TEXT3 }}>Texte</span>
-                          <textarea value={t.text} rows={3} onChange={e => setSiteContent((c) => ({ ...c, testimonials_home: c.testimonials_home.map((x, j: number) => j === i ? { ...x, text: e.target.value } : x) }))}
+                          <textarea value={t.text} rows={3} onChange={e => updThome(i, 'text', e.target.value)}
                             style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '7px 10px', color: TEXT, fontSize: '12px', resize: 'vertical', outline: 'none' }} />
                         </label>
                         <ImageUpload
                           value={t.avatar}
-                          onChange={(url: string) => setSiteContent((c: SiteConfig) => ({ ...c, testimonials_home: c.testimonials_home.map((x: {name:string;text:string;avatar:string}, j: number) => j === i ? { ...x, avatar: url } : x) }))}
+                          onChange={(url: string) => updThome(i, 'avatar', url)}
                           folder="avatars"
                           label="Photo du client"
                           previewSize={80}
@@ -2422,13 +2437,7 @@ export default function AdminPage() {
                   floaterLabel: 'Floater — label',
                   floaterText: 'Floater — texte citation',
                 };
-                const save = async () => {
-                  setContentSaving(s => ({ ...s, [key]: true }));
-                  await saveSiteConfigSection(key, siteContent[key]);
-                  setContentSaving(s => ({ ...s, [key]: false }));
-                  setContentSaved(s => ({ ...s, [key]: true }));
-                  setTimeout(() => setContentSaved(s => ({ ...s, [key]: false })), 2500);
-                };
+                const save = async () => { await saveConfigSection(key, siteContent[key]); };
                 const f = siteContent[key] as Record<string, string>;
                 return (
                   <div key={key} style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -2440,13 +2449,13 @@ export default function AdminPage() {
                           <textarea
                             rows={3}
                             value={f[field] ?? ''}
-                            onChange={(e) => setSiteContent((c: SiteConfig) => ({ ...c, [key]: { ...(c[key] as Record<string, unknown>), [field]: e.target.value } }))}
+                            onChange={(e) => setSiteContent({ ...siteContent, [key]: { ...(siteContent[key] as Record<string, unknown>), [field]: e.target.value } })}
                             style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '13px', resize: 'vertical', outline: 'none' }}
                           />
                         ) : (
                           <input
                             value={f[field] ?? ''}
-                            onChange={(e) => setSiteContent((c: SiteConfig) => ({ ...c, [key]: { ...(c[key] as Record<string, unknown>), [field]: e.target.value } }))}
+                            onChange={(e) => setSiteContent({ ...siteContent, [key]: { ...(siteContent[key] as Record<string, unknown>), [field]: e.target.value } })}
                             style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '13px', outline: 'none' }}
                           />
                         )}
@@ -2454,7 +2463,7 @@ export default function AdminPage() {
                     ))}
                     <ImageUpload
                       value={f.image ?? ''}
-                      onChange={(url: string) => setSiteContent((c: SiteConfig) => ({ ...c, [key]: { ...(c[key] as Record<string, unknown>), image: url } }))}
+                      onChange={(url: string) => setSiteContent({ ...siteContent, [key]: { ...(siteContent[key] as Record<string, unknown>), image: url } })}
                       folder="categories"
                       label="Image du hero"
                       previewSize={140}
@@ -2480,11 +2489,7 @@ export default function AdminPage() {
                   // Normalisation : code en majuscules, trim
                   const normalized = codes.map((c: PromoCode) => ({ ...c, code: c.code.trim().toUpperCase() }));
                   setCodes(normalized);
-                  setContentSaving(s => ({ ...s, promo_codes: true }));
-                  await saveSiteConfigSection('promo_codes', normalized);
-                  setContentSaving(s => ({ ...s, promo_codes: false }));
-                  setContentSaved(s => ({ ...s, promo_codes: true }));
-                  setTimeout(() => setContentSaved(s => ({ ...s, promo_codes: false })), 2500);
+                  await saveConfigSection('promo_codes', normalized);
                 };
                 return (
                   <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -2559,51 +2564,34 @@ export default function AdminPage() {
               {/* ─── FAQ ─── */}
               {(() => {
                 const faq = siteContent.faq;
-                const setFaq = (next: typeof faq) => setSiteContent((c: SiteConfig) => ({ ...c, faq: next }));
-                const save = async () => {
-                  setContentSaving(s => ({ ...s, faq: true }));
-                  await saveSiteConfigSection('faq', faq);
-                  setContentSaving(s => ({ ...s, faq: false }));
-                  setContentSaved(s => ({ ...s, faq: true }));
-                  setTimeout(() => setContentSaved(s => ({ ...s, faq: false })), 2500);
-                };
-                const addCat = () => setFaq([...faq, { cat: 'Nouvelle catégorie', items: [] }]);
-                const removeCat = (ci: number) => setFaq(faq.filter((_: typeof faq[number], i: number) => i !== ci));
-                const updateCatTitle = (ci: number, title: string) =>
-                  setFaq(faq.map((c: typeof faq[number], i: number) => i === ci ? { ...c, cat: title } : c));
-                const addItem = (ci: number) =>
-                  setFaq(faq.map((c: typeof faq[number], i: number) => i === ci ? { ...c, items: [...c.items, { q: '', a: '' }] } : c));
-                const removeItem = (ci: number, qi: number) =>
-                  setFaq(faq.map((c: typeof faq[number], i: number) => i === ci ? { ...c, items: c.items.filter((_: typeof c.items[number], j: number) => j !== qi) } : c));
-                const updateItem = (ci: number, qi: number, patch: { q?: string; a?: string }) =>
-                  setFaq(faq.map((c: typeof faq[number], i: number) => i === ci ? { ...c, items: c.items.map((it: typeof c.items[number], j: number) => j === qi ? { ...it, ...patch } : it) } : c));
+                const save = async () => { await saveConfigSection('faq', faq); };
                 return (
                   <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <h3 style={{ color: TEXT, fontSize: '14px', fontWeight: 700 }}>FAQ</h3>
-                      <button onClick={addCat} style={{ background: 'transparent', color: GOLD, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '6px 12px', fontSize: '11px', cursor: 'pointer' }}>+ Catégorie</button>
+                      <button onClick={addFaqCat} style={{ background: 'transparent', color: GOLD, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '6px 12px', fontSize: '11px', cursor: 'pointer' }}>+ Catégorie</button>
                     </div>
                     {faq.length === 0 && <p style={{ fontSize: '12px', color: TEXT3 }}>Aucune catégorie. Ajoutez-en une.</p>}
                     {faq.map((cat: typeof faq[number], ci: number) => (
                       <div key={`faq-cat-${ci}-${cat.cat.slice(0, 12)}`} style={{ background: SURFACE2, border: `1px solid ${BORDER2}`, borderRadius: '6px', padding: '12px' }}>
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '10px' }}>
-                          <input value={cat.cat} onChange={e => updateCatTitle(ci, e.target.value)}
+                          <input value={cat.cat} onChange={e => updateFaqCatTitle(ci, e.target.value)}
                             style={{ flex: 1, background: SURFACE, color: TEXT, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '7px 10px', fontSize: '12px', fontWeight: 600 }} />
-                          <button onClick={() => addItem(ci)} style={{ background: 'transparent', color: TEXT2, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 10px', fontSize: '11px', cursor: 'pointer' }}>+ Q/R</button>
-                          <button onClick={() => removeCat(ci)} style={{ background: 'transparent', color: S_ERR_T, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 10px', fontSize: '11px', cursor: 'pointer' }}>🗑</button>
+                          <button onClick={() => addFaqItem(ci)} style={{ background: 'transparent', color: TEXT2, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 10px', fontSize: '11px', cursor: 'pointer' }}>+ Q/R</button>
+                          <button onClick={() => removeFaqCat(ci)} style={{ background: 'transparent', color: S_ERR_T, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 10px', fontSize: '11px', cursor: 'pointer' }}>🗑</button>
                         </div>
                         {cat.items.map((it: {q: string; a: string}, qi: number) => (
                           <div key={`faq-item-${ci}-${qi}`} style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '10px', borderTop: `1px solid ${BORDER2}` }}>
                             <div style={{ display: 'flex', gap: '6px' }}>
-                              <input placeholder="Question" value={it.q} onChange={e => updateItem(ci, qi, { q: e.target.value })}
+                              <input placeholder="Question" value={it.q} onChange={e => updateFaqItem(ci, qi, { q: e.target.value })}
                                 style={{ flex: 1, background: SURFACE, color: TEXT, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 9px', fontSize: '12px' }} />
-                              <button onClick={() => removeItem(ci, qi)} style={{ background: 'transparent', color: S_ERR_T, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '4px 8px', fontSize: '10px', cursor: 'pointer' }}>×</button>
+                              <button onClick={() => removeFaqItem(ci, qi)} style={{ background: 'transparent', color: S_ERR_T, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '4px 8px', fontSize: '10px', cursor: 'pointer' }}>×</button>
                             </div>
-                            <textarea placeholder="Réponse" value={it.a} onChange={e => updateItem(ci, qi, { a: e.target.value })} rows={3}
+                            <textarea placeholder="Réponse" value={it.a} onChange={e => updateFaqItem(ci, qi, { a: e.target.value })} rows={3}
                               style={{ width: '100%', background: SURFACE, color: TEXT, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 9px', fontSize: '12px', resize: 'vertical', fontFamily: 'inherit' }} />
                           </div>
                         ))}
-                      </div>
+                    </div>
                     ))}
                     <button onClick={save} disabled={contentSaving.faq}
                       style={{ alignSelf: 'flex-end', background: contentSaved.faq ? S_SAVE_BG : GOLD2, color: contentSaved.faq ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
@@ -2617,13 +2605,7 @@ export default function AdminPage() {
               {(() => {
                 const n = siteContent.newsletter;
                 const update = (patch: Partial<typeof n>) => setSiteContent((c: SiteConfig) => ({ ...c, newsletter: { ...c.newsletter, ...patch } }));
-                const save = async () => {
-                  setContentSaving(s => ({ ...s, newsletter: true }));
-                  await saveSiteConfigSection('newsletter', n);
-                  setContentSaving(s => ({ ...s, newsletter: false }));
-                  setContentSaved(s => ({ ...s, newsletter: true }));
-                  setTimeout(() => setContentSaved(s => ({ ...s, newsletter: false })), 2500);
-                };
+                const save = async () => { await saveConfigSection('newsletter', n); };
                 return (
                   <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     <h3 style={{ color: TEXT, fontSize: '14px', fontWeight: 700 }}>Newsletter — Affichage</h3>
@@ -2718,13 +2700,7 @@ export default function AdminPage() {
           {tab === 'marketing' && (() => {
             const mkt: MarketingConfig = siteContent.marketing ?? { banners: [], welcomePopup: { enabled: false, title: '', subtitle: '', delaySeconds: 5, bgColor: '#1C1610', ctaLabel: "Profiter de l'offre" }, upsellRules: [] };
 
-            const saveMkt = async () => {
-              setContentSaving(x => ({ ...x, marketing: true }));
-              await saveSiteConfigSection('marketing', mkt);
-              setContentSaving(x => ({ ...x, marketing: false }));
-              setContentSaved(x => ({ ...x, marketing: true }));
-              setTimeout(() => setContentSaved(x => ({ ...x, marketing: false })), 2500);
-            };
+            const saveMkt = async () => { await saveConfigSection('marketing', mkt); };
 
             const updateMkt = (patch: Partial<MarketingConfig>) =>
               setSiteContent((c: SiteConfig) => ({ ...c, marketing: { ...c.marketing, ...patch } }));
@@ -2741,13 +2717,7 @@ export default function AdminPage() {
 
             // Codes promo
             const promos: PromoCode[] = siteContent.promo_codes ?? [];
-            const savePromos = async () => {
-              setContentSaving(x => ({ ...x, promo_codes: true }));
-              await saveSiteConfigSection('promo_codes', siteContent.promo_codes);
-              setContentSaving(x => ({ ...x, promo_codes: false }));
-              setContentSaved(x => ({ ...x, promo_codes: true }));
-              setTimeout(() => setContentSaved(x => ({ ...x, promo_codes: false })), 2500);
-            };
+            const savePromos = async () => { await saveConfigSection('promo_codes', siteContent.promo_codes); };
             const addPromo = () => setSiteContent((c: SiteConfig) => ({ ...c, promo_codes: [...(c.promo_codes ?? []), { code: '', type: 'percent', value: 10, active: true }] }));
             const updPromo = (i: number, patch: Partial<PromoCode>) => setSiteContent((c: SiteConfig) => ({ ...c, promo_codes: (c.promo_codes ?? []).map((p: PromoCode, j: number) => j === i ? { ...p, ...patch } : p) }));
             const delPromo = (i: number) => setSiteContent((c: SiteConfig) => ({ ...c, promo_codes: (c.promo_codes ?? []).filter((_: PromoCode, j: number) => j !== i) }));
@@ -2761,6 +2731,11 @@ export default function AdminPage() {
               updateMkt({ upsellRules: (mkt.upsellRules ?? []).map(u => u.id === id ? { ...u, ...patch } : u) });
             const delUpsell = (id: string) =>
               updateMkt({ upsellRules: (mkt.upsellRules ?? []).filter(u => u.id !== id) });
+
+            const parseIds = (raw: string): string[] => raw.split(',').map(s => s.trim()).filter(Boolean);
+
+            const updPopup = (patch: Partial<WelcomePopup>) =>
+              updateMkt({ welcomePopup: { ...mkt.welcomePopup, ...patch } });
 
             const SUB_TABS = [
               { id: 'banners' as const,  label: '📢 Bannières' },
@@ -2881,8 +2856,6 @@ export default function AdminPage() {
                 {/* ── Pop-up Bienvenue ── */}
                 {mktSubTab === 'popup' && (() => {
                   const p = mkt.welcomePopup;
-                  const updPopup = (patch: Partial<WelcomePopup>) =>
-                    updateMkt({ welcomePopup: { ...mkt.welcomePopup, ...patch } });
                   return (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '640px' }}>
                       <p style={{ fontSize: '12px', color: TEXT3 }}>Affiché une seule fois au visiteur (flag localStorage) après le délai configuré. Utilisez un code promo existant pour inciter à l&apos;achat.</p>
@@ -3052,13 +3025,13 @@ export default function AdminPage() {
                         </label>
                         <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                           <span style={{ fontSize: '11px', color: TEXT2 }}>IDs produits déclencheurs (séparés par virgule)</span>
-                          <input value={u.triggerProductIds.join(',')} onChange={e => updUpsell(u.id, { triggerProductIds: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                          <input value={u.triggerProductIds.join(',')} onChange={e => updUpsell(u.id, { triggerProductIds: parseIds(e.target.value) })}
                             placeholder="prod-001,prod-002"
                             style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '12px', outline: 'none', fontFamily: 'monospace' }} />
                         </label>
                         <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                           <span style={{ fontSize: '11px', color: TEXT2 }}>IDs produits suggérés (séparés par virgule)</span>
-                          <input value={u.suggestedProductIds.join(',')} onChange={e => updUpsell(u.id, { suggestedProductIds: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                          <input value={u.suggestedProductIds.join(',')} onChange={e => updUpsell(u.id, { suggestedProductIds: parseIds(e.target.value) })}
                             placeholder="prod-010,prod-011"
                             style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '12px', outline: 'none', fontFamily: 'monospace' }} />
                         </label>
@@ -3329,15 +3302,14 @@ export default function AdminPage() {
                               <React.Fragment key={m.id}>
                                 <tr style={{ borderBottom: `1px solid ${BORDER}`, cursor: 'pointer' }}
                                   onClick={() => {
-                                    setJekoMemberSearch(prev => prev);
                                     loadMemberTxns(m.id); // uses component-level loadMemberTxns
-                                    setJekoMemberTxns(prev => ({ ...prev }));
+                                    setJekoMemberTxns({ ...jekoMemberTxns });
                                   }}
                                   onKeyDown={(e) => {
                                     if (e.key === 'Enter' || e.key === ' ') {
                                       e.preventDefault();
                                       loadMemberTxns(m.id);
-                                      setJekoMemberTxns(prev => ({ ...prev }));
+                                      setJekoMemberTxns({ ...jekoMemberTxns });
                                     }
                                   }}
                                   tabIndex={0}
@@ -3608,10 +3580,13 @@ export default function AdminPage() {
                 <input type={k === 'min' || k === 'next' ? 'number' : 'text'} value={jekoTierEdit[k] ?? ''}
                   onChange={e => setJekoTierEdit(t => {
                     if (!t) return t;
-                    const parsed = (k === 'min' || k === 'next')
-                      ? (e.target.value ? Number.parseInt(e.target.value, 10) : null)
-                      : e.target.value;
-                    return { ...t, [k]: parsed };
+                    let parsedVal: string | number | null;
+                    if (k === 'min' || k === 'next') {
+                      parsedVal = e.target.value ? Number.parseInt(e.target.value, 10) : null;
+                    } else {
+                      parsedVal = e.target.value;
+                    }
+                    return { ...t, [k]: parsedVal };
                   })}
                   style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '13px', outline: 'none' }} />
               </label>
