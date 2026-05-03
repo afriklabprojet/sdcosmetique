@@ -17,6 +17,12 @@ import {
   type JekoTransaction, type JekoReward, type JekoConfig,
 } from '@/lib/jeko';
 
+// Composants extraits
+import AccountNav from '@/components/account/AccountNav';
+import AccountDashboard from '@/components/account/AccountDashboard';
+import OrdersSection from '@/components/account/OrdersSection';
+import ProfileSection from '@/components/account/ProfileSection';
+
 function jekoNextLabel(currentLabel: string, tiers: typeof JEKO_TIERS): string {
   const idx = tiers.findIndex(t => t.label === currentLabel);
   return idx >= 0 && idx < tiers.length - 1 ? tiers[idx + 1].label : '';

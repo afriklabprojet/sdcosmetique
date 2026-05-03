@@ -13,6 +13,9 @@ import { createClient } from '@/utils/supabase/client';
 import { fetchSiteConfigSection, DEFAULT_SITE_CONFIG, applyPromoCode } from '@/lib/site-config';
 import type { ShippingConfig, ShippingOption, PromoCode } from '@/lib/site-config';
 
+// Composants extraits
+import CartStep from '@/components/checkout/CartStep';
+
 type CheckoutStep = 'cart' | 'delivery' | 'payment' | 'confirmation';
 
 interface DeliveryInfo {
@@ -36,42 +39,6 @@ const STEPS = [
 const STEP_ORDER: CheckoutStep[] = ['cart', 'delivery', 'payment', 'confirmation'];
 
 // ── Payment logos (SVG inline) ────────────────────────────────────────────────
-const OMLogo = () => (
-  <svg viewBox="0 0 44 44" width="44" height="44">
-    <rect width="44" height="44" rx="10" fill="#FF6600" />
-    <path d="M12 22c0-5.52 4.48-10 10-10s10 4.48 10 10-4.48 10-10 10-10-4.48-10-10z" fill="rgba(255,255,255,0.15)" />
-    <text x="22" y="27" textAnchor="middle" fill="white" fontSize="13" fontWeight="800" fontFamily="system-ui,sans-serif">OM</text>
-  </svg>
-);
-const WaveLogo = () => (
-  <svg viewBox="0 0 44 44" width="44" height="44">
-    <rect width="44" height="44" rx="10" fill="#1CA8DD" />
-    <ellipse cx="22" cy="26" rx="11" ry="7" fill="white" opacity="0.25" />
-    <circle cx="22" cy="19" r="7" fill="white" opacity="0.9" />
-    <circle cx="22" cy="19" r="4" fill="#1CA8DD" />
-  </svg>
-);
-const MTNLogo = () => (
-  <svg viewBox="0 0 44 44" width="44" height="44">
-    <circle cx="22" cy="22" r="22" fill="#FFCC00" />
-    <text x="22" y="20" textAnchor="middle" fill="#1A1A1A" fontSize="9" fontWeight="900" fontFamily="system-ui,sans-serif">MTN</text>
-    <text x="22" y="31" textAnchor="middle" fill="#1A1A1A" fontSize="7" fontWeight="700" fontFamily="system-ui,sans-serif">MoMo</text>
-  </svg>
-);
-const MoovLogo = () => (
-  <svg viewBox="0 0 44 44" width="44" height="44">
-    <rect width="44" height="44" rx="10" fill="#0052A3" />
-    <text x="22" y="24" textAnchor="middle" fill="#FFE566" fontSize="10" fontWeight="800" fontFamily="system-ui,sans-serif">Money</text>
-    <text x="22" y="34" textAnchor="middle" fill="#FFE566" fontSize="10" fontWeight="800" fontFamily="system-ui,sans-serif">★</text>
-  </svg>
-);
-const MOBILE_METHODS: { id: PaymentMethod; label: string; desc: string; logo: React.ReactNode; badge?: string }[] = [
-  { id: 'orange_money', label: 'Orange Money',  desc: 'Payez facilement avec votre compte Orange Money.', logo: <OMLogo />,   badge: 'Recommandé' },
-  { id: 'wave',         label: 'Wave',          desc: 'Payez en toute sécurité avec votre compte Wave.', logo: <WaveLogo /> },
-  { id: 'mtn_momo',     label: 'MTN MoMo',      desc: 'Payez avec votre compte MTN Mobile Money.',       logo: <MTNLogo /> },
-  { id: 'moov_money',   label: 'Moov Money',    desc: 'Payez avec votre compte Moov Money.',             logo: <MoovLogo /> },
-];
-
 // ── Shared styles ─────────────────────────────────────────────────────────────
 const GOLD    = '#C8974A';
 const BORDER  = '#E2D9CF';
@@ -85,6 +52,13 @@ const inputSt: React.CSSProperties = {
   borderRadius: '4px', fontSize: '13px', color: TXT, background: 'white',
   outline: 'none', boxSizing: 'border-box',
 };
+
+const MOBILE_METHODS: { id: PaymentMethod; label: string; desc: string; logo: React.ReactNode; badge?: string }[] = [
+  { id: 'orange_money', label: 'Orange Money', desc: 'Paiement mobile Orange', logo: <span style={{ fontSize: '24px' }}>🟠</span>, badge: 'Recommandé' },
+  { id: 'wave',         label: 'Wave',         desc: 'Paiement rapide via Wave', logo: <span style={{ fontSize: '24px' }}>🌊</span> },
+  { id: 'mtn_momo',    label: 'MTN MoMo',    desc: 'Mobile Money MTN', logo: <span style={{ fontSize: '24px' }}>🟡</span> },
+  { id: 'moov_money',  label: 'Moov Money',  desc: 'Paiement Moov Money', logo: <span style={{ fontSize: '24px' }}>🔵</span> },
+];
 
 
 // ── Types checkout ────────────────────────────────────────────────────────────
@@ -246,72 +220,6 @@ function Sidebar({ items, totalPrice, shippingCost, discount, total, step, setSt
           ))}
         </div>
       </div>
-    </div>
-  );
-}
-
-
-function CartStep({ items, setStep, updateQty, removeItem }: CartStepProps) {
-  return (
-    <div style={{ background: 'white', border: `1px solid ${BORDER}`, borderRadius: '8px', overflow: 'hidden' }}>
-      <div style={{ padding: '18px 24px', borderBottom: `1px solid ${BORDER}` }}>
-        <h2 style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: TXT }}>Votre panier</h2>
-      </div>
-      {items.length === 0 ? (
-        <div style={{ padding: '48px 24px', textAlign: 'center' }}>
-          <p style={{ fontSize: '14px', color: TXT2, marginBottom: '20px' }}>Votre panier est vide.</p>
-          <Link href="/categorie/gammes">
-            <button style={{ padding: '12px 32px', background: GOLD, color: 'white', border: 'none', fontSize: '12px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', borderRadius: '2px' }}>
-              Continuer les achats
-            </button>
-          </Link>
-        </div>
-      ) : (
-        <>
-          <div style={{ padding: '8px 24px 0', display: 'flex', flexDirection: 'column' }}>
-            {items.map((item, i) => (
-              <div key={item.product.id} style={{ display: 'flex', gap: '16px', padding: '16px 0', borderBottom: i < items.length - 1 ? `1px solid #F5EDE5` : 'none' }}>
-                <div style={{ width: '72px', height: '72px', borderRadius: '6px', overflow: 'hidden', flexShrink: 0, background: '#F5EDE5' }}>
-                  <Image src={item.product.images[0] ?? '/placeholder.png'} alt={item.product.name} width={72} height={72} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-                    <p style={{ fontSize: '14px', fontWeight: 600, color: TXT, lineHeight: 1.3 }}>{item.product.name}</p>
-                    <button
-                      type="button"
-                      onClick={() => removeItem(item.product.id)}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: TXT2, fontSize: '11px', textDecoration: 'underline', flexShrink: 0, marginLeft: '8px' }}
-                    >
-                      Retirer
-                    </button>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', border: `1px solid ${BORDER}`, borderRadius: '3px', overflow: 'hidden' }}>
-                      <button
-                        type="button"
-                        onClick={() => updateQty(item.product.id, item.quantity - 1)}
-                        style={{ width: '28px', height: '28px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: TXT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                      >−</button>
-                      <span style={{ width: '32px', textAlign: 'center', fontSize: '13px', fontWeight: 600, color: TXT }}>{item.quantity}</span>
-                      <button
-                        type="button"
-                        onClick={() => updateQty(item.product.id, item.quantity + 1)}
-                        style={{ width: '28px', height: '28px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: TXT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                      >+</button>
-                    </div>
-                    <p style={{ fontSize: '14px', fontWeight: 700, color: GOLD }}>{formatPrice(item.product.price * item.quantity)}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div style={{ padding: '16px 24px' }}>
-            <button onClick={() => setStep('delivery')} style={{ width: '100%', padding: '14px', background: GOLD, color: 'white', border: 'none', fontSize: '13px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', borderRadius: '2px' }}>
-              Continuer — Informations →
-            </button>
-          </div>
-        </>
-      )}
     </div>
   );
 }
@@ -530,25 +438,26 @@ export default function CheckoutPage() {
   // Re-valider la promo si le sous-total ou la liste change
   useEffect(() => {
     if (!appliedPromo) return;
-    const r = applyPromoCode(appliedPromo.code.code, totalPrice, promoCodes);
-    if (r.ok) {
+    const r = applyPromoCode(totalPrice, appliedPromo.code.code, promoCodes);
+    if (r.isValid) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (r.discount !== appliedPromo.discount) setAppliedPromo({ code: r.code, discount: r.discount });
+      if (r.discount !== appliedPromo.discount) setAppliedPromo({ code: appliedPromo.code, discount: r.discount });
     } else {
       setAppliedPromo(null);
-      setPromoError(r.reason);
+      setPromoError(r.error ?? 'Code invalide');
     }
   }, [totalPrice, promoCodes, appliedPromo]);
 
   const handleApplyPromo = () => {
     setPromoError(null);
-    const r = applyPromoCode(promoInput, totalPrice, promoCodes);
-    if (r.ok) {
-      setAppliedPromo({ code: r.code, discount: r.discount });
+    const r = applyPromoCode(totalPrice, promoInput, promoCodes);
+    if (r.isValid) {
+      const codeObj = promoCodes.find(p => p.code.toUpperCase() === promoInput.toUpperCase());
+      if (codeObj) setAppliedPromo({ code: codeObj, discount: r.discount });
       setPromoInput('');
     } else {
       setAppliedPromo(null);
-      setPromoError(r.reason);
+      setPromoError(r.error ?? 'Code invalide');
     }
   };
   const removePromo = () => { setAppliedPromo(null); setPromoError(null); };
@@ -663,7 +572,7 @@ export default function CheckoutPage() {
 
           {/* Left: step content */}
           <div className="lg:col-span-2">
-            {step === 'cart'     && <CartStep items={items} setStep={setStep} updateQty={updateQty} removeItem={removeItem} />}
+            {step === 'cart'     && <CartStep onNext={() => setStep('delivery')} />}
             {step === 'delivery' && <DeliveryStep delivery={delivery} setDelivery={setDelivery} setStep={setStep} handleDeliverySubmit={handleDeliverySubmit} shippingOptions={shippingCfg.options ?? []} selectedShipping={selectedShipping} setSelectedShipping={setSelectedShipping} />}
             {step === 'payment'  && <PaymentStep paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} mobileNumber={mobileNumber} setMobileNumber={setMobileNumber} handlePlaceOrder={handlePlaceOrder} processing={processing} setStep={setStep} isMobile={isMobile} />}
           </div>

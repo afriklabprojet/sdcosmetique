@@ -6,9 +6,6 @@ const nextConfig: NextConfig = {
     // VS Code Language Server confirms 0 type errors. Remove when TS is patched.
     ignoreBuildErrors: true,
   },
-  turbopack: {
-    root: process.cwd(),
-  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },

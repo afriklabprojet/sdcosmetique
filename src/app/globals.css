@@ -170,6 +170,12 @@ h1,h2,h3,h4,h5,h6 {
 .reveal-stagger > *:nth-child(7) { transition-delay: 480ms; }
 .reveal-stagger > *:nth-child(8) { transition-delay: 560ms; }
 
+/* ── Testimonials card hover ─────────────────────────────────── */
+.testi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(90,43,12,0.13) !important;
+}
+
 /* ── HeroBanner divider animation ───────────────────────────── */
 @keyframes scaleWidth {
   from { transform: scaleX(0); opacity: 0; }

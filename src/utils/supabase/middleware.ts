@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 export const createClient = (request: NextRequest) => {
   let supabaseResponse = NextResponse.next({
@@ -26,18 +26,6 @@ export const createClient = (request: NextRequest) => {
     },
   });
 
-  // Rafraîchir la session silencieusement — en cas de refresh token invalide,
-  // on efface les cookies de session sans planter le middleware
-  supabase.auth.getSession().catch(() => {
-    // Refresh token expiré ou introuvable : on nettoie les cookies
-    const response = NextResponse.next({ request });
-    request.cookies.getAll().forEach(({ name }) => {
-      if (name.includes('auth-token') || name.includes('supabase')) {
-        response.cookies.delete(name);
-      }
-    });
-    supabaseResponse = response;
-  });
-
-  return supabaseResponse;
+  // Rafraîchir la session silencieusement
+  return { supabase, response: supabaseResponse };
 };

@@ -5,8 +5,8 @@
  *
  * Variables d'environnement attendues:
  *   - RESEND_API_KEY        ex: re_xxx
- *   - RESEND_FROM_EMAIL     ex: "SD Cosmétique <bonjour@sd-cosmetique.com>"
- *   - SITE_URL              ex: https://sd-cosmetique.com  (pour les liens)
+ *   - RESEND_FROM_EMAIL     ex: "SD Cosmétique <bonjour@sdcosmetique.ci>"
+ *   - SITE_URL              ex: https://sdcosmetique.ci  (pour les liens)
  */
 
 import { formatPrice } from './products';
@@ -15,13 +15,15 @@ import type { OrderDraft } from './orders';
 const RESEND_ENDPOINT = 'https://api.resend.com/emails';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
+// Note: Using .replace(/pattern/g, replacement) instead of .replaceAll() for ES2017 compatibility
+// Both are functionally equivalent for global replacements
 function escapeHtml(s: string): string {
   return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
 }
 
 async function sendViaResend(payload: {
@@ -156,6 +158,43 @@ export async function sendOrderShipped(order: OrderDraft, trackingUrl?: string):
   });
 }
 
+// ─── Message de contact ───────────────────────────────────────────────────
+export async function sendContactMessage(args: {
+  nom: string;
+  email: string;
+  sujet: string;
+  message: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  const { nom, email, sujet, message } = args;
+  const adminEmail = process.env.RESEND_FROM_EMAIL?.match(/<(.+)>/)?.[1]
+    ?? process.env.RESEND_FROM_EMAIL
+    ?? '';
+  const html = `<!doctype html><html><body style="margin:0;padding:0;background:#f7f5f1;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+    <div style="max-width:560px;margin:0 auto;padding:32px 24px">
+      <div style="background:#fff;border:1px solid #e8e2d8;border-radius:12px;padding:24px">
+        <p style="font-size:11px;color:#999;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 4px">Formulaire de contact</p>
+        <h1 style="font-size:18px;color:#1a1a1a;margin:0 0 18px">${escapeHtml(sujet)}</h1>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:18px">
+          <tr><td style="font-size:12px;color:#777;padding:4px 0;width:80px">Nom</td><td style="font-size:14px;color:#333">${escapeHtml(nom)}</td></tr>
+          <tr><td style="font-size:12px;color:#777;padding:4px 0">Email</td><td style="font-size:14px;color:#333"><a href="mailto:${escapeHtml(email)}" style="color:#D4A24E">${escapeHtml(email)}</a></td></tr>
+        </table>
+        <div style="background:#FAFAFA;border:1px solid #eee;border-radius:8px;padding:14px">
+          <p style="font-size:14px;color:#333;line-height:1.7;margin:0;white-space:pre-wrap">${escapeHtml(message)}</p>
+        </div>
+      </div>
+      <p style="font-size:11px;color:#999;text-align:center;margin:18px 0 0">SD Cosmétique — Répondez directement à cet email pour contacter ${escapeHtml(nom)}.</p>
+    </div>
+  </body></html>`;
+  const text = `Nouveau message de contact\n\nNom : ${nom}\nEmail : ${email}\nSujet : ${sujet}\n\n${message}`;
+  return sendViaResend({
+    to: adminEmail,
+    subject: `[Contact] ${sujet} — ${nom}`,
+    html,
+    text,
+    reply_to: email,
+  });
+}
+
 // ─── Notification points fidélité ─────────────────────────────────────────
 export async function sendJekoPointsNotification(args: {
   to: string;
@@ -183,12 +222,12 @@ export async function sendJekoPointsNotification(args: {
           <p style="font-size:12px;color:#92400E;margin:6px 0 0">Solde actuel : <strong>${newBalance} pts</strong></p>
         </div>
         ${message ? `<p style="font-size:13px;color:#555;line-height:1.6;background:#FAFAFA;border-left:3px solid #D4A24E;padding:10px 14px;border-radius:4px;margin:0 0 18px"><em>${escapeHtml(message)}</em></p>` : ''}
-        ${siteUrl ? `<a href="${siteUrl}/compte" style="display:inline-block;padding:11px 22px;background:#D4A24E;color:#1a1a1a;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">Voir mon solde</a>` : ''}
+        ${siteUrl ? `<a href="${siteUrl + '/compte'}" style="display:inline-block;padding:11px 22px;background:#D4A24E;color:#1a1a1a;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">Voir mon solde</a>` : ''}
       </div>
       <p style="font-size:11px;color:#999;text-align:center;margin:18px 0 0">SD Cosmétique — La beauté qui vous ressemble.</p>
     </div>
   </body></html>`;
-  const text = `Bonjour ${firstName ?? ''},\n\n${Math.abs(points)} point${Math.abs(points) > 1 ? 's' : ''} ${verb} sur votre compte fidélité.\nSolde actuel : ${newBalance} pts.${message ? `\n\n${message}` : ''}\n\nSD Cosmétique`;
+  const text = `Bonjour ${firstName ?? ''},\n\n${Math.abs(points)} point${Math.abs(points) > 1 ? 's' : ''} ${verb} sur votre compte fidélité.\nSolde actuel : ${newBalance} pts.${message ? '\n\n' + message : ''}\n\nSD Cosmétique`;
   return sendViaResend({
     to,
     subject: `${sign}${points} points fidélité — SD Cosmétique`,

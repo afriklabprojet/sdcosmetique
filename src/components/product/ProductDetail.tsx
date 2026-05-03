@@ -12,6 +12,10 @@ import StarRating from '@/components/ui/StarRating';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 
+// Composants extraits
+import ProductGallery from '@/components/product/ProductGallery';
+import ProductInfo from '@/components/product/ProductInfo';
+
 const DARK   = '#3D1400';
 const GOLD   = '#8F5922';
 const GOLD2  = '#C8974A';

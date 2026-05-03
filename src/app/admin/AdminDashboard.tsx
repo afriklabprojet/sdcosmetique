@@ -23,119 +23,322 @@ import {
   getJekoSettings, getJekoTiersConfig, getJekoRewardsConfig, saveJekoConfig,
   getJekoMembers, getAllJekoTransactions, manualJekoAdjustment, getJekoStats,
 } from '@/lib/jeko-admin';
-import type { JekoSettings, JekoTierConfig, JekoRewardConfig, JekoMember, JekoTransactionAdmin, JekoStats } from '@/lib/jeko-admin';
+import type { JekoTierConfig, JekoRewardConfig, JekoMember, JekoTransactionAdmin, JekoStats, JekoSettings } from '@/lib/jeko-admin';
 
-function NewsletterCard() {
-  const [count, setCount] = useState<number | null>(null);
-  const [latest, setLatest] = useState<Array<{ email: string; created_at: string }>>([]);
-  useEffect(() => {
-    fetch('/api/newsletter/list')
-      .then(r => r.ok ? r.json() : { subscribers: [] })
-      .then(d => {
-        const subs = d.subscribers ?? [];
-        setCount(subs.length);
-        setLatest(subs.slice(0, 5));
-      })
-      .catch(() => { setCount(0); setLatest([]); });
-  }, []);
-  return (
-    <>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-        <span style={{ fontSize: '32px', fontWeight: 700, color: '#FAFAFA', letterSpacing: '-0.02em' }}>{count ?? '…'}</span>
-        <span style={{ fontSize: '11px', color: '#888' }}>abonné{(count ?? 0) > 1 ? 's' : ''}</span>
-      </div>
-      <a href="/api/newsletter/list?format=csv" download
-        style={{ alignSelf: 'flex-start', fontSize: '11px', padding: '6px 12px', borderRadius: '6px', border: '1px solid rgba(212,162,78,0.4)', background: 'rgba(212,162,78,0.08)', color: '#D4A24E', cursor: 'pointer', textDecoration: 'none' }}>
-        ⬇ Exporter CSV
-      </a>
-      {latest.length > 0 && (
-        <div style={{ borderTop: '1px solid #2A2A2A', paddingTop: '8px', marginTop: '4px' }}>
-          <div style={{ fontSize: '10px', color: '#666', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Derniers inscrits</div>
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            {latest.map((s, i) => (
-              <li key={i} style={{ fontSize: '11px', color: '#BBB', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.email}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </>
-  );
-}
-
-function QuizAnalyticsCard() {
-  const [items, setItems] = useState<Array<{ skin_tone: string | null; concern: string | null; routine: string | null; created_at: string }>>([]);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    fetch('/api/quiz/submit')
-      .then(r => r.ok ? r.json() : { items: [] })
-      .then(d => setItems(d.items ?? []))
-      .catch(() => setItems([]))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const total = items.length;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const last30 = items.filter(i => Date.now() - new Date(i.created_at).getTime() < 30 * 86400000).length;
-  const tally = (key: 'skin_tone' | 'concern' | 'routine') => {
-    const m = new Map<string, number>();
-    for (const it of items) {
-      const v = it[key];
-      if (!v) continue;
-      m.set(v, (m.get(v) ?? 0) + 1);
-    }
-    return [...m.entries()].sort((a, b) => b[1] - a[1]);
-  };
-  const concerns = tally('concern');
-  const tones = tally('skin_tone');
-  const routines = tally('routine');
-  const maxConcern = concerns[0]?.[1] ?? 1;
-
-  const Row = ({ label, count, max }: { label: string; count: number; max: number }) => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
-      <span style={{ flex: '0 0 130px', color: '#BBB', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
-      <div style={{ flex: 1, height: '6px', background: '#1C1610', borderRadius: '3px', overflow: 'hidden' }}>
-        <div style={{ width: `${(count / max) * 100}%`, height: '100%', background: '#C8974A' }} />
-      </div>
-      <span style={{ flex: '0 0 30px', textAlign: 'right', color: '#E8DDD0', fontWeight: 600 }}>{count}</span>
-    </div>
-  );
-
-  return (
-    <div style={{ background: '#14100C', border: '1px solid #2E2218', borderRadius: '10px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <h2 style={{ fontSize: '13px', fontWeight: 700, color: '#C8974A' }}>Analytics quiz</h2>
-        <span style={{ fontSize: '10px', color: '#888' }}>{loading ? '…' : `${total} soumissions · ${last30} sur 30j`}</span>
-      </div>
-      {loading ? (
-        <p style={{ fontSize: '11px', color: '#888' }}>Chargement…</p>
-      ) : total === 0 ? (
-        <p style={{ fontSize: '11px', color: '#888' }}>Aucune soumission. La table <code>quiz_submissions</code> doit exister (migration <code>20260430012000</code>).</p>
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '18px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <h3 style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#888' }}>Préoccupations</h3>
-            {concerns.slice(0, 8).map(([k, v]) => <Row key={k} label={k} count={v} max={maxConcern} />)}
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <h3 style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#888' }}>Carnations</h3>
-            {tones.slice(0, 8).map(([k, v]) => <Row key={k} label={k} count={v} max={tones[0]?.[1] ?? 1} />)}
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <h3 style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#888' }}>Routines</h3>
-            {routines.slice(0, 8).map(([k, v]) => <Row key={k} label={k} count={v} max={routines[0]?.[1] ?? 1} />)}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
+// Composants extraits
+import QuizAnalyticsCard from '@/components/admin/QuizAnalyticsCard';
+import StatusBadge from '@/components/admin/StatusBadge';
+import Pagination from '@/components/admin/Pagination';
 
 type OrderStatus = OrderDraft['status'];
 type ReviewRow = Review & { productId?: string };
 type ProductModalState = Partial<Product> & { _isNew?: boolean };
 type Tab = 'dashboard' | 'commandes' | 'produits' | 'avis' | 'temoignages' | 'categories' | 'quiz' | 'clients' | 'contenu' | 'jeko' | 'newsletter' | 'livraison' | 'marketing';
 type NewsletterSub = { id: string; email: string; source: string | null; unsubscribed: boolean; created_at: string };
+
+type ProductEditModalProps = {
+  productModal: ProductModalState | null;
+  setProductModal: React.Dispatch<React.SetStateAction<ProductModalState | null>>;
+  onSave: () => void;
+  inputStyle: React.CSSProperties;
+  SURFACE: string;
+  TEXT: string;
+  TEXT2: string;
+  TEXT3: string;
+  BORDER: string;
+  BG: string;
+  GOLD2: string;
+  SURFACE2: string;
+  BTN_BG: string;
+  S_ERR_BG: string;
+  S_ERR_T: string;
+};
+
+function ProductEditModal({ 
+  productModal, setProductModal, onSave, inputStyle,
+  SURFACE, TEXT, TEXT2, TEXT3, BORDER, BG, GOLD2, SURFACE2, BTN_BG, S_ERR_BG, S_ERR_T 
+}: Readonly<ProductEditModalProps>) {
+  if (!productModal) return null;
+
+  // Fonction utilitaire pour gérer les teintes compatibles
+  const handleSkinToneChange = (tone: SkinTone, isChecked: boolean) => {
+    setProductModal((p) => {
+      if (!p) return p;
+      const currentTones = p.skinTones ?? [];
+      return {
+        ...p,
+        skinTones: isChecked 
+          ? [...currentTones, tone] 
+          : currentTones.filter((x) => x !== tone)
+      };
+    });
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex' }}>
+      <button 
+        onClick={() => setProductModal(null)} 
+        onKeyDown={(e) => { if (e.key === 'Escape') setProductModal(null); }}
+        style={{ 
+          flex: 1, 
+          background: 'rgba(0,0,0,0.7)', 
+          cursor: 'pointer', 
+          border: 'none',
+          padding: 0
+        }} 
+        aria-label="Fermer le modal"
+      />
+      <div style={{ width: '460px', background: SURFACE, borderLeft: `1px solid `, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <h2 style={{ color: TEXT, fontSize: '15px', fontWeight: 700 }}>{productModal._isNew ? '+ Nouveau produit' : 'Modifier le produit'}</h2>
+          <button onClick={() => setProductModal(null)} style={{ color: TEXT3, fontSize: '18px', lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+        </div>
+        <div>
+          <label htmlFor="product-name" style={{ fontSize: '11px', color: TEXT2, display: 'block', marginBottom: '4px' }}>Nom *</label>
+          <input 
+            id="product-name"
+            value={productModal.name ?? ''} 
+            onChange={(e) => {
+              const v = e.target.value;
+              const slug = v
+                .toLowerCase()
+                .normalize('NFD').replaceAll(/[\u0300-\u036f]/g, '')
+                .replaceAll(/[^a-z0-9]+/g, '-')
+                .replaceAll(/^-+|-+$/g, '');
+              setProductModal((p) => p ? { ...p, name: v, slug } : p);
+            }} 
+            style={inputStyle} 
+          />
+        </div>
+        <div>
+          <label htmlFor="product-slug" style={{ fontSize: '11px', color: TEXT2, display: 'block', marginBottom: '4px' }}>Slug (auto-généré)</label>
+          <input 
+            id="product-slug"
+            value={productModal.slug ?? ''} 
+            readOnly 
+            style={{ ...inputStyle, color: TEXT3, fontFamily: 'monospace', fontSize: '12px', cursor: 'not-allowed' }} 
+          />
+        </div>
+        <div>
+          <label htmlFor="product-category" style={{ fontSize: '11px', color: TEXT2, display: 'block', marginBottom: '4px' }}>Catégorie *</label>
+          <select 
+            id="product-category"
+            value={productModal.category ?? ''} 
+            onChange={(e) => setProductModal((p) => p ? { ...p, category: e.target.value as Category } : p)} 
+            style={{ ...inputStyle, cursor: 'pointer' }}
+          >
+            <option value="">-- Choisir --</option>
+            <option value="face">Visage</option>
+            <option value="body">Corps</option>
+            <option value="gammes">Gammes</option>
+            <option value="kits">Kits</option>
+            <option value="duo">Duo</option>
+          </select>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div>
+            <label htmlFor="product-price" style={{ fontSize: '11px', color: TEXT2, display: 'block', marginBottom: '4px' }}>Prix (FCFA) *</label>
+            <input 
+              id="product-price"
+              type="number" 
+              min="0" 
+              value={productModal.price ?? ''} 
+              onChange={(e) => setProductModal((p) => p ? { ...p, price: Number.parseInt(e.target.value, 10) || 0 } : p)} 
+              style={inputStyle} 
+            />
+          </div>
+          <div>
+            <label htmlFor="product-original-price" style={{ fontSize: '11px', color: TEXT2, display: 'block', marginBottom: '4px' }}>Prix barré</label>
+            <input 
+              id="product-original-price"
+              type="number" 
+              min="0" 
+              value={productModal.originalPrice ?? ''} 
+              onChange={(e) => { const v = Number.parseInt(e.target.value, 10); setProductModal((p) => p ? { ...p, originalPrice: Number.isNaN(v) || v === 0 ? undefined : v } : p); }} 
+              style={inputStyle} 
+            />
+          </div>
+        </div>
+        <div>
+          <label htmlFor="product-short-desc" style={{ fontSize: '11px', color: TEXT2, display: 'block', marginBottom: '4px' }}>Description courte</label>
+          <input 
+            id="product-short-desc"
+            value={productModal.shortDescription ?? ''} 
+            onChange={(e) => setProductModal((p) => p ? { ...p, shortDescription: e.target.value } : p)} 
+            style={inputStyle} 
+          />
+        </div>
+        <div>
+          <label htmlFor="product-description" style={{ fontSize: '11px', color: TEXT2, display: 'block', marginBottom: '4px' }}>Description complète</label>
+          <textarea 
+            id="product-description"
+            value={productModal.description ?? ''} 
+            onChange={(e) => setProductModal((p) => p ? { ...p, description: e.target.value } : p)} 
+            rows={4} 
+            style={{ ...inputStyle, resize: 'vertical' as const }} 
+          />
+        </div>
+        <div>
+          <label htmlFor="product-usage" style={{ fontSize: '11px', color: TEXT2, display: 'block', marginBottom: '4px' }}>Mode d&apos;emploi</label>
+          <textarea 
+            id="product-usage"
+            value={productModal.usage ?? ''} 
+            onChange={(e) => setProductModal((p) => p ? { ...p, usage: e.target.value } : p)} 
+            rows={3} 
+            style={{ ...inputStyle, resize: 'vertical' as const }} 
+          />
+        </div>
+        <div>
+          <label htmlFor="product-ingredients" style={{ fontSize: '11px', color: TEXT2, display: 'block', marginBottom: '4px' }}>Ingrédients</label>
+          <textarea value={productModal.ingredients ?? ''} onChange={(e) => setProductModal((p) => p ? { ...p, ingredients: e.target.value || undefined } : p)} rows={3} style={{ ...inputStyle, resize: 'vertical' as const }} />
+        </div>
+        <div>
+          <label htmlFor="product-benefits" style={{ fontSize: '11px', color: TEXT2, display: 'block', marginBottom: '4px' }}>Bienfaits (1 par ligne)</label>
+          <textarea 
+            id="product-benefits"
+            value={(productModal.benefits ?? []).join('\n')} 
+            onChange={(e) => setProductModal((p) => p ? { ...p, benefits: e.target.value.split('\n').filter(Boolean) } : p)} 
+            rows={4} 
+            style={{ ...inputStyle, resize: 'vertical' as const }} 
+          />
+        </div>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <label htmlFor="product-images" style={{ fontSize: '11px', color: TEXT2 }}>Images du produit</label>
+            <button
+              type="button"
+              onClick={() => setProductModal((p) => p ? { ...p, images: [...(p.images ?? []), ''] } : p)}
+              style={{ fontSize: '11px', color: GOLD2, background: 'none', border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '2px 10px', cursor: 'pointer' }}
+            >+ Ajouter</button>
+          </div>
+          {(productModal.images ?? []).length === 0 && (
+            <p style={{ fontSize: '11px', color: TEXT3, textAlign: 'center', padding: '10px 0' }}>Aucune image — cliquez + Ajouter (au moins 1 image requise)</p>
+          )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {(productModal.images ?? []).map((img: string, idx: number) => (
+              <div key={`product-img-${idx}-${img.slice(-10)}`}
+                draggable
+                onDragStart={(e) => { e.dataTransfer.setData('text/img-idx', String(idx)); e.dataTransfer.effectAllowed = 'move'; }}
+                onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const from = Number.parseInt(e.dataTransfer.getData('text/img-idx'), 10);
+                  if (Number.isNaN(from) || from === idx) return;
+                  setProductModal((p) => {
+                    if (!p) return p;
+                    const imgs = [...(p.images ?? [])];
+                    const [moved] = imgs.splice(from, 1);
+                    imgs.splice(idx, 0, moved);
+                    return { ...p, images: imgs };
+                  });
+                }}
+                style={{ position: 'relative', cursor: 'grab', border: `1px dashed ${BORDER}`, borderRadius: '8px', padding: '8px', background: SURFACE2 }}
+                title="Glissez pour réordonner"
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                  <span style={{ color: TEXT3, fontSize: '14px', userSelect: 'none' }}>⋮⋮</span>
+                  <span style={{ fontSize: '11px', color: TEXT3 }}>Position {idx + 1}{idx === 0 && ' · principale'}</span>
+                  <div style={{ marginLeft: 'auto', display: 'flex', gap: '4px' }}>
+                    <button type="button" disabled={idx === 0}
+                      onClick={() => setProductModal((p) => {
+                        if (!p) return p;
+                        const imgs = [...(p.images ?? [])];
+                        [imgs[idx - 1], imgs[idx]] = [imgs[idx], imgs[idx - 1]];
+                        return { ...p, images: imgs };
+                      })}
+                      style={{ background: 'transparent', color: idx === 0 ? TEXT3 : TEXT2, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '2px 7px', fontSize: '10px', cursor: idx === 0 ? 'not-allowed' : 'pointer' }}>↑</button>
+                    <button type="button" disabled={idx === (productModal.images?.length ?? 0) - 1}
+                      onClick={() => setProductModal((p) => {
+                        if (!p) return p;
+                        const imgs = [...(p.images ?? [])];
+                        if (idx >= imgs.length - 1) return p;
+                        [imgs[idx], imgs[idx + 1]] = [imgs[idx + 1], imgs[idx]];
+                        return { ...p, images: imgs };
+                      })}
+                      style={{ background: 'transparent', color: TEXT2, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '2px 7px', fontSize: '10px', cursor: 'pointer' }}>↓</button>
+                  </div>
+                </div>
+                <ImageUpload
+                  value={img}
+                  onChange={(url: string) => setProductModal((p) => {
+                    if (!p) return p;
+                    const imgs = [...(p.images ?? [])];
+                    imgs[idx] = url;
+                    return { ...p, images: imgs };
+                  })}
+                  folder="products"
+                  label={`Image ${idx + 1}`}
+                  previewSize={110}
+                />
+                <button
+                  type="button"
+                  onClick={() => setProductModal((p) => {
+                    if (!p) return p;
+                    const imgs = [...(p.images ?? [])];
+                    imgs.splice(idx, 1);
+                    return { ...p, images: imgs };
+                  })}
+                  style={{ position: 'absolute', top: 6, right: 6, background: S_ERR_BG, color: S_ERR_T, border: 'none', borderRadius: '4px', padding: '2px 7px', fontSize: '11px', cursor: 'pointer' }}
+                >✕ Supprimer</button>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div>
+          <fieldset>
+            <legend style={{ fontSize: '11px', color: TEXT2, marginBottom: '6px' }}>Teintes compatibles</legend>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+            {(['noir', 'marron', 'marron-clair', 'clair', 'metisse'] as SkinTone[]).map((tone: SkinTone) => (
+              <label key={tone} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                <input 
+                  type="checkbox" 
+                  checked={(productModal.skinTones ?? []).includes(tone)} 
+                  onChange={(e) => handleSkinToneChange(tone, e.target.checked)} 
+                  style={{ accentColor: GOLD2 }} 
+                />
+                <span style={{ fontSize: '12px', color: TEXT }}>{tone}</span>
+              </label>
+            ))}
+          </div>
+          </fieldset>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <span style={{ fontSize: '11px', color: TEXT2 }}>Quantité en stock <span style={{ color: TEXT3 }}>(vide = ignoré)</span></span>
+            <input type="number" min={0} placeholder="ex: 25"
+              value={productModal.stockQty ?? ''}
+              onChange={(e) => { const v = e.target.value; setProductModal((p) => p ? { ...p, stockQty: v === '' ? undefined : Math.max(0, Number.parseInt(v, 10) || 0) } : p); }}
+              style={inputStyle} />
+          </label>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <span style={{ fontSize: '11px', color: TEXT2 }}>Seuil alerte stock bas <span style={{ color: TEXT3 }}>(défaut 5)</span></span>
+            <input type="number" min={0} placeholder="5"
+              value={productModal.lowStockThreshold ?? ''}
+              onChange={(e) => { const v = e.target.value; setProductModal((p) => p ? { ...p, lowStockThreshold: v === '' ? undefined : Math.max(0, Number.parseInt(v, 10) || 0) } : p); }}
+              style={inputStyle} />
+          </label>
+        </div>
+        <fieldset>
+          <legend style={{ fontSize: '11px', color: TEXT2, marginBottom: '6px' }}>Badges</legend>
+          <div style={{ display: 'flex', gap: '20px' }}>
+            {([{ key: 'inStock', label: 'En stock' }, { key: 'isNew', label: 'Nouveau' }, { key: 'isBestseller', label: 'Bestseller' }]).map(({ key, label }) => (
+              <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                <input type="checkbox" checked={!!((productModal as Record<string, unknown>)[key])} onChange={(e) => setProductModal((p) => p ? { ...p, [key]: e.target.checked } : p)} style={{ accentColor: GOLD2 }} />
+                <span style={{ fontSize: '12px', color: TEXT }}>{label}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <div style={{ display: 'flex', gap: '8px', paddingTop: '12px', borderTop: `1px solid ${BTN_BG}` }}>
+          <button onClick={onSave} disabled={!productModal.name?.trim() || !productModal.slug?.trim() || !productModal.category || productModal.images?.filter((u: string) => u?.trim()).length === 0} style={{ flex: 1, padding: '10px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, background: GOLD2, color: BG, cursor: 'pointer', border: 'none', opacity: !productModal.name?.trim() || !productModal.slug?.trim() || !productModal.category || productModal.images?.filter((u: string) => u?.trim()).length === 0 ? 0.4 : 1 }}>
+            {productModal._isNew ? '+ Ajouter' : '✓ Enregistrer'}
+          </button>
+          <button onClick={() => setProductModal(null)} style={{ padding: '10px 16px', borderRadius: '6px', fontSize: '13px', background: SURFACE2, color: TEXT2, cursor: 'pointer', border: 'none' }}>Annuler</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ── Palette (module-level so STATUS_OPTIONS can reference them) ───────────────
 const BG       = '#0D0906';
@@ -164,7 +367,6 @@ const S_INFO_T  = '#93C5FD';
 const S_SAVE_BG = '#2A4A2A';
 const S_SAVE_T  = '#5ACA5A';
 const GOLD_D  = '#7B4A1A';
-const GOLD_D2 = '#6B3D14';
 const GOLD_D3 = '#5A2B0C';
 const ACCENT_P = '#C4B5FD';
 const ACCENT_Y = '#FDE68A';
@@ -187,60 +389,554 @@ const PAYMENT_LABELS: Record<string, string> = {
 
 const PER_PAGE = 10;
 
-// ─── CSV export ───────────────────────────────────────────────────────────────
-function exportOrdersCSV(orders: OrderDraft[]) {
-  const header = ['N° commande', 'Date', 'Prénom', 'Nom', 'Email', 'Téléphone', 'Adresse', 'Ville', 'Pays', 'Articles', 'Sous-total', 'Livraison', 'Total', 'Paiement', 'Statut'];
-  const rows = orders.map(o => [
-    o.orderNumber,
-    formatOrderDate(o.date),
-    o.delivery.firstName,
-    o.delivery.lastName,
-    o.delivery.email,
-    o.delivery.phone,
-    o.delivery.address,
-    o.delivery.city,
-    o.delivery.country,
-    o.items.reduce((s, i) => s + i.quantity, 0),
-    o.subtotal,
-    o.shippingCost,
-    o.total,
-    PAYMENT_LABELS[o.paymentMethod] ?? o.paymentMethod,
-    STATUS_OPTIONS.find(s => s.value === o.status)?.label ?? o.status,
-  ]);
-  const csv = [header, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `commandes-sd-${new Date().toISOString().slice(0, 10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+// ─── Helper functions pour réduire la complexité cognitive ──────────────────────────
+function calculateDashboardMetrics(orders: OrderDraft[], _editableProducts: EditableProduct[], _reviews: ReviewRow[]) {
+  const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+  const currentDate = new Date();
+  const currentMonth = currentDate.getMonth();
+  const currentYear = currentDate.getFullYear();
+  
+  const revenueThisMonth = orders
+    .filter(order => {
+      const orderDate = new Date(order.date);
+      return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear;
+    })
+    .reduce((sum, order) => sum + order.total, 0);
+    
+  const ordersInProgress = orders.filter(order => 
+    ['pending', 'processing', 'shipped'].includes(order.status)
+  ).length;
+  
+  const recentOrders = [...orders]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 5);
+    
+  return {
+    totalRevenue,
+    revenueThisMonth, 
+    ordersInProgress,
+    recentOrders
+  };
 }
 
-// ─── Composants utilitaires (module-level) ──────────────────────────────────
-function StatusBadge({ status }: { status: OrderStatus }) {
-  const s = STATUS_OPTIONS.find(x => x.value === status) ?? STATUS_OPTIONS[0];
-  return <span style={{ background: s.bg, color: s.color, borderRadius: '99px', padding: '3px 10px', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap' as const, border: `1px solid ${s.bg}` }}>{s.label}</span>;
+function calculateLast7DaysData(orders: OrderDraft[]) {
+  const now = new Date();
+  const last7Days = [];
+  
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+    
+    const dayOrders = orders.filter(order => {
+      const orderDate = new Date(order.date);
+      return orderDate.toDateString() === date.toDateString();
+    });
+    
+    const dayRevenue = dayOrders.reduce((sum, order) => sum + order.total, 0);
+    
+    last7Days.push({
+      label: date.toLocaleDateString('fr-FR', { weekday: 'narrow' }),
+      value: dayRevenue
+    });
+  }
+  
+  const maxDay = Math.max(...last7Days.map(d => d.value), 1);
+  return { last7Days, maxDay };
 }
 
-function Pagination({ page, total, onChange }: { page: number; total: number; onChange: (n: number) => void }) {
+function filterOrdersData(orders: OrderDraft[], searchTerm: string, statusFilter: string) {
+  return orders.filter(order => {
+    const matchesSearch = !searchTerm || 
+      order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      `${order.delivery.firstName} ${order.delivery.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.delivery.email.toLowerCase().includes(searchTerm.toLowerCase());
+      
+    const matchesStatus = !statusFilter || order.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+}
+
+function paginateData<T>(data: T[], page: number, pageSize: number) {
+  const start = (page - 1) * pageSize;
+  const end = start + pageSize;
+  const pagedData = data.slice(start, end);
+  const pageCount = Math.ceil(data.length / pageSize);
+  
+  return { pagedData, pageCount };
+}
+
+function filterProductsData(products: EditableProduct[], searchTerm: string, categoryFilter: string) {
+  return products.filter(product => {
+    const matchesSearch = !searchTerm || 
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+    const matchesCategory = !categoryFilter || product.category === categoryFilter;
+    
+    return matchesSearch && matchesCategory;
+  });
+}
+
+// ─── OrdersTab Component ─────────────────────────────────────────────
+interface ProductsTabProps {
+  filteredProducts: Product[];
+  editableProducts: Product[];
+  productSearch: string;
+  setProductSearch: (search: string) => void;
+  setProductPage: (page: number) => void;
+  productCatFilter: string;
+  setProductCatFilter: (filter: string) => void;
+  openNewModal: () => void;
+  pagedProducts: Product[];
+  productPageCount: number;
+  productPage: number;
+  openEditModal: (product: Product) => void;
+  setConfirmDelete: (id: string | null) => void;
+  card: React.CSSProperties;
+  inputStyle: React.CSSProperties;
+  thStyle: React.CSSProperties;
+  tdStyle: React.CSSProperties;
+}
+
+const ProductsTab: React.FC<ProductsTabProps> = ({
+  filteredProducts, editableProducts, productSearch, setProductSearch, setProductPage,
+  productCatFilter, setProductCatFilter, openNewModal, pagedProducts, productPageCount,
+  productPage, openEditModal, setConfirmDelete, card, inputStyle, thStyle, tdStyle
+}) => (
+  <div className="space-y-4">
+    <div className="flex items-center justify-between gap-4 flex-wrap">
+      <h1 className="text-lg font-bold" style={{ color: TEXT }}>
+        {getProductCountText(filteredProducts.length, editableProducts.length)}
+      </h1>
+      <div className="flex items-center gap-2 flex-wrap">
+        <button onClick={openNewModal} className="text-xs px-3 py-1.5 rounded transition-all hover:opacity-80" style={{ background: GOLD, color: BG, fontWeight: 600, whiteSpace: 'nowrap' }}>+ Nouveau</button>
+        <input
+          type="search" placeholder="Rechercher un produit…"
+          value={productSearch}
+          onChange={e => { setProductSearch(e.target.value); setProductPage(1); }}
+          style={{ ...inputStyle, width: '180px' }}
+        />
+        <select
+          value={productCatFilter}
+          onChange={e => { setProductCatFilter(e.target.value); setProductPage(1); }}
+          style={{ ...inputStyle, width: '130px', cursor: 'pointer' }}
+        >
+          <option value="">Toutes catégories</option>
+          <option value="face">Visage</option>
+          <option value="body">Corps</option>
+          <option value="gammes">Gammes</option>
+          <option value="kits">Kits</option>
+          <option value="duo">Duo</option>
+        </select>
+      </div>
+    </div>
+
+    <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
+      {filteredProducts.length === 0 ? (
+        <p className="text-xs text-center py-10" style={{ color: TEXT3 }}>Aucun produit trouvé.</p>
+      ) : (
+        <>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead style={{ background: SURFACE2 }}>
+                <tr>{['', 'Nom', 'Catégorie', 'Prix', 'Stock', 'Badges', 'Actions'].map(h => <th key={h} style={thStyle}>{h}</th>)}</tr>
+              </thead>
+              <tbody>
+                {pagedProducts.map(p => (
+                  <tr key={p.id} style={{ transition: 'background .15s' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = SURFACE2)}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                    <td style={{ ...tdStyle, width: '52px', padding: '8px 8px 8px 16px' }}>
+                      {p.images?.[0] ? (
+                        <Image src={p.images[0]} alt={p.name} width={38} height={38} style={{  objectFit: 'cover', borderRadius: '6px', border: `1px solid ${BORDER}`  }} />
+                      ) : (
+                        <div style={{ width: '38px', height: '38px', background: BORDER, borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <span style={{ color: TEXT3, fontSize: '16px' }}>◇</span>
+                        </div>
+                      )}
+                    </td>
+                    <td style={{ ...tdStyle, fontWeight: 500 }}>{p.name}</td>
+                    <td style={{ ...tdStyle, color: INFO_C }}>{p.category}</td>
+                    <td style={{ ...tdStyle, fontWeight: 600, color: GOLD }}>
+                      {formatPrice(p.price)}
+                      {p.originalPrice && (
+                        <span style={{ color: TEXT3, fontWeight: 400, fontSize: '11px', marginLeft: '4px' }}><s>{formatPrice(p.originalPrice)}</s></span>
+                      )}
+                    </td>
+                    <td style={{ ...tdStyle, textAlign: 'center' as const }}>
+                      {(() => {
+                        const qty = p.stockQty;
+                        const threshold = p.lowStockThreshold ?? 5;
+                        if (qty == null) {
+                          return <span style={{ color: p.inStock ? S_OK_T : S_ERR_T, fontSize: '13px', fontWeight: 700 }}>{p.inStock ? '✓' : '✕'}</span>;
+                        }
+                        if (qty <= 0) return <span style={{ color: S_ERR_T, fontSize: '12px', fontWeight: 700 }}>Rupture</span>;
+                        if (qty <= threshold) return <span style={{ color: S_WARN_T, fontSize: '12px', fontWeight: 700 }}>{qty} ⚠</span>;
+                        return <span style={{ color: S_OK_T, fontSize: '12px', fontWeight: 600 }}>{qty}</span>;
+                      })()}
+                    </td>
+                    <td style={tdStyle}>
+                      <div className="flex flex-wrap gap-1">
+                        {p.isNew && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: S_INFO_BG, color: S_INFO_T }}>Nouveau</span>}
+                        {p.isBestseller && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: S_ERR_BG, color: S_ERR_T }}>Bestseller</span>}
+                        {p.originalPrice && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: S_WARN_BG, color: S_WARN_T }}>Promo</span>}
+                      </div>
+                    </td>
+                    <td style={tdStyle}>
+                      <div className="flex gap-1">
+                        <a href={`/produit/${p.slug}`} target="_blank" rel="noopener noreferrer" title="Aperçu live"
+                          className="text-xs px-2 py-1 rounded border transition-all hover:opacity-80"
+                          style={{ borderColor: BORDER2, color: GOLD, textDecoration: 'none' }}>↗</a>
+                        <button onClick={() => openEditModal(p)} className="text-xs px-2 py-1 rounded border transition-all hover:opacity-80" style={{ borderColor: BORDER2, color: TEXT2 }}>Éditer</button>
+                        <button onClick={() => setConfirmDelete(p.id)} className="text-xs px-2 py-1 rounded transition-all hover:opacity-80" style={{ background: S_ERR_BG, color: S_ERR_T }}>✕</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {productPageCount > 1 && <Pagination page={productPage} total={productPageCount} onChange={setProductPage} />}
+        </>
+      )}
+    </div>
+  </div>
+);
+
+interface OrdersTabProps {
+  filteredOrders: OrderDraft[];
+  orderPage: number;
+  orderPageSize: number;
+  orderSearchTerm: string;
+  orderStatusFilter: string;
+  orderPageCount: number;
+  pagedOrders: OrderDraft[];
+  setOrderPage: (page: number) => void;
+  setOrderSearchTerm: (term: string) => void;
+  setOrderStatusFilter: (status: string) => void;
+  setOrderDetail: (order: OrderDraft | null) => void;
+  handleStatusChange: (orderNumber: string, status: OrderStatus) => void;
+  thStyle: React.CSSProperties;
+  tdStyle: React.CSSProperties;
+}
+
+function OrdersTab({ 
+  filteredOrders, orderPage, orderSearchTerm, orderStatusFilter,
+  orderPageCount, pagedOrders, setOrderPage, setOrderSearchTerm, setOrderStatusFilter,
+  setOrderDetail, handleStatusChange, thStyle, tdStyle 
+}: Readonly<OrdersTabProps>) {
   return (
-    <div className="flex items-center justify-between px-5 py-3" style={{ borderTop: `1px solid ${BORDER}` }}>
-      <span className="text-xs" style={{ color: TEXT3 }}>Page {page} / {total}</span>
-      <div className="flex gap-2">
-        <button onClick={() => onChange(page - 1)} disabled={page <= 1}
-          className="text-xs px-3 py-1 rounded border transition-all disabled:opacity-30"
-          style={{ borderColor: BORDER2, color: TEXT2, background: SURFACE2 }}>← Préc.</button>
-        <button onClick={() => onChange(page + 1)} disabled={page >= total}
-          className="text-xs px-3 py-1 rounded border transition-all disabled:opacity-30"
-          style={{ borderColor: BORDER2, color: TEXT2, background: SURFACE2 }}>Suiv. →</button>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <h1 className="text-lg font-bold" style={{ color: TITLE }}>
+          Commandes ({filteredOrders.length})
+        </h1>
+        <div className="flex items-center gap-2 flex-wrap">
+          <input 
+            type="search" 
+            value={orderSearchTerm}
+            onChange={e => setOrderSearchTerm(e.target.value)}
+            placeholder="Recherche client, commande..."
+            className="text-xs px-3 py-1.5 rounded border" 
+            style={{ background: SURFACE, borderColor: BORDER2, color: TEXT, width: '200px' }}
+          />
+          <select 
+            value={orderStatusFilter}
+            onChange={e => setOrderStatusFilter(e.target.value)}
+            className="text-xs px-2 py-1.5 rounded border"
+            style={{ background: SURFACE, borderColor: BORDER2, color: TEXT }}
+          >
+            <option value="">Tous les statuts</option>
+            {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+          </select>
+        </div>
+      </div>
+
+      {filteredOrders.length === 0 ? (
+        <div style={{ 
+          textAlign: 'center', 
+          padding: '60px 20px', 
+          background: SURFACE, 
+          border: `1px solid ${BORDER}`, 
+          borderRadius: '12px' 
+        }}>
+          <p style={{ fontSize: '12px', color: TEXT3 }}>Aucune commande trouvée.</p>
+        </div>
+      ) : (
+        <>
+          <div style={{ overflowX: 'auto', background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '12px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead style={{ background: SURFACE2, borderBottom: `1px solid ${BORDER}` }}>
+                <tr>
+                  {['N° commande', 'Date', 'Client', 'Email', 'Articles', 'Total', 'Paiement', 'Statut', 'Actions'].map(h => (
+                    <th key={h} style={thStyle}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {pagedOrders.map(o => (
+                  <tr key={o.orderNumber} style={{ transition: 'background .15s' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = SURFACE2)}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                    <td style={tdStyle}><span style={{ color: GOLD, fontWeight: 600 }}>{o.orderNumber}</span></td>
+                    <td style={tdStyle}>{formatOrderDate(o.date)}</td>
+                    <td style={tdStyle}>{o.delivery.firstName} {o.delivery.lastName}</td>
+                    <td style={{ ...tdStyle, color: INFO_C }}>{o.delivery.email}</td>
+                    <td style={{ ...tdStyle, textAlign: 'center' }}>{o.items.reduce((s, i) => s + i.quantity, 0)}</td>
+                    <td style={{ ...tdStyle, fontWeight: 600 }}>{formatPrice(o.total)}</td>
+                    <td style={tdStyle}>{PAYMENT_LABELS[o.paymentMethod] ?? o.paymentMethod}</td>
+                    <td style={tdStyle}>
+                      <select
+                        value={o.status}
+                        onChange={e => handleStatusChange(o.orderNumber, e.target.value as OrderStatus)}
+                        style={{ 
+                          background: BG, 
+                          border: `1px solid ${BORDER2}`, 
+                          borderRadius: '6px', 
+                          color: STATUS_OPTIONS.find(s => s.value === o.status)?.color ?? TEXT, 
+                          padding: '3px 6px', 
+                          fontSize: '11px', 
+                          fontWeight: 600, 
+                          cursor: 'pointer' 
+                        }}
+                      >
+                        {STATUS_OPTIONS.map(s => (
+                          <option key={s.value} value={s.value}>{s.label}</option>
+                        ))}
+                      </select>
+                    </td>
+                    <td style={tdStyle}>
+                      <button onClick={() => setOrderDetail(o)}
+                        className="text-xs px-2 py-1 rounded border transition-all hover:opacity-80"
+                        style={{ borderColor: GOLD, color: GOLD, whiteSpace: 'nowrap' }}>
+                        Détail
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {orderPageCount > 1 && <Pagination page={orderPage} total={orderPageCount} onChange={setOrderPage} />}
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── CSV export ───────────────────────────────────────────────────────────────
+// ─── Composants extraits pour réduire la complexité ───────────────────────────
+interface DashboardTabProps {
+  orders: OrderDraft[];
+  editableProducts: EditableProduct[];
+  reviews: ReviewRow[];
+  totalRevenue: number;
+  revenueThisMonth: number;
+  ordersInProgress: number;
+  recentOrders: OrderDraft[];
+  last7Days: { label: string; value: number }[];
+  maxDay: number;
+  setTab: (tab: Tab) => void;
+  setOrderDetail: (order: OrderDraft | null) => void;
+  thStyle: React.CSSProperties;
+  tdStyle: React.CSSProperties;
+}
+
+function DashboardTab({ 
+  orders, editableProducts, reviews, totalRevenue, revenueThisMonth, 
+  ordersInProgress, recentOrders, last7Days, maxDay, 
+  setTab, setOrderDetail, thStyle, tdStyle 
+}: Readonly<DashboardTabProps>) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {/* Page title */}
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+        <div>
+          <h1 style={{ fontSize: '20px', fontWeight: 700, color: TITLE, letterSpacing: '-0.02em' }}>Tableau de bord</h1>
+          <p style={{ fontSize: '12px', color: TEXT3, marginTop: '2px' }}>{new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+        </div>
+        <button onClick={() => setTab('commandes')} style={{ fontSize: '11px', padding: '7px 14px', borderRadius: '8px', border: `1px solid ${BORDER2}`, background: SURFACE2, color: TEXT2, cursor: 'pointer' }}>Toutes les commandes →</button>
+      </div>
+
+      {/* KPI grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
+        {[
+          { label: 'Chiffre d\'affaires', value: formatPrice(totalRevenue), sub: 'Toutes commandes', pct: 100, icon: '◈', color: GOLD },
+          { label: 'CA ce mois', value: formatPrice(revenueThisMonth), sub: new Date().toLocaleDateString('fr-FR', { month: 'long' }), pct: totalRevenue > 0 ? Math.round((revenueThisMonth / totalRevenue) * 100) : 0, icon: '▲', color: S_OK_T },
+          { label: 'Commandes totales', value: String(orders.length), sub: 'Depuis le début', pct: 100, icon: '◫', color: S_INFO_T },
+          { label: 'En attente', value: String(ordersInProgress), sub: ordersInProgress > 0 ? 'À traiter' : 'Tout est traité ✓', pct: orders.length > 0 ? Math.round((ordersInProgress / orders.length) * 100) : 0, icon: '⏳', color: S_ERR_T },
+          { label: 'Produits', value: String(editableProducts.length || PRODUCTS.length), sub: 'Dans le catalogue', pct: 100, icon: '◇', color: ACCENT_P },
+          { label: 'Avis clients', value: String(reviews.length), sub: `${reviews.filter(r => r.verified).length} vérifiés`, pct: reviews.length > 0 ? Math.round((reviews.filter(r => r.verified).length / reviews.length) * 100) : 0, icon: '★', color: ACCENT_Y },
+          ...(() => {
+            const tracked = editableProducts.filter(p => p.stockQty != null);
+            const low = tracked.filter(p => (p.stockQty ?? 0) > 0 && (p.stockQty ?? 0) <= (p.lowStockThreshold ?? 5)).length;
+            const out = tracked.filter(p => (p.stockQty ?? 0) <= 0).length;
+            return [{ label: 'Stock à surveiller', value: String(low + out), sub: out > 0 ? `${out} en rupture` : `${low} stock bas`, pct: tracked.length > 0 ? Math.round(((low + out) / tracked.length) * 100) : 0, icon: '◰', color: out > 0 ? S_ERR_T : S_WARN_T }];
+          })(),
+        ].map(kpi => (
+          <div key={kpi.label} style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '18px', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: `linear-gradient(90deg, ${kpi.color}55, ${kpi.color}22)` }} />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <span style={{ fontSize: '10px', color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>{kpi.label}</span>
+              <span style={{ fontSize: '16px', opacity: .7 }}>{kpi.icon}</span>
+            </div>
+            <div style={{ fontSize: '24px', fontWeight: 700, color: TITLE, letterSpacing: '-0.02em', marginBottom: '4px' }}>{kpi.value}</div>
+            <div style={{ fontSize: '11px', color: TEXT3, marginBottom: '12px' }}>{kpi.sub}</div>
+            <div style={{ height: '3px', background: SURFACE2, borderRadius: '2px', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${Math.min(kpi.pct, 100)}%`, background: kpi.color, borderRadius: '2px', transition: 'width 0.6s ease' }} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Chart + Recent orders */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        {/* Bar chart — CA 7 derniers jours */}
+        <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+            <div>
+              <h2 style={{ fontSize: '13px', fontWeight: 600, color: TITLE }}>CA — 7 derniers jours</h2>
+              <p style={{ fontSize: '11px', color: TEXT3, marginTop: '2px' }}>Évolution des ventes</p>
+            </div>
+            <span style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '6px', background: 'rgba(200,151,74,0.1)', color: GOLD, fontWeight: 600 }}>7j</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', height: '100px' }}>
+            {last7Days.map((d, i) => (
+              <div key={`chart-bar-${i}`} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                <div style={{ width: '100%', height: `${(() => {
+                  if (maxDay <= 0) return '2px';
+                  const ratio = d.value / maxDay;
+                  const calculatedHeight = Math.round(ratio * 80);
+                  return d.value > 0 ? Math.max(calculatedHeight, 6) + 'px' : '2px';
+                })()}`, background: d.value > 0 ? `linear-gradient(180deg, ${GOLD}, ${GOLD_D})` : SURFACE2, borderRadius: '4px 4px 0 0', transition: 'height 0.4s ease', cursor: 'default' }} title={d.value > 0 ? formatPrice(d.value) : '0'} />
+                <span style={{ color: TEXT3, fontSize: '9px', fontWeight: 500 }}>{d.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Stats rapides */}
+        <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <h2 style={{ fontSize: '13px', fontWeight: 600, color: TITLE }}>Statuts des commandes</h2>
+          {STATUS_OPTIONS.map(s => {
+            const count = orders.filter(o => o.status === s.value).length;
+            const pct   = orders.length > 0 ? Math.round((count / orders.length) * 100) : 0;
+            return (
+              <div key={s.value} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '11px', color: TEXT2 }}>{s.label}</span>
+                  <span style={{ fontSize: '11px', fontWeight: 600, color: s.color }}>{count}</span>
+                </div>
+                <div style={{ height: '3px', background: SURFACE2, borderRadius: '2px', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${pct}%`, background: s.bg, borderRadius: '2px' }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Dernières commandes */}
+      <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '12px', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: `1px solid ${BORDER}` }}>
+          <h2 style={{ fontSize: '13px', fontWeight: 600, color: TITLE }}>Dernières commandes</h2>
+          <button onClick={() => setTab('commandes')} style={{ fontSize: '11px', color: GOLD, background: 'none', border: 'none', cursor: 'pointer' }}>Voir tout →</button>
+        </div>
+        {recentOrders.length === 0 ? (
+          <p style={{ textAlign: 'center', padding: '32px', fontSize: '12px', color: TEXT3 }}>Aucune commande enregistrée.</p>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead style={{ background: SURFACE2 }}>
+                <tr>{['N° commande', 'Date', 'Client', 'Total', 'Statut'].map(h => <th key={h} style={thStyle}>{h}</th>)}</tr>
+              </thead>
+              <tbody>
+                {recentOrders.map(o => (
+                  <tr key={o.orderNumber} style={{ cursor: 'pointer', transition: 'background 0.15s' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = SURFACE2)}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                    onClick={() => setOrderDetail(o)}>
+                    <td style={tdStyle}><span style={{ color: GOLD, fontWeight: 600 }}>{o.orderNumber}</span></td>
+                    <td style={tdStyle}>{formatOrderDate(o.date)}</td>
+                    <td style={{ ...tdStyle, fontWeight: 500 }}>{o.delivery.firstName} {o.delivery.lastName}</td>
+                    <td style={{ ...tdStyle, fontWeight: 600, color: GOLD }}>{formatPrice(o.total)}</td>
+                    <td style={tdStyle}><StatusBadge status={o.status} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
+// ─── Composants extraits pour réduire la complexité ───────────────────────────
+interface DashboardTabProps {
+  orders: OrderDraft[];
+  editableProducts: EditableProduct[];
+  reviews: ReviewRow[];
+  totalRevenue: number;
+  revenueThisMonth: number;
+  ordersInProgress: number;
+  recentOrders: OrderDraft[];
+  last7Days: { label: string; value: number }[];
+  maxDay: number;
+  setTab: (tab: Tab) => void;
+  setOrderDetail: (order: OrderDraft | null) => void;
+  thStyle: React.CSSProperties;
+  tdStyle: React.CSSProperties;
+}
+
+// ─── Composants utilitaires (module-level) ──────────────────────────────────
 // ─── Inline editable product state ───────────────────────────────────────────
 type EditableProduct = Product
+
+// Fonctions utilitaires pour les boutons de sauvegarde
+const getSaveButtonText = (saved: boolean, saving: boolean) => {
+  if (saved) return '✓ Sauvegardé';
+  if (saving) return '…';
+  return '💾 Sauvegarder';
+};
+
+// Fonctions utilitaires pour les couleurs des statuts
+const getTabColor = (isActive: boolean, status: string, GOLD: string) => {
+  if (isActive) return GOLD;
+  if (status === 'premium') return '#E5B366';
+  if (status === 'important') return '#10B981';
+  return '#A8956B';
+};
+
+// Fonction pour gérer l'état des produits filtrés
+const getProductCountText = (filteredLength: number, totalLength: number) => {
+  return filteredLength === totalLength 
+    ? `Produits (${filteredLength})` 
+    : `Produits (${filteredLength} / ${totalLength})`;
+};
+
+// Fonction pour gérer l'état des avis filtrés
+const getReviewCountText = (filteredLength: number, totalLength: number) => {
+  return filteredLength === totalLength 
+    ? `Avis (${filteredLength})` 
+    : `Avis (${filteredLength} / ${totalLength})`;
+};
+
+// Fonction utilitaire pour les labels de quiz
+const getQuizModalTitle = (isNew: boolean, type: string) => {
+  const prefix = isNew ? 'Nouvelle' : 'Modifier la';
+  const suffix = type === 'concern' ? 'préoccupation' : 'routine';
+  return `${prefix} ${suffix}`;
+};
+
+// Fonction utilitaire pour les filtres newsletter
+const getNewsletterFilterText = (filter: string) => {
+  if (filter === 'all') return 'Tous';
+  if (filter === 'active') return 'Actifs';
+  return 'Désinscrits';
+};
+
 
 export default function AdminPage() {
   const router = useRouter();
@@ -291,13 +987,12 @@ export default function AdminPage() {
 
   // ── Jeko admin ───────────────────────────────────────────────────────────────
   const [jekoSubTab, setJekoSubTab] = useState<'config' | 'membres' | 'transactions'>('config');
-  const [, setJekoSettings] = useState<JekoSettings>({ points_per_1000: 10, welcome_bonus: 20 });
-  const [jekoSettingsEdit, setJekoSettingsEdit] = useState<JekoSettings>({ points_per_1000: 10, welcome_bonus: 20 });
   const [jekoTiersConf, setJekoTiersConf] = useState<JekoTierConfig[]>([]);
   const [jekoRewardsConf, setJekoRewardsConf] = useState<JekoRewardConfig[]>([]);
   const [jekoMembers, setJekoMembers] = useState<JekoMember[]>([]);
   const [jekoTxns, setJekoTxns] = useState<JekoTransactionAdmin[]>([]);
   const [jekoStats, setJekoStats] = useState<JekoStats>({ totalMembers: 0, totalPointsDistributed: 0, totalRedemptions: 0 });
+  const [jekoSettingsEdit, setJekoSettingsEdit] = useState<JekoSettings | null>(null);
   const [jekoMemberSearch, setJekoMemberSearch] = useState('');
   const [jekoAdjModal, setJekoAdjModal] = useState<{ member: JekoMember; pts: string; label: string; notify: boolean } | null>(null);
   const [jekoAdjSaving, setJekoAdjSaving] = useState(false);
@@ -321,7 +1016,7 @@ export default function AdminPage() {
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) {
+      if (data.user === null || data.user === undefined) {
         router.replace('/admin/login');
       } else {
         setAuthChecked(true);
@@ -341,7 +1036,7 @@ export default function AdminPage() {
         // Newsletter
         reloadNewsletter();
         // Jeko
-        getJekoSettings().then(s => { setJekoSettings(s); setJekoSettingsEdit(s); });
+        getJekoSettings().then(s => { setJekoSettingsEdit(s); });
         getJekoTiersConfig().then(setJekoTiersConf);
         getJekoRewardsConfig().then(setJekoRewardsConf);
         getJekoMembers().then(setJekoMembers);
@@ -350,7 +1045,7 @@ export default function AdminPage() {
         // Charger le contenu du site depuis Supabase
         supabase.from('site_config').select('key, value').then(({ data: cfgRows }) => {
           if (cfgRows?.length) {
-            const cfg = JSON.parse(JSON.stringify(DEFAULT_SITE_CONFIG)) as SiteConfig;
+            const cfg = structuredClone(DEFAULT_SITE_CONFIG) as SiteConfig;
             for (const row of cfgRows) {
               if (row.key in cfg) (cfg as Record<string, unknown>)[row.key] = row.value;
             }
@@ -393,7 +1088,7 @@ export default function AdminPage() {
   });
   const saveModal = () => {
     if (!productModal?.name?.trim() || !productModal?.slug?.trim() || !productModal?.category) return;
-    const validImages = (productModal.images ?? []).filter(u => u && u.trim());
+    const validImages = productModal.images?.filter((u: string) => u?.trim()) ?? [];
     if (validImages.length === 0) return;
     const { _isNew, ...rest } = productModal;
     const p: Product = {
@@ -443,25 +1138,15 @@ export default function AdminPage() {
   };
 
   // ── filtered & paginated data ──
-  const filteredOrders = useMemo(() => {
-    const q = orderSearch.toLowerCase();
-    return orders.filter(o =>
-      (!q ||
-        o.orderNumber.toLowerCase().includes(q) ||
-        o.delivery.firstName.toLowerCase().includes(q) ||
-        o.delivery.lastName.toLowerCase().includes(q) ||
-        o.delivery.email.toLowerCase().includes(q)) &&
-      (!orderStatusFilter || o.status === orderStatusFilter)
-    );
-  }, [orders, orderSearch, orderStatusFilter]);
+  const filteredOrders = useMemo(() => 
+    filterOrdersData(orders, orderSearch, orderStatusFilter),
+    [orders, orderSearch, orderStatusFilter]
+  );
 
-  const filteredProducts = useMemo(() => {
-    const q = productSearch.toLowerCase();
-    return editableProducts.filter(p =>
-      (!q || p.name.toLowerCase().includes(q)) &&
-      (!productCatFilter || p.category === productCatFilter)
-    );
-  }, [editableProducts, productSearch, productCatFilter]);
+  const filteredProducts = useMemo(() => 
+    filterProductsData(editableProducts, productSearch, productCatFilter),
+    [editableProducts, productSearch, productCatFilter]
+  );
 
   const filteredReviews = useMemo(() => {
     const q = reviewSearch.toLowerCase();
@@ -493,29 +1178,21 @@ export default function AdminPage() {
   const productPageCount = Math.max(1, Math.ceil(filteredProducts.length / PER_PAGE));
   const reviewPageCount  = Math.max(1, Math.ceil(filteredReviews.length  / PER_PAGE));
   const clientPageCount  = Math.max(1, Math.ceil(filteredClients.length  / PER_PAGE));
-  const pagedOrders   = filteredOrders.slice((orderPage   - 1) * PER_PAGE, orderPage   * PER_PAGE);
-  const pagedProducts = filteredProducts.slice((productPage - 1) * PER_PAGE, productPage * PER_PAGE);
-  const pagedReviews  = filteredReviews.slice((reviewPage  - 1) * PER_PAGE, reviewPage  * PER_PAGE);
-  const pagedClients  = filteredClients.slice((clientPage  - 1) * PER_PAGE, clientPage  * PER_PAGE);
+  const pagedOrders   = paginateData(filteredOrders, orderPage, PER_PAGE).pagedData;
+  const pagedProducts = paginateData(filteredProducts, productPage, PER_PAGE).pagedData;
+  const pagedReviews  = paginateData(filteredReviews, reviewPage, PER_PAGE).pagedData;
+  const pagedClients  = paginateData(filteredClients, clientPage, PER_PAGE).pagedData;
 
-  const totalRevenue     = orders.reduce((sum, o) => sum + o.total, 0);
-  const thisMonth        = new Date().toISOString().slice(0, 7);
-  const revenueThisMonth = orders.filter(o => o.date.startsWith(thisMonth)).reduce((s, o) => s + o.total, 0);
-  const ordersInProgress = orders.filter(o => o.status === 'confirmed' || o.status === 'processing').length;
-  const recentOrders     = orders.slice(0, 5);
-  const last7Days = useMemo(() => {
-    const days = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const key   = d.toISOString().slice(0, 10);
-      const label = d.toLocaleDateString('fr-FR', { weekday: 'short' });
-      const value = orders.filter(o => o.date.slice(0, 10) === key).reduce((s, o) => s + o.total, 0);
-      days.push({ label, value });
-    }
-    return days;
-  }, [orders]);
-  const maxDay = Math.max(...last7Days.map(d => d.value), 1);
+  // ── Dashboard metrics avec helper functions ──
+  const { totalRevenue, revenueThisMonth, ordersInProgress, recentOrders } = useMemo(() => 
+    calculateDashboardMetrics(orders, editableProducts, reviews), 
+    [orders, editableProducts, reviews]
+  );
+  
+  const { last7Days, maxDay } = useMemo(() => 
+    calculateLast7DaysData(orders), 
+    [orders]
+  );
 
   if (!authChecked) {
     return (
@@ -544,7 +1221,7 @@ export default function AdminPage() {
   const jekoSaveSettings = async () => {
     setJekoConfSaving(true);
     const res = await saveJekoConfig('settings', jekoSettingsEdit);
-    setJekoSettings({ ...jekoSettingsEdit });
+
     setJekoConfSaving(false);
     setJekoConfMsg({ ok: res.ok, text: res.ok ? 'Paramètres sauvegardés ✓' : res.error ?? 'Erreur' });
     setTimeout(() => setJekoConfMsg(null), 3000);
@@ -563,8 +1240,8 @@ export default function AdminPage() {
   };
   const handleJekoAdjust = async () => {
     if (!jekoAdjModal) return;
-    const pts = parseInt(jekoAdjModal.pts);
-    if (isNaN(pts) || pts === 0) { setJekoAdjMsg({ ok: false, text: 'Nombre de points invalide' }); return; }
+    const pts = Number.parseInt(jekoAdjModal.pts, 10);
+    if (Number.isNaN(pts) || pts === 0) { setJekoAdjMsg({ ok: false, text: 'Nombre de points invalide' }); return; }
     setJekoAdjSaving(true);
     const memberId = jekoAdjModal.member.id;
     const shouldNotify = jekoAdjModal.notify;
@@ -603,10 +1280,10 @@ export default function AdminPage() {
   const trustItemsBlock = (
     <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
       <p className="text-sm font-semibold" style={{ color: GOLD }}>✅ Barre de confiance (5 items)</p>
-      {siteContent.trust_items.map((item, i) => (
-        <label key={i} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      {siteContent.trust_items.map((item, i: number) => (
+        <label key={`trust-item-${i}`} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <span className="text-xs" style={{ color: TEXT2 }}>Item {i + 1}</span>
-          <textarea value={item.label} rows={2} onChange={e => setSiteContent(c => ({ ...c, trust_items: c.trust_items.map((it, j) => j === i ? { ...it, label: e.target.value } : it) }))}
+          <textarea value={item.label} rows={2} onChange={e => setSiteContent((c) => ({ ...c, trust_items: c.trust_items.map((it, j: number) => j === i ? { ...it, label: e.target.value } : it) }))}
             style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '13px', resize: 'vertical', outline: 'none' }} />
         </label>
       ))}
@@ -620,7 +1297,7 @@ export default function AdminPage() {
         }}
         disabled={contentSaving.trust_items}
         style={{ alignSelf: 'flex-end', background: contentSaved.trust_items ? S_SAVE_BG : GOLD2, color: contentSaved.trust_items ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-        {contentSaved.trust_items ? '✓ Sauvegardé' : contentSaving.trust_items ? '…' : '💾 Sauvegarder'}
+        {getSaveButtonText(contentSaved.trust_items, contentSaving.trust_items)}
       </button>
     </div>
   );
@@ -642,17 +1319,17 @@ export default function AdminPage() {
             <p className="text-sm font-semibold" style={{ color: GOLD }}>📢 Barre du haut</p>
             <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <span className="text-xs" style={{ color: TEXT2 }}>Message</span>
-              <input value={siteContent.topbar.message} onChange={e => setSiteContent(c => ({ ...c, topbar: { ...c.topbar, message: e.target.value } }))}
+              <input value={siteContent.topbar.message} onChange={e => setSiteContent((c) => ({ ...c, topbar: { ...c.topbar, message: e.target.value } }))}
                 style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '13px', outline: 'none' }} />
             </label>
             <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <span className="text-xs" style={{ color: TEXT2 }}>Téléphone</span>
-              <input value={siteContent.topbar.phone} onChange={e => setSiteContent(c => ({ ...c, topbar: { ...c.topbar, phone: e.target.value } }))}
+              <input value={siteContent.topbar.phone} onChange={e => setSiteContent((c) => ({ ...c, topbar: { ...c.topbar, phone: e.target.value } }))}
                 style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '13px', outline: 'none' }} />
             </label>
             <button onClick={save} disabled={contentSaving.topbar}
               style={{ alignSelf: 'flex-end', background: contentSaved.topbar ? S_SAVE_BG : GOLD2, color: contentSaved.topbar ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-              {contentSaved.topbar ? '✓ Sauvegardé' : contentSaving.topbar ? '…' : '💾 Sauvegarder'}
+              {getSaveButtonText(contentSaved.topbar, contentSaving.topbar)}
             </button>
           </div>
         );
@@ -680,22 +1357,22 @@ export default function AdminPage() {
               ['ctaHref', 'Lien du bouton CTA'],
               ['imageAlt', "Texte alternatif de l'image"],
             ] as [keyof typeof f, string][]).map(([key, label]) => (
-              <label key={key} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label key={String(key)} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 <span className="text-xs" style={{ color: TEXT2 }}>{label}</span>
-                <input value={f[key] as string} onChange={e => setSiteContent(c => ({ ...c, hero: { ...c.hero, [key]: e.target.value } }))}
+                <input value={f[key] as string} onChange={e => setSiteContent((c) => ({ ...c, hero: { ...c.hero, [key]: e.target.value } }))}
                   style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '13px', outline: 'none' }} />
               </label>
             ))}
             <ImageUpload
               value={f.image}
-              onChange={url => setSiteContent(c => ({ ...c, hero: { ...c.hero, image: url } }))}
+              onChange={(url: string) => setSiteContent((c) => ({ ...c, hero: { ...c.hero, image: url } }))}
               folder="hero"
               label="Image du hero"
               previewSize={160}
             />
             <button onClick={save} disabled={contentSaving.hero}
               style={{ alignSelf: 'flex-end', background: contentSaved.hero ? S_SAVE_BG : GOLD2, color: contentSaved.hero ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-              {contentSaved.hero ? '✓ Sauvegardé' : contentSaving.hero ? '…' : '💾 Sauvegarder'}
+              {getSaveButtonText(contentSaved.hero, contentSaving.hero)}
             </button>
           </div>
         );
@@ -742,7 +1419,7 @@ export default function AdminPage() {
               { id: 'dashboard',    label: 'Tableau de bord', icon: '▣', status: 'active' },
               { id: 'commandes',    label: 'Commandes',        icon: '◫', status: ordersInProgress > 0 ? 'alert' : 'normal' },
               { id: 'produits',     label: 'Produits',         icon: '◇', status: 'normal' },
-              { id: 'avis',         label: 'Avis',             icon: '★', status: reviews.filter(r => !r.verified).length > 0 ? 'warning' : 'normal' },
+              { id: 'avis',         label: 'Avis',             icon: '★', status: reviews.some(r => !r.verified) ? 'warning' : 'normal' },
             ] as { id: Tab; label: string; icon: string; status: string }[]).map(item => {
               const isActive = tab === item.id;
               const bgColor = isActive ? 'linear-gradient(90deg, rgba(212,162,90,0.18) 0%, rgba(212,162,90,0.08) 100%)' : 'transparent';
@@ -755,7 +1432,7 @@ export default function AdminPage() {
                   {item.id === 'commandes' && ordersInProgress > 0 && (
                     <span style={{ fontSize: '11px', background: 'linear-gradient(135deg, #DC2626, #B91C1C)', color: '#FEE2E2', padding: '3px 8px', borderRadius: '99px', fontWeight: 700, boxShadow: '0 2px 4px rgba(220,38,38,0.3)' }}>{ordersInProgress}</span>
                   )}
-                  {item.id === 'avis' && reviews.filter(r => !r.verified).length > 0 && (
+                  {item.id === 'avis' && reviews.some(r => !r.verified) && (
                     <span style={{ fontSize: '11px', background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#FEF3C7', padding: '3px 8px', borderRadius: '99px', fontWeight: 700, boxShadow: '0 2px 4px rgba(245,158,11,0.3)' }}>{reviews.filter(r => !r.verified).length}</span>
                   )}
                 </button>
@@ -797,7 +1474,7 @@ export default function AdminPage() {
               return (
                 <button key={item.id} onClick={() => setTab(item.id)}
                   style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderRadius: '10px', fontSize: '13px', textAlign: 'left', cursor: 'pointer', border: 'none', marginBottom: '4px', transition: 'all .2s ease', background: bgColor, color: isActive ? '#F7EFE5' : '#C4A574', fontWeight: isActive ? 700 : 500, borderLeft: `3px solid ${borderColor}`, boxShadow: isActive ? '0 2px 8px rgba(212,162,90,0.15)' : 'none' }}>
-                  <span style={{ fontSize: '15px', opacity: isActive ? 1 : 0.8, color: isActive ? GOLD : (item.status === 'premium' ? '#E5B366' : item.status === 'important' ? '#10B981' : '#A8956B') }}>{item.icon}</span>
+                  <span style={{ fontSize: '15px', opacity: isActive ? 1 : 0.8, color: getTabColor(isActive, item.status, GOLD) }}>{item.icon}</span>
                   <span style={{ flex: 1 }}>{item.label}</span>
                   {item.status === 'premium' && (
                     <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'linear-gradient(135deg, #FFD700, #FFC107)', boxShadow: '0 0 8px rgba(255,215,0,0.5)' }} />
@@ -829,363 +1506,64 @@ export default function AdminPage() {
 
           {/* ─── DASHBOARD TAB ─── */}
           {tab === 'dashboard' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              {/* Page title */}
-              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-                <div>
-                  <h1 style={{ fontSize: '20px', fontWeight: 700, color: TITLE, letterSpacing: '-0.02em' }}>Tableau de bord</h1>
-                  <p style={{ fontSize: '12px', color: TEXT3, marginTop: '2px' }}>{new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                </div>
-                <button onClick={() => setTab('commandes')} style={{ fontSize: '11px', padding: '7px 14px', borderRadius: '8px', border: `1px solid ${BORDER2}`, background: SURFACE2, color: TEXT2, cursor: 'pointer' }}>Toutes les commandes →</button>
-              </div>
-
-              {/* KPI grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
-                {[
-                  { label: 'Chiffre d\'affaires', value: formatPrice(totalRevenue), sub: 'Toutes commandes', pct: 100, icon: '◈', color: GOLD },
-                  { label: 'CA ce mois', value: formatPrice(revenueThisMonth), sub: new Date().toLocaleDateString('fr-FR', { month: 'long' }), pct: totalRevenue > 0 ? Math.round((revenueThisMonth / totalRevenue) * 100) : 0, icon: '▲', color: S_OK_T },
-                  { label: 'Commandes totales', value: String(orders.length), sub: 'Depuis le début', pct: 100, icon: '◫', color: S_INFO_T },
-                  { label: 'En attente', value: String(ordersInProgress), sub: ordersInProgress > 0 ? 'À traiter' : 'Tout est traité ✓', pct: orders.length > 0 ? Math.round((ordersInProgress / orders.length) * 100) : 0, icon: '⏳', color: S_ERR_T },
-                  { label: 'Produits', value: String(editableProducts.length || PRODUCTS.length), sub: 'Dans le catalogue', pct: 100, icon: '◇', color: ACCENT_P },
-                  { label: 'Avis clients', value: String(reviews.length), sub: `${reviews.filter(r => r.verified).length} vérifiés`, pct: reviews.length > 0 ? Math.round((reviews.filter(r => r.verified).length / reviews.length) * 100) : 0, icon: '★', color: ACCENT_Y },
-                  ...(() => {
-                    const tracked = editableProducts.filter(p => p.stockQty != null);
-                    const low = tracked.filter(p => (p.stockQty ?? 0) > 0 && (p.stockQty ?? 0) <= (p.lowStockThreshold ?? 5)).length;
-                    const out = tracked.filter(p => (p.stockQty ?? 0) <= 0).length;
-                    return [{ label: 'Stock à surveiller', value: String(low + out), sub: out > 0 ? `${out} en rupture` : `${low} stock bas`, pct: tracked.length > 0 ? Math.round(((low + out) / tracked.length) * 100) : 0, icon: '◰', color: out > 0 ? S_ERR_T : S_WARN_T }];
-                  })(),
-                ].map(kpi => (
-                  <div key={kpi.label} style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '18px', position: 'relative', overflow: 'hidden' }}>
-                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: `linear-gradient(90deg, ${kpi.color}55, ${kpi.color}22)` }} />
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                      <span style={{ fontSize: '10px', color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>{kpi.label}</span>
-                      <span style={{ fontSize: '16px', opacity: .7 }}>{kpi.icon}</span>
-                    </div>
-                    <div style={{ fontSize: '24px', fontWeight: 700, color: TITLE, letterSpacing: '-0.02em', marginBottom: '4px' }}>{kpi.value}</div>
-                    <div style={{ fontSize: '11px', color: TEXT3, marginBottom: '12px' }}>{kpi.sub}</div>
-                    <div style={{ height: '3px', background: SURFACE2, borderRadius: '2px', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${Math.min(kpi.pct, 100)}%`, background: kpi.color, borderRadius: '2px', transition: 'width 0.6s ease' }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Chart + Recent orders */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                {/* Bar chart — CA 7 derniers jours */}
-                <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '20px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-                    <div>
-                      <h2 style={{ fontSize: '13px', fontWeight: 600, color: TITLE }}>CA — 7 derniers jours</h2>
-                      <p style={{ fontSize: '11px', color: TEXT3, marginTop: '2px' }}>Évolution des ventes</p>
-                    </div>
-                    <span style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '6px', background: 'rgba(200,151,74,0.1)', color: GOLD, fontWeight: 600 }}>7j</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', height: '100px' }}>
-                    {last7Days.map((d, i) => (
-                      <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
-                        <div style={{ width: '100%', height: `${maxDay > 0 ? Math.max(Math.round((d.value / maxDay) * 80), d.value > 0 ? 6 : 2) : 2}px`, background: d.value > 0 ? `linear-gradient(180deg, ${GOLD}, ${GOLD_D})` : SURFACE2, borderRadius: '4px 4px 0 0', transition: 'height 0.4s ease', cursor: 'default' }} title={d.value > 0 ? formatPrice(d.value) : '0'} />
-                        <span style={{ color: TEXT3, fontSize: '9px', fontWeight: 500 }}>{d.label}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Stats rapides */}
-                <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                  <h2 style={{ fontSize: '13px', fontWeight: 600, color: TITLE }}>Statuts des commandes</h2>
-                  {STATUS_OPTIONS.map(s => {
-                    const count = orders.filter(o => o.status === s.value).length;
-                    const pct   = orders.length > 0 ? Math.round((count / orders.length) * 100) : 0;
-                    return (
-                      <div key={s.value} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontSize: '11px', color: TEXT2 }}>{s.label}</span>
-                          <span style={{ fontSize: '11px', fontWeight: 600, color: s.color }}>{count}</span>
-                        </div>
-                        <div style={{ height: '3px', background: SURFACE2, borderRadius: '2px', overflow: 'hidden' }}>
-                          <div style={{ height: '100%', width: `${pct}%`, background: s.bg, borderRadius: '2px' }} />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Dernières commandes */}
-              <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '12px', overflow: 'hidden' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: `1px solid ${BORDER}` }}>
-                  <h2 style={{ fontSize: '13px', fontWeight: 600, color: TITLE }}>Dernières commandes</h2>
-                  <button onClick={() => setTab('commandes')} style={{ fontSize: '11px', color: GOLD, background: 'none', border: 'none', cursor: 'pointer' }}>Voir tout →</button>
-                </div>
-                {recentOrders.length === 0 ? (
-                  <p style={{ textAlign: 'center', padding: '32px', fontSize: '12px', color: TEXT3 }}>Aucune commande enregistrée.</p>
-                ) : (
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                      <thead style={{ background: SURFACE2 }}>
-                        <tr>{['N° commande', 'Date', 'Client', 'Total', 'Statut'].map(h => <th key={h} style={thStyle}>{h}</th>)}</tr>
-                      </thead>
-                      <tbody>
-                        {recentOrders.map(o => (
-                          <tr key={o.orderNumber} style={{ cursor: 'pointer', transition: 'background 0.15s' }}
-                            onMouseEnter={e => (e.currentTarget.style.background = SURFACE2)}
-                            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                            onClick={() => setOrderDetail(o)}>
-                            <td style={tdStyle}><span style={{ color: GOLD, fontWeight: 600 }}>{o.orderNumber}</span></td>
-                            <td style={tdStyle}>{formatOrderDate(o.date)}</td>
-                            <td style={{ ...tdStyle, fontWeight: 500 }}>{o.delivery.firstName} {o.delivery.lastName}</td>
-                            <td style={{ ...tdStyle, fontWeight: 600, color: GOLD }}>{formatPrice(o.total)}</td>
-                            <td style={tdStyle}><StatusBadge status={o.status} /></td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-              {/* Top ventes + Newsletter */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '16px' }}>
-                {/* Top ventes */}
-                {(() => {
-                  const agg = new Map<string, { name: string; image?: string; qty: number; revenue: number }>();
-                  for (const o of orders) {
-                    for (const it of o.items) {
-                      const id = it.product.id;
-                      const cur = agg.get(id) ?? { name: it.product.name, image: it.product.images?.[0], qty: 0, revenue: 0 };
-                      cur.qty += it.quantity;
-                      cur.revenue += it.product.price * it.quantity;
-                      agg.set(id, cur);
-                    }
-                  }
-                  const top = [...agg.values()].sort((a, b) => b.revenue - a.revenue).slice(0, 5);
-                  const max = top[0]?.revenue ?? 0;
-                  return (
-                    <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '20px' }}>
-                      <h2 style={{ fontSize: '13px', fontWeight: 600, color: TITLE, marginBottom: '14px' }}>Top ventes</h2>
-                      {top.length === 0 ? (
-                        <p style={{ fontSize: '12px', color: TEXT3 }}>Aucune vente enregistrée.</p>
-                      ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                          {top.map((p, i) => (
-                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                              <span style={{ fontSize: '11px', color: TEXT3, width: '14px' }}>{i + 1}</span>
-                              <div style={{ flex: 1 }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: TEXT2, marginBottom: '4px' }}>
-                                  <span style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '60%' }}>{p.name}</span>
-                                  <span style={{ color: GOLD, fontWeight: 600 }}>{formatPrice(p.revenue)}</span>
-                                </div>
-                                <div style={{ height: '4px', background: SURFACE2, borderRadius: '2px', overflow: 'hidden' }}>
-                                  <div style={{ height: '100%', width: `${max > 0 ? Math.round((p.revenue / max) * 100) : 0}%`, background: `linear-gradient(90deg, ${GOLD}, ${GOLD_D})`, borderRadius: '2px' }} />
-                                </div>
-                                <div style={{ fontSize: '10px', color: TEXT3, marginTop: '3px' }}>{p.qty} unité{p.qty > 1 ? 's' : ''} vendue{p.qty > 1 ? 's' : ''}</div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()}
-
-                {/* Newsletter card */}
-                {(() => {
-                  return (
-                    <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      <h2 style={{ fontSize: '13px', fontWeight: 600, color: TITLE }}>Newsletter</h2>
-                      <NewsletterCard />
-                    </div>
-                  );
-                })()}
-              </div>
-            </div>
+            <DashboardTab 
+              orders={orders}
+              editableProducts={editableProducts}
+              reviews={reviews}
+              totalRevenue={totalRevenue}
+              revenueThisMonth={revenueThisMonth}
+              ordersInProgress={ordersInProgress}
+              recentOrders={recentOrders}
+              last7Days={last7Days}
+              maxDay={maxDay}
+              setTab={setTab}
+              setOrderDetail={setOrderDetail}
+              thStyle={thStyle}
+              tdStyle={tdStyle}
+            />
           )}
 
           {/* ─── COMMANDES TAB ─── */}
           {tab === 'commandes' && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between gap-4 flex-wrap">
-                <h1 className="text-lg font-bold" style={{ color: TEXT }}>
-                  Commandes ({filteredOrders.length}{filteredOrders.length !== orders.length ? ` / ${orders.length}` : ''})
-                </h1>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <input
-                    type="search" placeholder="Rechercher N°, client, email…"
-                    value={orderSearch}
-                    onChange={e => { setOrderSearch(e.target.value); setOrderPage(1); }}
-                    style={{ ...inputStyle, width: '200px' }}
-                  />
-                  <select value={orderStatusFilter}
-                    onChange={e => { setOrderStatusFilter(e.target.value); setOrderPage(1); }}
-                    style={{ ...inputStyle, width: '140px', cursor: 'pointer' }}>
-                    <option value="">Tous statuts</option>
-                    {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-                  </select>
-                  <button
-                    onClick={() => exportOrdersCSV(filteredOrders)}
-                    className="text-xs px-3 py-1.5 rounded border transition-all hover:opacity-80"
-                    style={{ borderColor: GOLD, color: GOLD, whiteSpace: 'nowrap' }}
-                    disabled={orders.length === 0}
-                  >
-                    ↓ CSV
-                  </button>
-                </div>
-              </div>
-
-              <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
-                {filteredOrders.length === 0 ? (
-                  <p className="text-xs text-center py-10" style={{ color: TEXT3 }}>
-                    {orders.length === 0 ? 'Aucune commande pour le moment.' : 'Aucun résultat pour cette recherche.'}
-                  </p>
-                ) : (
-                  <>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead style={{ background: SURFACE2 }}>
-                          <tr>{['N°', 'Date', 'Client', 'Email', 'Articles', 'Total', 'Paiement', 'Statut', ''].map(h => <th key={h} style={thStyle}>{h}</th>)}</tr>
-                        </thead>
-                        <tbody>
-                          {pagedOrders.map(o => (
-                            <tr key={o.orderNumber} style={{ transition: 'background .15s' }}
-                              onMouseEnter={e => (e.currentTarget.style.background = SURFACE2)}
-                              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-                              <td style={tdStyle}><span style={{ color: GOLD, fontWeight: 600 }}>{o.orderNumber}</span></td>
-                              <td style={tdStyle}>{formatOrderDate(o.date)}</td>
-                              <td style={tdStyle}>{o.delivery.firstName} {o.delivery.lastName}</td>
-                              <td style={{ ...tdStyle, color: INFO_C }}>{o.delivery.email}</td>
-                              <td style={{ ...tdStyle, textAlign: 'center' }}>{o.items.reduce((s, i) => s + i.quantity, 0)}</td>
-                              <td style={{ ...tdStyle, fontWeight: 600 }}>{formatPrice(o.total)}</td>
-                              <td style={tdStyle}>{PAYMENT_LABELS[o.paymentMethod] ?? o.paymentMethod}</td>
-                              <td style={tdStyle}>
-                                <select
-                                  value={o.status}
-                                  onChange={e => handleStatusChange(o.orderNumber, e.target.value as OrderStatus)}
-                                  style={{ background: BG, border: `1px solid ${BORDER2}`, borderRadius: '6px', color: STATUS_OPTIONS.find(s => s.value === o.status)?.color ?? TEXT, padding: '3px 6px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
-                                >
-                                  {STATUS_OPTIONS.map(s => (
-                                    <option key={s.value} value={s.value}>{s.label}</option>
-                                  ))}
-                                </select>
-                              </td>
-                              <td style={tdStyle}>
-                                <button onClick={() => setOrderDetail(o)}
-                                  className="text-xs px-2 py-1 rounded border transition-all hover:opacity-80"
-                                  style={{ borderColor: GOLD, color: GOLD, whiteSpace: 'nowrap' }}>
-                                  Détail
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    {orderPageCount > 1 && <Pagination page={orderPage} total={orderPageCount} onChange={setOrderPage} />}
-                  </>
-                )}
-              </div>
-            </div>
+            <OrdersTab
+              filteredOrders={filteredOrders}
+              orderPage={orderPage}
+              orderPageSize={PER_PAGE}
+              orderSearchTerm={orderSearch}
+              orderStatusFilter={orderStatusFilter}
+              orderPageCount={orderPageCount}
+              pagedOrders={pagedOrders}
+              setOrderPage={setOrderPage}
+              setOrderSearchTerm={setOrderSearch}
+              setOrderStatusFilter={setOrderStatusFilter}
+              setOrderDetail={setOrderDetail}
+              handleStatusChange={handleStatusChange}
+              thStyle={thStyle}
+              tdStyle={tdStyle}
+            />
           )}
 
           {/* ─── PRODUITS TAB ─── */}
           {tab === 'produits' && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between gap-4 flex-wrap">
-                <h1 className="text-lg font-bold" style={{ color: TEXT }}>
-                  Produits ({filteredProducts.length}{filteredProducts.length !== editableProducts.length ? ` / ${editableProducts.length}` : ''})
-                </h1>
-                  <div className="flex items-center gap-2 flex-wrap">
-                  <button onClick={openNewModal} className="text-xs px-3 py-1.5 rounded transition-all hover:opacity-80" style={{ background: GOLD, color: BG, fontWeight: 600, whiteSpace: 'nowrap' }}>+ Nouveau</button>
-                  <input
-                    type="search" placeholder="Rechercher un produit…"
-                    value={productSearch}
-                    onChange={e => { setProductSearch(e.target.value); setProductPage(1); }}
-                    style={{ ...inputStyle, width: '180px' }}
-                  />
-                  <select
-                    value={productCatFilter}
-                    onChange={e => { setProductCatFilter(e.target.value); setProductPage(1); }}
-                    style={{ ...inputStyle, width: '130px', cursor: 'pointer' }}
-                  >
-                    <option value="">Toutes catégories</option>
-                    <option value="face">Visage</option>
-                    <option value="body">Corps</option>
-                    <option value="gammes">Gammes</option>
-                    <option value="kits">Kits</option>
-                    <option value="duo">Duo</option>
-                  </select>
-                </div>
-              </div>
-
-              <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
-                {filteredProducts.length === 0 ? (
-                  <p className="text-xs text-center py-10" style={{ color: TEXT3 }}>Aucun produit trouvé.</p>
-                ) : (
-                  <>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead style={{ background: SURFACE2 }}>
-                          <tr>{['', 'Nom', 'Catégorie', 'Prix', 'Stock', 'Badges', 'Actions'].map(h => <th key={h} style={thStyle}>{h}</th>)}</tr>
-                        </thead>
-                        <tbody>
-                          {pagedProducts.map(p => (
-                            <tr key={p.id} style={{ transition: 'background .15s' }}
-                              onMouseEnter={e => (e.currentTarget.style.background = SURFACE2)}
-                              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-                              <td style={{ ...tdStyle, width: '52px', padding: '8px 8px 8px 16px' }}>
-                                {p.images?.[0] ? (
-                                  <Image src={p.images[0]} alt={p.name} width={38} height={38} style={{  objectFit: 'cover', borderRadius: '6px', border: `1px solid ${BORDER}`  }} />
-                                ) : (
-                                  <div style={{ width: '38px', height: '38px', background: BORDER, borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <span style={{ color: TEXT3, fontSize: '16px' }}>◇</span>
-                                  </div>
-                                )}
-                              </td>
-                              <td style={{ ...tdStyle, fontWeight: 500 }}>{p.name}</td>
-                              <td style={{ ...tdStyle, color: INFO_C }}>{p.category}</td>
-                              <td style={{ ...tdStyle, fontWeight: 600, color: GOLD }}>
-                                {formatPrice(p.price)}
-                                {p.originalPrice && (
-                                  <span style={{ color: TEXT3, fontWeight: 400, fontSize: '11px', marginLeft: '4px' }}><s>{formatPrice(p.originalPrice)}</s></span>
-                                )}
-                              </td>
-                              <td style={{ ...tdStyle, textAlign: 'center' as const }}>
-                                {(() => {
-                                  const qty = p.stockQty;
-                                  const threshold = p.lowStockThreshold ?? 5;
-                                  if (qty == null) {
-                                    return <span style={{ color: p.inStock ? S_OK_T : S_ERR_T, fontSize: '13px', fontWeight: 700 }}>{p.inStock ? '✓' : '✕'}</span>;
-                                  }
-                                  if (qty <= 0) return <span style={{ color: S_ERR_T, fontSize: '12px', fontWeight: 700 }}>Rupture</span>;
-                                  if (qty <= threshold) return <span style={{ color: S_WARN_T, fontSize: '12px', fontWeight: 700 }}>{qty} ⚠</span>;
-                                  return <span style={{ color: S_OK_T, fontSize: '12px', fontWeight: 600 }}>{qty}</span>;
-                                })()}
-                              </td>
-                              <td style={tdStyle}>
-                                <div className="flex flex-wrap gap-1">
-                                  {p.isNew && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: S_INFO_BG, color: S_INFO_T }}>Nouveau</span>}
-                                  {p.isBestseller && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: S_ERR_BG, color: S_ERR_T }}>Bestseller</span>}
-                                  {p.originalPrice && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: S_WARN_BG, color: S_WARN_T }}>Promo</span>}
-                                </div>
-                              </td>
-                              <td style={tdStyle}>
-                                <div className="flex gap-1">
-                                  <a href={`/produit/${p.slug}`} target="_blank" rel="noopener noreferrer" title="Aperçu live"
-                                    className="text-xs px-2 py-1 rounded border transition-all hover:opacity-80"
-                                    style={{ borderColor: BORDER2, color: GOLD, textDecoration: 'none' }}>↗</a>
-                                  <button onClick={() => openEditModal(p)} className="text-xs px-2 py-1 rounded border transition-all hover:opacity-80" style={{ borderColor: BORDER2, color: TEXT2 }}>Éditer</button>
-                                  <button onClick={() => setConfirmDelete(p.id)} className="text-xs px-2 py-1 rounded transition-all hover:opacity-80" style={{ background: S_ERR_BG, color: S_ERR_T }}>✕</button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    {productPageCount > 1 && <Pagination page={productPage} total={productPageCount} onChange={setProductPage} />}
-                  </>
-                )}
-              </div>
-            </div>
+            <ProductsTab
+              filteredProducts={filteredProducts}
+              editableProducts={editableProducts}
+              productSearch={productSearch}
+              setProductSearch={setProductSearch}
+              setProductPage={setProductPage}
+              productCatFilter={productCatFilter}
+              setProductCatFilter={setProductCatFilter}
+              openNewModal={openNewModal}
+              pagedProducts={pagedProducts}
+              productPageCount={productPageCount}
+              productPage={productPage}
+              openEditModal={openEditModal}
+              setConfirmDelete={setConfirmDelete}
+              card={card}
+              inputStyle={inputStyle}
+              thStyle={thStyle}
+              tdStyle={tdStyle}
+            />
           )}
 
           {/* ─── AVIS TAB ─── */}
@@ -1193,13 +1571,16 @@ export default function AdminPage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between gap-4 flex-wrap">
                 <h1 className="text-lg font-bold" style={{ color: TEXT }}>
-                  Avis ({filteredReviews.length}{filteredReviews.length !== reviews.length ? ` / ${reviews.length}` : ''})
+                  {getReviewCountText(filteredReviews.length, reviews.length)}
                 </h1>
-                <input type="search" placeholder="Rechercher auteur, commentaire…"
+                <label htmlFor="search-reviews" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '11px', color: TEXT3, fontWeight: 600 }}>Recherche :</span>
+                  <input id="search-reviews" type="search" placeholder="Rechercher auteur, commentaire…"
                   value={reviewSearch}
                   onChange={e => { setReviewSearch(e.target.value); setReviewPage(1); }}
                   style={{ ...inputStyle, width: '220px' }}
-                />
+                  />
+                </label>
               </div>
               <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
                 {filteredReviews.length === 0 ? (
@@ -1255,11 +1636,14 @@ export default function AdminPage() {
                 <h1 className="text-lg font-bold" style={{ color: TEXT }}>
                   Témoignages clients ({testimonials.filter(t => testiSearch ? t.name.toLowerCase().includes(testiSearch.toLowerCase()) || t.text.toLowerCase().includes(testiSearch.toLowerCase()) : true).length})
                 </h1>
-                <input type="search" placeholder="Rechercher nom, message…"
+                <label htmlFor="search-testimonials" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '11px', color: TEXT3, fontWeight: 600 }}>Recherche :</span>
+                  <input id="search-testimonials" type="search" placeholder="Rechercher nom, message…"
                   value={testiSearch}
                   onChange={e => setTestiSearch(e.target.value)}
                   style={{ ...inputStyle, width: '220px' }}
-                />
+                  />
+                </label>
               </div>
               <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
                 {testimonials.length === 0 ? (
@@ -1408,15 +1792,16 @@ export default function AdminPage() {
                     <div className="space-y-3">
                       {/* Label → génère le slug automatiquement */}
                       <div>
-                        <label className="text-xs block mb-1" style={{ color: TEXT_M }}>Label (ex: CORPS) *</label>
+                        <label htmlFor="cat-modal-label" className="text-xs block mb-1" style={{ color: TEXT_M }}>Label (ex: CORPS) *</label>
                         <input
+                          id="cat-modal-label"
                           type="text"
                           value={catModal.label ?? ''}
                           onChange={e => {
                             const label = e.target.value;
                             const slug = label.toLowerCase()
-                              .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-                              .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                              .normalize('NFD').replaceAll(/[\u0300-\u036f]/g, '')
+                              .replaceAll(/[^a-z0-9]+/g, '-').replaceAll(/^-|-$/g, '');
                             setCatModal(prev => prev ? { ...prev, label, slug } : prev);
                           }}
                           style={{ ...inputStyle, width: '100%' }}
@@ -1424,8 +1809,9 @@ export default function AdminPage() {
                       </div>
                       {/* Slug — lecture seule, généré depuis le label */}
                       <div>
-                        <label className="text-xs block mb-1" style={{ color: TEXT_M }}>Slug (auto-généré)</label>
+                        <label htmlFor="cat-modal-slug" className="text-xs block mb-1" style={{ color: TEXT_M }}>Slug (auto-généré)</label>
                         <input
+                          id="cat-modal-slug"
                           type="text"
                           value={catModal.slug ?? ''}
                           readOnly
@@ -1433,7 +1819,7 @@ export default function AdminPage() {
                         />
                       </div>
                       {([
-                        { key: 'sub_label', label: 'Sous-titre (2 lignes avec \\n)' },
+                        { key: 'sub_label', label: String.raw`Sous-titre (2 lignes avec \n)` },
                         { key: 'image', label: 'URL de l\'image' },
                         { key: 'href', label: 'Lien (ex: /categorie/body)' },
                         { key: 'order_index', label: 'Ordre d\'affichage', type: 'number' },
@@ -1449,11 +1835,11 @@ export default function AdminPage() {
                         </div>
                       ))}
                       <div className="flex items-center gap-3">
-                        <label className="text-xs" style={{ color: TEXT_M }}>Quiz teint</label>
+                        <label htmlFor="quiz-teint" className="text-xs" style={{ color: TEXT_M }}>Quiz teint</label>
                         <input type="checkbox" checked={catModal.is_quiz ?? false} onChange={e => setCatModal(prev => prev ? { ...prev, is_quiz: e.target.checked } : prev)} />
                       </div>
                       <div className="flex items-center gap-3">
-                        <label className="text-xs" style={{ color: TEXT_M }}>Visible (actif)</label>
+                        <label htmlFor="category-visible" className="text-xs" style={{ color: TEXT_M }}>Visible (actif)</label>
                         <input type="checkbox" checked={catModal.active ?? true} onChange={e => setCatModal(prev => prev ? { ...prev, active: e.target.checked } : prev)} />
                       </div>
                       {catModal.image && (
@@ -1472,7 +1858,6 @@ export default function AdminPage() {
                           disabled={catSaving || !catModal.label?.trim() || !catModal.slug?.trim()}
                           onClick={async () => {
                             setCatSaving(true);
-                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
                             const { _isNew, id, created_at: _createdAt, ...fields } = catModal as CategoryRow & { _isNew?: boolean };
                             if (_isNew) {
                               const { error } = await addCategoryToDB(fields as Omit<CategoryRow, 'id' | 'created_at'>);
@@ -1504,11 +1889,14 @@ export default function AdminPage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between gap-4 flex-wrap">
                 <h1 className="text-lg font-bold" style={{ color: TEXT }}>Clients ({filteredClients.length})</h1>
-                <input type="search" placeholder="Rechercher nom, email…"
-                  value={clientSearch}
-                  onChange={e => { setClientSearch(e.target.value); setClientPage(1); }}
-                  style={{ ...inputStyle, width: '220px' }}
-                />
+                <label htmlFor="search-clients" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '11px', color: TEXT3, fontWeight: 600 }}>Recherche :</span>
+                  <input id="search-clients" type="search" placeholder="Rechercher nom, email…"
+                    value={clientSearch}
+                    onChange={e => { setClientSearch(e.target.value); setClientPage(1); }}
+                    style={{ ...inputStyle, width: '220px' }}
+                  />
+                </label>
               </div>
               <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
                 {filteredClients.length === 0 ? (
@@ -1647,9 +2035,7 @@ export default function AdminPage() {
                   <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '440px' }}>
                     <div className="flex items-center justify-between mb-4">
                       <h2 className="font-bold text-base" style={{ color: TEXT }}>
-                        {quizModal.data._isNew
-                          ? (quizModal.type === 'concern' ? 'Nouvelle préoccupation' : 'Nouvelle routine')
-                          : (quizModal.type === 'concern' ? 'Modifier la préoccupation' : 'Modifier la routine')}
+                        {getQuizModalTitle(quizModal.data._isNew ?? false, quizModal.type)}
                       </h2>
                       <button onClick={() => setQuizModal(null)} style={{ color: TEXT3, fontSize: '20px', lineHeight: 1 }}>✕</button>
                     </div>
@@ -1661,7 +2047,7 @@ export default function AdminPage() {
                           <input
                             type="text"
                             value={quizModal.data.id ?? ''}
-                            onChange={e => setQuizModal(prev => prev ? { ...prev, data: { ...prev.data, id: e.target.value.toLowerCase().replace(/\s+/g, '_') } } : prev)}
+                            onChange={e => setQuizModal(prev => prev ? { ...prev, data: { ...prev.data, id: e.target.value.toLowerCase().replaceAll(/\s+/g, '_') } } : prev)}
                             style={{ ...inputStyle, width: '100%' }}
                             placeholder="sans espaces, sans accents"
                           />
@@ -1677,7 +2063,7 @@ export default function AdminPage() {
                           <label className="text-xs block mb-1" style={{ color: TEXT_M }}>{field.label}</label>
                           <input
                             type={field.type ?? 'text'}
-                            value={String((quizModal.data as Record<string, unknown>)[field.key] ?? '')}
+                            value={(quizModal.data as Record<string, unknown>)[field.key]?.toString() ?? ''}
                             onChange={e => setQuizModal(prev => prev ? { ...prev, data: { ...prev.data, [field.key]: field.type === 'number' ? Number(e.target.value) : e.target.value } } : prev)}
                             style={{ ...inputStyle, width: '100%' }}
                           />
@@ -1786,7 +2172,7 @@ export default function AdminPage() {
                   {(['all', 'active', 'unsubscribed'] as const).map(f => (
                     <button key={f} onClick={() => setNewsletterFilter(f)}
                       style={{ padding: '7px 12px', borderRadius: 8, border: `1px solid ${newsletterFilter === f ? GOLD : BORDER}`, background: newsletterFilter === f ? 'rgba(200,151,74,0.12)' : 'transparent', color: newsletterFilter === f ? GOLD : TEXT2, fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>
-                      {f === 'all' ? 'Tous' : f === 'active' ? 'Actifs' : 'Désinscrits'}
+                      {getNewsletterFilterText(f)}
                     </button>
                   ))}
                 </div>
@@ -1842,14 +2228,21 @@ export default function AdminPage() {
               setTimeout(() => setContentSaved(x => ({ ...x, shipping: false })), 2500);
             };
             const addOpt = () => {
-              const newOpt: ShippingOption = { id: `opt-${Date.now()}`, label: 'Nouvelle option', description: '', cost: 0, freeFrom: 0, active: true };
-              setSiteContent(c => ({ ...c, shipping: { ...c.shipping, options: [...(c.shipping.options ?? []), newOpt] } }));
+              const newOpt: ShippingOption = { 
+                id: `opt-${Date.now()}`, 
+                label: 'Nouvelle option', 
+                description: '', 
+                cost: 0, 
+                freeFrom: 0, 
+                active: true,
+              };
+              setSiteContent((c) => ({ ...c, shipping: { ...c.shipping, options: [...(c.shipping.options ?? []), newOpt] } }));
             };
             const updateOpt = (id: string, patch: Partial<ShippingOption>) => {
-              setSiteContent(c => ({ ...c, shipping: { ...c.shipping, options: (c.shipping.options ?? []).map(o => o.id === id ? { ...o, ...patch } : o) } }));
+              setSiteContent((c) => ({ ...c, shipping: { ...c.shipping, options: (c.shipping.options ?? []).map((o) => o.id === id ? { ...o, ...patch } : o) } }));
             };
             const removeOpt = (id: string) => {
-              setSiteContent(c => ({ ...c, shipping: { ...c.shipping, options: (c.shipping.options ?? []).filter(o => o.id !== id) } }));
+              setSiteContent((c) => ({ ...c, shipping: { ...c.shipping, options: (c.shipping.options ?? []).filter((o) => o.id !== id) } }));
             };
             return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -1900,20 +2293,20 @@ export default function AdminPage() {
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                         <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                           <span style={{ fontSize: '11px', color: TEXT2, fontWeight: 500 }}>Coût (FCFA)</span>
-                          <input type="number" min={0} value={opt.cost} onChange={e => updateOpt(opt.id, { cost: Math.max(0, parseInt(e.target.value, 10) || 0) })}
+                          <input type="number" min={0} value={opt.cost} onChange={e => updateOpt(opt.id, { cost: Math.max(0, Number.parseInt(e.target.value, 10) || 0) })}
                             style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '9px 12px', color: TEXT, fontSize: '13px', outline: 'none', width: '100%' }} />
                         </label>
                         <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                           <span style={{ fontSize: '11px', color: TEXT2, fontWeight: 500 }}>Gratuite dès (FCFA, 0 = jamais)</span>
-                          <input type="number" min={0} value={opt.freeFrom} onChange={e => updateOpt(opt.id, { freeFrom: Math.max(0, parseInt(e.target.value, 10) || 0) })}
+                          <input type="number" min={0} value={opt.freeFrom} onChange={e => updateOpt(opt.id, { freeFrom: Math.max(0, Number.parseInt(e.target.value, 10) || 0) })}
                             style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '9px 12px', color: TEXT, fontSize: '13px', outline: 'none', width: '100%' }} />
                         </label>
                       </div>
 
                       {/* Aperçu rapide */}
                       <div style={{ fontSize: '11px', color: TEXT3, background: BG, borderRadius: '6px', padding: '8px 12px', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-                        <span>📦 <strong style={{ color: TEXT2 }}>{formatPrice(opt.cost)}</strong></span>
-                        {opt.freeFrom > 0 && <span>🎁 Gratuite dès <strong style={{ color: S_OK_T }}>{formatPrice(opt.freeFrom)}</strong></span>}
+                        <span>📦 <strong style={{ color: TEXT2 }}>{formatPrice(opt.cost ?? 0)}</strong></span>
+                        {(opt.freeFrom ?? 0) > 0 && <span>🎁 Gratuite dès <strong style={{ color: S_OK_T }}>{formatPrice(opt.freeFrom ?? 0)}</strong></span>}
                       </div>
                     </div>
                   ))}
@@ -1927,7 +2320,7 @@ export default function AdminPage() {
                 {/* Message livraison gratuite global */}
                 <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '560px' }}>
                   <p style={{ fontSize: '13px', fontWeight: 600, color: TEXT }}>Message livraison gratuite (panier)</p>
-                  <input value={s.freeShippingMessage} onChange={e => setSiteContent(c => ({ ...c, shipping: { ...c.shipping, freeShippingMessage: e.target.value } }))}
+                  <input value={s.freeShippingMessage} onChange={e => setSiteContent((c) => ({ ...c, shipping: { ...c.shipping, freeShippingMessage: e.target.value } }))}
                     placeholder="ex: Livraison gratuite à partir de 25 000 FCFA"
                     style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '10px 14px', color: TEXT, fontSize: '13px', outline: 'none' }} />
                   <span style={{ fontSize: '10px', color: TEXT3 }}>Affiché dans la barre de progression du panier.</span>
@@ -1936,7 +2329,7 @@ export default function AdminPage() {
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                   <button onClick={save} disabled={contentSaving.shipping}
                     style={{ background: contentSaved.shipping ? S_SAVE_BG : GOLD2, color: contentSaved.shipping ? S_SAVE_T : BG, border: 'none', borderRadius: '8px', padding: '10px 24px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
-                    {contentSaved.shipping ? '✓ Sauvegardé' : contentSaving.shipping ? '…' : '💾 Sauvegarder'}
+                    {getSaveButtonText(contentSaved.shipping, contentSaving.shipping)}
                   </button>
                 </div>
               </div>
@@ -1944,7 +2337,7 @@ export default function AdminPage() {
           })()}
 
           {/* ─── CONTENU TAB ─── */}
-          {tab === 'contenu' && (() => (
+          {tab === 'contenu' && (
             <div className="space-y-6">
               <h1 className="text-lg font-bold" style={{ color: TEXT }}>Contenu du site</h1>
               <p className="text-xs" style={{ color: TEXT3 }}>Modifiez le contenu visible sur le frontend. Chaque section se sauvegarde indépendamment.</p>
@@ -1966,22 +2359,22 @@ export default function AdminPage() {
                 return (
                   <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
                     <p className="text-sm font-semibold" style={{ color: GOLD }}>💬 Témoignages (page d&apos;accueil)</p>
-                    {siteContent.testimonials_home.map((t, i) => (
+                    {siteContent.testimonials_home.map((t, i: number) => (
                       <div key={i} style={{ background: BG, borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         <p className="text-xs font-semibold" style={{ color: TEXT2 }}>Témoignage {i + 1}</p>
                         <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                           <span className="text-xs" style={{ color: TEXT3 }}>Nom</span>
-                          <input value={t.name} onChange={e => setSiteContent(c => ({ ...c, testimonials_home: c.testimonials_home.map((x, j) => j === i ? { ...x, name: e.target.value } : x) }))}
+                          <input value={t.name} onChange={e => setSiteContent((c) => ({ ...c, testimonials_home: c.testimonials_home.map((x, j: number) => j === i ? { ...x, name: e.target.value } : x) }))}
                             style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '7px 10px', color: TEXT, fontSize: '12px', outline: 'none' }} />
                         </label>
                         <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                           <span className="text-xs" style={{ color: TEXT3 }}>Texte</span>
-                          <textarea value={t.text} rows={3} onChange={e => setSiteContent(c => ({ ...c, testimonials_home: c.testimonials_home.map((x, j) => j === i ? { ...x, text: e.target.value } : x) }))}
+                          <textarea value={t.text} rows={3} onChange={e => setSiteContent((c) => ({ ...c, testimonials_home: c.testimonials_home.map((x, j: number) => j === i ? { ...x, text: e.target.value } : x) }))}
                             style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '7px 10px', color: TEXT, fontSize: '12px', resize: 'vertical', outline: 'none' }} />
                         </label>
                         <ImageUpload
                           value={t.avatar}
-                          onChange={url => setSiteContent(c => ({ ...c, testimonials_home: c.testimonials_home.map((x, j) => j === i ? { ...x, avatar: url } : x) }))}
+                          onChange={(url: string) => setSiteContent((c: SiteConfig) => ({ ...c, testimonials_home: c.testimonials_home.map((x: {name:string;text:string;avatar:string}, j: number) => j === i ? { ...x, avatar: url } : x) }))}
                           folder="avatars"
                           label="Photo du client"
                           previewSize={80}
@@ -1990,7 +2383,7 @@ export default function AdminPage() {
                     ))}
                     <button onClick={save} disabled={contentSaving.testimonials_home}
                       style={{ alignSelf: 'flex-end', background: contentSaved.testimonials_home ? S_SAVE_BG : GOLD2, color: contentSaved.testimonials_home ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                      {contentSaved.testimonials_home ? '✓ Sauvegardé' : contentSaving.testimonials_home ? '…' : '💾 Sauvegarder'}
+                      {getSaveButtonText(contentSaved.testimonials_home, contentSaving.testimonials_home)}
                     </button>
                   </div>
                 );
@@ -2040,13 +2433,13 @@ export default function AdminPage() {
                           <textarea
                             rows={3}
                             value={f[field] ?? ''}
-                            onChange={e => setSiteContent(c => ({ ...c, [key]: { ...c[key], [field]: e.target.value } }))}
+                            onChange={(e) => setSiteContent((c: SiteConfig) => ({ ...c, [key]: { ...(c[key] as Record<string, unknown>), [field]: e.target.value } }))}
                             style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '13px', resize: 'vertical', outline: 'none' }}
                           />
                         ) : (
                           <input
                             value={f[field] ?? ''}
-                            onChange={e => setSiteContent(c => ({ ...c, [key]: { ...c[key], [field]: e.target.value } }))}
+                            onChange={(e) => setSiteContent((c: SiteConfig) => ({ ...c, [key]: { ...(c[key] as Record<string, unknown>), [field]: e.target.value } }))}
                             style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '13px', outline: 'none' }}
                           />
                         )}
@@ -2054,7 +2447,7 @@ export default function AdminPage() {
                     ))}
                     <ImageUpload
                       value={f.image ?? ''}
-                      onChange={url => setSiteContent(c => ({ ...c, [key]: { ...c[key], image: url } }))}
+                      onChange={(url: string) => setSiteContent((c: SiteConfig) => ({ ...c, [key]: { ...(c[key] as Record<string, unknown>), image: url } }))}
                       folder="categories"
                       label="Image du hero"
                       previewSize={140}
@@ -2067,29 +2460,18 @@ export default function AdminPage() {
                 );
               })}
 
-              {/* ── Frais de livraison ── */}
-              {(() => {
-                const save = async () => {
-                  setContentSaving(s => ({ ...s, shipping: true }));
-                  await saveSiteConfigSection('shipping', siteContent.shipping);
-                  setContentSaving(s => ({ ...s, shipping: false }));
-                  setContentSaved(s => ({ ...s, shipping: true }));
-                  setTimeout(() => setContentSaved(s => ({ ...s, shipping: false })), 2500);
-                };
-              })()}
-
 
               {/* ── Codes promo ── */}
               {(() => {
                 const codes = siteContent.promo_codes;
-                const setCodes = (next: PromoCode[]) => setSiteContent(c => ({ ...c, promo_codes: next }));
+                const setCodes = (next: PromoCode[]) => setSiteContent((c) => ({ ...c, promo_codes: next }));
                 const addCode = () => setCodes([...codes, { code: '', type: 'percent', value: 10, minSubtotal: 0, active: true, expiresAt: '' }]);
                 const updateCode = (i: number, patch: Partial<PromoCode>) =>
-                  setCodes(codes.map((c, j) => j === i ? { ...c, ...patch } : c));
-                const removeCode = (i: number) => setCodes(codes.filter((_, j) => j !== i));
+                  setCodes(codes.map((c, j: number) => j === i ? { ...c, ...patch } : c));
+                const removeCode = (i: number) => setCodes(codes.filter((_, j: number) => j !== i));
                 const save = async () => {
                   // Normalisation : code en majuscules, trim
-                  const normalized = codes.map(c => ({ ...c, code: c.code.trim().toUpperCase() }));
+                  const normalized = codes.map((c: PromoCode) => ({ ...c, code: c.code.trim().toUpperCase() }));
                   setCodes(normalized);
                   setContentSaving(s => ({ ...s, promo_codes: true }));
                   await saveSiteConfigSection('promo_codes', normalized);
@@ -2109,7 +2491,7 @@ export default function AdminPage() {
                     {codes.length === 0 && (
                       <p className="text-xs" style={{ color: TEXT3 }}>Aucun code promo. Cliquez sur « + Nouveau code » pour en créer un.</p>
                     )}
-                    {codes.map((c, i) => (
+                    {codes.map((c: PromoCode, i: number) => (
                       <div key={i} style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr 1fr 1fr 1fr auto', gap: '8px', alignItems: 'end' }}>
                           <label style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
@@ -2129,13 +2511,13 @@ export default function AdminPage() {
                           <label style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                             <span className="text-xs" style={{ color: TEXT2 }}>Valeur</span>
                             <input type="number" min={0} value={c.value}
-                              onChange={e => updateCode(i, { value: Math.max(0, parseInt(e.target.value, 10) || 0) })}
+                              onChange={e => updateCode(i, { value: Math.max(0, Number.parseInt(e.target.value, 10) || 0) })}
                               style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 10px', color: TEXT, fontSize: '12px', outline: 'none' }} />
                           </label>
                           <label style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                             <span className="text-xs" style={{ color: TEXT2 }}>Min. panier (FCFA)</span>
                             <input type="number" min={0} value={c.minSubtotal ?? 0}
-                              onChange={e => updateCode(i, { minSubtotal: Math.max(0, parseInt(e.target.value, 10) || 0) })}
+                              onChange={e => updateCode(i, { minSubtotal: Math.max(0, Number.parseInt(e.target.value, 10) || 0) })}
                               style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 10px', color: TEXT, fontSize: '12px', outline: 'none' }} />
                           </label>
                           <label style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
@@ -2170,7 +2552,7 @@ export default function AdminPage() {
               {/* ─── FAQ ─── */}
               {(() => {
                 const faq = siteContent.faq;
-                const setFaq = (next: typeof faq) => setSiteContent(c => ({ ...c, faq: next }));
+                const setFaq = (next: typeof faq) => setSiteContent((c: SiteConfig) => ({ ...c, faq: next }));
                 const save = async () => {
                   setContentSaving(s => ({ ...s, faq: true }));
                   await saveSiteConfigSection('faq', faq);
@@ -2179,15 +2561,15 @@ export default function AdminPage() {
                   setTimeout(() => setContentSaved(s => ({ ...s, faq: false })), 2500);
                 };
                 const addCat = () => setFaq([...faq, { cat: 'Nouvelle catégorie', items: [] }]);
-                const removeCat = (ci: number) => setFaq(faq.filter((_, i) => i !== ci));
+                const removeCat = (ci: number) => setFaq(faq.filter((_: typeof faq[number], i: number) => i !== ci));
                 const updateCatTitle = (ci: number, title: string) =>
-                  setFaq(faq.map((c, i) => i === ci ? { ...c, cat: title } : c));
+                  setFaq(faq.map((c: typeof faq[number], i: number) => i === ci ? { ...c, cat: title } : c));
                 const addItem = (ci: number) =>
-                  setFaq(faq.map((c, i) => i === ci ? { ...c, items: [...c.items, { q: '', a: '' }] } : c));
+                  setFaq(faq.map((c: typeof faq[number], i: number) => i === ci ? { ...c, items: [...c.items, { q: '', a: '' }] } : c));
                 const removeItem = (ci: number, qi: number) =>
-                  setFaq(faq.map((c, i) => i === ci ? { ...c, items: c.items.filter((_, j) => j !== qi) } : c));
+                  setFaq(faq.map((c: typeof faq[number], i: number) => i === ci ? { ...c, items: c.items.filter((_: typeof c.items[number], j: number) => j !== qi) } : c));
                 const updateItem = (ci: number, qi: number, patch: { q?: string; a?: string }) =>
-                  setFaq(faq.map((c, i) => i === ci ? { ...c, items: c.items.map((it, j) => j === qi ? { ...it, ...patch } : it) } : c));
+                  setFaq(faq.map((c: typeof faq[number], i: number) => i === ci ? { ...c, items: c.items.map((it: typeof c.items[number], j: number) => j === qi ? { ...it, ...patch } : it) } : c));
                 return (
                   <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -2195,7 +2577,7 @@ export default function AdminPage() {
                       <button onClick={addCat} style={{ background: 'transparent', color: GOLD, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '6px 12px', fontSize: '11px', cursor: 'pointer' }}>+ Catégorie</button>
                     </div>
                     {faq.length === 0 && <p style={{ fontSize: '12px', color: TEXT3 }}>Aucune catégorie. Ajoutez-en une.</p>}
-                    {faq.map((cat, ci) => (
+                    {faq.map((cat: typeof faq[number], ci: number) => (
                       <div key={ci} style={{ background: SURFACE2, border: `1px solid ${BORDER2}`, borderRadius: '6px', padding: '12px' }}>
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '10px' }}>
                           <input value={cat.cat} onChange={e => updateCatTitle(ci, e.target.value)}
@@ -2203,7 +2585,7 @@ export default function AdminPage() {
                           <button onClick={() => addItem(ci)} style={{ background: 'transparent', color: TEXT2, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 10px', fontSize: '11px', cursor: 'pointer' }}>+ Q/R</button>
                           <button onClick={() => removeCat(ci)} style={{ background: 'transparent', color: S_ERR_T, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 10px', fontSize: '11px', cursor: 'pointer' }}>🗑</button>
                         </div>
-                        {cat.items.map((it, qi) => (
+                        {cat.items.map((it: {q: string; a: string}, qi: number) => (
                           <div key={qi} style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '10px', borderTop: `1px solid ${BORDER2}` }}>
                             <div style={{ display: 'flex', gap: '6px' }}>
                               <input placeholder="Question" value={it.q} onChange={e => updateItem(ci, qi, { q: e.target.value })}
@@ -2227,7 +2609,7 @@ export default function AdminPage() {
               {/* ─── Newsletter (configuration affichage) ─── */}
               {(() => {
                 const n = siteContent.newsletter;
-                const update = (patch: Partial<typeof n>) => setSiteContent(c => ({ ...c, newsletter: { ...c.newsletter, ...patch } }));
+                const update = (patch: Partial<typeof n>) => setSiteContent((c: SiteConfig) => ({ ...c, newsletter: { ...c.newsletter, ...patch } }));
                 const save = async () => {
                   setContentSaving(s => ({ ...s, newsletter: true }));
                   await saveSiteConfigSection('newsletter', n);
@@ -2273,7 +2655,7 @@ export default function AdminPage() {
                     </p>
                     {KEYS.map(({ key, label, slug }) => {
                       const lp = siteContent[key];
-                      const update = (patch: Partial<typeof lp>) => setSiteContent(c => ({ ...c, [key]: { ...c[key], ...patch } }));
+                      const update = (patch: Partial<typeof lp>) => setSiteContent((c: SiteConfig) => ({ ...c, [key]: { ...c[key], ...patch } }));
                       const save = async () => {
                         setContentSaving(s => ({ ...s, [key]: true }));
                         await saveSiteConfigSection(key, lp);
@@ -2324,7 +2706,7 @@ export default function AdminPage() {
                 </p>
               </div>
             </div>
-          ))()}
+          )}
 
           {/* ─── MARKETING TAB ─── */}
           {tab === 'marketing' && (() => {
@@ -2339,7 +2721,7 @@ export default function AdminPage() {
             };
 
             const updateMkt = (patch: Partial<MarketingConfig>) =>
-              setSiteContent(c => ({ ...c, marketing: { ...c.marketing, ...patch } }));
+              setSiteContent((c: SiteConfig) => ({ ...c, marketing: { ...c.marketing, ...patch } }));
 
             // Bannières
             const addBanner = () => {
@@ -2360,9 +2742,9 @@ export default function AdminPage() {
               setContentSaved(x => ({ ...x, promo_codes: true }));
               setTimeout(() => setContentSaved(x => ({ ...x, promo_codes: false })), 2500);
             };
-            const addPromo = () => setSiteContent(c => ({ ...c, promo_codes: [...(c.promo_codes ?? []), { code: '', type: 'percent', value: 10, active: true }] }));
-            const updPromo = (i: number, patch: Partial<PromoCode>) => setSiteContent(c => ({ ...c, promo_codes: (c.promo_codes ?? []).map((p, j) => j === i ? { ...p, ...patch } : p) }));
-            const delPromo = (i: number) => setSiteContent(c => ({ ...c, promo_codes: (c.promo_codes ?? []).filter((_, j) => j !== i) }));
+            const addPromo = () => setSiteContent((c: SiteConfig) => ({ ...c, promo_codes: [...(c.promo_codes ?? []), { code: '', type: 'percent', value: 10, active: true }] }));
+            const updPromo = (i: number, patch: Partial<PromoCode>) => setSiteContent((c: SiteConfig) => ({ ...c, promo_codes: (c.promo_codes ?? []).map((p: PromoCode, j: number) => j === i ? { ...p, ...patch } : p) }));
+            const delPromo = (i: number) => setSiteContent((c: SiteConfig) => ({ ...c, promo_codes: (c.promo_codes ?? []).filter((_: PromoCode, j: number) => j !== i) }));
 
             // Upsell
             const addUpsell = () => {
@@ -2521,7 +2903,7 @@ export default function AdminPage() {
                           <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                             <span style={{ fontSize: '11px', color: TEXT2 }}>Délai d&apos;affichage (secondes)</span>
                             <input type="number" min={0} max={60} value={p.delaySeconds}
-                              onChange={e => updPopup({ delaySeconds: Math.max(0, parseInt(e.target.value) || 0) })}
+                              onChange={e => updPopup({ delaySeconds: Math.max(0, Number.parseInt(e.target.value, 10) || 0) })}
                               style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '9px 12px', color: TEXT, fontSize: '13px', outline: 'none' }} />
                           </label>
                           <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
@@ -2588,12 +2970,12 @@ export default function AdminPage() {
                           </label>
                           <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                             <span style={{ fontSize: '11px', color: TEXT2 }}>Valeur {pc.type === 'percent' ? '(%)' : '(FCFA)'}</span>
-                            <input type="number" min={0} value={pc.value} onChange={e => updPromo(i, { value: parseFloat(e.target.value) || 0 })}
+                            <input type="number" min={0} value={pc.value} onChange={e => updPromo(i, { value: Number.parseFloat(e.target.value) || 0 })}
                               style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '13px', outline: 'none' }} />
                           </label>
                           <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                             <span style={{ fontSize: '11px', color: TEXT2 }}>Min. panier (FCFA, 0=∅)</span>
-                            <input type="number" min={0} value={pc.minSubtotal ?? 0} onChange={e => updPromo(i, { minSubtotal: parseInt(e.target.value) || 0 })}
+                            <input type="number" min={0} value={pc.minSubtotal ?? 0} onChange={e => updPromo(i, { minSubtotal: Number.parseInt(e.target.value, 10) || 0 })}
                               style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '13px', outline: 'none' }} />
                           </label>
                         </div>
@@ -2680,7 +3062,7 @@ export default function AdminPage() {
                         <span style={{ fontSize: '20px' }}>📘</span>
                         <div>
                           <p style={{ fontSize: '13px', fontWeight: 700, color: TEXT, margin: 0 }}>Facebook / Meta Pixel</p>
-                          <p style={{ fontSize: '11px', color: TEXT3, margin: 0 }}>Gestionnaire d'événements Meta → Pixels → Votre Pixel → ID</p>
+                          <p style={{ fontSize: '11px', color: TEXT3, margin: 0 }}>Gestionnaire d&apos;événements Meta → Pixels → Votre Pixel → ID</p>
                         </div>
                       </div>
                       <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -2813,14 +3195,14 @@ export default function AdminPage() {
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                         <label style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                           <span style={{ color: TEXT3, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Points par 1000€</span>
-                          <input type="number" value={jekoSettingsEdit.points_per_1000}
-                            onChange={e => setJekoSettingsEdit(s => ({ ...s, points_per_1000: +e.target.value }))}
+                          <input type="number" value={jekoSettingsEdit?.points_per_1000 ?? 0}
+                            onChange={e => setJekoSettingsEdit(s => s ? { ...s, points_per_1000: +e.target.value } : s)}
                             style={{ background: SURFACE2, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '9px 12px', color: TEXT, fontSize: '14px', fontWeight: 700, outline: 'none' }} />
                         </label>
                         <label style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                           <span style={{ color: TEXT3, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Bonus bienvenue (pts)</span>
-                          <input type="number" value={jekoSettingsEdit.welcome_bonus}
-                            onChange={e => setJekoSettingsEdit(s => ({ ...s, welcome_bonus: +e.target.value }))}
+                          <input type="number" value={jekoSettingsEdit?.welcome_bonus ?? 0}
+                            onChange={e => setJekoSettingsEdit(s => s ? { ...s, welcome_bonus: +e.target.value } : s)}
                             style={{ background: SURFACE2, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '9px 12px', color: TEXT, fontSize: '14px', fontWeight: 700, outline: 'none' }} />
                         </label>
                       </div>
@@ -3020,7 +3402,7 @@ export default function AdminPage() {
                         ))}
                       </tbody>
                     </table>
-                  </div>
+                    </div>
                   </div>
                 )}
 
@@ -3108,200 +3490,23 @@ export default function AdminPage() {
       )}
 
       {/* ─── PRODUCT MODAL ─── */}
-      {productModal && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex' }}>
-          <div onClick={() => setProductModal(null)} style={{ flex: 1, background: 'rgba(0,0,0,0.7)', cursor: 'pointer' }} />
-          <div style={{ width: '460px', background: SURFACE, borderLeft: `1px solid `, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h2 style={{ color: TEXT, fontSize: '15px', fontWeight: 700 }}>{productModal._isNew ? '+ Nouveau produit' : 'Modifier le produit'}</h2>
-              <button onClick={() => setProductModal(null)} style={{ color: TEXT3, fontSize: '18px', lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
-            </div>
-            <div>
-              <label style={{ fontSize: '11px', color: TEXT2, display: 'block', marginBottom: '4px' }}>Nom *</label>
-              <input value={productModal.name ?? ''} onChange={e => {
-                const v = e.target.value;
-                const slug = v
-                  .toLowerCase()
-                  .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-                  .replace(/[^a-z0-9]+/g, '-')
-                  .replace(/^-+|-+$/g, '');
-                setProductModal(p => p ? { ...p, name: v, slug } : p);
-              }} style={inputStyle} />
-            </div>
-            <div>
-              <label style={{ fontSize: '11px', color: TEXT2, display: 'block', marginBottom: '4px' }}>Slug (auto-généré)</label>
-              <input value={productModal.slug ?? ''} readOnly style={{ ...inputStyle, color: TEXT3, fontFamily: 'monospace', fontSize: '12px', cursor: 'not-allowed' }} />
-            </div>
-            <div>
-              <label style={{ fontSize: '11px', color: TEXT2, display: 'block', marginBottom: '4px' }}>Catégorie *</label>
-              <select value={productModal.category ?? ''} onChange={e => setProductModal(p => p ? { ...p, category: e.target.value as Category } : p)} style={{ ...inputStyle, cursor: 'pointer' }}>
-                <option value="">-- Choisir --</option>
-                <option value="face">Visage</option>
-                <option value="body">Corps</option>
-                <option value="gammes">Gammes</option>
-                <option value="kits">Kits</option>
-                <option value="duo">Duo</option>
-              </select>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <div>
-                <label style={{ fontSize: '11px', color: TEXT2, display: 'block', marginBottom: '4px' }}>Prix (FCFA) *</label>
-                <input type="number" min="0" value={productModal.price ?? ''} onChange={e => setProductModal(p => p ? { ...p, price: parseInt(e.target.value) || 0 } : p)} style={inputStyle} />
-              </div>
-              <div>
-                <label style={{ fontSize: '11px', color: TEXT2, display: 'block', marginBottom: '4px' }}>Prix barré</label>
-                <input type="number" min="0" value={productModal.originalPrice ?? ''} onChange={e => { const v = parseInt(e.target.value); setProductModal(p => p ? { ...p, originalPrice: isNaN(v) || v === 0 ? undefined : v } : p); }} style={inputStyle} />
-              </div>
-            </div>
-            <div>
-              <label style={{ fontSize: '11px', color: TEXT2, display: 'block', marginBottom: '4px' }}>Description courte</label>
-              <input value={productModal.shortDescription ?? ''} onChange={e => setProductModal(p => p ? { ...p, shortDescription: e.target.value } : p)} style={inputStyle} />
-            </div>
-            <div>
-              <label style={{ fontSize: '11px', color: TEXT2, display: 'block', marginBottom: '4px' }}>Description complète</label>
-              <textarea value={productModal.description ?? ''} onChange={e => setProductModal(p => p ? { ...p, description: e.target.value } : p)} rows={4} style={{ ...inputStyle, resize: 'vertical' as const }} />
-            </div>
-            <div>
-              <label style={{ fontSize: '11px', color: TEXT2, display: 'block', marginBottom: '4px' }}>{"Mode d'emploi"}</label>
-              <textarea value={productModal.usage ?? ''} onChange={e => setProductModal(p => p ? { ...p, usage: e.target.value } : p)} rows={3} style={{ ...inputStyle, resize: 'vertical' as const }} />
-            </div>
-            <div>
-              <label style={{ fontSize: '11px', color: TEXT2, display: 'block', marginBottom: '4px' }}>Ingrédients</label>
-              <textarea value={productModal.ingredients ?? ''} onChange={e => setProductModal(p => p ? { ...p, ingredients: e.target.value || undefined } : p)} rows={3} style={{ ...inputStyle, resize: 'vertical' as const }} />
-            </div>
-            <div>
-              <label style={{ fontSize: '11px', color: TEXT2, display: 'block', marginBottom: '4px' }}>Bienfaits (1 par ligne)</label>
-              <textarea value={(productModal.benefits ?? []).join('\n')} onChange={e => setProductModal(p => p ? { ...p, benefits: e.target.value.split('\n').filter(Boolean) } : p)} rows={4} style={{ ...inputStyle, resize: 'vertical' as const }} />
-            </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <label style={{ fontSize: '11px', color: TEXT2 }}>Images du produit</label>
-                <button
-                  type="button"
-                  onClick={() => setProductModal(p => p ? { ...p, images: [...(p.images ?? []), ''] } : p)}
-                  style={{ fontSize: '11px', color: GOLD, background: 'none', border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '2px 10px', cursor: 'pointer' }}
-                >+ Ajouter</button>
-              </div>
-              {(productModal.images ?? []).length === 0 && (
-                <p style={{ fontSize: '11px', color: TEXT3, textAlign: 'center', padding: '10px 0' }}>Aucune image — cliquez + Ajouter (au moins 1 image requise)</p>
-              )}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {(productModal.images ?? []).map((img, idx) => (
-                  <div key={idx}
-                    draggable
-                    onDragStart={e => { e.dataTransfer.setData('text/img-idx', String(idx)); e.dataTransfer.effectAllowed = 'move'; }}
-                    onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
-                    onDrop={e => {
-                      e.preventDefault();
-                      const from = parseInt(e.dataTransfer.getData('text/img-idx'), 10);
-                      if (Number.isNaN(from) || from === idx) return;
-                      setProductModal(p => {
-                        if (!p) return p;
-                        const imgs = [...(p.images ?? [])];
-                        const [moved] = imgs.splice(from, 1);
-                        imgs.splice(idx, 0, moved);
-                        return { ...p, images: imgs };
-                      });
-                    }}
-                    style={{ position: 'relative', cursor: 'grab', border: `1px dashed ${BORDER}`, borderRadius: '8px', padding: '8px', background: SURFACE2 }}
-                    title="Glissez pour réordonner"
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                      <span style={{ color: TEXT3, fontSize: '14px', userSelect: 'none' }}>⋮⋮</span>
-                      <span style={{ fontSize: '11px', color: TEXT3 }}>Position {idx + 1}{idx === 0 && ' · principale'}</span>
-                      <div style={{ marginLeft: 'auto', display: 'flex', gap: '4px' }}>
-                        <button type="button" disabled={idx === 0}
-                          onClick={() => setProductModal(p => {
-                            if (!p) return p;
-                            const imgs = [...(p.images ?? [])];
-                            [imgs[idx - 1], imgs[idx]] = [imgs[idx], imgs[idx - 1]];
-                            return { ...p, images: imgs };
-                          })}
-                          style={{ background: 'transparent', color: idx === 0 ? TEXT3 : TEXT2, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '2px 7px', fontSize: '10px', cursor: idx === 0 ? 'not-allowed' : 'pointer' }}>↑</button>
-                        <button type="button" disabled={idx === (productModal.images?.length ?? 0) - 1}
-                          onClick={() => setProductModal(p => {
-                            if (!p) return p;
-                            const imgs = [...(p.images ?? [])];
-                            if (idx >= imgs.length - 1) return p;
-                            [imgs[idx], imgs[idx + 1]] = [imgs[idx + 1], imgs[idx]];
-                            return { ...p, images: imgs };
-                          })}
-                          style={{ background: 'transparent', color: TEXT2, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '2px 7px', fontSize: '10px', cursor: 'pointer' }}>↓</button>
-                      </div>
-                    </div>
-                    <ImageUpload
-                      value={img}
-                      onChange={url => setProductModal(p => {
-                        if (!p) return p;
-                        const imgs = [...(p.images ?? [])];
-                        imgs[idx] = url;
-                        return { ...p, images: imgs };
-                      })}
-                      folder="products"
-                      label={`Image ${idx + 1}`}
-                      previewSize={110}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setProductModal(p => {
-                        if (!p) return p;
-                        const imgs = [...(p.images ?? [])];
-                        imgs.splice(idx, 1);
-                        return { ...p, images: imgs };
-                      })}
-                      style={{ position: 'absolute', top: 6, right: 6, background: S_ERR_BG, color: S_ERR_T, border: 'none', borderRadius: '4px', padding: '2px 7px', fontSize: '11px', cursor: 'pointer' }}
-                    >✕ Supprimer</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label style={{ fontSize: '11px', color: TEXT2, display: 'block', marginBottom: '6px' }}>Teintes compatibles</label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-                {(['noir', 'marron', 'marron-clair', 'clair', 'metisse'] as SkinTone[]).map(tone => (
-                  <label key={tone} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={(productModal.skinTones ?? []).includes(tone)} onChange={e => setProductModal(p => { if (!p) return p; const t = p.skinTones ?? []; return { ...p, skinTones: e.target.checked ? [...t, tone] : t.filter(x => x !== tone) }; })} style={{ accentColor: GOLD2 }} />
-                    <span style={{ fontSize: '12px', color: TEXT }}>{tone}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <span style={{ fontSize: '11px', color: TEXT2 }}>Quantité en stock <span style={{ color: TEXT3 }}>(vide = ignoré)</span></span>
-                <input type="number" min={0} placeholder="ex: 25"
-                  value={productModal.stockQty ?? ''}
-                  onChange={e => { const v = e.target.value; setProductModal(p => p ? { ...p, stockQty: v === '' ? undefined : Math.max(0, parseInt(v, 10) || 0) } : p); }}
-                  style={inputStyle} />
-              </label>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <span style={{ fontSize: '11px', color: TEXT2 }}>Seuil alerte stock bas <span style={{ color: TEXT3 }}>(défaut 5)</span></span>
-                <input type="number" min={0} placeholder="5"
-                  value={productModal.lowStockThreshold ?? ''}
-                  onChange={e => { const v = e.target.value; setProductModal(p => p ? { ...p, lowStockThreshold: v === '' ? undefined : Math.max(0, parseInt(v, 10) || 0) } : p); }}
-                  style={inputStyle} />
-              </label>
-            </div>
-            <div>
-              <label style={{ fontSize: '11px', color: TEXT2, display: 'block', marginBottom: '6px' }}>Badges</label>
-              <div style={{ display: 'flex', gap: '20px' }}>
-                {([{ key: 'inStock', label: 'En stock' }, { key: 'isNew', label: 'Nouveau' }, { key: 'isBestseller', label: 'Bestseller' }]).map(({ key, label }) => (
-                  <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={!!((productModal as Record<string, unknown>)[key])} onChange={e => setProductModal(p => p ? { ...p, [key]: e.target.checked } : p)} style={{ accentColor: GOLD2 }} />
-                    <span style={{ fontSize: '12px', color: TEXT }}>{label}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: '8px', paddingTop: '12px', borderTop: `1px solid ${BTN_BG}` }}>
-              <button onClick={saveModal} disabled={!productModal.name?.trim() || !productModal.slug?.trim() || !productModal.category || (productModal.images ?? []).filter(u => u && u.trim()).length === 0} style={{ flex: 1, padding: '10px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, background: GOLD2, color: BG, cursor: 'pointer', border: 'none', opacity: !productModal.name?.trim() || !productModal.slug?.trim() || !productModal.category || (productModal.images ?? []).filter(u => u && u.trim()).length === 0 ? 0.4 : 1 }}>
-                {productModal._isNew ? '+ Ajouter' : '✓ Enregistrer'}
-              </button>
-              <button onClick={() => setProductModal(null)} style={{ padding: '10px 16px', borderRadius: '6px', fontSize: '13px', background: SURFACE2, color: TEXT2, cursor: 'pointer', border: 'none' }}>Annuler</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ProductEditModal
+        productModal={productModal}
+        setProductModal={setProductModal}
+        onSave={saveModal}
+        inputStyle={inputStyle}
+        SURFACE={SURFACE}
+        TEXT={TEXT}
+        TEXT2={TEXT2}
+        TEXT3={TEXT3}
+        BORDER={BORDER}
+        BG={BG}
+        GOLD2={GOLD2}
+        SURFACE2={SURFACE2}
+        BTN_BG={BTN_BG}
+        S_ERR_BG={S_ERR_BG}
+        S_ERR_T={S_ERR_T}
+      />
 
       {/* ─── JEKO ADJUST MODAL ─── */}
       {jekoAdjModal && (
@@ -3360,7 +3565,7 @@ export default function AdminPage() {
               <label key={k} style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                 <span style={{ fontSize: '11px', color: TEXT2 }}>{k === 'min' ? 'Points min' : k === 'next' ? 'Points max (vide = ∞)' : k.charAt(0).toUpperCase() + k.slice(1)}</span>
                 <input type={k === 'min' || k === 'next' ? 'number' : 'text'} value={jekoTierEdit[k] ?? ''}
-                  onChange={e => setJekoTierEdit(t => t ? { ...t, [k]: k === 'min' || k === 'next' ? (e.target.value ? parseInt(e.target.value) : null) : e.target.value } : t)}
+                  onChange={e => setJekoTierEdit(t => t ? { ...t, [k]: k === 'min' || k === 'next' ? (e.target.value ? Number.parseInt(e.target.value, 10) : null) : e.target.value } : t)}
                   style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '13px', outline: 'none' }} />
               </label>
             ))}
@@ -3390,7 +3595,7 @@ export default function AdminPage() {
               <label key={k} style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                 <span style={{ fontSize: '11px', color: TEXT2 }}>{k === 'pts' ? 'Coût en points' : k.charAt(0).toUpperCase() + k.slice(1)}</span>
                 <input type={k === 'pts' ? 'number' : 'text'} value={jekoRewardEdit[k] ?? ''}
-                  onChange={e => setJekoRewardEdit(r => r ? { ...r, [k]: k === 'pts' ? parseInt(e.target.value) || 0 : e.target.value } : r)}
+                  onChange={e => setJekoRewardEdit(r => r ? { ...r, [k]: k === 'pts' ? Number.parseInt(e.target.value, 10) || 0 : e.target.value } : r)}
                   style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '13px', outline: 'none' }} />
               </label>
             ))}

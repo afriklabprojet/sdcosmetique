@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const product = await fetchProductBySlug(slug);
   if (!product) return {};
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sd-cosmetique.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sdcosmetique.ci';
   const image = product.images[0];
 
   return {
@@ -46,7 +46,7 @@ export default async function ProductPage({ params }: PageProps) {
     getSiteConfig(),
   ]);
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sd-cosmetique.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sdcosmetique.ci';
 
   const jsonLd = {
     '@context': 'https://schema.org/',

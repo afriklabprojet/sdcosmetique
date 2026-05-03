@@ -17,16 +17,30 @@ const SUBJECTS = [
 export default function ContactPage() {
   const [form, setForm] = useState({ nom: '', email: '', sujet: SUBJECTS[0], message: '' });
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [legal, setLegal] = useState<LegalPage>(DEFAULT_SITE_CONFIG.legal_contact);
   useEffect(() => {
     fetchSiteConfigSection('legal_contact').then(v => v && setLegal(v)).catch(() => {});
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // TODO: brancher endpoint email (Resend/Supabase function)
-    console.log(form);
-    setSent(true);
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) throw new Error('send_failed');
+      setSent(true);
+    } catch {
+      setError('Une erreur est survenue. Veuillez réessayer ou nous contacter par email.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -51,7 +65,17 @@ export default function ContactPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.5fr) minmax(260px, 1fr)', gap: '3rem' }}>
           {/* FORM */}
           <div>
-            {!sent ? (
+            {sent ? (
+              <div className={styles.callout} style={{ marginTop: 0 }}>
+                <p style={{ fontFamily: 'var(--font-playfair), Georgia, serif', fontSize: '1.2rem', color: '#1A0E05', marginBottom: '0.5rem' }}>
+                  Message envoyé avec succès.
+                </p>
+                <p>
+                  Merci <strong>{form.nom}</strong>, nous vous répondons à <strong>{form.email}</strong>{' '}
+                  sous 24h ouvrées.
+                </p>
+              </div>
+            ) : (
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
                   <Field label="Nom complet" id="nom">
@@ -101,29 +125,25 @@ export default function ContactPage() {
                   />
                 </Field>
 
-                <button type="submit" style={submitStyle}>
-                  Envoyer le message
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <button type="submit" disabled={submitting} style={{ ...submitStyle, opacity: submitting ? 0.7 : 1, cursor: submitting ? 'wait' : 'pointer' }}>
+                  {submitting ? 'Envoi en cours…' : 'Envoyer le message'}
+                  {!submitting && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <line x1="5" y1="12" x2="19" y2="12" />
                     <polyline points="12 5 19 12 12 19" />
-                  </svg>
+                  </svg>}
                 </button>
+
+                {error && (
+                  <p style={{ fontSize: '0.85rem', color: '#b91c1c', margin: 0, lineHeight: 1.6 }}>
+                    {error}
+                  </p>
+                )}
 
                 <p style={{ fontSize: '0.78rem', color: 'rgba(26,14,5,0.5)', margin: 0, lineHeight: 1.6 }}>
                   En envoyant ce formulaire, vous acceptez notre{' '}
                   <Link href="/confidentialite" style={{ color: '#8F5922' }}>politique de confidentialité</Link>.
                 </p>
               </form>
-            ) : (
-              <div className={styles.callout} style={{ marginTop: 0 }}>
-                <p style={{ fontFamily: 'var(--font-playfair), Georgia, serif', fontSize: '1.2rem', color: '#1A0E05', marginBottom: '0.5rem' }}>
-                  Message envoyé avec succès.
-                </p>
-                <p>
-                  Merci <strong>{form.nom}</strong>, nous vous répondons à <strong>{form.email}</strong>{' '}
-                  sous 24h ouvrées.
-                </p>
-              </div>
             )}
           </div>
 
@@ -192,7 +212,7 @@ const submitStyle: React.CSSProperties = {
   boxShadow: '0 4px 14px rgba(143, 89, 34, 0.3)',
 };
 
-function Field({ label, id, children }: { label: string; id: string; children: React.ReactNode }) {
+function Field({ label, id, children }: Readonly<{ label: string; id: string; children: React.ReactNode }>) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <label htmlFor={id} style={{ fontSize: '0.78rem', fontWeight: 500, color: '#1A0E05', letterSpacing: '0.04em' }}>
@@ -206,10 +226,10 @@ function Field({ label, id, children }: { label: string; id: string; children: R
 function InfoBlock({
   title,
   items,
-}: {
+}: Readonly<{
   title: string;
   items: { label: string; href?: string; muted?: boolean }[];
-}) {
+}>) {
   return (
     <div style={{ background: '#FAF6EE', borderRadius: 12, padding: '1.5rem 1.5rem' }}>
       <p style={{ fontSize: '0.7rem', letterSpacing: '0.22em', textTransform: 'uppercase', color: '#8F5922', fontWeight: 600, margin: '0 0 0.75rem' }}>

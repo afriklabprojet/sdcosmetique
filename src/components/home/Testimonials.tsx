@@ -23,11 +23,11 @@ export default function Testimonials({
   rows,
   fallbackItems = DEFAULT_SITE_CONFIG.testimonials_home,
   items,
-}: {
+}: Readonly<{
   rows?: TestimonialRow[];
   fallbackItems?: TestimonialItem[];
   items?: TestimonialItem[];
-}) {
+}>) {
   // Priorité : rows (DB) → items (legacy) → fallbackItems (défauts site_config)
   const display: { name: string; text: string; avatar: string }[] =
     rows && rows.length > 0
@@ -49,7 +49,7 @@ export default function Testimonials({
             color: 'var(--brown-deep)', letterSpacing: '0.02em',
             textTransform: 'uppercase', lineHeight: 1.2,
             margin: 0,
-          }}>Ils nous font<br/>confiance</h2>
+          }}>Ils nous font confiance</h2>
             <Link href="/avis" style={{
               display: 'inline-block',
               background: 'var(--gold-dark)', color: '#fff',
@@ -64,15 +64,13 @@ export default function Testimonials({
           {/* Colonne droite : 3 cartes */}
           <div className={`testi-grid reveal-stagger${visible ? ' visible' : ''}`} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
             {display.map((t, i) => (
-              <div key={i} style={{
+              <article key={`${t.name}-${i}`} className="testi-card" style={{
                 background: '#FFFFFF', borderRadius: '10px', padding: '20px',
                 display: 'flex', flexDirection: 'column', gap: '0',
                 boxShadow: '0 2px 16px rgba(90,43,12,0.07)',
                 border: '1px solid #F0E8DC',
                 transition: 'transform 0.25s ease, box-shadow 0.25s ease',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(90,43,12,0.13)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 16px rgba(90,43,12,0.07)'; }}
               >
                 {/* Avatar + citation sur la même ligne */}
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', marginBottom: '10px' }}>
@@ -91,7 +89,7 @@ export default function Testimonials({
                 }}>– {t.name}</div>
                 {/* Étoiles */}
                 <Stars />
-              </div>
+              </article>
             ))}
           </div>
         </div>
