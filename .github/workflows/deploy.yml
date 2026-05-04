@@ -1,0 +1,60 @@
+name: 🚀 Deploy to Hostinger
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy via SSH
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔑 Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: ✅ Add server to known hosts
+        run: |
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: 🚀 Deploy to Hostinger
+        run: |
+          ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
+            set -e
+            echo "📁 Aller dans le dossier projet..."
+            cd /var/www/sd-cosmetique
+
+            echo "⬇️  Pull des derniers changements..."
+            git pull origin main
+
+            echo "📦 Installation des dépendances..."
+            npm ci --prefer-offline
+
+            echo "🔨 Build Next.js..."
+            npm run build
+
+            echo "🔄 Redémarrage PM2..."
+            pm2 restart sd-cosmetique || pm2 start ecosystem.config.js
+
+            echo "✅ Déploiement terminé !"
+            pm2 status sd-cosmetique
+          ENDSSH
+
+      - name: 🏥 Health check
+        run: |
+          echo "⏳ Attente démarrage app (30s)..."
+          sleep 30
+          STATUS=$(curl -sk --max-time 15 -o /dev/null -w "%{http_code}" "https://floralwhite-fish-697630.hostingersite.com/")
+          echo "HTTP Status: $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "❌ Health check failed: HTTP $STATUS"
+            exit 1
+          fi
+          echo "✅ Site opérationnel (HTTP $STATUS)"
