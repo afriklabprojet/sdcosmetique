@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SD Cosmétique
 
-## Getting Started
+Boutique e-commerce de cosmétiques haut de gamme pour peaux à mélanine, développée avec Next.js 15 App Router.
 
-First, run the development server:
+## Stack
+
+- **Framework** : Next.js 15 (App Router, Server Components)
+- **Langage** : TypeScript
+- **Styling** : Tailwind CSS v4 + CSS custom properties
+- **Base de données** : Supabase (PostgreSQL + Auth + Storage)
+- **Emails** : Resend
+- **Paiement** : Jeko Pay (intégration Africa)
+- **Déploiement** : Hostinger VPS (PM2) / Vercel-ready
+
+## Fonctionnalités
+
+- Catalogue produits avec filtres par teinte et catégorie
+- Quiz de diagnostic peau → recommandations personnalisées
+- Panier, wishlist, checkout complet
+- Authentification (inscription, connexion, mot de passe oublié)
+- Compte client avec historique commandes
+- Dashboard admin avec analytics, gestion commandes/produits/clients
+- Programme fidélité Jeko (tiers Bronze → Or → Platine)
+- Emails transactionnels (confirmation commande, expédition, bienvenue)
+- PWA ready (manifest, offline support)
+- SEO : sitemap.xml, robots.txt, OG images, métadonnées dynamiques
+
+## Lancer en local
 
 ```bash
+# Installer les dépendances
+npm install
+
+# Configurer les variables d'environnement
+cp .env.example .env.local
+# Remplir NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY...
+
+# Démarrer le serveur de développement
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ouvrir [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── app/          # Pages (App Router)
+├── components/   # Composants React
+├── lib/          # Services, helpers, config
+├── context/      # CartContext, WishlistContext
+└── utils/        # Supabase client, helpers
+supabase/
+└── migrations/   # Schémas SQL versionnés
+```
 
-## Learn More
+## Scripts utiles
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run build       # Build production
+npm run lint        # ESLint
+npx tsc --noEmit    # Vérification types TypeScript
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Variables d'environnement requises
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Voir `.env.example` pour la liste complète.
 
-## Deploy on Vercel
+| Variable | Description |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | URL projet Supabase |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clé publique Supabase |
+| `SUPABASE_SERVICE_ROLE_KEY` | Clé service (server-side uniquement) |
+| `RESEND_API_KEY` | Clé API Resend (emails) |
+| `NEXT_PUBLIC_SITE_URL` | URL du site en production |
+| `JEKO_PAY_SECRET_KEY` | Clé secrète Jeko Pay |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
