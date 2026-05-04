@@ -7,50 +7,61 @@ on:
 
 jobs:
   deploy:
-    name: Deploy via SSH
+    name: Build & Deploy via rsync
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
       - name: 📦 Checkout code
         uses: actions/checkout@v4
 
-      - name: 🔑 Setup SSH
-        uses: webfactory/ssh-agent@v0.9.0
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          node-version: '20'
+          cache: 'npm'
 
-      - name: ✅ Add server to known hosts
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🔨 Build Next.js
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SITE_URL: https://floralwhite-fish-697630.hostingersite.com
+          NEXT_PUBLIC_SITE_NAME: SD Cosmétique
+        run: npm run build
+
+      - name: 🔑 Setup SSH key
         run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
-      - name: 🚀 Deploy to Hostinger
+      - name: 📤 Upload build via rsync
         run: |
-          ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
-            set -e
-            echo "📁 Aller dans le dossier projet..."
-            cd /var/www/sd-cosmetique
+          REMOTE="${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}"
+          NODEJS_DIR="domains/floralwhite-fish-697630.hostingersite.com/nodejs"
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }}" \
+            .next/ \
+            ${REMOTE}:${NODEJS_DIR}/.next/
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }}" \
+            public/ \
+            ${REMOTE}:${NODEJS_DIR}/public/
 
-            echo "⬇️  Pull des derniers changements..."
-            git pull origin main
-
-            echo "📦 Installation des dépendances..."
-            npm ci --prefer-offline
-
-            echo "🔨 Build Next.js..."
-            npm run build
-
-            echo "🔄 Redémarrage PM2..."
-            pm2 restart sd-cosmetique || pm2 start ecosystem.config.js
-
-            echo "✅ Déploiement terminé !"
-            pm2 status sd-cosmetique
-          ENDSSH
+      - name: 🔄 Restart Passenger
+        run: |
+          ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }} \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+            "touch \$HOME/domains/floralwhite-fish-697630.hostingersite.com/nodejs/tmp/restart.txt && echo 'Passenger restarted'"
 
       - name: 🏥 Health check
         run: |
-          echo "⏳ Attente démarrage app (30s)..."
-          sleep 30
+          echo "⏳ Attente démarrage app (20s)..."
+          sleep 20
           STATUS=$(curl -sk --max-time 15 -o /dev/null -w "%{http_code}" "https://floralwhite-fish-697630.hostingersite.com/")
           echo "HTTP Status: $STATUS"
           if [ "$STATUS" != "200" ]; then
