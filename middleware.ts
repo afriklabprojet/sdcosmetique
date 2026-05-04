@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { createClient } from "@/utils/supabase/middleware";
+import { updateSession } from "@/utils/supabase/middleware";
 
 export async function middleware(request: NextRequest) {
   // Routes protégées qui nécessitent une authentification
@@ -25,9 +25,8 @@ export async function middleware(request: NextRequest) {
   );
 
   try {
-    const { supabase, response } = createClient(request);
-    // Récupérer la session utilisateur
-    const { data: { session }, error } = await supabase.auth.getSession();
+    // updateSession initialise Supabase, rafraîchit la session et retourne la response finale
+    const { session, error, response } = await updateSession(request);
 
     // Si erreur de refresh token, nettoyer et rediriger
     if (error && (

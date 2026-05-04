@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/middleware";
+import { updateSession } from "@/utils/supabase/middleware";
 import { createServerClient } from "@supabase/ssr";
 
 const ADMIN_EMAILS: readonly string[] = (process.env.ADMIN_EMAILS ?? '')
@@ -37,7 +37,8 @@ async function proxy(request: NextRequest) {
     }
   }
 
-  return createClient(request);
+  const { response } = await updateSession(request);
+  return response;
 }
 
 export default proxy;
