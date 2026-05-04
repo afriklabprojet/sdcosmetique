@@ -26,7 +26,7 @@ export default function InscriptionPage() {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (form.password !== form.confirm) {
       setError('Les mots de passe ne correspondent pas.');
@@ -40,7 +40,7 @@ export default function InscriptionPage() {
       password: form.password,
       options: {
         data: { prenom: form.prenom, nom: form.nom },
-        emailRedirectTo: `${window.location.origin}/auth/confirm`,
+        emailRedirectTo: `${globalThis.window.location.origin}/auth/confirm`,
       },
     });
     setLoading(false);
@@ -156,7 +156,7 @@ export default function InscriptionPage() {
           <div className={styles.visualBottom}>
             <span className={styles.visualEyebrow}>Rejoignez la maison</span>
             <h1 className={styles.visualSlogan}>
-              Une beauté juste,
+              Une beauté juste,{' '}
               <span className={styles.visualSloganAccent}>pensée pour vous.</span>
             </h1>
             <p className={styles.visualSub}>
@@ -315,26 +315,6 @@ export default function InscriptionPage() {
               )}
             </button>
           </form>
-
-          <div className={styles.divider}>ou</div>
-
-          <div className={styles.socialRow}>
-            <button type="button" className={styles.social}>
-              <svg width="16" height="16" viewBox="0 0 48 48">
-                <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.5 29.3 4.5 24 4.5 12.7 4.5 3.5 13.7 3.5 25S12.7 45.5 24 45.5 44.5 36.3 44.5 25c0-1.5-.2-3-.5-4.5z" />
-                <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.5 29.3 4.5 24 4.5 16.3 4.5 9.7 8.6 6.3 14.7z" />
-                <path fill="#4CAF50" d="M24 45.5c5.2 0 9.9-2 13.4-5.2l-6.2-5.2c-2 1.4-4.5 2.4-7.2 2.4-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.6 41.4 16.2 45.5 24 45.5z" />
-                <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.2 5.2c-.4.4 6.7-4.9 6.7-13.9 0-1.5-.2-3-.5-4.5z" />
-              </svg>
-              Google
-            </button>
-            <button type="button" className={styles.social}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="#1A0E05">
-                <path d="M12 2.04c-5.5 0-10 4.49-10 10.02 0 5 3.66 9.15 8.44 9.9v-7H7.9v-2.9h2.54V9.85c0-2.51 1.49-3.89 3.78-3.89 1.09 0 2.23.19 2.23.19v2.47h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.45 2.9h-2.33v7a10 10 0 0 0 8.44-9.9c0-5.53-4.5-10.02-10-10.02z" />
-              </svg>
-              Facebook
-            </button>
-          </div>
 
           <p className={styles.switch}>
             Déjà cliente&nbsp;?

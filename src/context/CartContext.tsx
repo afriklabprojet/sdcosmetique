@@ -8,18 +8,19 @@ const EMPTY_CART = '[]';
 const cartListeners = new Set<() => void>();
 
 function subscribeCart(listener: () => void) {
-  if (typeof window === 'undefined') return () => {};
+  const browserWindow = globalThis.window;
+  if (browserWindow === undefined) return () => {};
 
   const handleStorage = (event: StorageEvent) => {
     if (event.key === CART_STORAGE_KEY) listener();
   };
 
   cartListeners.add(listener);
-  window.addEventListener('storage', handleStorage);
+  browserWindow.addEventListener('storage', handleStorage);
 
   return () => {
     cartListeners.delete(listener);
-    window.removeEventListener('storage', handleStorage);
+    browserWindow.removeEventListener('storage', handleStorage);
   };
 }
 
@@ -28,8 +29,8 @@ function emitCartChange() {
 }
 
 function readStoredCartRaw() {
-  if (typeof window === 'undefined') return EMPTY_CART;
-  return window.localStorage.getItem(CART_STORAGE_KEY) ?? EMPTY_CART;
+  if (globalThis.window === undefined) return EMPTY_CART;
+  return globalThis.window.localStorage.getItem(CART_STORAGE_KEY) ?? EMPTY_CART;
 }
 
 function parseStoredCart(rawCart: string): CartItem[] {
@@ -42,9 +43,10 @@ function parseStoredCart(rawCart: string): CartItem[] {
 }
 
 function writeStoredCart(items: CartItem[]) {
-  if (typeof window === 'undefined') return;
+  const browserWindow = globalThis.window;
+  if (browserWindow === undefined) return;
   try {
-    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+    browserWindow.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
     emitCartChange();
   } catch {
     // Storage can be unavailable in private browsing; cart still works in memory.
@@ -67,7 +69,7 @@ interface CartContextValue {
 
 const CartContext = createContext<CartContextValue | null>(null);
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
+export function CartProvider({ children }: { readonly children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const rawCart = useSyncExternalStore(subscribeCart, readStoredCartRaw, () => EMPTY_CART);
   const items = useMemo(() => parseStoredCart(rawCart), [rawCart]);
@@ -109,9 +111,25 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const totalItems = useMemo(() => items.reduce((sum, item) => sum + item.quantity, 0), [items]);
   const totalPrice = useMemo(() => items.reduce((sum, item) => sum + item.product.price * item.quantity, 0), [items]);
+  const contextValue = useMemo(
+    () => ({
+      items,
+      isOpen,
+      totalItems,
+      totalPrice,
+      addItem,
+      removeItem,
+      updateQty,
+      clearCart,
+      toggleCart,
+      openCart,
+      closeCart,
+    }),
+    [items, isOpen, totalItems, totalPrice, addItem, removeItem, updateQty, clearCart, toggleCart, openCart, closeCart]
+  );
 
   return (
-    <CartContext.Provider value={{ items, isOpen, totalItems, totalPrice, addItem, removeItem, updateQty, clearCart, toggleCart, openCart, closeCart }}>
+    <CartContext.Provider value={contextValue}>
       {children}
     </CartContext.Provider>
   );

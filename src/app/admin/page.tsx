@@ -11,7 +11,7 @@ import AdminDashboardClient from './AdminDashboardClient';
 
 export default async function AdminPage() {
   const user = await requireAdmin();
-  if (!user) redirect('/admin/login');
+  if (!user) redirect('/admin/login?error=unauthorized');
 
   return <AdminDashboardClient />;
 }

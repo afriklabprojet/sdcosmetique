@@ -6,7 +6,7 @@ import type { WelcomePopup } from '@/lib/site-config';
 const STORAGE_KEY = 'sdc_popup_shown';
 
 interface WelcomePopupProps {
-  config: WelcomePopup;
+  readonly config: WelcomePopup;
 }
 
 export default function WelcomePopupModal({ config }: WelcomePopupProps) {
@@ -15,8 +15,9 @@ export default function WelcomePopupModal({ config }: WelcomePopupProps) {
 
   useEffect(() => {
     if (!config.enabled) return;
-    if (typeof window === 'undefined') return;
-    if (sessionStorage.getItem(STORAGE_KEY)) return;
+    const browserWindow = globalThis.window;
+    if (browserWindow === undefined) return;
+    if (browserWindow.sessionStorage.getItem(STORAGE_KEY)) return;
 
     const timer = setTimeout(() => {
       setVisible(true);
@@ -26,7 +27,7 @@ export default function WelcomePopupModal({ config }: WelcomePopupProps) {
   }, [config.enabled, config.delaySeconds]);
 
   const close = () => {
-    sessionStorage.setItem(STORAGE_KEY, '1');
+    globalThis.window.sessionStorage.setItem(STORAGE_KEY, '1');
     setVisible(false);
   };
 
@@ -42,7 +43,9 @@ export default function WelcomePopupModal({ config }: WelcomePopupProps) {
   return (
     <>
       {/* Overlay */}
-      <div
+      <button
+        type="button"
+        aria-label="Fermer la fenêtre de bienvenue"
         onClick={close}
         style={{
           position: 'fixed',
@@ -50,11 +53,14 @@ export default function WelcomePopupModal({ config }: WelcomePopupProps) {
           background: 'rgba(0,0,0,0.55)',
           zIndex: 9998,
           backdropFilter: 'blur(2px)',
+          border: 'none',
+          padding: 0,
+          cursor: 'pointer',
         }}
       />
       {/* Modal */}
-      <div
-        role="dialog"
+      <dialog
+        open
         aria-modal="true"
         aria-labelledby="popup-title"
         style={{
@@ -152,7 +158,7 @@ export default function WelcomePopupModal({ config }: WelcomePopupProps) {
         >
           {config.ctaLabel || "Profiter de l'offre"}
         </button>
-      </div>
+      </dialog>
     </>
   );
 }

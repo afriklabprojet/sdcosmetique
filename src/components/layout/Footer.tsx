@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const COLS = [
   {
@@ -43,7 +44,7 @@ export default function Footer() {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
 
-  const submitNewsletter = async (e: React.FormEvent) => {
+  const submitNewsletter = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!email) return;
     setStatus('loading');
@@ -53,7 +54,7 @@ export default function Footer() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, source: 'footer' }),
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error('Newsletter subscription failed');
       setStatus('ok');
       setEmail('');
     } catch {
@@ -72,8 +73,7 @@ export default function Footer() {
         {/* Colonne logo */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: '14px' }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.svg" alt="SD Cosmetique" style={{ height: 40, width: 'auto', filter: 'brightness(0) invert(1) sepia(1) saturate(2) hue-rotate(5deg)' }} />
+            <Image src="/logo.svg" alt="SD Cosmetique" width={160} height={40} style={{ height: 40, width: 'auto', filter: 'brightness(0) invert(1) sepia(1) saturate(2) hue-rotate(5deg)' }} />
           </div>
           <p style={{
             fontFamily: 'var(--font-inter), Inter, sans-serif',
@@ -85,12 +85,13 @@ export default function Footer() {
           </p>
           <div style={{ display: 'flex', gap: '14px' }}>
             {[
-              { letter: 'M', href: 'https://www.linkedin.com/company/sd-cosmetique', label: 'LinkedIn' },
-              { letter: 'I', href: 'https://www.instagram.com/sdcosmetique', label: 'Instagram' },
-              { letter: 'T', href: 'https://www.tiktok.com/@sdcosmetique', label: 'TikTok' },
-              { letter: 'Y', href: 'https://www.youtube.com/@sdcosmetique', label: 'YouTube' },
-            ].map(({ letter, href, label }, i) => (
-              <a key={i} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} style={{
+              { letter: 'f', href: 'https://www.facebook.com/sdcosmetique', label: 'Facebook' },
+              { letter: 'in', href: 'https://www.linkedin.com/company/sd-cosmetique', label: 'LinkedIn' },
+              { letter: 'IG', href: 'https://www.instagram.com/sdcosmetique', label: 'Instagram' },
+              { letter: 'TK', href: 'https://www.tiktok.com/@sdcosmetique', label: 'TikTok' },
+              { letter: 'YT', href: 'https://www.youtube.com/@sdcosmetique', label: 'YouTube' },
+            ].map(({ letter, href, label }) => (
+              <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} style={{
                 width: 30, height: 30, borderRadius: '50%',
                 border: '1px solid rgba(255,255,255,0.25)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -182,12 +183,23 @@ export default function Footer() {
         fontFamily: 'var(--font-inter), Inter, sans-serif',
         fontSize: '0.75rem', color: '#A88E68',
       }}>
-        © 2024 SD COSMETIQUE. Tous droits réservés.
+        © {new Date().getFullYear()} SD COSMETIQUE. Tous droits réservés.
       </div>
 
       <style jsx>{`
-        @media (max-width: 900px) { .footer-grid { grid-template-columns: 1fr 1fr !important; } }
-        @media (max-width: 540px) { .footer-grid { grid-template-columns: 1fr !important; } }
+        @media (max-width: 900px) {
+          .footer-grid { grid-template-columns: 1fr 1fr !important; }
+        }
+        @media (max-width: 540px) {
+          .footer-grid {
+            grid-template-columns: 1fr 1fr !important;
+            gap: 24px 16px !important;
+          }
+          /* Logo + description : pleine largeur */
+          .footer-grid > div:first-child {
+            grid-column: 1 / -1;
+          }
+        }
       `}</style>
     </footer>
   );

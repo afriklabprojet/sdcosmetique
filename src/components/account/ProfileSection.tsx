@@ -5,7 +5,7 @@ import type { User } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/client';
 
 interface ProfileSectionProps {
-  user: User | null;
+  readonly user: User | null;
 }
 
 interface ProfileForm {
@@ -72,8 +72,9 @@ export default function ProfileSection({ user }: ProfileSectionProps) {
       
       setMessage({ type: 'ok', text: 'Profil mis à jour avec succès !' });
       setProfileForm(prev => ({ ...prev, currentPwd: '', newPwd: '', confirmPwd: '' }));
-    } catch (err: any) {
-      setMessage({ type: 'err', text: err.message || 'Erreur lors de la mise à jour' });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Erreur lors de la mise à jour';
+      setMessage({ type: 'err', text: msg });
     } finally {
       setSaving(false);
     }
@@ -190,11 +191,11 @@ function InputField({
   onChange, 
   placeholder 
 }: {
-  label: string;
-  type?: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
+  readonly label: string;
+  readonly type?: string;
+  readonly value: string;
+  readonly onChange: (value: string) => void;
+  readonly placeholder?: string;
 }) {
   return (
     <div>

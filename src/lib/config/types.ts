@@ -182,6 +182,27 @@ export type MarketingConfig = {
   tiktokPixelId?: string;
 };
 
+// ─── Branding & identité ─────────────────────────────────────────────────────
+
+export type BrandingConfig = {
+  siteName: string;
+  tagline: string;
+  description: string;
+  logoUrl: string;
+  faviconUrl: string;
+  seoTitle: string;
+  seoDescription: string;
+  ogTitle: string;
+  ogDescription: string;
+  twitterHandle: string;
+  themeColor: string;
+  instagramUrl: string;
+  tiktokUrl: string;
+  facebookUrl: string;
+  youtubeUrl: string;
+  linkedinUrl: string;
+};
+
 // ─── Configuration complète du site ─────────────────────────────────────────
 
 export type SiteConfig = {
@@ -206,4 +227,5 @@ export type SiteConfig = {
   legal_contact: LegalPage;
   newsletter: NewsletterConfig;
   marketing: MarketingConfig;
+  branding: BrandingConfig;
 };

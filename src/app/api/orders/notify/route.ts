@@ -24,6 +24,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'invalid_order' }, { status: 400 });
   }
   // Fire and forget — on ne fait pas attendre le client en cas de panne SMTP.
-  sendOrderConfirmation(order).catch(e => console.error('[notify] email error:', e));
+  sendOrderConfirmation(order).catch(() => {});
   return NextResponse.json({ ok: true });
 }

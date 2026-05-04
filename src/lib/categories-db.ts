@@ -62,19 +62,19 @@ export async function updateCategoryInDB(id: string, updates: Partial<Omit<Categ
   try {
     const supabase = createClient();
     const { error } = await supabase.from('categories').update(updates).eq('id', id);
-    if (error) console.error('[categories-db] update:', error.message);
-  } catch (e) {
-    console.error('[categories-db] update exception:', e);
+    if (error) throw error;
+  } catch {
+    // erreur silencieuse
   }
 }
 
-// ─── Supprimer une catégorie ─────────────────────────────────────────────────
+// ─── Supprimer une catégorie ─────────────────────────────────────────────
 export async function deleteCategoryFromDB(id: string): Promise<void> {
   try {
     const supabase = createClient();
     const { error } = await supabase.from('categories').delete().eq('id', id);
-    if (error) console.error('[categories-db] delete:', error.message);
-  } catch (e) {
-    console.error('[categories-db] delete exception:', e);
+    if (error) throw error;
+  } catch {
+    // erreur silencieuse
   }
 }

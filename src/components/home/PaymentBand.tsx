@@ -1,48 +1,105 @@
 import React from 'react';
 
-const PAYMENTS = [
-  { label: 'Orange Money', bg: '#FF6600', short: 'Orange' },
-  { label: 'Wave',         bg: '#1FB6FF', short: 'Wave' },
-  { label: 'MTN MoMo',     bg: '#FFD700', short: 'MTN', textColor: '#1A0E05' },
-  { label: 'Moov Money',   bg: '#0066CC', short: 'Moov' },
-];
+/* Logos SVG inline pour chaque moyen de paiement */
+function OrangeMoneyLogo() {
+  return (
+    <div style={{ background: '#FF6600', borderRadius: '10px', padding: '10px 18px', display: 'flex', alignItems: 'center', gap: '8px', minWidth: '130px' }}>
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="13" fill="white" />
+        <text x="14" y="19" textAnchor="middle" fontSize="11" fontWeight="900" fill="#FF6600" fontFamily="Arial,sans-serif">OM</text>
+      </svg>
+      <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+        <span style={{ color: '#fff', fontSize: '0.62rem', fontWeight: 700, fontFamily: 'Arial,sans-serif', letterSpacing: '0.02em' }}>Orange</span>
+        <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.6rem', fontFamily: 'Arial,sans-serif' }}>Money</span>
+      </div>
+    </div>
+  );
+}
+
+function WaveLogo() {
+  return (
+    <div style={{ background: '#009EE3', borderRadius: '10px', padding: '10px 18px', display: 'flex', alignItems: 'center', gap: '8px', minWidth: '110px' }}>
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="13" fill="white" />
+        <path d="M7 16 Q10 10, 14 14 Q18 18, 21 12" stroke="#009EE3" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+      </svg>
+      <span style={{ color: '#fff', fontSize: '0.78rem', fontWeight: 800, fontFamily: 'Arial,sans-serif', letterSpacing: '0.04em' }}>Wave</span>
+    </div>
+  );
+}
+
+function MtnMomoLogo() {
+  return (
+    <div style={{ background: '#FFCC00', borderRadius: '10px', padding: '10px 18px', display: 'flex', alignItems: 'center', gap: '8px', minWidth: '120px' }}>
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="13" fill="white" />
+        <text x="14" y="19" textAnchor="middle" fontSize="9" fontWeight="900" fill="#FFCC00" fontFamily="Arial,sans-serif">MTN</text>
+      </svg>
+      <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+        <span style={{ color: '#1A0E05', fontSize: '0.62rem', fontWeight: 800, fontFamily: 'Arial,sans-serif' }}>MTN</span>
+        <span style={{ color: 'rgba(26,14,5,0.75)', fontSize: '0.6rem', fontFamily: 'Arial,sans-serif' }}>MoMo</span>
+      </div>
+    </div>
+  );
+}
+
+function MoovMoneyLogo() {
+  return (
+    <div style={{ background: '#003087', borderRadius: '10px', padding: '10px 18px', display: 'flex', alignItems: 'center', gap: '8px', minWidth: '110px' }}>
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="13" fill="white" />
+        <path d="M8 14 L14 8 L20 14" stroke="#003087" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M10 16 L14 12 L18 16" stroke="#003087" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+        <span style={{ color: '#fff', fontSize: '0.62rem', fontWeight: 700, fontFamily: 'Arial,sans-serif' }}>Moov</span>
+        <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.6rem', fontFamily: 'Arial,sans-serif' }}>Money</span>
+      </div>
+    </div>
+  );
+}
+
+function VisaMastercardLogo() {
+  return (
+    <div style={{ background: '#fff', borderRadius: '10px', padding: '10px 18px', display: 'flex', alignItems: 'center', gap: '8px', minWidth: '140px' }}>
+      {/* VISA */}
+      <svg width="42" height="14" viewBox="0 0 42 14" fill="none">
+        <text x="0" y="12" fontSize="14" fontWeight="900" fill="#1A1F71" fontFamily="Arial,sans-serif" letterSpacing="-0.5">VISA</text>
+      </svg>
+      <div style={{ width: '1px', height: '20px', background: '#ddd' }} />
+      {/* Mastercard circles */}
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+        <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#EB001B' }} />
+        <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#F79E1B', marginLeft: '-8px' }} />
+      </div>
+    </div>
+  );
+}
 
 export default function PaymentBand() {
   return (
-    <section style={{ background: '#5A2B0C', padding: '24px' }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '18px' }}>
-          <div style={{ width: '40px', height: '1px', background: 'rgba(255,255,255,0.3)' }} />
+    <section style={{ background: '#3D1A06', padding: '28px 24px' }}>
+      <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+        {/* Titre */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '20px' }}>
+          <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: '1rem' }}>→</span>
           <p style={{
             fontFamily: 'var(--font-inter), Inter, sans-serif',
-            color: '#F4E8D8',
-            fontSize: '0.78rem',
-            letterSpacing: '0.18em',
-            textAlign: 'center',
-            margin: 0,
-            textTransform: 'uppercase',
-            fontWeight: 600,
+            color: '#F4E8D8', fontSize: '0.72rem',
+            letterSpacing: '0.22em', textAlign: 'center',
+            margin: 0, textTransform: 'uppercase', fontWeight: 600,
           }}>
-            Paiement sécurisé
+            Nos moyens de paiement
           </p>
-          <div style={{ width: '40px', height: '1px', background: 'rgba(255,255,255,0.3)' }} />
+          <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: '1rem' }}>←</span>
         </div>
-        <div style={{
-          display: 'flex', justifyContent: 'center', alignItems: 'center',
-          flexWrap: 'wrap', gap: '14px',
-        }}>
-          {PAYMENTS.map((p) => (
-            <div key={p.short} style={{
-              background: p.bg, color: p.textColor || '#fff',
-              padding: '10px 20px', borderRadius: '6px',
-              minWidth: '108px', textAlign: 'center',
-              fontFamily: 'var(--font-inter), Inter, sans-serif',
-              fontWeight: 700, fontSize: '0.85rem',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-            }}>
-              {p.label}
-            </div>
-          ))}
+        {/* Logos */}
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+          <OrangeMoneyLogo />
+          <WaveLogo />
+          <MtnMomoLogo />
+          <MoovMoneyLogo />
+          <VisaMastercardLogo />
         </div>
       </div>
     </section>

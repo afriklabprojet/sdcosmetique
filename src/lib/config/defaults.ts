@@ -19,7 +19,8 @@ import type {
   FaqCategory,
   LegalPage,
   NewsletterConfig,
-  MarketingConfig
+  MarketingConfig,
+  BrandingConfig
 } from './types';
 
 // ─── Configurations par défaut ──────────────────────────────────────────────
@@ -188,6 +189,25 @@ export const DEFAULT_MARKETING: MarketingConfig = {
   tiktokPixelId: '',
 };
 
+export const DEFAULT_BRANDING: BrandingConfig = {
+  siteName: 'SD Cosmetique',
+  tagline: 'Beauté Africaine de Prestige',
+  description: 'Soins premium formulés pour les peaux mélanisées. Découvrez nos gammes naturelles et efficaces.',
+  logoUrl: '',
+  faviconUrl: '',
+  seoTitle: 'SD Cosmetique — Beauté Africaine de Prestige',
+  seoDescription: "Soins premium pour peaux mélanisées. Gammes naturelles certifiées, livraison rapide en Côte d'Ivoire.",
+  ogTitle: 'SD Cosmetique — Beauté Africaine de Prestige',
+  ogDescription: 'Révélez la beauté naturelle de votre teint avec nos soins exclusifs.',
+  twitterHandle: '@sdcosmetique',
+  themeColor: '#8F5922',
+  instagramUrl: 'https://instagram.com/sdcosmetique',
+  tiktokUrl: 'https://tiktok.com/@sdcosmetique',
+  facebookUrl: '',
+  youtubeUrl: '',
+  linkedinUrl: '',
+};
+
 // Configuration complète par défaut
 export const DEFAULT_SITE_CONFIG: SiteConfig = {
   topbar: DEFAULT_TOP_BAR,
@@ -253,6 +273,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   },
   newsletter: DEFAULT_NEWSLETTER,
   marketing: DEFAULT_MARKETING,
+  branding: DEFAULT_BRANDING,
 };
 
 // ─── Configurations par défaut ──────────────────────────────────────────────

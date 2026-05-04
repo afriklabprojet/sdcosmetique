@@ -2,11 +2,11 @@ import { Suspense } from 'react';
 import HeroBanner from '@/components/home/HeroBanner';
 import CategoryHighlight from '@/components/home/CategoryHighlight';
 import SkinToneSection from '@/components/home/SkinToneSection';
-import CTABanner from '@/components/home/CTABanner';
 import TrendingProducts from '@/components/home/TrendingProducts';
 import TrustBar from '@/components/home/TrustBar';
 import Testimonials from '@/components/home/Testimonials';
 import PaymentBand from '@/components/home/PaymentBand';
+import { TrendingProductsSkeleton } from '@/components/ui/ProductCardSkeleton';
 import { fetchBestsellerProducts } from '@/lib/products-server';
 import { getSiteConfig } from '@/lib/site-config.server';
 import { fetchApprovedTestimonials } from '@/lib/testimonials-server';
@@ -20,9 +20,13 @@ async function TestimonialsSection() {
   return <Testimonials rows={testimonials} fallbackItems={siteConfig.testimonials_home} />;
 }
 
+async function BestsellersSection() {
+  const products = await fetchBestsellerProducts(5);
+  return <TrendingProducts products={products} />;
+}
+
 export default async function HomePage() {
-  const [bestsellers, siteConfig, categories] = await Promise.all([
-    fetchBestsellerProducts(5),
+  const [siteConfig, categories] = await Promise.all([
     getSiteConfig(),
     fetchActiveCategories(),
   ]);
@@ -31,8 +35,9 @@ export default async function HomePage() {
       <HeroBanner config={siteConfig.hero} />
       <CategoryHighlight categories={categories} />
       <SkinToneSection />
-      <CTABanner />
-      <TrendingProducts products={bestsellers} />
+      <Suspense fallback={<TrendingProductsSkeleton count={5} />}>
+        <BestsellersSection />
+      </Suspense>
       <TrustBar items={siteConfig.trust_items} />
       <Suspense fallback={<div style={{ minHeight: '320px' }} />}>
         <TestimonialsSection />

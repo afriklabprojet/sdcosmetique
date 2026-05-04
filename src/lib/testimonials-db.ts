@@ -52,9 +52,9 @@ export async function approveTestimonialInDB(id: string, approved: boolean): Pro
       .from('testimonials')
       .update({ approved })
       .eq('id', id);
-    if (error) console.error('[testimonials-db] approve:', error.message);
+    
   } catch (e) {
-    console.error('[testimonials-db] approve exception:', e);
+    
   }
 }
 
@@ -63,8 +63,8 @@ export async function deleteTestimonialFromDB(id: string): Promise<void> {
   try {
     const supabase = createClient();
     const { error } = await supabase.from('testimonials').delete().eq('id', id);
-    if (error) console.error('[testimonials-db] delete:', error.message);
+    
   } catch (e) {
-    console.error('[testimonials-db] delete exception:', e);
+    
   }
 }

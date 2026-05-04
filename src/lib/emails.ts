@@ -36,8 +36,6 @@ async function sendViaResend(payload: {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM_EMAIL;
   if (!apiKey || !from) {
-    // Configuration absente — on log et on no-op (utile en dev / preview).
-    console.info('[emails] RESEND_API_KEY/RESEND_FROM_EMAIL manquant, email non envoyé.');
     return { ok: false, error: 'not_configured' };
   }
   try {
@@ -51,13 +49,12 @@ async function sendViaResend(payload: {
     });
     if (!r.ok) {
       const txt = await r.text().catch(() => '');
-      console.error('[emails] resend HTTP', r.status, txt);
+      void txt;
       return { ok: false, error: `http_${r.status}` };
     }
     const j = (await r.json().catch(() => ({}))) as { id?: string };
     return { ok: true, id: j.id };
-  } catch (e) {
-    console.error('[emails] resend exception:', e);
+  } catch {
     return { ok: false, error: 'exception' };
   }
 }

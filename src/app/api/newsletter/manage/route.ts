@@ -20,7 +20,7 @@ export async function PATCH(req: NextRequest) {
   const sb = createServiceClient();
   const { error } = await sb.from('newsletter_subscribers').update({ unsubscribed }).eq('id', id);
   if (error) {
-    console.error('[newsletter/PATCH] db_error:', error);
+    
     return NextResponse.json({ error: 'db_error', detail: error.message }, { status: 500 });
   }
   return NextResponse.json({ ok: true });
@@ -34,7 +34,7 @@ export async function DELETE(req: NextRequest) {
   const sb = createServiceClient();
   const { error } = await sb.from('newsletter_subscribers').delete().eq('id', id);
   if (error) {
-    console.error('[newsletter/DELETE] db_error:', error);
+    
     return NextResponse.json({ error: 'db_error', detail: error.message }, { status: 500 });
   }
   return NextResponse.json({ ok: true });

@@ -8,18 +8,18 @@ const EMPTY_WISHLIST = '[]';
 const wishlistListeners = new Set<() => void>();
 
 function subscribeWishlist(listener: () => void) {
-  if (typeof window === 'undefined') return () => {};
+  if (globalThis.window === undefined) return () => {};
 
   const handleStorage = (event: StorageEvent) => {
     if (event.key === WISHLIST_STORAGE_KEY) listener();
   };
 
   wishlistListeners.add(listener);
-  window.addEventListener('storage', handleStorage);
+  globalThis.window.addEventListener('storage', handleStorage);
 
   return () => {
     wishlistListeners.delete(listener);
-    window.removeEventListener('storage', handleStorage);
+    globalThis.window!.removeEventListener('storage', handleStorage);
   };
 }
 
@@ -28,8 +28,8 @@ function emitWishlistChange() {
 }
 
 function readStoredWishlistRaw() {
-  if (typeof window === 'undefined') return EMPTY_WISHLIST;
-  return window.localStorage.getItem(WISHLIST_STORAGE_KEY) ?? EMPTY_WISHLIST;
+  if (globalThis.window === undefined) return EMPTY_WISHLIST;
+  return globalThis.window.localStorage.getItem(WISHLIST_STORAGE_KEY) ?? EMPTY_WISHLIST;
 }
 
 function parseStoredWishlist(rawWishlist: string): Product[] {
@@ -42,9 +42,9 @@ function parseStoredWishlist(rawWishlist: string): Product[] {
 }
 
 function writeStoredWishlist(items: Product[]) {
-  if (typeof window === 'undefined') return;
+  if (globalThis.window === undefined) return;
   try {
-    window.localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(items));
+    globalThis.window.localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(items));
     emitWishlistChange();
   } catch {
     // Storage can be unavailable in private browsing; wishlist still works in memory.

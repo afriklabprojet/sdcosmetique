@@ -28,6 +28,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sdcosmetique.com';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
+  manifest: '/manifest.webmanifest',
   title: {
     default: "SD Cosmetique — Beauté Africaine de Prestige",
     template: "%s | SD Cosmetique",
@@ -70,17 +71,21 @@ export default async function RootLayout({
         {siteConfig.marketing && <TrackingScripts marketing={siteConfig.marketing} />}
         <CartProvider>
           <WishlistProvider>
-            {siteConfig.marketing?.banners?.length > 0 && (
-              <PromoBannerBar banners={siteConfig.marketing.banners} />
-            )}
-            <TopBar message={siteConfig.topbar.message} phone={siteConfig.topbar.phone} />
-            <Navbar />
-            <CartDrawer />
-            {siteConfig.marketing?.welcomePopup?.enabled && (
-              <WelcomePopupModal config={siteConfig.marketing.welcomePopup} />
-            )}
+            <div id="site-chrome">
+              {siteConfig.marketing?.banners?.length > 0 && (
+                <PromoBannerBar banners={siteConfig.marketing.banners} />
+              )}
+              <TopBar message={siteConfig.topbar.message} phone={siteConfig.topbar.phone} />
+              <Navbar />
+              <CartDrawer />
+              {siteConfig.marketing?.welcomePopup?.enabled && (
+                <WelcomePopupModal config={siteConfig.marketing.welcomePopup} />
+              )}
+            </div>
             <main className="flex-1">{children}</main>
-            <Footer />
+            <div id="site-footer">
+              <Footer />
+            </div>
           </WishlistProvider>
         </CartProvider>
       </body>

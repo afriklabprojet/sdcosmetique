@@ -15,7 +15,7 @@ interface RowProps {
   max: number;
 }
 
-function Row({ label, count, max }: RowProps) {
+function Row({ label, count, max }: Readonly<RowProps>) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
       <span style={{ fontSize: '10px', color: '#AAA', width: '60px', textAlign: 'right' }}>{count}</span>
@@ -34,17 +34,23 @@ function Row({ label, count, max }: RowProps) {
 
 export default function QuizAnalyticsCard() {
   const [items, setItems] = useState<QuizResult[]>([]);
+  const [last30, setLast30] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch('/api/quiz/results')
       .then(r => r.ok ? r.json() : { results: [] })
-      .then(d => { setItems(d.results ?? []); setLoading(false); })
-      .catch(() => { setItems([]); setLoading(false); });
+      .then(d => {
+        const results: QuizResult[] = d.results ?? [];
+        const now = Date.now();
+        setItems(results);
+        setLast30(results.filter(i => now - new Date(i.created_at).getTime() < 30 * 86400000).length);
+        setLoading(false);
+      })
+      .catch(() => { setItems([]); setLast30(0); setLoading(false); });
   }, []);
 
   const total = items.length;
-  const last30 = items.filter(i => Date.now() - new Date(i.created_at).getTime() < 30 * 86400000).length;
   
   const tally = (key: 'skin_tone' | 'concern' | 'routine') => {
     const m = new Map<string, number>();
@@ -57,7 +63,6 @@ export default function QuizAnalyticsCard() {
 
   const concerns = tally('concern');
   const tones = tally('skin_tone');
-  const routines = tally('routine');
   const maxConcern = concerns[0]?.[1] ?? 1;
 
   if (loading) {

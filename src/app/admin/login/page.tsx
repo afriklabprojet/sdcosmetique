@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import styles from './admin-login.module.css';
 
@@ -11,13 +11,18 @@ import styles from './admin-login.module.css';
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPwd, setShowPwd] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string>(() =>
+    searchParams.get('error') === 'unauthorized'
+      ? "Cet email n'est pas autorisé à accéder au dashboard admin."
+      : ''
+  );
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -38,39 +43,70 @@ export default function AdminLoginPage() {
 
   return (
     <div className={styles.wrap}>
-      {/* Côté gauche — image de fond */}
+      {/* ── Gauche — Editorial ── */}
       <div className={styles.leftSide}>
-        <div className={styles.pattern} />
-        <div className={styles.leftText}>
-          <p className={styles.quote}>&ldquo;Beauté<br />&amp; Excellence&rdquo;</p>
-          <p className={styles.quoteLabel}>SD Cosmetique · Admin</p>
+        <div className={styles.leftBg} />
+
+        <div className={styles.leftBrand}>
+          <span className={styles.brandName}>SD Cosmetique</span>
+          <span className={styles.brandDot} />
+          <span className={styles.brandYear}>{new Date().getFullYear()}</span>
         </div>
+
+        <div className={styles.vertText}>
+          <div className={styles.vertLine} />
+          <span className={styles.vertLabel}>Admin</span>
+        </div>
+
+        <div className={styles.leftContent}>
+          <div className={styles.issueNumber}>Tableau de bord</div>
+          <h1 className={styles.bigTitle}>
+            Beauté &amp;{' '}
+            <em>Excellence</em>
+          </h1>
+          <div className={styles.captionStrip}>
+            <div className={styles.captionItem}>
+              <span className={styles.capLabel}>Plateforme</span>
+              <span className={styles.capVal}>Gestion produits</span>
+            </div>
+            <div className={styles.captionSep} />
+            <div className={styles.captionItem}>
+              <span className={styles.capLabel}>Accès</span>
+              <span className={styles.capVal}>Administrateurs</span>
+            </div>
+            <div className={styles.captionSep} />
+            <div className={styles.captionItem}>
+              <span className={styles.capLabel}>Sécurité</span>
+              <span className={styles.capVal}>TLS 1.3</span>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.leftNum}><span>→</span></div>
       </div>
 
-      {/* Panel droit */}
-      <div className={styles.panel}>
-        {/* En-tête marque */}
-        <div>
-          <div className={styles.badge}>
-            <span className={styles.badgeDot} />
-            <span className={styles.badgeText}>Espace Administration</span>
+      {/* ── Droite — Formulaire ── */}
+      <div className={styles.right}>
+        <div className={styles.rightHeader}>
+          <div className={styles.rightLogo}>
+            <div className={styles.logoMark}>
+              <span className={styles.logoMarkText}>S</span>
+            </div>
+            <span className={styles.logoName}>SD Cosmetique</span>
           </div>
-          <p className={styles.brandLine}>SD Cosmetique</p>
+          <span className={styles.rightBadge}>Espace admin</span>
         </div>
 
-        {/* Titre */}
-        <h1 className={styles.heading}>
-          Bienvenue,<br />
-          <strong>administrateur.</strong>
-        </h1>
-        <p className={styles.subtext}>
-          Connectez-vous pour gérer vos produits,<br />
-          commandes et l&apos;expérience client SD Cosmetique.
+        <h2 className={styles.formHeading}>
+          Connexion<br />
+          <span>administrateur</span>
+        </h2>
+        <p className={styles.formSub}>
+          Gérez produits, commandes et<br />
+          l&apos;expérience client SD Cosmetique.
         </p>
 
-        {/* Formulaire */}
         <form onSubmit={handleSubmit} noValidate>
-          {/* Email */}
           <div className={styles.field}>
             <label className={styles.label} htmlFor="admin-email">
               Email administrateur
@@ -89,7 +125,6 @@ export default function AdminLoginPage() {
             </div>
           </div>
 
-          {/* Mot de passe */}
           <div className={styles.field}>
             <label className={styles.label} htmlFor="admin-password">
               Mot de passe
@@ -116,12 +151,10 @@ export default function AdminLoginPage() {
             </div>
           </div>
 
-          {/* Erreur */}
           {error && (
             <div className={styles.errorBox}>{error}</div>
           )}
 
-          {/* Bouton */}
           <button
             type="submit"
             disabled={loading}
@@ -133,11 +166,10 @@ export default function AdminLoginPage() {
           </button>
         </form>
 
-        {/* Badge sécurité */}
         <div className={styles.secured}>
           <span className={styles.secDot} />
           <span className={styles.secText}>
-            Session chiffrée · Accès administrateurs autorisés uniquement
+            Session chiffrée · Accès administrateurs uniquement
           </span>
         </div>
       </div>

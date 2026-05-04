@@ -7,15 +7,14 @@ import { createClient } from './client';
 /**
  * Nettoie les sessions corrompues et redirige vers login
  */
-export async function handleAuthError(error: any) {
+export async function handleAuthError(error: unknown) {
+  const e = error as { message?: string; code?: string } | null;
   // Vérifier si c'est une erreur de refresh token
   if (
-    error?.message?.includes('Invalid Refresh Token') ||
-    error?.message?.includes('Refresh Token Not Found') ||
-    error?.code === 'invalid_grant'
+    e?.message?.includes('Invalid Refresh Token') ||
+    e?.message?.includes('Refresh Token Not Found') ||
+    e?.code === 'invalid_grant'
   ) {
-    console.warn('🔄 Session expirée ou corrompue, nettoyage en cours...');
-    
     try {
       const supabase = createClient();
       
@@ -23,18 +22,18 @@ export async function handleAuthError(error: any) {
       await supabase.auth.signOut({ scope: 'local' });
       
       // Nettoyer le localStorage (tokens corrompus)
-      if (typeof window !== 'undefined') {
+      if (globalThis.window !== undefined) {
         localStorage.removeItem('supabase.auth.token');
         localStorage.removeItem('sb-' + process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1]?.split('.')[0] + '-auth-token');
       }
       
       // Optionnel : rediriger vers login
-      if (typeof window !== 'undefined') {
-        window.location.href = '/auth/login';
+      if (globalThis.window !== undefined) {
+        globalThis.location.href = '/auth/login';
       }
       
-    } catch (cleanupError) {
-      console.error('Erreur lors du nettoyage de session:', cleanupError);
+    } catch {
+      // nettoyage silencieux
     }
     
     return true; // Erreur gérée

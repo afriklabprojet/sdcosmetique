@@ -32,7 +32,7 @@ export async function GET(
         { status: e.status >= 500 ? 502 : e.status },
       );
     }
-    console.error('[jeko-pay/status]', e);
+    
     return NextResponse.json({ error: 'internal_error' }, { status: 500 });
   }
 }

@@ -1,7 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendContactMessage } from '@/lib/emails';
+import { rateLimit, getIp, rateLimitHeaders } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
+  // 5 messages / 10 min par IP
+  const rl = await rateLimit(`contact:${getIp(req)}`, 5, 10 * 60 * 1000);
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: 'rate_limit_exceeded' },
+      { status: 429, headers: rateLimitHeaders(rl) },
+    );
+  }
+
   let body: unknown;
   try {
     body = await req.json();

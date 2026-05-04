@@ -12,13 +12,13 @@ export default function MotDePasseOubliePage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     const supabase = createClient();
     const { error: authError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/confirm?next=/compte/reset-password`,
+      redirectTo: `${globalThis.window.location.origin}/auth/confirm?next=/compte/reset-password`,
     });
     setLoading(false);
     if (authError) {
@@ -56,7 +56,7 @@ export default function MotDePasseOubliePage() {
           <div className={styles.visualBottom}>
             <span className={styles.visualEyebrow}>Récupération sécurisée</span>
             <h1 className={styles.visualSlogan}>
-              Retrouvez votre accès
+              Retrouvez votre accès{' '}
               <span className={styles.visualSloganAccent}>en toute sérénité.</span>
             </h1>
             <p className={styles.visualSub}>
@@ -79,36 +79,7 @@ export default function MotDePasseOubliePage() {
             </p>
           </header>
 
-          {!sent ? (
-            <form className={styles.fields} onSubmit={handleSubmit}>
-              {error && (
-                <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '8px', padding: '0.85rem 1rem', fontSize: '0.875rem', color: '#DC2626' }}>
-                  {error}
-                </div>
-              )}
-              <div className={styles.field}>
-                <label htmlFor="email" className={styles.label}>Adresse e-mail</label>
-                <input
-                  id="email"
-                  type="email"
-                  className={styles.input}
-                  placeholder="vous@exemple.fr"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="email"
-                  required
-                />
-              </div>
-
-              <button type="submit" className={styles.submit} disabled={loading}>
-                {loading ? 'Envoi...' : 'Recevoir le lien'}
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                  <polyline points="12 5 19 12 12 19" />
-                </svg>
-              </button>
-            </form>
-          ) : (
+          {sent ? (
             <div
               style={{
                 background: '#FAF6EE',
@@ -141,6 +112,35 @@ export default function MotDePasseOubliePage() {
                 réinitialisation valable une heure. Pensez à vérifier vos courriers indésirables.
               </p>
             </div>
+          ) : (
+            <form className={styles.fields} onSubmit={handleSubmit}>
+              {error && (
+                <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '8px', padding: '0.85rem 1rem', fontSize: '0.875rem', color: '#DC2626' }}>
+                  {error}
+                </div>
+              )}
+              <div className={styles.field}>
+                <label htmlFor="email" className={styles.label}>Adresse e-mail</label>
+                <input
+                  id="email"
+                  type="email"
+                  className={styles.input}
+                  placeholder="vous@exemple.fr"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                  required
+                />
+              </div>
+
+              <button type="submit" className={styles.submit} disabled={loading}>
+                {loading ? 'Envoi...' : 'Recevoir le lien'}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                  <polyline points="12 5 19 12 12 19" />
+                </svg>
+              </button>
+            </form>
           )}
 
           <p className={styles.switch}>

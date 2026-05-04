@@ -52,6 +52,12 @@ export default function HeroBanner({ config = DEFAULT_SITE_CONFIG.hero }: { conf
                 priority
                 className={styles.model}
               />
+              <div className={styles.floatCard} aria-hidden="true">
+                <span className={styles.floatStars}>★★★★★</span>
+                <strong className={styles.floatScore}>4.9</strong>
+                <span className={styles.floatLabel}>Avis clients</span>
+              </div>
+              <span className={styles.cornerAccent} aria-hidden="true" />
         </div>
       </div>
 

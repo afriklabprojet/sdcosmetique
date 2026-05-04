@@ -54,3 +54,17 @@ playwright-report/
 AGENTS.md
 CLAUDE.md
 DESIGN.md
+
+# Maquettes HTML admin (design prototyping)
+public/admin-*.html
+public/admin-cards-modern.html
+public/admin-dark-premium.html
+public/admin-dashboard-senior.html
+public/admin-glassmorphism.html
+public/admin-minimal-clean.html
+
+# Scripts de dev / debug racine
+resend-status.js
+setup-resend.js
+fix-auth-error.sh
+open-admin-examples.sh

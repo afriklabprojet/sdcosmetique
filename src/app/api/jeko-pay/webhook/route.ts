@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
   if (!reference) {
     // Paiement via payment_link non créé par l'API → ack mais skip update.
-    console.warn('[jeko-pay/webhook] missing reference', { txnId });
+    
     return NextResponse.json({ received: true, skipped: 'no_reference' }, { status: 200 });
   }
 
@@ -58,12 +58,12 @@ export async function POST(req: NextRequest) {
       .neq('payment_status', 'paid');
 
     if (error) {
-      console.error('[jeko-pay/webhook] supabase update error', error.message);
+      
       // 5xx → Jeko retentera
       return NextResponse.json({ error: 'db_error' }, { status: 500 });
     }
   } catch (e) {
-    console.error('[jeko-pay/webhook] exception', e);
+    
     return NextResponse.json({ error: 'internal_error' }, { status: 500 });
   }
 

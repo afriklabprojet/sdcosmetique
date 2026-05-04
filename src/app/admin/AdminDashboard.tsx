@@ -33,7 +33,7 @@ import Pagination from '@/components/admin/Pagination';
 type OrderStatus = OrderDraft['status'];
 type ReviewRow = Review & { productId?: string };
 type ProductModalState = Partial<Product> & { _isNew?: boolean };
-type Tab = 'dashboard' | 'commandes' | 'produits' | 'avis' | 'temoignages' | 'categories' | 'quiz' | 'clients' | 'contenu' | 'jeko' | 'newsletter' | 'livraison' | 'marketing' | 'branding';
+type Tab = 'dashboard' | 'commandes' | 'produits' | 'avis' | 'temoignages' | 'categories' | 'quiz' | 'clients' | 'contenu' | 'jeko' | 'newsletter' | 'livraison' | 'marketing' | 'branding' | 'promos' | 'faq' | 'hero';
 type NewsletterSub = { id: string; email: string; source: string | null; unsubscribed: boolean; created_at: string };
 
 type ProductEditModalProps = {
@@ -968,6 +968,7 @@ function loadEditableProducts(setEditableProducts: (p: Product[]) => void) {
 export default function AdminPage() { // NOSONAR typescript:S3776
   const router = useRouter();
   const [tab, setTab] = useState<Tab>('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [orders, setOrders] = useState<OrderDraft[]>([]);
   const [authChecked, setAuthChecked] = useState(false);
   const [userEmail, setUserEmail] = useState('');
@@ -1315,10 +1316,8 @@ export default function AdminPage() { // NOSONAR typescript:S3776
           body: JSON.stringify({ userId: memberId, points: pts, message: labelMsg }),
         })
           .then(r => r.json())
-          .then(d => {
-            if (!d.ok) console.warn('[jeko/notify] échec:', d.error);
-          })
-          .catch(err => console.warn('[jeko/notify] exception:', err));
+          .then(() => {})
+          .catch(() => {});
       }
       setTimeout(() => { setJekoAdjModal(null); setJekoAdjMsg(null); }, 1800);
     } else {
@@ -1377,40 +1376,147 @@ export default function AdminPage() { // NOSONAR typescript:S3776
           </div>
         );
       })()}
+      {/* ── Bannière Hero : déplacée dans l'onglet « Bannière Hero » de la sidebar ── */}
+    </>
+  );
 
-      {/* ── Bannière Hero ── */}
+  const heroSectionBlock = (
+    <>
       {(() => {
         const save = async () => { await saveConfigSection('hero', siteContent.hero); };
         const f = siteContent.hero;
+        const fields: [keyof typeof f, string, string][] = [
+          ['eyebrow', 'Accroche (au-dessus du titre)', 'Ex : Nouveauté · Édition limitée'],
+          ['title', 'Titre principal', 'Ex : Sublimez votre teint naturel'],
+          ['titleAccent', 'Mot accentué (doré)', 'Ex : naturel'],
+          ['lead', 'Sous-titre', 'Phrase courte qui donne envie de cliquer'],
+          ['ctaText', 'Bouton — texte', 'Ex : Découvrir la collection'],
+          ['ctaHref', 'Bouton — lien', '/boutique ou https://...'],
+          ['imageAlt', "Texte alternatif (SEO / accessibilité)", "Décrivez l'image en quelques mots"],
+        ];
+        const hasImage = !!f.image;
         return (
-          <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <p className="text-sm font-semibold" style={{ color: GOLD }}>🖼 Bannière Hero</p>
-            {([
-              ['eyebrow', 'Accroche (texte au-dessus)'],
-              ['title', 'Titre principal'],
-              ['titleAccent', "Titre (partie en accent doré)"],
-              ['lead', 'Sous-titre / lead'],
-              ['ctaText', 'Texte du bouton CTA'],
-              ['ctaHref', 'Lien du bouton CTA'],
-              ['imageAlt', "Texte alternatif de l'image"],
-            ] as [keyof typeof f, string][]).map(([key, label]) => (
-              <label key={String(key)} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <span className="text-xs" style={{ color: TEXT2 }}>{label}</span>
-                <input value={f[key]} onChange={e => setSiteContent({ ...siteContent, hero: { ...siteContent.hero, [key]: e.target.value } })}
-                  style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '13px', outline: 'none' }} />
-              </label>
-            ))}
-            <ImageUpload
-              value={f.image}
-              onChange={(url: string) => setSiteContent({ ...siteContent, hero: { ...siteContent.hero, image: url } })}
-              folder="hero"
-              label="Image du hero"
-              previewSize={160}
-            />
-            <button onClick={save} disabled={contentSaving.hero}
-              style={{ alignSelf: 'flex-end', background: contentSaved.hero ? S_SAVE_BG : GOLD2, color: contentSaved.hero ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-              {getSaveButtonText(contentSaved.hero, contentSaving.hero)}
-            </button>
+          <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <p className="text-base font-semibold" style={{ color: GOLD, marginBottom: '2px' }}>🖼 Bannière Hero</p>
+                <p className="text-xs" style={{ color: TEXT3 }}>Premier élément visible de votre site — soignez l&apos;image et le message.</p>
+              </div>
+              <button onClick={save} disabled={contentSaving.hero}
+                style={{ background: contentSaved.hero ? S_SAVE_BG : GOLD2, color: contentSaved.hero ? S_SAVE_T : BG, border: 'none', borderRadius: '8px', padding: '10px 22px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', boxShadow: contentSaved.hero ? 'none' : '0 4px 12px rgba(212,162,90,0.25)' }}>
+                {getSaveButtonText(contentSaved.hero, contentSaving.hero)}
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '20px' }} className="hero-edit-grid">
+              {/* ── Colonne gauche : Image ── */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div>
+                  <p className="text-xs font-semibold" style={{ color: TEXT2, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>● Image principale</p>
+                  <div style={{ background: BG, border: `1px dashed ${BORDER}`, borderRadius: '10px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {hasImage ? (
+                      <div style={{ position: 'relative', borderRadius: '8px', overflow: 'hidden', border: `1px solid ${BORDER}`, aspectRatio: '4 / 3', background: '#000' }}>
+                        <Image src={f.image} alt={f.imageAlt || 'Aperçu hero'}
+                          fill style={{ objectFit: 'cover' }} unoptimized />
+                        <div style={{ position: 'absolute', top: '8px', right: '8px', display: 'flex', gap: '6px' }}>
+                          <a href={f.image} target="_blank" rel="noopener noreferrer"
+                            style={{ background: 'rgba(0,0,0,0.65)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px', padding: '4px 10px', fontSize: '11px', fontWeight: 600, textDecoration: 'none', backdropFilter: 'blur(6px)' }}>
+                            ↗ Ouvrir
+                          </a>
+                          <button onClick={() => setSiteContent({ ...siteContent, hero: { ...siteContent.hero, image: '' } })}
+                            style={{ background: 'rgba(220,38,38,0.85)', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer', backdropFilter: 'blur(6px)' }}>
+                            ✕ Supprimer
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ aspectRatio: '4 / 3', borderRadius: '8px', border: `2px dashed ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '8px', color: TEXT3, background: 'linear-gradient(135deg, rgba(212,162,90,0.04), rgba(212,162,90,0.02))' }}>
+                        <span style={{ fontSize: '32px', opacity: 0.4 }}>🖼</span>
+                        <span style={{ fontSize: '12px' }}>Aucune image — ajoutez-en une ci-dessous</span>
+                      </div>
+                    )}
+
+                    <ImageUpload
+                      value={f.image}
+                      onChange={(url: string) => setSiteContent({ ...siteContent, hero: { ...siteContent.hero, image: url } })}
+                      folder="hero"
+                      label={hasImage ? 'Remplacer l’image' : 'Téléverser une image'}
+                      previewSize={0}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <p className="text-xs font-semibold" style={{ color: TEXT2 }}>💡 Recommandations</p>
+                  <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <li style={{ fontSize: '11px', color: TEXT3 }}>• Format recommandé : <strong style={{ color: TEXT2 }}>1920×1280 px</strong> (ratio 3:2)</li>
+                    <li style={{ fontSize: '11px', color: TEXT3 }}>• Poids max : <strong style={{ color: TEXT2 }}>500 Ko</strong> (compresser en WebP)</li>
+                    <li style={{ fontSize: '11px', color: TEXT3 }}>• Sujet centré, contraste suffisant pour lire le titre</li>
+                    <li style={{ fontSize: '11px', color: TEXT3 }}>• Évitez le texte intégré dans l&apos;image (mauvais SEO)</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* ── Colonne droite : Champs texte ── */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <p className="text-xs font-semibold" style={{ color: TEXT2, textTransform: 'uppercase', letterSpacing: '0.08em' }}>● Contenu textuel</p>
+                {fields.map(([key, label, placeholder]) => {
+                  const val = f[key] ?? '';
+                  const isLong = key === 'lead';
+                  const charLimit = isLong ? 120 : 60;
+                  return (
+                    <label key={String(key)} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <span className="text-xs" style={{ color: TEXT2, display: 'flex', justifyContent: 'space-between' }}>
+                        <span>{label}</span>
+                        {(key === 'title' || key === 'lead' || key === 'eyebrow') && (
+                          <span style={{ color: val.length > charLimit ? '#F59E0B' : TEXT3, fontSize: '10px' }}>
+                            {val.length} {isLong ? '/ 120' : '/ 60'}
+                          </span>
+                        )}
+                      </span>
+                      {isLong ? (
+                        <textarea value={val} placeholder={placeholder} rows={2}
+                          onChange={e => setSiteContent({ ...siteContent, hero: { ...siteContent.hero, [key]: e.target.value } })}
+                          style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '13px', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }} />
+                      ) : (
+                        <input value={val} placeholder={placeholder}
+                          onChange={e => setSiteContent({ ...siteContent, hero: { ...siteContent.hero, [key]: e.target.value } })}
+                          style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '13px', outline: 'none' }} />
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ── Aperçu live ── */}
+            <div>
+              <p className="text-xs font-semibold" style={{ color: TEXT2, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>● Aperçu live</p>
+              <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', border: `1px solid ${BORDER}`, minHeight: '280px', background: '#0a0705' }}>
+                {hasImage && (
+                  <>
+                    <Image src={f.image} alt="" fill
+                      style={{ objectFit: 'cover', opacity: 0.55 }} unoptimized />
+                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(13,9,6,0.85) 0%, rgba(13,9,6,0.55) 50%, rgba(13,9,6,0.25) 100%)' }} />
+                  </>
+                )}
+                <div style={{ position: 'relative', padding: '40px 32px', display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '560px' }}>
+                  {f.eyebrow && <p style={{ fontSize: '11px', letterSpacing: '0.18em', textTransform: 'uppercase', color: GOLD, fontWeight: 600, margin: 0 }}>{f.eyebrow}</p>}
+                  <h2 style={{ fontSize: '32px', lineHeight: 1.1, color: '#F7EFE5', margin: 0, fontWeight: 700, fontFamily: "'Playfair Display', serif" }}>
+                    {f.title}{f.titleAccent && <span style={{ color: GOLD, fontStyle: 'italic' }}> {f.titleAccent}</span>}
+                  </h2>
+                  {f.lead && <p style={{ fontSize: '14px', color: '#C4A574', margin: 0, lineHeight: 1.5 }}>{f.lead}</p>}
+                  {f.ctaText && (
+                    <span style={{ alignSelf: 'flex-start', marginTop: '8px', background: GOLD, color: BG, padding: '10px 22px', borderRadius: '6px', fontSize: '13px', fontWeight: 700, letterSpacing: '0.04em' }}>
+                      {f.ctaText} →
+                    </span>
+                  )}
+                </div>
+              </div>
+              <p style={{ fontSize: '10px', color: TEXT3, marginTop: '6px', textAlign: 'right' }}>
+                Aperçu indicatif — le rendu final dépend du thème et de la taille d&apos;écran.
+              </p>
+            </div>
           </div>
         );
       })()}
@@ -1421,13 +1527,21 @@ export default function AdminPage() { // NOSONAR typescript:S3776
     <div className="min-h-screen flex flex-col" style={{ background: BG, fontFamily: "'Inter', system-ui, sans-serif" }}>
 
       {/* ── HEADER ── */}
-      <header style={{ position: 'sticky', top: 0, zIndex: 100, height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px 0 calc(220px + 24px)', background: 'rgba(13,9,6,0.90)', backdropFilter: 'blur(20px)', borderBottom: `1px solid ${BORDER}` }}>
-        <div>
+      <header className="admin-header" style={{ position: 'sticky', top: 0, zIndex: 100, height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(13,9,6,0.90)', backdropFilter: 'blur(20px)', borderBottom: `1px solid ${BORDER}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <button
+            className="admin-hamburger"
+            onClick={() => setSidebarOpen(o => !o)}
+            aria-label="Ouvrir le menu"
+            style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#F7EFE5', fontSize: '20px', padding: '4px 6px', lineHeight: 1, display: 'none', alignItems: 'center', justifyContent: 'center', borderRadius: '6px' }}
+          >
+            ☰
+          </button>
           <span style={{ fontSize: '12px', fontWeight: 600, color: TEXT2, letterSpacing: '0.05em' }}>Tableau de bord</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {userEmail && (
-            <span style={{ fontSize: '11px', color: TEXT3, display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span className="admin-email" style={{ fontSize: '11px', color: TEXT3, display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: S_SAVE_T, display: 'inline-block', boxShadow: `0 0 6px ${S_SAVE_T}` }} />
               {userEmail}
             </span>
@@ -1440,7 +1554,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
       <div className="flex flex-1 overflow-hidden">
 
         {/* ── SIDEBAR ── */}
-        <aside style={{ position: 'fixed', top: 0, left: 0, bottom: 0, width: '260px', background: 'linear-gradient(180deg, #1a1410 0%, #141108 100%)', borderRight: `2px solid ${GOLD_D3}`, display: 'flex', flexDirection: 'column', zIndex: 200, boxShadow: '4px 0 20px rgba(0,0,0,0.3)' }}>
+        <aside className={`admin-sidebar${sidebarOpen ? ' admin-sidebar--open' : ''}`} style={{ position: 'fixed', top: 0, left: 0, bottom: 0, width: '260px', background: 'linear-gradient(180deg, #1a1410 0%, #141108 100%)', borderRight: `2px solid ${GOLD_D3}`, display: 'flex', flexDirection: 'column', zIndex: 200, boxShadow: '4px 0 20px rgba(0,0,0,0.3)', transition: 'transform 0.3s ease' }}>
           {/* Logo */}
           <div style={{ height: '70px', display: 'flex', alignItems: 'center', padding: '0 24px', borderBottom: `1px solid ${GOLD_D3}`, gap: '12px', flexShrink: 0, background: 'rgba(212,162,90,0.08)' }}>
             <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: `linear-gradient(135deg, ${GOLD}, #E5B366)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', boxShadow: '0 4px 12px rgba(212,162,90,0.3)' }}>✦</div>
@@ -1462,7 +1576,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               const bgColor = isActive ? 'linear-gradient(90deg, rgba(212,162,90,0.18) 0%, rgba(212,162,90,0.08) 100%)' : 'transparent';
               const borderColor = isActive ? GOLD : 'transparent';
               return (
-                <button key={item.id} onClick={() => setTab(item.id)}
+                <button key={item.id} onClick={() => { setTab(item.id); setSidebarOpen(false); }}
                   style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderRadius: '10px', fontSize: '13px', textAlign: 'left', cursor: 'pointer', border: 'none', marginBottom: '4px', transition: 'all .2s ease', background: bgColor, color: isActive ? '#F7EFE5' : '#C4A574', fontWeight: isActive ? 700 : 500, borderLeft: `3px solid ${borderColor}`, boxShadow: isActive ? '0 2px 8px rgba(212,162,90,0.15)' : 'none' }}>
                   <span style={{ fontSize: '15px', opacity: isActive ? 1 : 0.8, color: isActive ? GOLD : '#A8956B' }}>{item.icon}</span>
                   <span style={{ flex: 1 }}>{item.label}</span>
@@ -1478,15 +1592,17 @@ export default function AdminPage() { // NOSONAR typescript:S3776
             
             <div style={{ fontSize: '10px', color: '#8B7355', letterSpacing: '0.12em', textTransform: 'uppercase', padding: '0 12px', margin: '16px 0 10px', fontWeight: 700 }}>● CONTENU</div>
             {([
+              { id: 'hero',        label: 'Bannière Hero', icon: '🖼', status: 'normal' },
               { id: 'temoignages', label: 'Témoignages', icon: '💬', status: 'normal' },
               { id: 'categories',  label: 'Catégories',  icon: '🗂', status: 'normal' },
               { id: 'quiz',        label: 'Quiz',         icon: '🎯', status: 'normal' },
+              { id: 'faq',         label: 'FAQ',          icon: '❔', status: 'normal' },
             ] as { id: Tab; label: string; icon: string; status: string }[]).map(item => {
               const isActive = tab === item.id;
               const bgColor = isActive ? 'linear-gradient(90deg, rgba(212,162,90,0.18) 0%, rgba(212,162,90,0.08) 100%)' : 'transparent';
               const borderColor = isActive ? GOLD : 'transparent';
               return (
-                <button key={item.id} onClick={() => setTab(item.id)}
+                <button key={item.id} onClick={() => { setTab(item.id); setSidebarOpen(false); }}
                   style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderRadius: '10px', fontSize: '13px', textAlign: 'left', cursor: 'pointer', border: 'none', marginBottom: '4px', transition: 'all .2s ease', background: bgColor, color: isActive ? '#F7EFE5' : '#C4A574', fontWeight: isActive ? 700 : 500, borderLeft: `3px solid ${borderColor}`, boxShadow: isActive ? '0 2px 8px rgba(212,162,90,0.15)' : 'none' }}>
                   <span style={{ fontSize: '15px', opacity: isActive ? 1 : 0.8, color: isActive ? GOLD : '#A8956B' }}>{item.icon}</span>
                   <span style={{ flex: 1 }}>{item.label}</span>
@@ -1500,6 +1616,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               { id: 'jeko',      label: 'Fidélité ✦',  icon: '✦', status: 'premium' },
               { id: 'newsletter', label: 'Newsletter', icon: '✉', status: 'normal' },
               { id: 'marketing', label: 'Marketing',   icon: '📣', status: 'important' },
+              { id: 'promos',    label: 'Codes promo', icon: '🎟️', status: 'normal' },
               { id: 'livraison', label: 'Livraison',  icon: '🚚', status: 'normal' },
               { id: 'contenu',   label: 'Contenu',    icon: '✏️', status: 'normal' },
               { id: 'branding',  label: 'Branding',   icon: '🎨', status: 'normal' },
@@ -1510,7 +1627,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               if (item.status === 'important' && !isActive) bgColor = 'linear-gradient(90deg, rgba(16,185,129,0.08) 0%, rgba(16,185,129,0.04) 100%)';
               const borderColor = isActive ? GOLD : 'transparent';
               return (
-                <button key={item.id} onClick={() => setTab(item.id)}
+                <button key={item.id} onClick={() => { setTab(item.id); setSidebarOpen(false); }}
                   style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderRadius: '10px', fontSize: '13px', textAlign: 'left', cursor: 'pointer', border: 'none', marginBottom: '4px', transition: 'all .2s ease', background: bgColor, color: isActive ? '#F7EFE5' : '#C4A574', fontWeight: isActive ? 700 : 500, borderLeft: `3px solid ${borderColor}`, boxShadow: isActive ? '0 2px 8px rgba(212,162,90,0.15)' : 'none' }}>
                   <span style={{ fontSize: '15px', opacity: isActive ? 1 : 0.8, color: getTabColor(isActive, item.status, GOLD) }}>{item.icon}</span>
                   <span style={{ flex: 1 }}>{item.label}</span>
@@ -1539,8 +1656,20 @@ export default function AdminPage() { // NOSONAR typescript:S3776
           </div>
         </aside>
 
+        {/* Mobile overlay — ferme la sidebar au clic */}
+        {sidebarOpen && (
+           
+          <button
+            type="button"
+            aria-label="Fermer le menu"
+            className="admin-overlay"
+            onClick={() => setSidebarOpen(false)}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 190, cursor: 'pointer', display: 'none', border: 'none', padding: 0 }}
+          />
+        )}
+
         {/* ── MAIN ── */}
-        <main style={{ marginLeft: '260px', flex: 1, overflowY: 'auto', padding: '32px', background: 'linear-gradient(180deg, #0F0C08 0%, #1A1410 100%)' }}>
+        <main className="admin-main" style={{ flex: 1, overflowY: 'auto', padding: '32px', background: 'linear-gradient(180deg, #0F0C08 0%, #1A1410 100%)' }}>
 
           {/* ─── DASHBOARD TAB ─── */}
           {tab === 'dashboard' && (
@@ -2487,135 +2616,9 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               })}
 
 
-              {/* ── Codes promo ── */}
-              {(() => {
-                const codes = siteContent.promo_codes;
-                const setCodes = (next: PromoCode[]) => setSiteContent((c) => ({ ...c, promo_codes: next }));
-                const addCode = () => setCodes([...codes, { code: '', type: 'percent', value: 10, minSubtotal: 0, active: true, expiresAt: '' }]);
-                const updateCode = (i: number, patch: Partial<PromoCode>) =>
-                  setCodes(codes.map((c, j: number) => j === i ? { ...c, ...patch } : c));
-                const removeCode = (i: number) => setCodes(codes.filter((_, j: number) => j !== i));
-                const save = async () => {
-                  // Normalisation : code en majuscules, trim
-                  const normalized = codes.map((c: PromoCode) => ({ ...c, code: c.code.trim().toUpperCase() }));
-                  setCodes(normalized);
-                  await saveConfigSection('promo_codes', normalized);
-                };
-                return (
-                  <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <p className="text-sm font-semibold" style={{ color: GOLD }}>🎟️ Codes promo</p>
-                      <button onClick={addCode}
-                        style={{ background: SURFACE2, color: TEXT2, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '6px 12px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
-                        + Nouveau code
-                      </button>
-                    </div>
-                    {codes.length === 0 && (
-                      <p className="text-xs" style={{ color: TEXT3 }}>Aucun code promo. Cliquez sur « + Nouveau code » pour en créer un.</p>
-                    )}
-                    {codes.map((c: PromoCode, i: number) => (
-                      <div key={c.code ? `code-${c.code}` : `code-idx-${i}`} style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr 1fr 1fr 1fr auto', gap: '8px', alignItems: 'end' }}>
-                          <label style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                            <span className="text-xs" style={{ color: TEXT2 }}>Code</span>
-                            <input value={c.code} onChange={e => updateCode(i, { code: e.target.value.toUpperCase() })}
-                              placeholder="BIENVENUE10"
-                              style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 10px', color: TEXT, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.04em', outline: 'none' }} />
-                          </label>
-                          <label style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                            <span className="text-xs" style={{ color: TEXT2 }}>Type</span>
-                            <select value={c.type} onChange={e => updateCode(i, { type: e.target.value as PromoCode['type'] })}
-                              style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 10px', color: TEXT, fontSize: '12px', outline: 'none' }}>
-                              <option value="percent">% (pourcent)</option>
-                              <option value="fixed">FCFA (fixe)</option>
-                            </select>
-                          </label>
-                          <label style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                            <span className="text-xs" style={{ color: TEXT2 }}>Valeur</span>
-                            <input type="number" min={0} value={c.value}
-                              onChange={e => updateCode(i, { value: Math.max(0, Number.parseInt(e.target.value, 10) || 0) })}
-                              style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 10px', color: TEXT, fontSize: '12px', outline: 'none' }} />
-                          </label>
-                          <label style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                            <span className="text-xs" style={{ color: TEXT2 }}>Min. panier (FCFA)</span>
-                            <input type="number" min={0} value={c.minSubtotal ?? 0}
-                              onChange={e => updateCode(i, { minSubtotal: Math.max(0, Number.parseInt(e.target.value, 10) || 0) })}
-                              style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 10px', color: TEXT, fontSize: '12px', outline: 'none' }} />
-                          </label>
-                          <label style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                            <span className="text-xs" style={{ color: TEXT2 }}>Expiration</span>
-                            <input type="date" value={c.expiresAt ?? ''}
-                              onChange={e => updateCode(i, { expiresAt: e.target.value })}
-                              style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 10px', color: TEXT, fontSize: '12px', outline: 'none' }} />
-                          </label>
-                          <button onClick={() => removeCode(i)}
-                            style={{ background: 'transparent', color: S_ERR_T, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 10px', fontSize: '11px', cursor: 'pointer', height: '34px' }}>
-                            🗑
-                          </button>
-                        </div>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: TEXT2, cursor: 'pointer' }}>
-                          <input type="checkbox" checked={c.active} onChange={e => updateCode(i, { active: e.target.checked })} />
-                          <span>Actif</span>
-                          <span style={{ marginLeft: '12px', color: TEXT3, fontSize: '11px' }}>
-                            Aperçu : {c.type === 'percent' ? `−${c.value}% sur le panier` : `−${c.value.toLocaleString('fr-FR')} FCFA`}
-                            {c.minSubtotal ? ` (min ${c.minSubtotal.toLocaleString('fr-FR')} FCFA)` : ''}
-                          </span>
-                        </label>
-                      </div>
-                    ))}
-                    <button onClick={save} disabled={contentSaving.promo_codes}
-                      style={{ alignSelf: 'flex-end', background: contentSaved.promo_codes ? S_SAVE_BG : GOLD2, color: contentSaved.promo_codes ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                      {getSaveButtonText(contentSaved.promo_codes, contentSaving.promo_codes)}
-                    </button>
-                  </div>
-                );
-              })()}
+              {/* ── Codes promo : déplacé dans l'onglet « Codes promo » de la sidebar ── */}
 
-              {/* ─── FAQ ─── */}
-              {(() => {
-                const faq = siteContent.faq;
-                const save = async () => { await saveConfigSection('faq', faq); };
-                const handleFaqItemInput = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-                  updateFaqItem(Number(e.currentTarget.dataset.ci), Number(e.currentTarget.dataset.qi), { [e.currentTarget.dataset.field as 'q' | 'a']: e.currentTarget.value });
-                };
-                const handleFaqItemRemove = (e: React.MouseEvent<HTMLButtonElement>) => {
-                  removeFaqItem(Number(e.currentTarget.dataset.ci), Number(e.currentTarget.dataset.qi));
-                };
-                return (
-                  <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <h3 style={{ color: TEXT, fontSize: '14px', fontWeight: 700 }}>FAQ</h3>
-                      <button onClick={addFaqCat} style={{ background: 'transparent', color: GOLD, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '6px 12px', fontSize: '11px', cursor: 'pointer' }}>+ Catégorie</button>
-                    </div>
-                    {faq.length === 0 && <p style={{ fontSize: '12px', color: TEXT3 }}>Aucune catégorie. Ajoutez-en une.</p>}
-                    {faq.map((cat: typeof faq[number], ci: number) => (
-                      <div key={`faq-cat-${ci}-${cat.cat.slice(0, 12)}`} style={{ background: SURFACE2, border: `1px solid ${BORDER2}`, borderRadius: '6px', padding: '12px' }}>
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '10px' }}>
-                          <input value={cat.cat} onChange={e => updateFaqCatTitle(ci, e.target.value)}
-                            style={{ flex: 1, background: SURFACE, color: TEXT, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '7px 10px', fontSize: '12px', fontWeight: 600 }} />
-                          <button onClick={() => addFaqItem(ci)} style={{ background: 'transparent', color: TEXT2, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 10px', fontSize: '11px', cursor: 'pointer' }}>+ Q/R</button>
-                          <button onClick={() => removeFaqCat(ci)} style={{ background: 'transparent', color: S_ERR_T, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 10px', fontSize: '11px', cursor: 'pointer' }}>🗑</button>
-                        </div>
-                        {cat.items.map((it: {q: string; a: string}, qi: number) => (
-                          <div key={`faq-item-${ci}-${qi}`} style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '10px', borderTop: `1px solid ${BORDER2}` }}>
-                            <div style={{ display: 'flex', gap: '6px' }}>
-                              <input placeholder="Question" value={it.q} data-ci={ci} data-qi={qi} data-field="q" onChange={handleFaqItemInput}
-                                style={{ flex: 1, background: SURFACE, color: TEXT, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 9px', fontSize: '12px' }} />
-                              <button data-ci={ci} data-qi={qi} onClick={handleFaqItemRemove} style={{ background: 'transparent', color: S_ERR_T, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '4px 8px', fontSize: '10px', cursor: 'pointer' }}>×</button>
-                            </div>
-                            <textarea placeholder="Réponse" value={it.a} data-ci={ci} data-qi={qi} data-field="a" onChange={handleFaqItemInput} rows={3}
-                              style={{ width: '100%', background: SURFACE, color: TEXT, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 9px', fontSize: '12px', resize: 'vertical', fontFamily: 'inherit' }} />
-                          </div>
-                        ))}
-                    </div>
-                    ))}
-                    <button onClick={save} disabled={contentSaving.faq}
-                      style={{ alignSelf: 'flex-end', background: contentSaved.faq ? S_SAVE_BG : GOLD2, color: contentSaved.faq ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                      {getSaveButtonText(contentSaved.faq, contentSaving.faq)}
-                    </button>
-                  </div>
-                );
-              })()}
+              {/* ── FAQ : déplacée dans l'onglet « FAQ » de la sidebar ── */}
 
               {/* ─── Newsletter (configuration affichage) ─── */}
               {(() => {
@@ -2708,11 +2711,162 @@ export default function AdminPage() { // NOSONAR typescript:S3776
             </div>
           )}
 
+          {/* ─── PROMOS TAB ─── */}
+          {tab === 'faq' && (() => {
+            const faq = siteContent.faq;
+            const save = async () => { await saveConfigSection('faq', faq); };
+            const handleFaqItemInput = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+              updateFaqItem(Number(e.currentTarget.dataset.ci), Number(e.currentTarget.dataset.qi), { [e.currentTarget.dataset.field as 'q' | 'a']: e.currentTarget.value });
+            };
+            const handleFaqItemRemove = (e: React.MouseEvent<HTMLButtonElement>) => {
+              removeFaqItem(Number(e.currentTarget.dataset.ci), Number(e.currentTarget.dataset.qi));
+            };
+            return (
+              <div className="space-y-6">
+                <div>
+                  <h1 className="text-lg font-bold" style={{ color: TEXT }}>FAQ</h1>
+                  <p className="text-xs" style={{ color: TEXT3 }}>Gérez les catégories et les questions/réponses affichées sur le site.</p>
+                </div>
+                <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ color: TEXT, fontSize: '14px', fontWeight: 700 }}>FAQ</h3>
+                    <button onClick={addFaqCat} style={{ background: 'transparent', color: GOLD, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '6px 12px', fontSize: '11px', cursor: 'pointer' }}>+ Catégorie</button>
+                  </div>
+                  {faq.length === 0 && <p style={{ fontSize: '12px', color: TEXT3 }}>Aucune catégorie. Ajoutez-en une.</p>}
+                  {faq.map((cat: typeof faq[number], ci: number) => (
+                    <div key={`faq-cat-${ci}-${cat.cat.slice(0, 12)}`} style={{ background: SURFACE2, border: `1px solid ${BORDER2}`, borderRadius: '6px', padding: '12px' }}>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '10px' }}>
+                        <input value={cat.cat} onChange={e => updateFaqCatTitle(ci, e.target.value)}
+                          style={{ flex: 1, background: SURFACE, color: TEXT, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '7px 10px', fontSize: '12px', fontWeight: 600 }} />
+                        <button onClick={() => addFaqItem(ci)} style={{ background: 'transparent', color: TEXT2, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 10px', fontSize: '11px', cursor: 'pointer' }}>+ Q/R</button>
+                        <button onClick={() => removeFaqCat(ci)} style={{ background: 'transparent', color: S_ERR_T, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 10px', fontSize: '11px', cursor: 'pointer' }}>🗑</button>
+                      </div>
+                      {cat.items.map((it: {q: string; a: string}, qi: number) => (
+                        <div key={`faq-item-${ci}-${qi}`} style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '10px', borderTop: `1px solid ${BORDER2}` }}>
+                          <div style={{ display: 'flex', gap: '6px' }}>
+                            <input placeholder="Question" value={it.q} data-ci={ci} data-qi={qi} data-field="q" onChange={handleFaqItemInput}
+                              style={{ flex: 1, background: SURFACE, color: TEXT, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 9px', fontSize: '12px' }} />
+                            <button data-ci={ci} data-qi={qi} onClick={handleFaqItemRemove} style={{ background: 'transparent', color: S_ERR_T, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '4px 8px', fontSize: '10px', cursor: 'pointer' }}>×</button>
+                          </div>
+                          <textarea placeholder="Réponse" value={it.a} data-ci={ci} data-qi={qi} data-field="a" onChange={handleFaqItemInput} rows={3}
+                            style={{ width: '100%', background: SURFACE, color: TEXT, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 9px', fontSize: '12px', resize: 'vertical', fontFamily: 'inherit' }} />
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                  <button onClick={save} disabled={contentSaving.faq}
+                    style={{ alignSelf: 'flex-end', background: contentSaved.faq ? S_SAVE_BG : GOLD2, color: contentSaved.faq ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                    {getSaveButtonText(contentSaved.faq, contentSaving.faq)}
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* ─── HERO TAB ─── */}
+          {tab === 'hero' && (
+            <div className="space-y-6">
+              <h1 className="text-lg font-bold" style={{ color: TEXT }}>🖼 Bannière Hero</h1>
+              <p className="text-xs" style={{ color: TEXT3 }}>Configurez le visuel principal et le message d&apos;accueil affichés en haut de la page d&apos;accueil.</p>
+              {heroSectionBlock}
+            </div>
+          )}
+
+          {/* ─── PROMOS TAB ─── */}
+          {tab === 'promos' && (() => {
+            const codes = siteContent.promo_codes;
+            const setCodes = (next: PromoCode[]) => setSiteContent((c) => ({ ...c, promo_codes: next }));
+            const addCode = () => setCodes([...codes, { code: '', type: 'percent', value: 10, minSubtotal: 0, active: true, expiresAt: '' }]);
+            const updateCode = (i: number, patch: Partial<PromoCode>) =>
+              setCodes(codes.map((c, j: number) => j === i ? { ...c, ...patch } : c));
+            const removeCode = (i: number) => setCodes(codes.filter((_, j: number) => j !== i));
+            const save = async () => {
+              const normalized = codes.map((c: PromoCode) => ({ ...c, code: c.code.trim().toUpperCase() }));
+              setCodes(normalized);
+              await saveConfigSection('promo_codes', normalized);
+            };
+            return (
+              <div className="space-y-6">
+                <div>
+                  <h1 className="text-lg font-bold" style={{ color: TEXT }}>Codes promo</h1>
+                  <p className="text-xs" style={{ color: TEXT3 }}>Créez et gérez les codes de réduction utilisables au checkout.</p>
+                </div>
+                <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <p className="text-sm font-semibold" style={{ color: GOLD }}>🎟️ Codes promo</p>
+                    <button onClick={addCode}
+                      style={{ background: SURFACE2, color: TEXT2, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '6px 12px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
+                      + Nouveau code
+                    </button>
+                  </div>
+                  {codes.length === 0 && (
+                    <p className="text-xs" style={{ color: TEXT3 }}>Aucun code promo. Cliquez sur « + Nouveau code » pour en créer un.</p>
+                  )}
+                  {codes.map((c: PromoCode, i: number) => (
+                    <div key={c.code ? `code-${c.code}` : `code-idx-${i}`} style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr 1fr 1fr 1fr auto', gap: '8px', alignItems: 'end' }}>
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                          <span className="text-xs" style={{ color: TEXT2 }}>Code</span>
+                          <input value={c.code} onChange={e => updateCode(i, { code: e.target.value.toUpperCase() })}
+                            placeholder="BIENVENUE10"
+                            style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 10px', color: TEXT, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.04em', outline: 'none' }} />
+                        </label>
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                          <span className="text-xs" style={{ color: TEXT2 }}>Type</span>
+                          <select value={c.type} onChange={e => updateCode(i, { type: e.target.value as PromoCode['type'] })}
+                            style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 10px', color: TEXT, fontSize: '12px', outline: 'none' }}>
+                            <option value="percent">% (pourcent)</option>
+                            <option value="fixed">FCFA (fixe)</option>
+                          </select>
+                        </label>
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                          <span className="text-xs" style={{ color: TEXT2 }}>Valeur</span>
+                          <input type="number" min={0} value={c.value}
+                            onChange={e => updateCode(i, { value: Math.max(0, Number.parseInt(e.target.value, 10) || 0) })}
+                            style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 10px', color: TEXT, fontSize: '12px', outline: 'none' }} />
+                        </label>
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                          <span className="text-xs" style={{ color: TEXT2 }}>Min. panier (FCFA)</span>
+                          <input type="number" min={0} value={c.minSubtotal ?? 0}
+                            onChange={e => updateCode(i, { minSubtotal: Math.max(0, Number.parseInt(e.target.value, 10) || 0) })}
+                            style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 10px', color: TEXT, fontSize: '12px', outline: 'none' }} />
+                        </label>
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                          <span className="text-xs" style={{ color: TEXT2 }}>Expiration</span>
+                          <input type="date" value={c.expiresAt ?? ''}
+                            onChange={e => updateCode(i, { expiresAt: e.target.value })}
+                            style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 10px', color: TEXT, fontSize: '12px', outline: 'none' }} />
+                        </label>
+                        <button onClick={() => removeCode(i)}
+                          style={{ background: 'transparent', color: S_ERR_T, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 10px', fontSize: '11px', cursor: 'pointer', height: '34px' }}>
+                          🗑
+                        </button>
+                      </div>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: TEXT2, cursor: 'pointer' }}>
+                        <input type="checkbox" checked={c.active} onChange={e => updateCode(i, { active: e.target.checked })} />
+                        <span>Actif</span>
+                        <span style={{ marginLeft: '12px', color: TEXT3, fontSize: '11px' }}>
+                          Aperçu : {c.type === 'percent' ? `−${c.value}% sur le panier` : `−${c.value.toLocaleString('fr-FR')} FCFA`}
+                          {c.minSubtotal ? ` (min ${c.minSubtotal.toLocaleString('fr-FR')} FCFA)` : ''}
+                        </span>
+                      </label>
+                    </div>
+                  ))}
+                  <button onClick={save} disabled={contentSaving.promo_codes}
+                    style={{ alignSelf: 'flex-end', background: contentSaved.promo_codes ? S_SAVE_BG : GOLD2, color: contentSaved.promo_codes ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                    {getSaveButtonText(contentSaved.promo_codes, contentSaving.promo_codes)}
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
+
           {/* ─── BRANDING TAB ─── */}
           {tab === 'branding' && (() => {
             const DEFAULT_BR: BrandingConfig = {
               siteName: 'SD Cosmetique', tagline: 'Beauté Africaine de Prestige',
               description: 'Soins premium formulés pour les peaux mélanisées.',
+              logoUrl: '', faviconUrl: '',
               seoTitle: 'SD Cosmetique — Beauté Africaine de Prestige',
               seoDescription: "Soins premium pour peaux mélanisées. Livraison rapide en Côte d'Ivoire.",
               ogTitle: 'SD Cosmetique — Beauté Africaine de Prestige',
@@ -2725,121 +2879,302 @@ export default function AdminPage() { // NOSONAR typescript:S3776
             const update = (patch: Partial<BrandingConfig>) =>
               setSiteContent((c: SiteConfig) => ({ ...c, branding: { ...(c.branding ?? DEFAULT_BR), ...patch } }));
 
-            const fieldStyle = { background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '13px', outline: 'none', width: '100%', boxSizing: 'border-box' as const };
-            const labelStyle = { fontSize: '11px', color: TEXT2, marginBottom: '5px', display: 'block' as const };
-            const sectionCard = { background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '20px 22px', marginBottom: '16px' };
-            const sectionTitle = { fontSize: '13px', fontWeight: 700, color: GOLD, marginBottom: '16px' };
-            const grid2 = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' };
+            // ── Helpers ────────────────────────────────────────────────
+            const fieldStyle = { background: BG, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '10px 12px', color: TEXT, fontSize: '13px', outline: 'none', width: '100%', boxSizing: 'border-box' as const, transition: 'border-color .15s, box-shadow .15s' };
+            const labelStyle = { fontSize: '11px', color: TEXT2, marginBottom: '6px', display: 'block' as const, fontWeight: 600, letterSpacing: '0.02em' };
+            const sectionCard = { background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '14px', padding: '22px 24px', marginBottom: '18px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' };
+            const sectionTitle = { fontSize: '12px', fontWeight: 800, color: GOLD, marginBottom: '4px', letterSpacing: '0.08em', textTransform: 'uppercase' as const };
+            const sectionSubtitle = { fontSize: '11px', color: TEXT3, marginBottom: '18px' };
+            const grid2 = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' };
+
+            // Completion %
+            const totalFields = 15;
+            const filledFields = [br.siteName, br.tagline, br.description, br.logoUrl, br.faviconUrl, br.seoTitle, br.seoDescription, br.ogTitle, br.ogDescription, br.twitterHandle, br.themeColor, br.instagramUrl, br.tiktokUrl, br.facebookUrl, br.youtubeUrl].filter(v => v && v.trim().length > 0).length;
+            const completion = Math.round((filledFields / totalFields) * 100);
+            let completionColor = '#EF4444';
+            if (completion === 100) completionColor = '#10B981';
+            else if (completion > 60) completionColor = '#F59E0B';
+
+            // Char counter color
+            const counterColor = (len: number, max: number) => {
+              if (len === 0) return TEXT3;
+              if (len > max) return '#EF4444';
+              if (len > max * 0.9) return '#F59E0B';
+              return '#10B981';
+            };
+
+            // Brand initials
+            const initials = (br.siteName || 'SD').split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+
+            // Color palette presets (cosmetic / luxury)
+            const palette = ['#8F5922', '#D4A25A', '#B8860B', '#C0392B', '#1C1610', '#2C3E50', '#8E44AD', '#27AE60', '#E91E63', '#FF6F00'];
+
+            // Hex contrast helper (returns BG color for text on this bg)
+            const contrastText = (hex: string): string => {
+              const h = hex.replace('#', '');
+              if (h.length !== 6) return '#fff';
+              const r = Number.parseInt(h.slice(0, 2), 16);
+              const g = Number.parseInt(h.slice(2, 4), 16);
+              const b = Number.parseInt(h.slice(4, 6), 16);
+              const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+              return lum > 0.55 ? '#1C1610' : '#FFFFFF';
+            };
+
+            // Social meta
+            const socials: { key: keyof BrandingConfig; label: string; icon: string; placeholder: string; brand: string }[] = [
+              { key: 'instagramUrl', label: 'Instagram', icon: '📷', placeholder: 'https://instagram.com/sdcosmetique', brand: '#E1306C' },
+              { key: 'tiktokUrl',    label: 'TikTok',    icon: '🎵', placeholder: 'https://tiktok.com/@sdcosmetique', brand: '#000000' },
+              { key: 'facebookUrl',  label: 'Facebook',  icon: '📘', placeholder: 'https://facebook.com/sdcosmetique', brand: '#1877F2' },
+              { key: 'youtubeUrl',   label: 'YouTube',   icon: '▶️', placeholder: 'https://youtube.com/@sdcosmetique', brand: '#FF0000' },
+              { key: 'linkedinUrl',  label: 'LinkedIn',  icon: '💼', placeholder: 'https://linkedin.com/company/sdcosmetique', brand: '#0A66C2' },
+            ];
+
+            const isValidUrl = (v: string) => {
+              if (!v) return false;
+              try { new URL(v); return true; } catch { return false; }
+            };
 
             return (
-              <div style={{ maxWidth: '760px' }}>
-                {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-                  <div>
-                    <h2 style={{ fontSize: '20px', fontWeight: 700, color: TEXT, margin: 0 }}>🎨 Branding & Identité</h2>
-                    <p style={{ fontSize: '12px', color: TEXT2, marginTop: '4px' }}>Nom du site, SEO, réseaux sociaux et couleurs.</p>
-                  </div>
-                  <button onClick={save} disabled={contentSaving.branding}
-                    style={{ padding: '10px 22px', borderRadius: '8px', border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer', background: contentSaved.branding ? S_SAVE_BG : GOLD2, color: contentSaved.branding ? S_SAVE_T : BG }}>
-                    {getSaveButtonText(contentSaved.branding, contentSaving.branding)}
-                  </button>
-                </div>
-
-                {/* Identité */}
-                <div style={sectionCard}>
-                  <p style={sectionTitle}>🏷️ Identité du site</p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <label>
-                      <span style={labelStyle}>Nom du site</span>
-                      <input type="text" value={br.siteName} onChange={e => update({ siteName: e.target.value })} style={fieldStyle} placeholder="SD Cosmetique" />
-                    </label>
-                    <label>
-                      <span style={labelStyle}>Tagline</span>
-                      <input type="text" value={br.tagline} onChange={e => update({ tagline: e.target.value })} style={fieldStyle} placeholder="Beauté Africaine de Prestige" />
-                    </label>
-                    <label>
-                      <span style={labelStyle}>Description (meta description par défaut)</span>
-                      <textarea value={br.description} onChange={e => update({ description: e.target.value })}
-                        style={{ ...fieldStyle, minHeight: '72px', resize: 'vertical' }} placeholder="Soins premium formulés pour les peaux mélanisées..." />
-                    </label>
+              <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+                {/* ── Hero header avec preview live ── */}
+                <div style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', marginBottom: '20px', border: `1px solid ${BORDER}`, background: `linear-gradient(135deg, ${br.themeColor}22 0%, ${SURFACE} 60%)` }}>
+                  <div style={{ padding: '28px 28px 24px', display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
+                    {br.logoUrl ? (
+                      <Image src={br.logoUrl} alt={br.siteName} width={72} height={72} unoptimized
+                        style={{ borderRadius: '18px', objectFit: 'contain', background: '#fff', padding: '8px', boxShadow: `0 8px 24px ${br.themeColor}40`, flexShrink: 0, border: `1px solid ${BORDER}` }} />
+                    ) : (
+                      <div style={{ width: '72px', height: '72px', borderRadius: '18px', background: `linear-gradient(135deg, ${br.themeColor}, ${br.themeColor}cc)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px', fontWeight: 800, color: contrastText(br.themeColor), boxShadow: `0 8px 24px ${br.themeColor}40`, flexShrink: 0, letterSpacing: '0.02em' }}>{initials}</div>
+                    )}
+                    <div style={{ flex: 1, minWidth: '200px' }}>
+                      <h1 style={{ fontSize: '24px', fontWeight: 800, color: TEXT, margin: 0, letterSpacing: '-0.02em' }}>{br.siteName || 'Nom du site'}</h1>
+                      <p style={{ fontSize: '13px', color: GOLD, margin: '4px 0 0', fontStyle: 'italic', letterSpacing: '0.04em' }}>« {br.tagline || 'Votre tagline ici'} »</p>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '12px', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '5px 12px', background: BG, borderRadius: '99px', border: `1px solid ${BORDER}`, fontSize: '11px', color: TEXT2, fontWeight: 600 }}>
+                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: completionColor }} />
+                          {completion}% complété
+                        </div>
+                        <div style={{ flex: 1, minWidth: '120px', height: '6px', background: BG, borderRadius: '99px', overflow: 'hidden', border: `1px solid ${BORDER}`, maxWidth: '240px' }}>
+                          <div style={{ width: `${completion}%`, height: '100%', background: `linear-gradient(90deg, ${br.themeColor}, ${GOLD})`, transition: 'width .4s ease' }} />
+                        </div>
+                      </div>
+                    </div>
+                    <button onClick={save} disabled={contentSaving.branding}
+                      style={{ padding: '12px 24px', borderRadius: '10px', border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer', background: contentSaved.branding ? S_SAVE_BG : GOLD2, color: contentSaved.branding ? S_SAVE_T : BG, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', flexShrink: 0 }}>
+                      {getSaveButtonText(contentSaved.branding, contentSaving.branding)}
+                    </button>
                   </div>
                 </div>
 
-                {/* SEO */}
+                {/* ── Identité visuelle (logo + favicon) ── */}
                 <div style={sectionCard}>
-                  <p style={sectionTitle}>🔍 SEO</p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <label>
-                      <span style={labelStyle}>Titre SEO (balise &lt;title&gt; de l&apos;accueil)</span>
-                      <input type="text" value={br.seoTitle} onChange={e => update({ seoTitle: e.target.value })} style={fieldStyle} />
-                      <span style={{ fontSize: '10px', color: TEXT3, marginTop: '3px', display: 'block' }}>{br.seoTitle.length}/70 caractères recommandés</span>
-                    </label>
-                    <label>
-                      <span style={labelStyle}>Meta description SEO</span>
-                      <textarea value={br.seoDescription} onChange={e => update({ seoDescription: e.target.value })}
-                        style={{ ...fieldStyle, minHeight: '72px', resize: 'vertical' }} />
-                      <span style={{ fontSize: '10px', color: TEXT3, marginTop: '3px', display: 'block' }}>{br.seoDescription.length}/160 caractères recommandés</span>
-                    </label>
+                  <p style={sectionTitle}>● Identité visuelle</p>
+                  <p style={sectionSubtitle}>Logo principal (header, footer, partages) et favicon (onglet navigateur).</p>
+                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px', alignItems: 'start' }}>
+                    <div>
+                      <span style={labelStyle}>Logo principal <span style={{ color: TEXT3, fontWeight: 400 }}>(SVG ou PNG transparent recommandé, ratio horizontal)</span></span>
+                      <ImageUpload
+                        value={br.logoUrl}
+                        onChange={(url) => update({ logoUrl: url })}
+                        folder="branding"
+                        label="Logo"
+                        previewSize={120}
+                      />
+                    </div>
+                    <div>
+                      <span style={labelStyle}>Favicon <span style={{ color: TEXT3, fontWeight: 400 }}>(carré, 512×512 px idéal)</span></span>
+                      <ImageUpload
+                        value={br.faviconUrl}
+                        onChange={(url) => update({ faviconUrl: url })}
+                        folder="branding"
+                        label="Favicon"
+                        previewSize={100}
+                      />
+                    </div>
                   </div>
+                  {(br.logoUrl || br.faviconUrl) && (
+                    <div style={{ marginTop: '16px', padding: '14px 16px', background: BG, border: `1px solid ${BORDER}`, borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '11px', color: TEXT3, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' }}>Aperçu onglet&nbsp;:</span>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: SURFACE, padding: '6px 12px 6px 8px', borderRadius: '8px 8px 0 0', border: `1px solid ${BORDER}`, borderBottom: 'none' }}>
+                        {br.faviconUrl ? (
+                          <Image src={br.faviconUrl} alt="" width={14} height={14} unoptimized
+                            style={{ borderRadius: '2px' }} />
+                        ) : (
+                          <span style={{ width: '14px', height: '14px', borderRadius: '2px', background: br.themeColor, display: 'inline-block' }} />
+                        )}
+                        <span style={{ fontSize: '12px', color: TEXT2 }}>{br.siteName}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                {/* Open Graph */}
+                {/* ── Identité du site ── */}
                 <div style={sectionCard}>
-                  <p style={sectionTitle}>📢 Partage social (Open Graph)</p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <label>
-                      <span style={labelStyle}>Titre OG (aperçu lors du partage d&apos;un lien)</span>
-                      <input type="text" value={br.ogTitle} onChange={e => update({ ogTitle: e.target.value })} style={fieldStyle} />
-                    </label>
-                    <label>
-                      <span style={labelStyle}>Description OG</span>
-                      <textarea value={br.ogDescription} onChange={e => update({ ogDescription: e.target.value })}
-                        style={{ ...fieldStyle, minHeight: '60px', resize: 'vertical' }} />
-                    </label>
-                    <label>
-                      <span style={labelStyle}>Handle Twitter / X (ex : @sdcosmetique)</span>
-                      <input type="text" value={br.twitterHandle} onChange={e => update({ twitterHandle: e.target.value })} style={fieldStyle} placeholder="@sdcosmetique" />
-                    </label>
-                  </div>
-                </div>
-
-                {/* Couleur */}
-                <div style={sectionCard}>
-                  <p style={sectionTitle}>🎨 Couleur de marque</p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <input type="color" value={br.themeColor} onChange={e => update({ themeColor: e.target.value })}
-                      style={{ width: '48px', height: '40px', borderRadius: '8px', border: `1px solid ${BORDER}`, background: 'transparent', cursor: 'pointer', padding: '2px' }} />
-                    <input type="text" value={br.themeColor} onChange={e => update({ themeColor: e.target.value })}
-                      style={{ ...fieldStyle, maxWidth: '120px' }} placeholder="#8F5922" />
-                    <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: br.themeColor, border: `1px solid ${BORDER}`, flexShrink: 0 }} />
-                    <span style={{ fontSize: '11px', color: TEXT3 }}>Utilisée pour le manifeste PWA et les meta `theme-color`.</span>
-                  </div>
-                </div>
-
-                {/* Réseaux sociaux */}
-                <div style={sectionCard}>
-                  <p style={sectionTitle}>🌐 Liens réseaux sociaux</p>
-                  <div style={grid2}>
-                    {([
-                      { key: 'instagramUrl', label: 'Instagram', placeholder: 'https://instagram.com/sdcosmetique' },
-                      { key: 'tiktokUrl',    label: 'TikTok',    placeholder: 'https://tiktok.com/@sdcosmetique' },
-                      { key: 'facebookUrl',  label: 'Facebook',  placeholder: 'https://facebook.com/sdcosmetique' },
-                      { key: 'youtubeUrl',   label: 'YouTube',   placeholder: 'https://youtube.com/@sdcosmetique' },
-                      { key: 'linkedinUrl',  label: 'LinkedIn',  placeholder: 'https://linkedin.com/company/sdcosmetique' },
-                    ] as { key: keyof BrandingConfig; label: string; placeholder: string }[]).map(({ key, label, placeholder }) => (
-                      <label key={key}>
-                        <span style={labelStyle}>{label}</span>
-                        <input type="url" value={br[key]} onChange={e => update({ [key]: e.target.value })}
-                          style={fieldStyle} placeholder={placeholder} />
+                  <p style={sectionTitle}>● Identité du site</p>
+                  <p style={sectionSubtitle}>Le nom, l&apos;accroche et la description courte de votre marque.</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div style={grid2}>
+                      <label>
+                        <span style={labelStyle}>Nom du site</span>
+                        <input type="text" value={br.siteName} onChange={e => update({ siteName: e.target.value })} style={fieldStyle} placeholder="SD Cosmetique" />
                       </label>
-                    ))}
+                      <label>
+                        <span style={labelStyle}>Tagline (signature)</span>
+                        <input type="text" value={br.tagline} onChange={e => update({ tagline: e.target.value })} style={fieldStyle} placeholder="Beauté Africaine de Prestige" />
+                      </label>
+                    </div>
+                    <label>
+                      <span style={labelStyle}>Description courte de la marque</span>
+                      <textarea value={br.description} onChange={e => update({ description: e.target.value })}
+                        style={{ ...fieldStyle, minHeight: '80px', resize: 'vertical' }} placeholder="Soins premium formulés pour les peaux mélanisées..." />
+                      <span style={{ fontSize: '10px', color: counterColor(br.description.length, 200), marginTop: '4px', display: 'block', fontWeight: 600 }}>{br.description.length} caractères</span>
+                    </label>
                   </div>
                 </div>
 
-                {/* Save bottom */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '4px' }}>
+                {/* ── SEO + Aperçu Google ── */}
+                <div style={sectionCard}>
+                  <p style={sectionTitle}>● Référencement SEO</p>
+                  <p style={sectionSubtitle}>Comment votre site apparaît dans les résultats de recherche Google.</p>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', alignItems: 'start' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                      <label>
+                        <span style={labelStyle}>Titre SEO (balise &lt;title&gt;)</span>
+                        <input type="text" value={br.seoTitle} onChange={e => update({ seoTitle: e.target.value })} style={fieldStyle} />
+                        <span style={{ fontSize: '10px', color: counterColor(br.seoTitle.length, 70), marginTop: '4px', display: 'block', fontWeight: 600 }}>{br.seoTitle.length} / 70 caractères</span>
+                      </label>
+                      <label>
+                        <span style={labelStyle}>Meta description SEO</span>
+                        <textarea value={br.seoDescription} onChange={e => update({ seoDescription: e.target.value })}
+                          style={{ ...fieldStyle, minHeight: '90px', resize: 'vertical' }} />
+                        <span style={{ fontSize: '10px', color: counterColor(br.seoDescription.length, 160), marginTop: '4px', display: 'block', fontWeight: 600 }}>{br.seoDescription.length} / 160 caractères</span>
+                      </label>
+                    </div>
+                    {/* Google preview */}
+                    <div>
+                      <span style={labelStyle}>Aperçu Google</span>
+                      <div style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '16px 18px', fontFamily: 'arial, sans-serif' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                          <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: br.themeColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, color: contrastText(br.themeColor) }}>{initials[0]}</div>
+                          <div>
+                            <div style={{ fontSize: '12px', color: '#202124', fontWeight: 500 }}>{br.siteName}</div>
+                            <div style={{ fontSize: '11px', color: '#5f6368' }}>sdcosmetique.com</div>
+                          </div>
+                        </div>
+                        <div style={{ fontSize: '18px', color: '#1a0dab', lineHeight: '1.3', marginTop: '4px', cursor: 'pointer' }}>{br.seoTitle || 'Titre SEO de votre site'}</div>
+                        <div style={{ fontSize: '13px', color: '#4d5156', marginTop: '4px', lineHeight: '1.4' }}>{br.seoDescription || 'La meta description apparaîtra ici…'}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ── Open Graph + Aperçu social ── */}
+                <div style={sectionCard}>
+                  <p style={sectionTitle}>● Partage social (Open Graph)</p>
+                  <p style={sectionSubtitle}>L&apos;aperçu lorsqu&apos;un lien est partagé sur Facebook, X, WhatsApp, LinkedIn…</p>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', alignItems: 'start' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                      <label>
+                        <span style={labelStyle}>Titre OG</span>
+                        <input type="text" value={br.ogTitle} onChange={e => update({ ogTitle: e.target.value })} style={fieldStyle} />
+                      </label>
+                      <label>
+                        <span style={labelStyle}>Description OG</span>
+                        <textarea value={br.ogDescription} onChange={e => update({ ogDescription: e.target.value })}
+                          style={{ ...fieldStyle, minHeight: '70px', resize: 'vertical' }} />
+                      </label>
+                      <label>
+                        <span style={labelStyle}>Handle Twitter / X</span>
+                        <input type="text" value={br.twitterHandle} onChange={e => update({ twitterHandle: e.target.value })} style={fieldStyle} placeholder="@sdcosmetique" />
+                      </label>
+                    </div>
+                    {/* OG card preview */}
+                    <div>
+                      <span style={labelStyle}>Aperçu carte sociale</span>
+                      <div style={{ borderRadius: '12px', overflow: 'hidden', border: `1px solid ${BORDER}`, background: '#fff' }}>
+                        <div style={{ height: '140px', background: `linear-gradient(135deg, ${br.themeColor}, ${br.themeColor}99)`, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                          <div style={{ width: '60px', height: '60px', borderRadius: '14px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', fontWeight: 800, color: contrastText(br.themeColor), backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.25)' }}>{initials}</div>
+                          <span style={{ position: 'absolute', bottom: '8px', right: '12px', fontSize: '10px', color: 'rgba(255,255,255,0.8)', fontWeight: 600, letterSpacing: '0.06em' }}>1200×630</span>
+                        </div>
+                        <div style={{ padding: '12px 14px', background: '#fff' }}>
+                          <div style={{ fontSize: '10px', color: '#65676B', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '3px' }}>SDCOSMETIQUE.COM</div>
+                          <div style={{ fontSize: '14px', color: '#1c1e21', fontWeight: 600, lineHeight: '1.3', marginBottom: '4px' }}>{br.ogTitle || 'Titre OG'}</div>
+                          <div style={{ fontSize: '12px', color: '#65676B', lineHeight: '1.35' }}>{br.ogDescription || 'Description OG…'}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ── Couleur de marque ── */}
+                <div style={sectionCard}>
+                  <p style={sectionTitle}>● Couleur de marque</p>
+                  <p style={sectionSubtitle}>Utilisée pour le manifeste PWA, la barre de navigateur mobile et les accents visuels.</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px', flexWrap: 'wrap' }}>
+                    <input type="color" value={br.themeColor} onChange={e => update({ themeColor: e.target.value })}
+                      style={{ width: '52px', height: '44px', borderRadius: '10px', border: `1px solid ${BORDER}`, background: 'transparent', cursor: 'pointer', padding: '2px' }} />
+                    <input type="text" value={br.themeColor} onChange={e => update({ themeColor: e.target.value })}
+                      style={{ ...fieldStyle, maxWidth: '140px', textTransform: 'uppercase', fontFamily: 'monospace', fontWeight: 700 }} placeholder="#8F5922" />
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <div style={{ padding: '8px 14px', borderRadius: '8px', background: br.themeColor, color: contrastText(br.themeColor), fontSize: '12px', fontWeight: 700 }}>Bouton</div>
+                      <div style={{ padding: '8px 14px', borderRadius: '8px', background: 'transparent', color: br.themeColor, fontSize: '12px', fontWeight: 700, border: `1.5px solid ${br.themeColor}` }}>Outline</div>
+                    </div>
+                  </div>
+                  <div>
+                    <span style={{ ...labelStyle, marginBottom: '8px' }}>Palette suggérée</span>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      {palette.map(c => {
+                        const active = c.toLowerCase() === br.themeColor.toLowerCase();
+                        return (
+                          <button key={c} onClick={() => update({ themeColor: c })} title={c}
+                            style={{ width: '32px', height: '32px', borderRadius: '8px', background: c, border: active ? `2px solid ${TEXT}` : `1px solid ${BORDER}`, cursor: 'pointer', boxShadow: active ? `0 0 0 2px ${BG}, 0 0 0 3px ${c}` : 'none', transition: 'transform .15s' }} />
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* ── Réseaux sociaux ── */}
+                <div style={sectionCard}>
+                  <p style={sectionTitle}>● Liens réseaux sociaux</p>
+                  <p style={sectionSubtitle}>Affichés dans le footer et utilisés pour les balises de partage.</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {socials.map(({ key, label, icon, placeholder, brand }) => {
+                      const v = br[key];
+                      const valid = isValidUrl(v);
+                      return (
+                        <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: BG, border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '10px 12px' }}>
+                          <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: `${brand}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', flexShrink: 0, border: `1px solid ${brand}33` }}>{icon}</div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+                              <span style={{ fontSize: '12px', fontWeight: 700, color: TEXT }}>{label}</span>
+                              {v && (
+                                <span style={{ fontSize: '9px', padding: '2px 6px', borderRadius: '4px', fontWeight: 700, background: valid ? '#10B98122' : '#EF444422', color: valid ? '#10B981' : '#EF4444', letterSpacing: '0.04em' }}>
+                                  {valid ? '✓ VALIDE' : '⚠ URL INVALIDE'}
+                                </span>
+                              )}
+                            </div>
+                            <input type="url" value={v} onChange={e => update({ [key]: e.target.value })}
+                              style={{ background: 'transparent', border: 'none', outline: 'none', width: '100%', fontSize: '12px', color: TEXT2, padding: 0 }} placeholder={placeholder} />
+                          </div>
+                          {valid && (
+                            <a href={v} target="_blank" rel="noopener noreferrer"
+                              style={{ fontSize: '11px', color: GOLD, textDecoration: 'none', padding: '6px 10px', border: `1px solid ${BORDER}`, borderRadius: '6px', fontWeight: 600, flexShrink: 0 }}>
+                              Ouvrir ↗
+                            </a>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* ── Save bottom ── */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 4px 24px' }}>
+                  <span style={{ fontSize: '11px', color: TEXT3 }}>
+                    {contentSaved.branding ? '✓ Toutes les modifications sont enregistrées' : 'Modifications non sauvegardées'}
+                  </span>
                   <button onClick={save} disabled={contentSaving.branding}
-                    style={{ padding: '10px 28px', borderRadius: '8px', border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer', background: contentSaved.branding ? S_SAVE_BG : GOLD2, color: contentSaved.branding ? S_SAVE_T : BG }}>
+                    style={{ padding: '12px 32px', borderRadius: '10px', border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer', background: contentSaved.branding ? S_SAVE_BG : GOLD2, color: contentSaved.branding ? S_SAVE_T : BG, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
                     {getSaveButtonText(contentSaved.branding, contentSaving.branding)}
                   </button>
                 </div>
@@ -3814,6 +4149,21 @@ export default function AdminPage() { // NOSONAR typescript:S3776
           </div>
         </div>
       )}
+
+      {/* ─── Responsive admin CSS ─── */}
+      <style>{`
+        .admin-header { padding: 0 24px 0 calc(220px + 24px); }
+        .admin-main { margin-left: 260px; }
+        @media (max-width: 768px) {
+          .admin-header { padding: 0 12px; }
+          .admin-hamburger { display: flex !important; align-items: center; justify-content: center; }
+          .admin-email { display: none !important; }
+          .admin-sidebar { transform: translateX(-260px); }
+          .admin-sidebar--open { transform: translateX(0) !important; }
+          .admin-overlay { display: block !important; }
+          .admin-main { margin-left: 0 !important; padding: 16px !important; }
+        }
+      `}</style>
     </div>
   );
 }

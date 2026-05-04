@@ -3,11 +3,11 @@ import React, { useCallback, useRef, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 
 interface ImageUploadProps {
-  value: string;           // URL actuelle
-  onChange: (url: string) => void;
-  folder?: string;         // sous-dossier dans le bucket (ex: 'hero', 'avatars')
-  label?: string;
-  previewSize?: number;    // px de hauteur de la preview
+  readonly value: string;           // URL actuelle
+  readonly onChange: (url: string) => void;
+  readonly folder?: string;         // sous-dossier dans le bucket (ex: 'hero', 'avatars')
+  readonly label?: string;
+  readonly previewSize?: number;    // px de hauteur de la preview
 }
 
 export default function ImageUpload({
@@ -74,11 +74,13 @@ export default function ImageUpload({
       <span className="text-xs" style={{ color: '#9A7A5A' }}>{label}</span>
 
       {/* Zone drag & drop */}
-      <div
+      <button
+        type="button"
         onClick={() => inputRef.current?.click()}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
+        aria-label={value ? `Remplacer ${label}` : `Téléverser ${label}`}
         style={{
           border: `2px dashed ${isDragging ? '#D4A25A' : '#2A1A0A'}`,
           borderRadius: '8px',
@@ -90,6 +92,10 @@ export default function ImageUpload({
           alignItems: 'center',
           gap: '10px',
           transition: 'border-color 0.2s, background 0.2s',
+          width: '100%',
+          font: 'inherit',
+          color: 'inherit',
+          textAlign: 'center',
         }}
       >
         {/* Preview */}
@@ -131,7 +137,7 @@ export default function ImageUpload({
             <span style={{ color: '#3A2A1A' }}>JPG · PNG · WEBP · GIF — max 5 Mo</span>
           </span>
         )}
-      </div>
+      </button>
 
       {/* URL affichée + bouton supprimer */}
       {value && (

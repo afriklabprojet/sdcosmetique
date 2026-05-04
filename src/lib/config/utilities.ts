@@ -21,16 +21,14 @@ export async function fetchSiteConfigSection<K extends keyof SiteConfig>(
       .from('site_config')
       .select('value')
       .eq('key', section)
-      .single();
+      .maybeSingle();
 
     if (error || !data) {
-      console.warn(`Configuration section "${section}" not found, using default`);
       return DEFAULT_SITE_CONFIG[section];
     }
 
     return data.value as SiteConfig[K];
-  } catch (err) {
-    console.error(`Error fetching config section "${section}":`, err);
+  } catch {
     return DEFAULT_SITE_CONFIG[section];
   }
 }
@@ -58,8 +56,9 @@ export async function saveSiteConfigSection<K extends keyof SiteConfig>(
     }
 
     return { success: true };
-  } catch (err: any) {
-    return { success: false, error: err.message || 'Unknown error' };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Unknown error';
+    return { success: false, error: msg };
   }
 }
 
@@ -75,7 +74,6 @@ export async function fetchFullSiteConfig(): Promise<SiteConfig> {
       .select('*');
 
     if (error || !data) {
-      console.warn('Full site config not found, using defaults');
       return DEFAULT_SITE_CONFIG;
     }
 
@@ -83,13 +81,12 @@ export async function fetchFullSiteConfig(): Promise<SiteConfig> {
     const config: Partial<SiteConfig> = {};
     
     for (const item of data) {
-      (config as any)[item.key] = item.value;
+      (config as Record<string, unknown>)[item.key] = item.value;
     }
 
     // Fusionner avec les valeurs par défaut pour les sections manquantes
     return { ...DEFAULT_SITE_CONFIG, ...config } as SiteConfig;
-  } catch (err) {
-    console.error('Error fetching full site config:', err);
+  } catch {
     return DEFAULT_SITE_CONFIG;
   }
 }

@@ -23,6 +23,6 @@ export async function POST(req: Request) {
   if (!order?.orderNumber || !order?.delivery?.email) {
     return NextResponse.json({ error: 'invalid_order' }, { status: 400 });
   }
-  sendOrderShipped(order, trackingUrl).catch(e => console.error('[notify-shipped] email error:', e));
+  sendOrderShipped(order, trackingUrl).catch(() => {});
   return NextResponse.json({ ok: true });
 }

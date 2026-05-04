@@ -37,7 +37,7 @@ export function generateOrderNumber(): string {
 }
 
 export function saveOrder(order: OrderDraft): void {
-  if (typeof window === 'undefined') return;
+  if (globalThis.window === undefined) return;
   const existing = getOrders();
   existing.unshift(order);
   localStorage.setItem(ORDERS_KEY, JSON.stringify(existing));
@@ -45,7 +45,7 @@ export function saveOrder(order: OrderDraft): void {
 }
 
 export function getLastOrder(): OrderDraft | null {
-  if (typeof window === 'undefined') return null;
+  if (globalThis.window === undefined) return null;
   try {
     const raw = localStorage.getItem(LAST_ORDER_KEY);
     return raw ? (JSON.parse(raw) as OrderDraft) : null;
@@ -55,7 +55,7 @@ export function getLastOrder(): OrderDraft | null {
 }
 
 export function getOrders(): OrderDraft[] {
-  if (typeof window === 'undefined') return [];
+  if (globalThis.window === undefined) return [];
   try {
     const raw = localStorage.getItem(ORDERS_KEY);
     return raw ? (JSON.parse(raw) as OrderDraft[]) : [];
@@ -73,7 +73,7 @@ export function formatOrderDate(isoDate: string): string {
 }
 
 export function updateOrderStatus(orderNumber: string, status: OrderDraft['status']): void {
-  if (typeof window === 'undefined') return;
+  if (globalThis.window === undefined) return;
   const orders = getOrders();
   const idx = orders.findIndex(o => o.orderNumber === orderNumber);
   if (idx === -1) return;

@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Dev/util scripts (CommonJS — require() intentionnel)
+    "*.js",
+    "scripts/**",
   ]),
   {
     rules: {
@@ -20,6 +23,8 @@ const eslintConfig = defineConfig([
         varsIgnorePattern: '^_',
         caughtErrorsIgnorePattern: '^_',
       }],
+      // eslint-plugin-sonarjs non installé — désactivation de la règle orpheline
+      'sonarjs/cognitive-complexity': 'off',
     },
   },
 ]);

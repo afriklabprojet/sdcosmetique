@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import type { TestimonialItem } from '@/lib/site-config';
 import { DEFAULT_SITE_CONFIG } from '@/lib/site-config';
 import type { TestimonialRow } from '@/lib/testimonials-db';
@@ -74,8 +75,8 @@ export default function Testimonials({
               >
                 {/* Avatar + citation sur la même ligne */}
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', marginBottom: '10px' }}>
-                  <img src={t.avatar} alt={t.name}
-                    style={{ width: '52px', height: '52px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                  <Image src={t.avatar} alt={t.name} width={52} height={52}
+                    style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
                   <p style={{
                     fontFamily: 'var(--font-inter), Inter, sans-serif',
                     fontSize: '0.8rem', fontStyle: 'italic',

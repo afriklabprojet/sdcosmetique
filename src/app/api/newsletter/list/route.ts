@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
     .select('id, email, source, unsubscribed, created_at')
     .order('created_at', { ascending: false });
   if (error) {
-    console.error('[newsletter/list] db_error:', error);
+    
     return NextResponse.json({ error: 'db_error', detail: error.message }, { status: 500 });
   }
 

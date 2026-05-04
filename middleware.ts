@@ -6,9 +6,19 @@ export async function middleware(request: NextRequest) {
 
   // Routes protégées qui nécessitent une authentification
   const protectedRoutes = ['/admin', '/compte', '/checkout'];
-  const authRoutes = ['/auth/login', '/auth/register', '/auth/reset'];
+  const authRoutes = ['/connexion', '/inscription', '/mot-de-passe-oublie'];
   
-  const isProtectedRoute = protectedRoutes.some(route => 
+  const isAdminLogin = request.nextUrl.pathname === '/admin/login';
+  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin') && !isAdminLogin;
+
+  const ADMIN_EMAILS = new Set(
+    (process.env.ADMIN_EMAILS ?? '')
+      .split(',')
+      .map(e => e.trim().toLowerCase())
+      .filter(Boolean)
+  );
+
+  const isProtectedRoute = !isAdminLogin && protectedRoutes.some(route => 
     request.nextUrl.pathname.startsWith(route)
   );
   
@@ -29,7 +39,7 @@ export async function middleware(request: NextRequest) {
       
       // Créer une response qui supprime les cookies d'auth
       const redirectResponse = NextResponse.redirect(
-        new URL('/auth/login', request.url)
+        new URL('/connexion', request.url)
       );
       
       // Supprimer tous les cookies Supabase
@@ -49,12 +59,21 @@ export async function middleware(request: NextRequest) {
     // Route protégée sans session valide
     if (isProtectedRoute && !session) {
       console.log('🔒 Redirection vers login: route protégée sans auth');
-      return NextResponse.redirect(new URL('/auth/login', request.url));
+      return NextResponse.redirect(new URL('/connexion', request.url));
     }
 
-    // Utilisateur connecté essayant d'accéder aux pages d'auth
+    // Route admin : exiger un email autorisé
+    if (isAdminRoute) {
+      const email = session?.user.email?.toLowerCase();
+      if (!email || !ADMIN_EMAILS.has(email)) {
+        console.log('🚫 Accès admin refusé:', email ?? 'no-session');
+        return NextResponse.redirect(new URL('/admin/login?error=unauthorized', request.url));
+      }
+    }
+
+    // Utilisateur connecté essayant d'accéder aux pages d'auth publiques (pas admin/login)
     if (isAuthRoute && session) {
-      console.log('👤 Redirection vers compte: déjà connecté');
+      console.log('👤 Redirection: déjà connecté');
       return NextResponse.redirect(new URL('/compte', request.url));
     }
 
@@ -69,7 +88,7 @@ export async function middleware(request: NextRequest) {
     }
     
     // Pour les routes protégées, rediriger vers login
-    return NextResponse.redirect(new URL('/auth/login', request.url));
+    return NextResponse.redirect(new URL('/connexion', request.url));
   }
 }
 
@@ -81,8 +100,9 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - manifest.webmanifest (PWA manifest généré par Next.js)
      * - fichiers publics (images, etc.)
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.).*)"
+    "/((?!api|_next/static|_next/image|favicon.ico|manifest.webmanifest|.*\\.).*)"
   ]
 };

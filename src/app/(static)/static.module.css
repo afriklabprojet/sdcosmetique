@@ -1,6 +1,30 @@
 /* ─── EDITORIAL SHARED MODULE — SD COSMETIQUE ───────────────────────── */
 /* Page statique premium : légales, histoire, contact, FAQ, etc.       */
 
+/* ============== LAYOUT SIDEBAR ============== */
+.sideLayout {
+  display: flex;
+  align-items: flex-start;
+  gap: 2rem;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 0;
+}
+
+.sideMain {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  .sideLayout {
+    flex-direction: column;
+    padding: 1.25rem 1rem 0;
+    gap: 1rem;
+  }
+}
+
+/* ============== PAGE ============== */
 .page {
   min-height: 100vh;
   background: #fff;

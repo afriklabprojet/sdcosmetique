@@ -48,11 +48,12 @@ export default function Navbar() {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { setSearchOpen(false); setMenuOpen(false); }
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    globalThis.addEventListener('keydown', onKey);
+    return () => globalThis.removeEventListener('keydown', onKey);
   }, [searchOpen, menuOpen]);
 
   // Close menu on route change
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- pattern intentionnel : réinitialisation sur navigation
   useEffect(() => { setMenuOpen(false); }, [pathname]);
 
   const results = useMemo(() => {
@@ -85,6 +86,7 @@ export default function Navbar() {
       }}
     >
       <div
+        className="nav-bar"
         style={{
           maxWidth: 1280,
           margin: '0 auto',
@@ -100,8 +102,8 @@ export default function Navbar() {
           <Image
             src="/logo.svg"
             alt="SD Cosmetique"
-            width={200}
-            height={52}
+            width={340}
+            height={64}
             priority
             style={{ height: 44, width: 'auto' }}
           />
@@ -155,24 +157,6 @@ export default function Navbar() {
           <Link href="/wishlist" aria-label="Favoris" style={{ ...iconBtn, color: '#1A0E05' }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z" /></svg>
           </Link>
-          {/* Hamburger — mobile only */}
-          <button
-            className="hamburger-btn"
-            aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
-            onClick={() => setMenuOpen(!menuOpen)}
-            style={{ ...iconBtn, color: '#1A0E05' }}
-          >
-            {menuOpen ? (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            ) : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
-              </svg>
-            )}
-          </button>
-
           <button onClick={openCart} aria-label="Panier" style={{ ...iconBtn, color: '#1A0E05', position: 'relative' }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 7h12l-1.5 11h-9z" /><path d="M9 7V5a3 3 0 0 1 6 0v2" /></svg>
             {totalCount > 0 && (
@@ -198,6 +182,24 @@ export default function Navbar() {
               </span>
             )}
           </button>
+
+          {/* Hamburger — mobile only */}
+          <button
+            className="hamburger-btn"
+            aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+            onClick={() => setMenuOpen(!menuOpen)}
+            style={{ background: 'transparent', border: 'none', cursor: 'pointer', alignItems: 'center', justifyContent: 'center', padding: 4, color: '#1A0E05' }}
+          >
+            {menuOpen ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            )}
+          </button>
         </div>
       </div>
 
@@ -207,10 +209,14 @@ export default function Navbar() {
         }
         @media (max-width: 900px) {
           .nav-list { display: none !important; }
+          .nav-bar { gap: 16px !important; }
+        }
+        @media (max-width: 480px) {
+          .nav-bar { padding: 10px 16px !important; }
         }
         .hamburger-btn { display: none; }
         @media (max-width: 900px) {
-          .hamburger-btn { display: inline-flex !important; }
+          .hamburger-btn { display: inline-flex; }
         }
         .search-overlay {
           position: fixed;
@@ -385,8 +391,19 @@ export default function Navbar() {
       )}
 
       {searchOpen && (
-        <div className="search-overlay" onClick={() => setSearchOpen(false)}>
-          <div className="search-panel" onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          aria-label="Fermer la recherche"
+          className="search-overlay"
+          onClick={() => setSearchOpen(false)}
+          style={{ border: 'none', padding: 0, background: 'transparent', cursor: 'default' }}
+        >
+          <dialog
+            open
+            className="search-panel"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
             <div className="search-input-row">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8F5922" strokeWidth="2">
                 <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" />
@@ -427,8 +444,8 @@ export default function Navbar() {
             )}
 
             <div className="search-hint">Echap pour fermer · Entrée pour ouvrir</div>
-          </div>
-        </div>
+          </dialog>
+        </button>
       )}
     </header>
   );

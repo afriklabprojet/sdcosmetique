@@ -19,8 +19,10 @@ export default function CartDrawer() {
     <>
       {/* Backdrop */}
       {isOpen && (
-        <div
-          className="fixed inset-0 z-60 transition-opacity duration-300"
+        <button
+          type="button"
+          aria-label="Fermer le panier"
+          className="fixed inset-0 z-60 transition-opacity duration-300 w-full h-full border-0 p-0 cursor-default"
           style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(2px)' }}
           onClick={closeCart}
         />
@@ -41,7 +43,7 @@ export default function CartDrawer() {
             <h2 className="text-lg font-semibold" style={{ fontFamily: 'var(--font-heading)' }}>
               Mon Panier
             </h2>
-            <p className="text-xs text-gray-500 mt-0.5">{totalItems} article{totalItems !== 1 ? 's' : ''}</p>
+            <p className="text-xs text-gray-500 mt-0.5">{totalItems} article{totalItems === 1 ? '' : 's'}</p>
           </div>
           <button onClick={closeCart} className="p-2 hover:opacity-70 transition-opacity">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">

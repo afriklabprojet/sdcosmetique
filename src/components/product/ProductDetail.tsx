@@ -12,10 +12,6 @@ import StarRating from '@/components/ui/StarRating';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 
-// Composants extraits
-import ProductGallery from '@/components/product/ProductGallery';
-import ProductInfo from '@/components/product/ProductInfo';
-
 const DARK   = '#3D1400';
 const GOLD   = '#8F5922';
 const GOLD2  = '#C8974A';
@@ -42,16 +38,16 @@ const toneImage: Record<string, string> = {
 };
 
 interface Props {
-  product: Product;
-  related: Product[];
-  reviews: Review[];
+  readonly product: Product;
+  readonly related: Product[];
+  readonly reviews: Review[];
   /** Garanties affichées sous la sidebar (depuis site_config). */
-  trustItems?: ProductTrustItem[];
+  readonly trustItems?: ProductTrustItem[];
   /** Badges paiement (depuis site_config). */
-  paymentBadges?: PaymentBadge[];
+  readonly paymentBadges?: PaymentBadge[];
 }
 
-function BenefitIcon({ i }: { i: number }) {
+function BenefitIcon({ i }: { readonly i: number }) {
   const c = {
     width: 15, height: 15, viewBox: '0 0 24 24',
     fill: 'none' as const, stroke: GOLD2, strokeWidth: '2',
@@ -66,7 +62,7 @@ function BenefitIcon({ i }: { i: number }) {
   return <>{icons[i % 4]}</>;
 }
 
-function PayBadge({ label, bg, text = 'white' }: { label: string; bg: string; text?: string }) {
+function PayBadge({ label, bg, text = 'white' }: { readonly label: string; readonly bg: string; readonly text?: string }) {
   return (
     <div style={{ width: 44, height: 28, borderRadius: 5, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2px 3px' }}>
       <span style={{ fontSize: '6px', fontWeight: 900, color: text, textAlign: 'center', lineHeight: 1.2, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
@@ -100,10 +96,10 @@ const DEFAULT_PAYMENT_BADGES: PaymentBadge[] = [
 
 // ─── TonePicker (module-level) ──────────────────────────────────────────────
 interface TonePickerProps {
-  skinTones: string[];
-  selectedTone: string;
-  onSelect: (t: string) => void;
-  size?: number;
+  readonly skinTones: string[];
+  readonly selectedTone: string;
+  readonly onSelect: (t: string) => void;
+  readonly size?: number;
 }
 function TonePicker({ skinTones, selectedTone, onSelect, size = 40 }: TonePickerProps) {
   return (
@@ -143,16 +139,16 @@ function TonePicker({ skinTones, selectedTone, onSelect, size = 40 }: TonePicker
 
 // ─── PurchaseCard (module-level) ─────────────────────────────────────────────
 interface PurchaseCardProps {
-  product: import('@/types').Product;
-  selectedTone: string;
-  setSelectedTone: (t: import('@/types').SkinTone) => void;
-  qty: number;
-  setQty: (q: number) => void;
-  payments: import('@/lib/site-config').PaymentBadge[];
-  handleAddToCart: () => void;
-  handleBuyNow: () => void;
-  adding: boolean;
-  discount: number | null;
+  readonly product: import('@/types').Product;
+  readonly selectedTone: string;
+  readonly setSelectedTone: (t: import('@/types').SkinTone) => void;
+  readonly qty: number;
+  readonly setQty: (q: number) => void;
+  readonly payments: import('@/lib/site-config').PaymentBadge[];
+  readonly handleAddToCart: () => void;
+  readonly handleBuyNow: () => void;
+  readonly adding: boolean;
+  readonly discount: number | null;
 }
 function PurchaseCard({ product, selectedTone, setSelectedTone, qty, setQty, payments, handleAddToCart, handleBuyNow, adding, discount }: PurchaseCardProps) {
   return (
@@ -217,7 +213,7 @@ function PurchaseCard({ product, selectedTone, setSelectedTone, qty, setQty, pay
             Paiement sécurisé
           </p>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
-            {payments.map((p, i) => <PayBadge key={i} label={p.label} bg={p.bg} text={p.text} />)}
+            {payments.map((p) => <PayBadge key={p.label} label={p.label} bg={p.bg} text={p.text} />)}
           </div>
         </div>
       )}
@@ -288,7 +284,7 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
           {/* Col 1 – Thumbnails */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {product.images.map((img, i) => (
-              <button key={i} onClick={() => setMainImg(i)}
+              <button key={img} onClick={() => setMainImg(i)}
                 style={{ width: 88, height: 88, borderRadius: 4, overflow: 'hidden', border: `2px solid ${mainImg === i ? GOLD : BORDER}`, opacity: mainImg === i ? 1 : 0.65, cursor: 'pointer', background: 'white', padding: 0, flexShrink: 0, position: 'relative', transition: 'border-color .2s,opacity .2s' }}>
                 <Image src={img} alt={`${product.name} ${i + 1}`} fill sizes="88px" style={{ objectFit: 'cover' }} />
               </button>
@@ -354,7 +350,7 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
                   Bienfaits
                 </p>
                 {product.benefits.map((b, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                  <div key={b} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                     <div style={{ width: 34, height: 34, borderRadius: '50%', flexShrink: 0, background: '#FDF4E8', border: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <BenefitIcon i={i} />
                     </div>
@@ -408,7 +404,7 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
           {product.images.length > 1 && (
             <div style={{ display: 'flex', gap: 8, overflowX: 'auto' }}>
               {product.images.map((img, i) => (
-                <button key={i} onClick={() => setMainImg(i)}
+                <button key={img} onClick={() => setMainImg(i)}
                   style={{ width: 72, height: 72, borderRadius: 4, overflow: 'hidden', flexShrink: 0, border: `2px solid ${mainImg === i ? GOLD : BORDER}`, opacity: mainImg === i ? 1 : 0.65, cursor: 'pointer', background: 'white', padding: 0, position: 'relative' }}>
                   <Image src={img} alt={`${product.name} ${i + 1}`} fill sizes="72px" style={{ objectFit: 'cover' }} />
                 </button>
@@ -450,7 +446,7 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
                   Bienfaits
                 </p>
                 {product.benefits.map((b, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                  <div key={b} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                     <div style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, background: '#FDF4E8', border: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <BenefitIcon i={i} />
                     </div>
@@ -482,7 +478,7 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
           className="grid grid-cols-2 sm:grid-cols-4"
           style={{ border: `1px solid ${BORDER}`, borderRadius: 6, background: 'white', marginTop: 28, overflow: 'hidden' }}>
           {trust.map((item, i) => (
-            <div key={i}
+            <div key={item.label}
               className={i < trust.length - 1 ? 'sm:border-r' : ''}
               style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '18px 22px', borderColor: BORDER }}>
               <div style={{ flexShrink: 0 }}>{TRUST_ICONS[item.icon]}</div>
@@ -566,8 +562,8 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
               Ingrédients clés
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {keyIngredients.map((ing, i) => (
-                <span key={i} style={{ padding: '6px 14px', background: 'white', border: `1px solid ${BORDER}`, borderRadius: 20, fontSize: 12, fontWeight: 500, color: GOLD }}>
+              {keyIngredients.map((ing) => (
+                <span key={ing} style={{ padding: '6px 14px', background: 'white', border: `1px solid ${BORDER}`, borderRadius: 20, fontSize: 12, fontWeight: 500, color: GOLD }}>
                   {ing}
                 </span>
               ))}
@@ -583,7 +579,7 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
               <p style={{ fontSize: 18, fontWeight: 800, color: TXT, fontFamily: 'Georgia,serif', lineHeight: 1.2, marginBottom: 8 }}>
                 {(product.resultsTitle ?? "Résultats visibles dès 7 jours d'utilisation")
                   .split(/\n|<br\s*\/?>/i)
-                  .flatMap((line, i, arr) => i < arr.length - 1 ? [line, <br key={i} />] : [line])}
+                  .flatMap((line, i, arr) => i < arr.length - 1 ? [line, <br key={line} />] : [line])}
               </p>
               <p style={{ fontSize: 12, color: TXT3, lineHeight: 1.5 }}>
                 {product.resultsSubtitle ?? 'Peau plus lumineuse, lisse et unifiée.'}

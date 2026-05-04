@@ -17,15 +17,47 @@ import {
   type JekoTransaction, type JekoReward, type JekoConfig,
 } from '@/lib/jeko';
 
-// Composants extraits
-import AccountNav from '@/components/account/AccountNav';
-import AccountDashboard from '@/components/account/AccountDashboard';
-import OrdersSection from '@/components/account/OrdersSection';
-import ProfileSection from '@/components/account/ProfileSection';
-
 function jekoNextLabel(currentLabel: string, tiers: typeof JEKO_TIERS): string {
   const idx = tiers.findIndex(t => t.label === currentLabel);
   return idx >= 0 && idx < tiers.length - 1 ? tiers[idx + 1].label : '';
+}
+
+function getTierGradient(label: string): string {
+  switch (label) {
+    case 'Diamant':
+      return 'linear-gradient(135deg,#0c1a2e 0%,#1a3a5c 40%,#0ea5e9 100%)';
+    case 'Platine':
+      return 'linear-gradient(135deg,#1a0a2e 0%,#4a1a7a 50%,#9333EA 100%)';
+    case 'Gold':
+      return 'linear-gradient(135deg,#3D1400 0%,#6B3D14 50%,#C8974A 100%)';
+    case 'Argent':
+      return 'linear-gradient(135deg,#1a1a1a 0%,#3a3a3a 50%,#6B7280 100%)';
+    default:
+      return 'linear-gradient(135deg,#2a1400 0%,#5a2d0c 50%,#CD7F32 100%)';
+  }
+}
+
+function getTransactionIcon(reason: JekoTransaction['reason']): string {
+  switch (reason) {
+    case 'purchase':
+      return '🛍️';
+    case 'welcome':
+      return '🎉';
+    case 'referral':
+      return '👥';
+    case 'redemption':
+      return '🎁';
+    default:
+      return '✏️';
+  }
+}
+
+function toProfileMeta(form: { prenom: string; nom: string; telephone: string }): Record<string, string> {
+  return {
+    ...(form.prenom ? { prenom: form.prenom } : {}),
+    ...(form.nom ? { nom: form.nom } : {}),
+    ...(form.telephone ? { telephone: form.telephone } : {}),
+  };
 }
 
 type NavItem = 'dashboard' | 'commandes' | 'adresses' | 'paiements' | 'favoris' | 'avis' | 'profil' | 'points' | 'newsletter' | 'parametres';
@@ -45,6 +77,7 @@ const NAV_ITEMS: { id: NavItem; label: string; icon: React.ReactNode; badge?: st
 
 export default function ComptePage() {
   const router = useRouter();
+  const [isMobile, setIsMobile] = useState(false);
   const [active, setActive] = useState<NavItem>('dashboard');
   const [user, setUser] = useState<User | null>(null);
   const [orders, setOrders] = useState<OrderDraft[]>([]);
@@ -80,6 +113,15 @@ export default function ComptePage() {
     tiers: JEKO_TIERS,
     rewards: JEKO_REWARDS,
   });
+
+  useEffect(() => {
+    const updateViewport = () => {
+      setIsMobile(globalThis.window.innerWidth <= 900);
+    };
+    updateViewport();
+    globalThis.window.addEventListener('resize', updateViewport);
+    return () => globalThis.window.removeEventListener('resize', updateViewport);
+  }, []);
 
   useEffect(() => {
     const supabase = createClient();
@@ -156,6 +198,78 @@ export default function ComptePage() {
     status: statusMap[o.status] ?? 'Confirmée',
   }));
 
+  const handleProfileSave = async () => {
+    setProfileSaving(true);
+    setProfileMsg(null);
+    const supabase = createClient();
+    const meta = toProfileMeta(profileForm);
+    const updates: Record<string, unknown> = {
+      ...(profileForm.email && profileForm.email !== displayEmail ? { email: profileForm.email } : {}),
+      ...(Object.keys(meta).length ? { data: meta } : {}),
+    };
+
+    const { error } = await supabase.auth.updateUser(updates as Parameters<typeof supabase.auth.updateUser>[0]);
+
+    if (!error && user) {
+      if (Object.keys(meta).length) {
+        await supabase.from('profiles').upsert({ id: user.id, ...meta });
+      }
+    }
+
+    setProfileSaving(false);
+    if (error) {
+      setProfileMsg({ type: 'err', text: error.message });
+      return;
+    }
+
+    setProfileMsg({ type: 'ok', text: 'Profil mis à jour avec succès !' });
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+  };
+
+  const handleSaveAddress = () => {
+    if (!addrForm.prenom || !addrForm.rue || !addrForm.ville) return;
+
+    const newAddr = { ...addrForm, id: editingAddr || Date.now().toString() };
+    setAddresses(prev => {
+      const filtered = editingAddr ? prev.filter(a => a.id !== editingAddr) : prev;
+      const updated = addrForm.isDefault ? filtered.map(a => ({ ...a, isDefault: false })) : filtered;
+      return [...updated, newAddr];
+    });
+    setShowAddrForm(false);
+    setEditingAddr(null);
+  };
+
+  const handleSetDefaultAddress = (addressId: string) => {
+    setAddresses(previous => previous.map(address => ({ ...address, isDefault: address.id === addressId })));
+  };
+
+  const handleDeleteAddress = (addressId: string) => {
+    setAddresses(previous => previous.filter(address => address.id !== addressId));
+  };
+
+  const handleRedeemReward = async () => {
+    if (!redeemingReward || !user) return;
+    setRedeemMsg(null);
+    const result = await redeemJekoPoints(user.id, redeemingReward);
+
+    if (result.ok) {
+      setUserPoints(p => p - redeemingReward.pts);
+      setJekoHistory(prev => [{
+        id: Date.now().toString(),
+        points: -redeemingReward.pts,
+        reason: 'redemption',
+        label: `Récompense utilisée : ${redeemingReward.label}`,
+        reference_id: null,
+        created_at: new Date().toISOString(),
+      }, ...prev]);
+      setRedeemMsg({ type: 'ok', text: `✅ Récompense activée : ${redeemingReward.label} ! Un code vous sera envoyé par email.` });
+    } else {
+      setRedeemMsg({ type: 'err', text: result.error ?? 'Erreur lors de la rédemption.' });
+    }
+
+    setRedeemingReward(null);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: '#FAF8F5' }}>
@@ -183,7 +297,7 @@ export default function ComptePage() {
 
   return (
     <div style={{ background: '#F5F2EE', minHeight: '100vh' }}>
-      <div style={{ maxWidth: 1440, margin: '0 auto', padding: '28px 40px 0' }}>
+      <div style={{ maxWidth: 1440, margin: '0 auto', padding: isMobile ? '18px 12px 0' : '28px 40px 0' }}>
 
         {/* ── BREADCRUMB ── */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#9A8A7A', marginBottom: 20 }}>
@@ -192,12 +306,12 @@ export default function ComptePage() {
           <span style={{ color: '#1A1A1A' }}>Mon compte</span>
         </div>
 
-        <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', gap: isMobile ? 14 : 24, alignItems: 'flex-start', flexDirection: isMobile ? 'column' : 'row' }}>
 
           {/* ════════════════════════════════
               LEFT SIDEBAR
           ════════════════════════════════ */}
-          <aside style={{ width: 240, flexShrink: 0 }}>
+          <aside style={{ width: isMobile ? '100%' : 240, flexShrink: 0 }}>
             <div style={{ background: '#fff', borderRadius: 20, border: '1px solid #EDE8E0', overflow: 'hidden', boxShadow: '0 2px 12px rgba(61,20,0,.05)' }}>
 
               {/* Avatar + nom */}
@@ -218,7 +332,7 @@ export default function ComptePage() {
                       display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4,
                       background: getJekoTierFromList(userPoints, jekoConfig.tiers).bg, borderRadius: 99, padding: '2px 8px',
                       fontSize: 10, fontWeight: 700, color: getJekoTierFromList(userPoints, jekoConfig.tiers).textColor,
-                    }}>{getJekoTierFromList(userPoints, jekoConfig.tiers).emoji} Membre {getJekoTierFromList(userPoints, jekoConfig.tiers).label}</span>
+                    }}>{getJekoTierFromList(userPoints, jekoConfig.tiers).emoji}{' '}Membre {getJekoTierFromList(userPoints, jekoConfig.tiers).label}</span>
                   </div>
                 </div>
               </div>
@@ -278,6 +392,7 @@ export default function ComptePage() {
                   }}
                 >
                   <span style={{ display: 'flex', opacity: .7 }}><LogoutIcon /></span>
+                  {' '}
                   Déconnexion
                 </button>
               </div>
@@ -302,14 +417,14 @@ export default function ComptePage() {
           {/* ════════════════════════════════
               MAIN CONTENT
           ════════════════════════════════ */}
-          <main style={{ flex: 1, minWidth: 0, paddingBottom: 40 }}>
+          <main style={{ flex: 1, minWidth: 0, width: '100%', paddingBottom: 40 }}>
 
             {/* ── DASHBOARD ── */}
             {active === 'dashboard' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
                 {/* ROW 1: Welcome + Points */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 280px', gap: 16 }}>
 
                   {/* Welcome card */}
                   <div style={{
@@ -426,7 +541,7 @@ export default function ComptePage() {
                 </div>
 
                 {/* ROW 2: Commandes + Favoris */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 280px', gap: 16 }}>
 
                   {/* Commandes table */}
                   <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #EDE8E0', overflow: 'hidden' }}>
@@ -490,11 +605,11 @@ export default function ComptePage() {
                         Voir tous →
                       </button>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 0 }}>
                       {wishlistItems.length === 0 ? (
                         <p style={{ padding: '20px', fontSize: 12, color: '#9A8A7A', gridColumn: '1 / -1', textAlign: 'center' }}>Aucun favori pour l&apos;instant</p>
                       ) : wishlistItems.slice(0, 4).map((fav, i) => (
-                        <div key={i} style={{
+                        <div key={fav.id} style={{
                           padding: '12px', borderRight: i % 2 === 0 ? '1px solid #F5F0E8' : 'none',
                           borderBottom: i < 2 ? '1px solid #F5F0E8' : 'none',
                           position: 'relative',
@@ -517,7 +632,7 @@ export default function ComptePage() {
                 </div>
 
                 {/* ROW 3: Infos compte + Parrainage */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 280px', gap: 16 }}>
 
                   {/* Infos compte */}
                   <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #EDE8E0', padding: '24px 28px' }}>
@@ -529,7 +644,7 @@ export default function ComptePage() {
                     </div>
 
                     {/* Champs 2x2 */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 20 }}>
                       {[
                         { svg: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B4513" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>, label: 'Nom complet', val: displayName },
                         { svg: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B4513" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.1a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.56 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>, label: 'Téléphone', val: displayPhone || 'Non renseigné' },
@@ -643,11 +758,12 @@ export default function ComptePage() {
                       {profileMsg.type === 'ok' ? '✅ ' : '❌ '}{profileMsg.text}
                     </div>
                   )}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
                     {[{ label: 'Prénom', key: 'prenom', placeholder: prenom || 'Votre prénom' }, { label: 'Nom', key: 'nom', placeholder: nom || 'Votre nom' }].map(f => (
                       <div key={f.key}>
-                        <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6B3D14', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{f.label}</label>
+                        <label htmlFor={`profile-${f.key}`} style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6B3D14', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{f.label}</label>
                         <input
+                          id={`profile-${f.key}`}
                           type="text"
                           value={profileForm[f.key as keyof typeof profileForm]}
                           placeholder={f.placeholder}
@@ -657,8 +773,9 @@ export default function ComptePage() {
                       </div>
                     ))}
                     <div style={{ gridColumn: '1/-1' }}>
-                      <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6B3D14', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Adresse email</label>
+                      <label htmlFor="profile-email" style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6B3D14', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Adresse email</label>
                       <input
+                        id="profile-email"
                         type="email"
                         value={profileForm.email || displayEmail}
                         onChange={e => setProfileForm(p => ({ ...p, email: e.target.value }))}
@@ -666,8 +783,9 @@ export default function ComptePage() {
                       />
                     </div>
                     <div style={{ gridColumn: '1/-1' }}>
-                      <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6B3D14', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Téléphone</label>
+                      <label htmlFor="profile-phone" style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6B3D14', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Téléphone</label>
                       <input
+                        id="profile-phone"
                         type="tel"
                         value={profileForm.telephone || displayPhone}
                         placeholder="+225 07 00 00 00 00"
@@ -678,32 +796,7 @@ export default function ComptePage() {
                   </div>
                   <button
                     disabled={profileSaving}
-                    onClick={async () => {
-                      setProfileSaving(true);
-                      setProfileMsg(null);
-                      const supabase = createClient();
-                      const updates: Record<string, unknown> = {};
-                      if (profileForm.email && profileForm.email !== displayEmail) updates.email = profileForm.email;
-                      const meta: Record<string, string> = {};
-                      if (profileForm.prenom) meta.prenom = profileForm.prenom;
-                      if (profileForm.nom) meta.nom = profileForm.nom;
-                      if (profileForm.telephone) meta.telephone = profileForm.telephone;
-                      if (Object.keys(meta).length) updates.data = meta;
-                      const { error } = await supabase.auth.updateUser(updates as Parameters<typeof supabase.auth.updateUser>[0]);
-                      if (!error && user) {
-                        // Sync table profiles
-                        const profileUpd: Record<string, string> = {};
-                        if (profileForm.prenom) profileUpd.prenom = profileForm.prenom;
-                        if (profileForm.nom) profileUpd.nom = profileForm.nom;
-                        if (profileForm.telephone) profileUpd.telephone = profileForm.telephone;
-                        if (Object.keys(profileUpd).length) {
-                          await supabase.from('profiles').upsert({ id: user.id, ...profileUpd });
-                        }
-                      }
-                      setProfileSaving(false);
-                      if (error) setProfileMsg({ type: 'err', text: error.message });
-                      else { setProfileMsg({ type: 'ok', text: 'Profil mis à jour avec succès !' }); supabase.auth.getUser().then(({ data }) => setUser(data.user)); }
-                    }}
+                    onClick={handleProfileSave}
                     style={{ marginTop: 20, padding: '11px 28px', background: profileSaving ? '#9A8A7A' : '#3D1400', border: 'none', borderRadius: 10, color: '#fff', fontSize: 13, fontWeight: 700, cursor: profileSaving ? 'not-allowed' : 'pointer' }}
                   >
                     {profileSaving ? 'Enregistrement…' : 'Enregistrer les modifications'}
@@ -721,8 +814,9 @@ export default function ComptePage() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                     {[{ label: 'Mot de passe actuel', key: 'current' }, { label: 'Nouveau mot de passe', key: 'next' }, { label: 'Confirmer le nouveau mot de passe', key: 'confirm' }].map(f => (
                       <div key={f.key}>
-                        <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6B3D14', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{f.label}</label>
+                        <label htmlFor={`pwd-${f.key}`} style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6B3D14', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{f.label}</label>
                         <input
+                          id={`pwd-${f.key}`}
                           type="password"
                           value={pwdForm[f.key as keyof typeof pwdForm]}
                           onChange={e => setPwdForm(p => ({ ...p, [f.key]: e.target.value }))}
@@ -781,10 +875,10 @@ export default function ComptePage() {
                       </div>
                       <div style={{ display: 'flex', gap: 8 }}>
                         {!addr.isDefault && (
-                          <button onClick={() => setAddresses(a => a.map(x => ({ ...x, isDefault: x.id === addr.id })))} style={{ padding: '6px 12px', background: '#FAF8F5', border: '1px solid #EDE8E0', borderRadius: 8, fontSize: 11, color: '#6B3D14', cursor: 'pointer', fontWeight: 600 }}>Par défaut</button>
+                          <button onClick={() => handleSetDefaultAddress(addr.id)} style={{ padding: '6px 12px', background: '#FAF8F5', border: '1px solid #EDE8E0', borderRadius: 8, fontSize: 11, color: '#6B3D14', cursor: 'pointer', fontWeight: 600 }}>Par défaut</button>
                         )}
                         <button onClick={() => { setAddrForm({ ...addr }); setEditingAddr(addr.id); setShowAddrForm(true); }} style={{ padding: '6px 12px', background: '#FAF8F5', border: '1px solid #EDE8E0', borderRadius: 8, fontSize: 11, color: '#6B3D14', cursor: 'pointer', fontWeight: 600 }}>Modifier</button>
-                        <button onClick={() => setAddresses(a => a.filter(x => x.id !== addr.id))} style={{ padding: '6px 12px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, fontSize: 11, color: '#DC2626', cursor: 'pointer', fontWeight: 600 }}>Supprimer</button>
+                        <button onClick={() => handleDeleteAddress(addr.id)} style={{ padding: '6px 12px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, fontSize: 11, color: '#DC2626', cursor: 'pointer', fontWeight: 600 }}>Supprimer</button>
                       </div>
                     </div>
                   </div>
@@ -793,17 +887,18 @@ export default function ComptePage() {
                 {showAddrForm && (
                   <div style={{ background: '#fff', borderRadius: 16, border: '2px solid #C8974A', padding: '24px 28px' }}>
                     <h3 style={{ fontSize: 14, fontWeight: 800, color: '#1A1A1A', marginBottom: 20 }}>{editingAddr ? 'Modifier l\'adresse' : 'Nouvelle adresse'}</h3>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 14 }}>
                       <div style={{ gridColumn: '1/-1' }}>
-                        <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6B3D14', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Libellé (ex: Domicile, Bureau…)</label>
-                        <select value={addrForm.label} onChange={e => setAddrForm(f => ({ ...f, label: e.target.value }))} style={{ width: '100%', padding: '10px 14px', border: '1px solid #EDE8E0', borderRadius: 10, fontSize: 13, background: '#FAFAF8', boxSizing: 'border-box' }}>
+                        <label htmlFor="addr-label" style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6B3D14', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Libellé (ex: Domicile, Bureau…)</label>
+                        <select id="addr-label" value={addrForm.label} onChange={e => setAddrForm(f => ({ ...f, label: e.target.value }))} style={{ width: '100%', padding: '10px 14px', border: '1px solid #EDE8E0', borderRadius: 10, fontSize: 13, background: '#FAFAF8', boxSizing: 'border-box' }}>
                           {['Domicile', 'Bureau', 'Autre'].map(l => <option key={l}>{l}</option>)}
                         </select>
                       </div>
                       {[{ label: 'Prénom', key: 'prenom' }, { label: 'Nom', key: 'nom' }, { label: 'Adresse', key: 'rue', full: true }, { label: 'Ville', key: 'ville' }, { label: 'Code postal', key: 'code' }, { label: 'Téléphone', key: 'tel' }].map(f => (
                         <div key={f.key} style={f.full ? { gridColumn: '1/-1' } : {}}>
-                          <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6B3D14', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{f.label}</label>
+                          <label htmlFor={`addr-${f.key}`} style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6B3D14', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{f.label}</label>
                           <input
+                            id={`addr-${f.key}`}
                             type="text"
                             value={addrForm[f.key as keyof typeof addrForm] as string}
                             onChange={e => setAddrForm(a => ({ ...a, [f.key]: e.target.value }))}
@@ -818,16 +913,7 @@ export default function ComptePage() {
                     </div>
                     <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
                       <button
-                        onClick={() => {
-                          if (!addrForm.prenom || !addrForm.rue || !addrForm.ville) return;
-                          const newAddr = { ...addrForm, id: editingAddr || Date.now().toString() };
-                          setAddresses(prev => {
-                            const filtered = editingAddr ? prev.filter(a => a.id !== editingAddr) : prev;
-                            const updated = addrForm.isDefault ? filtered.map(a => ({ ...a, isDefault: false })) : filtered;
-                            return [...updated, newAddr];
-                          });
-                          setShowAddrForm(false); setEditingAddr(null);
-                        }}
+                        onClick={handleSaveAddress}
                         style={{ padding: '11px 28px', background: '#3D1400', border: 'none', borderRadius: 10, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
                       >{editingAddr ? 'Enregistrer' : 'Ajouter'}</button>
                       <button onClick={() => { setShowAddrForm(false); setEditingAddr(null); }} style={{ padding: '11px 20px', background: 'none', border: '1px solid #EDE8E0', borderRadius: 10, fontSize: 13, color: '#6B3D14', cursor: 'pointer' }}>Annuler</button>
@@ -869,10 +955,10 @@ export default function ComptePage() {
                   <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #EDE8E0', padding: '48px 24px', textAlign: 'center' }}>
                     <p style={{ fontSize: 40, marginBottom: 12 }}>🤍</p>
                     <p style={{ fontSize: 14, color: '#9A8A7A', marginBottom: 16 }}>Votre liste de favoris est vide.</p>
-                    <Link href="/boutique" style={{ display: 'inline-block', padding: '10px 24px', background: '#3D1400', borderRadius: 10, color: '#fff', fontSize: 13, fontWeight: 700, textDecoration: 'none' }}>Découvrir nos produits</Link>
+                    <Link href="/boutique" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 44, width: isMobile ? '100%' : 'auto', maxWidth: isMobile ? 320 : 'none', padding: '10px 24px', background: '#3D1400', borderRadius: 10, color: '#fff', fontSize: 13, fontWeight: 700, textDecoration: 'none', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Découvrir nos produits</Link>
                   </div>
                 ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 16 }}>
                     {wishlistItems.map(product => (
                       <div key={product.id} style={{ background: '#fff', borderRadius: 16, border: '1px solid #EDE8E0', overflow: 'hidden' }}>
                         <div style={{ position: 'relative', height: 180, background: '#FAF8F5' }}>
@@ -903,7 +989,7 @@ export default function ComptePage() {
                     <div style={{ textAlign: 'center', padding: '32px 0' }}>
                       <p style={{ fontSize: 40, marginBottom: 12 }}>⭐</p>
                       <p style={{ fontSize: 14, color: '#9A8A7A', marginBottom: 16 }}>Passez votre première commande pour laisser un avis.</p>
-                      <Link href="/boutique" style={{ display: 'inline-block', padding: '10px 24px', background: '#3D1400', borderRadius: 10, color: '#fff', fontSize: 13, fontWeight: 700, textDecoration: 'none' }}>Découvrir nos produits</Link>
+                      <Link href="/boutique" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 44, width: isMobile ? '100%' : 'auto', maxWidth: isMobile ? 320 : 'none', padding: '10px 24px', background: '#3D1400', borderRadius: 10, color: '#fff', fontSize: 13, fontWeight: 700, textDecoration: 'none', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Découvrir nos produits</Link>
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -930,27 +1016,6 @@ export default function ComptePage() {
               const tier = getJekoTierFromList(userPoints, jekoConfig.tiers);
               const nextPts = tier.next === Infinity ? userPoints : tier.next;
               const progress = tier.next === Infinity ? 100 : Math.min(100, Math.round((userPoints / tier.next) * 100));
-
-              const handleRedeem = async () => {
-                if (!redeemingReward || !user) return;
-                setRedeemMsg(null);
-                const result = await redeemJekoPoints(user.id, redeemingReward);
-                if (result.ok) {
-                  setUserPoints(p => p - redeemingReward.pts);
-                  setJekoHistory(prev => [{
-                    id: Date.now().toString(),
-                    points: -redeemingReward.pts,
-                    reason: 'redemption',
-                    label: `Récompense utilisée : ${redeemingReward.label}`,
-                    reference_id: null,
-                    created_at: new Date().toISOString(),
-                  }, ...prev]);
-                  setRedeemMsg({ type: 'ok', text: `✅ Récompense activée : ${redeemingReward.label} ! Un code vous sera envoyé par email.` });
-                } else {
-                  setRedeemMsg({ type: 'err', text: result.error ?? 'Erreur lors de la rédemption.' });
-                }
-                setRedeemingReward(null);
-              };
 
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -990,7 +1055,7 @@ export default function ComptePage() {
                             Annuler
                           </button>
                           <button
-                            onClick={handleRedeem}
+                            onClick={handleRedeemReward}
                             style={{ flex: 1, padding: '12px 0', background: '#3D1400', border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer' }}
                           >
                             Confirmer
@@ -1005,11 +1070,7 @@ export default function ComptePage() {
                     position: 'relative', width: '100%', maxWidth: 440, margin: '0 auto',
                     aspectRatio: '1.586 / 1',
                     borderRadius: 20,
-                    background: tier.label === 'Diamant' ? 'linear-gradient(135deg,#0c1a2e 0%,#1a3a5c 40%,#0ea5e9 100%)'
-                      : tier.label === 'Platine' ? 'linear-gradient(135deg,#1a0a2e 0%,#4a1a7a 50%,#9333EA 100%)'
-                      : tier.label === 'Gold'    ? 'linear-gradient(135deg,#3D1400 0%,#6B3D14 50%,#C8974A 100%)'
-                      : tier.label === 'Argent'  ? 'linear-gradient(135deg,#1a1a1a 0%,#3a3a3a 50%,#6B7280 100%)'
-                      : 'linear-gradient(135deg,#2a1400 0%,#5a2d0c 50%,#CD7F32 100%)',
+                    background: getTierGradient(tier.label),
                     boxShadow: '0 20px 60px rgba(0,0,0,.35), 0 4px 16px rgba(0,0,0,.2)',
                     overflow: 'hidden',
                     color: '#fff',
@@ -1053,8 +1114,8 @@ export default function ComptePage() {
                             display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr',
                             gap: 2, padding: 4, boxSizing: 'border-box',
                           }}>
-                            {[0,1,2,3].map(i => (
-                              <div key={i} style={{ background: 'rgba(255,215,100,.35)', borderRadius: 1 }} />
+                            {['chip-1', 'chip-2', 'chip-3', 'chip-4'].map(segment => (
+                              <div key={segment} style={{ background: 'rgba(255,215,100,.35)', borderRadius: 1 }} />
                             ))}
                           </div>
                           {/* WiFi NFC icon */}
@@ -1137,7 +1198,7 @@ export default function ComptePage() {
                     <p style={{ fontSize: 12, fontWeight: 800, color: '#1A1A1A', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>
                       Récompenses disponibles
                     </p>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: 12 }}>
                       {jekoConfig.rewards.filter(r => r.active !== false).map(r => {
                         const unlocked = userPoints >= r.pts;
                         return (
@@ -1178,7 +1239,7 @@ export default function ComptePage() {
                     <p style={{ fontSize: 12, fontWeight: 800, color: '#1A1A1A', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>
                       Comment gagner des Jeko ?
                     </p>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
                       {[
                         { icon: '🛍️', title: 'Chaque achat', desc: '10 pts pour 1 000 FCFA dépensés' },
                         { icon: '🎉', title: 'Inscription', desc: '20 pts offerts à la bienvenue' },
@@ -1228,11 +1289,7 @@ export default function ComptePage() {
                                 background: isCredit ? '#ECFDF5' : '#FEF2F2',
                                 fontSize: 14,
                               }}>
-                                {tx.reason === 'purchase' ? '🛍️'
-                                  : tx.reason === 'welcome' ? '🎉'
-                                  : tx.reason === 'referral' ? '👥'
-                                  : tx.reason === 'redemption' ? '🎁'
-                                  : '✏️'}
+                                {getTransactionIcon(tx.reason)}
                               </div>
                               <div>
                                 <p style={{ fontSize: 13, fontWeight: 600, color: '#1A1A1A' }}>
@@ -1304,16 +1361,16 @@ export default function ComptePage() {
                 {/* Langue / région */}
                 <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #EDE8E0', padding: '24px 28px' }}>
                   <h2 style={{ fontSize: 14, fontWeight: 800, color: '#1A1A1A', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 20 }}>Préférences</h2>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6B3D14', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Langue</label>
-                      <select style={{ width: '100%', padding: '10px 14px', border: '1px solid #EDE8E0', borderRadius: 10, fontSize: 13, background: '#FAFAF8', boxSizing: 'border-box' }}>
+                      <label htmlFor="pref-language" style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6B3D14', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Langue</label>
+                      <select id="pref-language" style={{ width: '100%', padding: '10px 14px', border: '1px solid #EDE8E0', borderRadius: 10, fontSize: 13, background: '#FAFAF8', boxSizing: 'border-box' }}>
                         <option>Français</option><option>English</option>
                       </select>
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6B3D14', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Devise</label>
-                      <select style={{ width: '100%', padding: '10px 14px', border: '1px solid #EDE8E0', borderRadius: 10, fontSize: 13, background: '#FAFAF8', boxSizing: 'border-box' }}>
+                      <label htmlFor="pref-currency" style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6B3D14', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Devise</label>
+                      <select id="pref-currency" style={{ width: '100%', padding: '10px 14px', border: '1px solid #EDE8E0', borderRadius: 10, fontSize: 13, background: '#FAFAF8', boxSizing: 'border-box' }}>
                         <option>FCFA (XOF)</option><option>EUR (€)</option><option>USD ($)</option>
                       </select>
                     </div>
@@ -1325,7 +1382,7 @@ export default function ComptePage() {
                 <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #EDE8E0', padding: '24px 28px' }}>
                   <h2 style={{ fontSize: 14, fontWeight: 800, color: '#1A1A1A', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 20 }}>Notifications</h2>
                   {[{ label: 'Statut de commande', desc: 'Recevez les mises à jour de vos commandes par email.' }, { label: 'Promotions exclusives', desc: 'Soyez alerté(e) des offres réservées aux membres.' }].map((n, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: i === 0 ? '1px solid #F5F0E8' : 'none' }}>
+                    <div key={n.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: i === 0 ? '1px solid #F5F0E8' : 'none' }}>
                       <div>
                         <p style={{ fontSize: 13, fontWeight: 700, color: '#1A1A1A', marginBottom: 2 }}>{n.label}</p>
                         <p style={{ fontSize: 12, color: '#9A8A7A' }}>{n.desc}</p>
@@ -1342,8 +1399,9 @@ export default function ComptePage() {
                   <h2 style={{ fontSize: 14, fontWeight: 800, color: '#DC2626', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 }}>Zone de danger</h2>
                   <p style={{ fontSize: 13, color: '#9A8A7A', marginBottom: 20 }}>La suppression de votre compte est irréversible. Toutes vos données seront définitivement effacées.</p>
                   <div style={{ marginBottom: 12 }}>
-                    <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#DC2626', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Tapez &quot;SUPPRIMER&quot; pour confirmer</label>
+                    <label htmlFor="delete-confirm" style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#DC2626', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Tapez &quot;SUPPRIMER&quot; pour confirmer</label>
                     <input
+                      id="delete-confirm"
                       type="text"
                       value={deleteConfirm}
                       onChange={e => setDeleteConfirm(e.target.value)}
@@ -1371,7 +1429,7 @@ export default function ComptePage() {
 
         {/* ── TRUST FOOTER ── */}
         <div style={{
-          display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 0,
+          display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: 0,
           background: '#fff', borderRadius: 16, border: '1px solid #EDE8E0',
           margin: '24px 0 0', padding: '20px 0',
         }}>
@@ -1382,10 +1440,11 @@ export default function ComptePage() {
             { icon: '↩️', title: 'Satisfait ou remboursé', sub: 'sous 7 jours' },
             { icon: '💬', title: 'Service client disponible', sub: '7/7' },
           ].map((t, i) => (
-            <div key={i} style={{
+            <div key={t.title} style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
-              padding: '0 16px',
-              borderRight: i < 4 ? '1px solid #F0EBE0' : 'none',
+              padding: isMobile ? '12px' : '0 16px',
+              borderRight: !isMobile && i < 4 ? '1px solid #F0EBE0' : 'none',
+              borderBottom: isMobile && i < 3 ? '1px solid #F0EBE0' : 'none',
             }}>
               <span style={{ fontSize: 24, marginBottom: 6 }}>{t.icon}</span>
               <p style={{ fontSize: 11, fontWeight: 700, color: '#1A1A1A', lineHeight: 1.3 }}>{t.title}</p>

@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { formatPrice } from '@/lib/products';
 import { PaymentMethod, SKIN_TONES } from '@/types';
@@ -62,51 +60,49 @@ const MOBILE_METHODS: { id: PaymentMethod; label: string; desc: string; logo: Re
 
 
 // ── Types checkout ────────────────────────────────────────────────────────────
-type Step = CheckoutStep;
-
 interface SidebarProps {
-  items: ReturnType<typeof useCart>['items'];
-  totalPrice: number;
-  shippingCost: number;
-  discount: number;
-  total: number;
-  step: Step;
-  setStep: (s: Step) => void;
-  appliedPromo: { code: PromoCode; discount: number } | null;
-  promoInput: string;
-  setPromoInput: (v: string) => void;
-  promoError: string | null;
-  setPromoError: (e: string | null) => void;
-  handleApplyPromo: () => void;
-  removePromo: () => void;
+  readonly items: ReturnType<typeof useCart>['items'];
+  readonly totalPrice: number;
+  readonly shippingCost: number;
+  readonly discount: number;
+  readonly total: number;
+  readonly step: CheckoutStep;
+  readonly setStep: (s: CheckoutStep) => void;
+  readonly appliedPromo: { code: PromoCode; discount: number } | null;
+  readonly promoInput: string;
+  readonly setPromoInput: (v: string) => void;
+  readonly promoError: string | null;
+  readonly setPromoError: (e: string | null) => void;
+  readonly handleApplyPromo: () => void;
+  readonly removePromo: () => void;
 }
 
 interface CartStepProps {
   items: ReturnType<typeof useCart>['items'];
-  setStep: (s: Step) => void;
+  setStep: (s: CheckoutStep) => void;
   updateQty: (productId: string, quantity: number) => void;
   removeItem: (productId: string) => void;
 }
 
 interface DeliveryStepProps {
-  delivery: DeliveryInfo;
-  setDelivery: React.Dispatch<React.SetStateAction<DeliveryInfo>>;
-  setStep: (s: Step) => void;
-  handleDeliverySubmit: (e: React.FormEvent) => void;
-  shippingOptions: ShippingOption[];
-  selectedShipping: ShippingOption | null;
-  setSelectedShipping: (opt: ShippingOption) => void;
+  readonly delivery: DeliveryInfo;
+  readonly setDelivery: React.Dispatch<React.SetStateAction<DeliveryInfo>>;
+  readonly setStep: (s: CheckoutStep) => void;
+  readonly handleDeliverySubmit: (e: React.SyntheticEvent) => void;
+  readonly shippingOptions: ShippingOption[];
+  readonly selectedShipping: ShippingOption | null;
+  readonly setSelectedShipping: (opt: ShippingOption) => void;
 }
 
 interface PaymentStepProps {
-  paymentMethod: PaymentMethod;
-  setPaymentMethod: (m: PaymentMethod) => void;
-  mobileNumber: string;
-  setMobileNumber: (n: string) => void;
-  handlePlaceOrder: (e: React.FormEvent) => Promise<void>;
-  processing: boolean;
-  setStep: (s: Step) => void;
-  isMobile: boolean;
+  readonly paymentMethod: PaymentMethod;
+  readonly setPaymentMethod: (m: PaymentMethod) => void;
+  readonly mobileNumber: string;
+  readonly setMobileNumber: (n: string) => void;
+  readonly handlePlaceOrder: (e: React.SyntheticEvent) => Promise<void>;
+  readonly processing: boolean;
+  readonly setStep: (s: CheckoutStep) => void;
+  readonly isMobile: boolean;
 }
 
 
@@ -242,8 +238,9 @@ function DeliveryStep({ delivery, setDelivery, setStep, handleDeliverySubmit, sh
                 const isSelected = selectedShipping?.id === opt.id;
                 const isFree = opt.freeFrom > 0;
                 return (
-                  <label key={opt.id} onClick={() => setSelectedShipping(opt)}
+                  <label key={opt.id}
                     style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 16px', border: `2px solid ${isSelected ? GOLD : BORDER}`, borderRadius: '6px', cursor: 'pointer', background: isSelected ? '#FFFBF4' : 'white', transition: 'all 0.15s' }}>
+                    <input type="radio" name="shipping" value={opt.id} checked={isSelected} onChange={() => setSelectedShipping(opt)} style={{ position: 'absolute', width: 0, height: 0, opacity: 0 }} />
                     {/* Radio */}
                     <div style={{ width: '18px', height: '18px', borderRadius: '50%', flexShrink: 0, border: `2px solid ${isSelected ? GOLD : BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'border-color 0.15s' }}>
                       {isSelected && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: GOLD }} />}
@@ -292,13 +289,13 @@ function DeliveryStep({ delivery, setDelivery, setStep, handleDeliverySubmit, sh
         ))}
         <div className="checkout-form-2col" style={{ gap: '16px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: TXT2, marginBottom: '6px' }}>Ville *</label>
-            <input required type="text" value={delivery.city} onChange={e => setDelivery(d => ({ ...d, city: e.target.value }))}
+            <label htmlFor="delivery-city" style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: TXT2, marginBottom: '6px' }}>Ville *</label>
+            <input id="delivery-city" required type="text" value={delivery.city} onChange={e => setDelivery(d => ({ ...d, city: e.target.value }))}
               style={inputSt} onFocus={e => (e.target.style.borderColor = GOLD)} onBlur={e => (e.target.style.borderColor = BORDER)} />
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: TXT2, marginBottom: '6px' }}>Pays *</label>
-            <select required value={delivery.country} onChange={e => setDelivery(d => ({ ...d, country: e.target.value }))}
+            <label htmlFor="delivery-country" style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: TXT2, marginBottom: '6px' }}>Pays *</label>
+            <select id="delivery-country" required value={delivery.country} onChange={e => setDelivery(d => ({ ...d, country: e.target.value }))}
               style={{ ...inputSt, cursor: 'pointer' }}>
               {["Côte d'Ivoire", 'Sénégal', 'Mali', 'Guinée', 'Togo', 'Bénin', 'Burkina Faso', 'Cameroun', 'France', 'Belgique'].map(c => <option key={c}>{c}</option>)}
             </select>
@@ -333,12 +330,12 @@ function PaymentStep({ paymentMethod, setPaymentMethod, mobileNumber, setMobileN
           {MOBILE_METHODS.map((pm, i) => (
             <div key={pm.id}>
               <label
-                onClick={() => setPaymentMethod(pm.id)}
                 style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '16px 24px', cursor: 'pointer',
                   background: paymentMethod === pm.id ? BG_ROW : 'white',
                   borderLeft: `3px solid ${paymentMethod === pm.id ? GOLD : 'transparent'}`,
                   transition: 'all 0.15s' }}
               >
+                <input type="radio" name="payment" value={pm.id} checked={paymentMethod === pm.id} onChange={() => setPaymentMethod(pm.id)} style={{ position: 'absolute', width: 0, height: 0, opacity: 0 }} />
                 {/* Radio */}
                 <div style={{ width: '18px', height: '18px', borderRadius: '50%', flexShrink: 0, border: `2px solid ${paymentMethod === pm.id ? GOLD : BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'border-color 0.15s' }}>
                   {paymentMethod === pm.id && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: GOLD }} />}
@@ -407,8 +404,7 @@ function PaymentStep({ paymentMethod, setPaymentMethod, mobileNumber, setMobileN
 
 
 export default function CheckoutPage() {
-  const router = useRouter();
-  const { items, totalPrice, clearCart, updateQty, removeItem } = useCart();
+  const { items, totalPrice, clearCart } = useCart();
   const [step, setStep] = useState<CheckoutStep>('cart');
   const [delivery, setDelivery] = useState<DeliveryInfo>({
     firstName: '', lastName: '', email: '', phone: '',
@@ -417,7 +413,6 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('orange_money');
   const [mobileNumber, setMobileNumber] = useState('');
   const [processing, setProcessing] = useState(false);
-  const [, setOrderNumber] = useState('');
   const [shippingCfg, setShippingCfg] = useState<ShippingConfig>(DEFAULT_SITE_CONFIG.shipping);
   const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(
     DEFAULT_SITE_CONFIG.shipping.options.find(o => o.active) ?? null
@@ -463,16 +458,21 @@ export default function CheckoutPage() {
   const removePromo = () => { setAppliedPromo(null); setPromoError(null); };
 
   const discount = appliedPromo?.discount ?? 0;
-  const shippingCost = selectedShipping
-    ? (selectedShipping.freeFrom > 0 && totalPrice >= selectedShipping.freeFrom ? 0 : selectedShipping.cost)
-    : 0;
+  let shippingCost: number;
+  if (!selectedShipping) {
+    shippingCost = 0;
+  } else if (selectedShipping.freeFrom > 0 && totalPrice >= selectedShipping.freeFrom) {
+    shippingCost = 0;
+  } else {
+    shippingCost = selectedShipping.cost;
+  }
   const total = Math.max(0, totalPrice + shippingCost - discount);
   const stepIdx = STEP_ORDER.indexOf(step);
   const isMobile = ['orange_money', 'wave', 'mtn_momo', 'moov_money'].includes(paymentMethod);
 
-  const handleDeliverySubmit = (e: React.FormEvent) => { e.preventDefault(); setStep('payment'); };
+  const handleDeliverySubmit = (e: React.SyntheticEvent) => { e.preventDefault(); setStep('payment'); };
 
-  const handlePlaceOrder = async (e: React.FormEvent) => {
+  const handlePlaceOrder = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setProcessing(true);
 
@@ -511,18 +511,15 @@ export default function CheckoutPage() {
         });
         const data = await res.json();
         if (!res.ok || !data?.redirectUrl) {
-          console.error('[checkout] jeko init failed', data);
           alert('Le paiement n\'a pas pu être initié. Veuillez réessayer.');
           setProcessing(false);
           return;
         }
         clearCart();
-        setOrderNumber(num);
         // Redirection vers le checkout hébergé Jeko
-        window.location.href = data.redirectUrl as string;
+        globalThis.window.location.href = data.redirectUrl as string;
         return;
-      } catch (err) {
-        console.error('[checkout] jeko fetch error', err);
+      } catch {
         alert('Erreur réseau lors de l\'initialisation du paiement.');
         setProcessing(false);
         return;
@@ -547,13 +544,15 @@ export default function CheckoutPage() {
               const idx = STEP_ORDER.indexOf(s.key as CheckoutStep);
               const isActive = step === s.key;
               const isDone = stepIdx > idx;
+              let labelColor: string;
+              if (isActive) { labelColor = GOLD; } else if (isDone) { labelColor = TXT; } else { labelColor = TXT3; }
               return (
                 <React.Fragment key={s.key}>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', minWidth: '88px', maxWidth: '100px' }}>
                     <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: isActive || isDone ? GOLD : '#EDE5DC', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}>
                       <span style={{ fontSize: '13px', fontWeight: 700, color: isActive || isDone ? 'white' : TXT3 }}>{i + 1}</span>
                     </div>
-                    <span style={{ fontSize: '12px', fontWeight: isActive ? 700 : 500, color: isActive ? GOLD : isDone ? TXT : TXT3, textAlign: 'center', lineHeight: 1.2 }}>{s.label}</span>
+                    <span style={{ fontSize: '12px', fontWeight: isActive ? 700 : 500, color: labelColor, textAlign: 'center', lineHeight: 1.2 }}>{s.label}</span>
                     <span style={{ fontSize: '10px', color: TXT3, textAlign: 'center', lineHeight: 1.2 }}>{s.sub}</span>
                   </div>
                   {i < STEPS.length - 1 && (

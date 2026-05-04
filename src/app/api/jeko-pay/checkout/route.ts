@@ -5,6 +5,7 @@ import {
   JekoPayError,
   type JekoPayProvider,
 } from '@/lib/jeko-pay/client';
+import { rateLimit, getIp, rateLimitHeaders } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -32,6 +33,15 @@ function resolveProvider(method: string): JekoPayProvider | null {
  * Initie un paiement Jeko Africa et renvoie l'URL de redirection.
  */
 export async function POST(req: NextRequest) {
+  // 10 tentatives de paiement / 10 min par IP
+  const rl = await rateLimit(`checkout:${getIp(req)}`, 10, 10 * 60 * 1000);
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: 'rate_limit_exceeded' },
+      { status: 429, headers: rateLimitHeaders(rl) },
+    );
+  }
+
   let body: CheckoutBody;
   try {
     body = (await req.json()) as CheckoutBody;
@@ -78,7 +88,7 @@ export async function POST(req: NextRequest) {
         { status: e.status >= 500 ? 502 : e.status },
       );
     }
-    console.error('[jeko-pay/checkout]', e);
+    
     return NextResponse.json({ error: 'internal_error' }, { status: 500 });
   }
 }

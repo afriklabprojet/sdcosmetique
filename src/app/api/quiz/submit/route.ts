@@ -1,10 +1,20 @@
 import { NextResponse } from 'next/server';
 import { createServiceClient } from '@/utils/supabase/service';
 import { db } from '@/lib/db';
+import { rateLimit, getIp, rateLimitHeaders } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
 export async function POST(request: Request) {
+  // 10 soumissions / 10 min par IP
+  const rl = await rateLimit(`quiz:${getIp(request)}`, 10, 10 * 60 * 1000);
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: 'rate_limit_exceeded' },
+      { status: 429, headers: rateLimitHeaders(rl) },
+    );
+  }
+
   try {
     const body = await request.json().catch(() => ({}));
     const skin_tone = typeof body.skin_tone === 'string' ? body.skin_tone.slice(0, 50) : null;

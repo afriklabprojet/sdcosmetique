@@ -21,8 +21,7 @@ export function useAuthGuard() {
           // Pas de session valide, rediriger vers login
           router.push('/auth/login');
         }
-      } catch (error) {
-        console.error('Erreur de vérification auth:', error);
+      } catch {
         router.push('/auth/login');
       }
     };

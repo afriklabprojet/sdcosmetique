@@ -104,7 +104,7 @@ export async function saveOrderToDB(order: OrderDraft, userId?: string | null): 
       .single();
 
     if (error || !inserted) {
-      console.error('[orders-db] saveOrderToDB:', error?.message);
+      
       return;
     }
 
@@ -121,10 +121,10 @@ export async function saveOrderToDB(order: OrderDraft, userId?: string | null): 
         shade:        null,
       }));
       const { error: itemErr } = await supabase.from('order_items').insert(items);
-      if (itemErr) console.error('[orders-db] saveOrderToDB items:', itemErr.message);
+      
     }
   } catch (e) {
-    console.error('[orders-db] saveOrderToDB exception:', e);
+    
   }
 }
 
@@ -167,9 +167,9 @@ export async function updateOrderStatusInDB(orderNumber: string, status: OrderDr
       .from('orders')
       .update({ status })
       .eq('order_number', orderNumber);
-    if (error) console.error('[orders-db] updateOrderStatusInDB:', error.message);
+    
   } catch (e) {
-    console.error('[orders-db] updateOrderStatusInDB exception:', e);
+    
   }
 }
 
@@ -197,9 +197,9 @@ export async function updateProductInDB(id: string, updates: Partial<Omit<Produc
     if (updates.isNew !== undefined)            d.is_new = updates.isNew;
     if (updates.isBestseller !== undefined)     d.is_bestseller = updates.isBestseller;
     const { error } = await supabase.from('products').update(d).eq('id', id);
-    if (error) console.error('[orders-db] updateProductInDB:', error.message);
+    
   } catch (e) {
-    console.error('[orders-db] updateProductInDB exception:', e);
+    
   }
 }
 
@@ -230,9 +230,9 @@ export async function addProductToDB(product: Product): Promise<void> {
       is_new: product.isNew ?? false,
       is_bestseller: product.isBestseller ?? false,
     });
-    if (error) console.error('[orders-db] addProductToDB:', error.message);
+    
   } catch (e) {
-    console.error('[orders-db] addProductToDB exception:', e);
+    
   }
 }
 
@@ -241,9 +241,9 @@ export async function deleteProductFromDB(id: string): Promise<void> {
   try {
     const supabase = createClient();
     const { error } = await supabase.from('products').delete().eq('id', id);
-    if (error) console.error('[orders-db] deleteProductFromDB:', error.message);
+    
   } catch (e) {
-    console.error('[orders-db] deleteProductFromDB exception:', e);
+    
   }
 }
 
@@ -291,9 +291,9 @@ export async function deleteReviewFromDB(id: string): Promise<void> {
   try {
     const supabase = createClient();
     const { error } = await supabase.from('reviews').delete().eq('id', id);
-    if (error) console.error('[orders-db] deleteReviewFromDB:', error.message);
+    
   } catch (e) {
-    console.error('[orders-db] deleteReviewFromDB exception:', e);
+    
   }
 }
 
@@ -302,8 +302,8 @@ export async function approveReviewInDB(id: string, verified: boolean): Promise<
   try {
     const supabase = createClient();
     const { error } = await supabase.from('reviews').update({ verified }).eq('id', id);
-    if (error) console.error('[orders-db] approveReviewInDB:', error.message);
+    
   } catch (e) {
-    console.error('[orders-db] approveReviewInDB exception:', e);
+    
   }
 }
