@@ -2,8 +2,6 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/utils/supabase/middleware";
 
 export async function middleware(request: NextRequest) {
-  const { supabase, response } = createClient(request);
-
   // Routes protégées qui nécessitent une authentification
   const protectedRoutes = ['/admin', '/compte', '/checkout'];
   const authRoutes = ['/connexion', '/inscription', '/mot-de-passe-oublie'];
@@ -27,6 +25,7 @@ export async function middleware(request: NextRequest) {
   );
 
   try {
+    const { supabase, response } = createClient(request);
     // Récupérer la session utilisateur
     const { data: { session }, error } = await supabase.auth.getSession();
 
@@ -82,9 +81,9 @@ export async function middleware(request: NextRequest) {
   } catch (error) {
     console.error('❌ Erreur middleware:', error);
     
-    // En cas d'erreur, permettre l'accès aux routes publiques
+    // En cas d'erreur (ex: env vars manquantes), permettre l'accès aux routes publiques
     if (!isProtectedRoute) {
-      return response;
+      return NextResponse.next();
     }
     
     // Pour les routes protégées, rediriger vers login
