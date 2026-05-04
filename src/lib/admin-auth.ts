@@ -17,9 +17,13 @@ const ADMIN_EMAILS: ReadonlySet<string> = new Set(
  * Retourne l'user si autorisé, null sinon.
  */
 export async function requireAdmin() {
-  const userClient = await db();
-  const { data: { user } } = await userClient.auth.getUser();
-  if (!user?.email) return null;
-  if (!ADMIN_EMAILS.has(user.email.toLowerCase())) return null;
-  return user;
+  try {
+    const userClient = await db();
+    const { data: { user } } = await userClient.auth.getUser();
+    if (!user?.email) return null;
+    if (!ADMIN_EMAILS.has(user.email.toLowerCase())) return null;
+    return user;
+  } catch {
+    return null;
+  }
 }

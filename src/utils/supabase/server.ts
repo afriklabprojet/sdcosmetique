@@ -4,6 +4,9 @@ import { cookies } from "next/headers";
 export const createClient = (cookieStore: Awaited<ReturnType<typeof cookies>>) => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '';
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Supabase env vars manquantes: NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY requis');
+  }
   return createServerClient(
     supabaseUrl,
     supabaseKey,
