@@ -1981,7 +1981,6 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                       </div>
                       {([
                         { key: 'sub_label', label: String.raw`Sous-titre (2 lignes avec \n)` },
-                        { key: 'image', label: 'URL de l\'image' },
                         { key: 'href', label: 'Lien (ex: /categorie/body)' },
                         { key: 'order_index', label: 'Ordre d\'affichage', type: 'number' },
                       ] as { key: keyof CategoryRow; label: string; required?: boolean; type?: string }[]).map(field => (
@@ -1995,6 +1994,14 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                           />
                         </div>
                       ))}
+                      {/* Image — upload drag & drop */}
+                      <ImageUpload
+                        value={catModal.image ?? ''}
+                        onChange={url => setCatModal(prev => prev ? { ...prev, image: url } : prev)}
+                        folder="categories"
+                        label="Image de la catégorie"
+                        previewSize={80}
+                      />
                       <div className="flex items-center gap-3">
                         <label htmlFor="quiz-teint" className="text-xs" style={{ color: TEXT_M }}>Quiz teint</label>
                         <input type="checkbox" checked={catModal.is_quiz ?? false} onChange={e => setCatModal(prev => prev ? { ...prev, is_quiz: e.target.checked } : prev)} />
@@ -2003,12 +2010,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                         <label htmlFor="category-visible" className="text-xs" style={{ color: TEXT_M }}>Visible (actif)</label>
                         <input id="category-visible" type="checkbox" checked={catModal.active ?? true} onChange={e => setCatModal(prev => prev ? { ...prev, active: e.target.checked } : prev)} />
                       </div>
-                      {catModal.image && (
-                        <div>
-                          <p className="text-xs block mb-1" style={{ color: TEXT_M }}>Aperçu</p>
-                          <Image src={catModal.image} alt="" width={60} height={60} style={{  objectFit: 'cover', borderRadius: '50%', border: `1px solid ${BORDER}`  }} />
-                        </div>
-                      )}
+
                       <div className="flex gap-2 pt-2">
                         <button
                           onClick={() => setCatModal(null)}
