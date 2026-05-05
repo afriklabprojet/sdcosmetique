@@ -9,7 +9,7 @@ import { formatOrderDate, updateOrderStatus, OrderDraft } from '@/lib/orders';
 import { formatPrice, PRODUCTS } from '@/lib/products';
 import { Product, Category, SkinTone, Review } from '@/types';
 import { fetchAllOrdersFromDB, updateOrderStatusInDB, fetchProductsFromDB, fetchAllReviewsFromDB, deleteReviewFromDB, approveReviewInDB } from '@/lib/orders-db';
-import { addProduct, updateProduct, deleteProduct, saveSiteConfigSection } from './actions';
+import { addProduct, deleteProduct, saveSiteConfigSection } from './actions';
 import { DEFAULT_SITE_CONFIG } from '@/lib/site-config';
 import type { SiteConfig, PromoCode, ShippingOption, MarketingConfig, PromoBanner, WelcomePopup, UpsellRule, BrandingConfig } from '@/lib/site-config';
 import ImageUpload from '@/components/ui/ImageUpload';
@@ -1129,7 +1129,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
       await addProduct(p);
       setEditableProducts(prev => [...prev, p]);
     } else {
-      await updateProduct(p.id, p);
+      await addProduct(p); // upsert: insère si absent, met à jour si existant
       setEditableProducts(prev => prev.map(x => x.id === p.id ? p : x));
     }
     setProductModal(null);

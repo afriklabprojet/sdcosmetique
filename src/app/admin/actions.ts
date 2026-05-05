@@ -33,7 +33,7 @@ export async function addProduct(product: Product): Promise<void> {
   if (!user) throw new Error('Accès refusé');
 
   const supabase = createServiceClient();
-  const { error } = await supabase.from('products').insert({
+  const { error } = await supabase.from('products').upsert({
     id: product.id,
     name: product.name,
     slug: product.slug,
@@ -56,7 +56,7 @@ export async function addProduct(product: Product): Promise<void> {
     low_stock_threshold: product.lowStockThreshold ?? null,
     is_new: product.isNew ?? false,
     is_bestseller: product.isBestseller ?? false,
-  });
+  }, { onConflict: 'id' });
 
   if (error) throw new Error(error.message);
 
