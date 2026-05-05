@@ -50,9 +50,9 @@ export const DEFAULT_TRUST: TrustItem[] = [
 ];
 
 export const DEFAULT_TESTIMONIALS: TestimonialItem[] = [
-  { name: 'Aïcha K.', text: "Depuis que j'utilise les soins SD COSMETIQUE, ma peau n'a jamais été aussi lumineuse !", avatar: '/hero/testimonial-1.jpg' },
-  { name: 'Marie L.', text: 'Des produits naturels, efficaces et adaptés à ma peau. Je recommande à 100% !', avatar: '/hero/testimonial-2.jpg' },
-  { name: 'Fatou D.', text: 'Ma routine SD COSMETIQUE a transformé ma peau. Merci !', avatar: '/hero/testimonial-3.jpg' },
+  { name: 'Aïcha K.', text: "Depuis que j'utilise les soins SD COSMETIQUE, ma peau n'a jamais été aussi lumineuse !", avatar: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=100&h=100&q=80&auto=format&fit=crop&crop=face' },
+  { name: 'Marie L.', text: 'Des produits naturels, efficaces et adaptés à ma peau. Je recommande à 100% !', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&q=80&auto=format&fit=crop&crop=face' },
+  { name: 'Fatou D.', text: 'Ma routine SD COSMETIQUE a transformé ma peau. Merci !', avatar: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=100&h=100&q=80&auto=format&fit=crop&crop=face' },
 ];
 
 export const DEFAULT_PRODUCT_TRUST: ProductTrustItem[] = [

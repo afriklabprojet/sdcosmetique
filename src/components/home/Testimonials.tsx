@@ -20,6 +20,25 @@ function Stars() {
   );
 }
 
+function AvatarImg({ src, name }: Readonly<{ src: string; name: string }>) {
+  const [failed, setFailed] = React.useState(false);
+  const initial = name.charAt(0).toUpperCase();
+  if (failed) {
+    return (
+      <div style={{
+        width: 52, height: 52, borderRadius: '50%', flexShrink: 0,
+        background: 'var(--gold-muted)', display: 'flex', alignItems: 'center',
+        justifyContent: 'center', fontSize: '1.3rem', fontWeight: 700, color: '#fff',
+      }}>{initial}</div>
+    );
+  }
+  return (
+    <Image src={src} alt={name} width={52} height={52}
+      style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+      onError={() => setFailed(true)} />
+  );
+}
+
 export default function Testimonials({
   rows,
   fallbackItems = DEFAULT_SITE_CONFIG.testimonials_home,
@@ -75,8 +94,7 @@ export default function Testimonials({
               >
                 {/* Avatar + citation sur la même ligne */}
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', marginBottom: '10px' }}>
-                  <Image src={t.avatar} alt={t.name} width={52} height={52}
-                    style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                  <AvatarImg src={t.avatar} name={t.name} />
                   <p style={{
                     fontFamily: 'var(--font-inter), Inter, sans-serif',
                     fontSize: '0.8rem', fontStyle: 'italic',
