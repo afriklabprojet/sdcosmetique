@@ -1,7 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import {} from '@/lib/products';
 import { fetchProducts } from '@/lib/products-server';
 import { fetchSiteConfigSection } from '@/lib/site-config';
 import { SKIN_TONES, type SkinTone } from '@/types';
@@ -82,7 +81,7 @@ const TONE_META: Record<SkinTone, { hero: string; title: string; intro: string; 
   },
 };
 
-export default async function TeintPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function TeintPage({ params }: Readonly<{ params: Promise<{ slug: string }> }>) {
   const { slug } = await params;
   const tone = SKIN_TONES.find((t) => t.id === slug);
   if (!tone) notFound();
@@ -281,7 +280,7 @@ export default async function TeintPage({ params }: { params: Promise<{ slug: st
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {meta.tips.map((tip, i) => (
               <div
-                key={i}
+                key={tip}
                 style={{
                   display: 'grid',
                   gridTemplateColumns: '50px 1fr',
