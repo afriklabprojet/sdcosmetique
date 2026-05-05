@@ -1616,54 +1616,78 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               );
             })}
             
-            <div style={{ fontSize: '10px', color: '#8B7355', letterSpacing: '0.12em', textTransform: 'uppercase', padding: '0 12px', margin: '16px 0 10px', fontWeight: 700 }}>● CONTENU</div>
+            <div style={{ fontSize: '10px', color: '#8B7355', letterSpacing: '0.12em', textTransform: 'uppercase', padding: '0 12px', margin: '16px 0 10px', fontWeight: 700 }}>● CONTENU SITE</div>
             {([
-              { id: 'hero',        label: 'Bannière Hero', icon: '🖼', status: 'normal' },
-              { id: 'temoignages', label: 'Témoignages', icon: '💬', status: 'normal' },
-              { id: 'categories',  label: 'Catégories',  icon: '🗂', status: 'normal' },
-              { id: 'quiz',        label: 'Quiz',         icon: '🎯', status: 'normal' },
-              { id: 'faq',         label: 'FAQ',          icon: '❔', status: 'normal' },
-            ] as { id: Tab; label: string; icon: string; status: string }[]).map(item => {
+              { id: 'hero',        label: 'Bannière Hero',  desc: "Image & texte page d'accueil", icon: '🖼', status: 'normal' },
+              { id: 'contenu',     label: 'Textes & Barre', desc: 'Topbar, confiance, messages',  icon: '✏️', status: 'normal' },
+              { id: 'temoignages', label: 'Témoignages',    desc: 'Avis clients long format',     icon: '💬', status: 'normal' },
+              { id: 'categories',  label: 'Catégories',     desc: 'Structure du catalogue',       icon: '🗂', status: 'normal' },
+              { id: 'quiz',        label: 'Quiz Teint',     desc: 'Diagnostic type de peau',      icon: '🎯', status: 'normal' },
+              { id: 'faq',         label: 'FAQ',            desc: 'Questions / Réponses',         icon: '❔', status: 'normal' },
+            ] as { id: Tab; label: string; desc: string; icon: string; status: string }[]).map(item => {
               const isActive = tab === item.id;
               const bgColor = isActive ? 'linear-gradient(90deg, rgba(212,162,90,0.18) 0%, rgba(212,162,90,0.08) 100%)' : 'transparent';
               const borderColor = isActive ? GOLD : 'transparent';
               return (
                 <button key={item.id} onClick={() => { setTab(item.id); setSidebarOpen(false); }}
-                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderRadius: '10px', fontSize: '13px', textAlign: 'left', cursor: 'pointer', border: 'none', marginBottom: '4px', transition: 'all .2s ease', background: bgColor, color: isActive ? '#F7EFE5' : '#C4A574', fontWeight: isActive ? 700 : 500, borderLeft: `3px solid ${borderColor}`, boxShadow: isActive ? '0 2px 8px rgba(212,162,90,0.15)' : 'none' }}>
-                  <span style={{ fontSize: '15px', opacity: isActive ? 1 : 0.8, color: isActive ? GOLD : '#A8956B' }}>{item.icon}</span>
-                  <span style={{ flex: 1 }}>{item.label}</span>
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '11px', padding: '9px 14px', borderRadius: '10px', textAlign: 'left', cursor: 'pointer', border: 'none', marginBottom: '3px', transition: 'all .2s ease', background: bgColor, color: isActive ? '#F7EFE5' : '#C4A574', borderLeft: `3px solid ${borderColor}`, boxShadow: isActive ? '0 2px 8px rgba(212,162,90,0.15)' : 'none' }}>
+                  <span style={{ fontSize: '16px', opacity: isActive ? 1 : 0.75, color: isActive ? GOLD : '#A8956B', flexShrink: 0 }}>{item.icon}</span>
+                  <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: isActive ? 700 : 600, lineHeight: 1.3 }}>{item.label}</span>
+                    <span style={{ fontSize: '10px', color: isActive ? 'rgba(247,239,229,0.55)' : '#6B5A3E', fontWeight: 400, lineHeight: 1.3 }}>{item.desc}</span>
+                  </span>
                 </button>
               );
             })}
-            
-            <div style={{ fontSize: '10px', color: '#8B7355', letterSpacing: '0.12em', textTransform: 'uppercase', padding: '0 12px', margin: '16px 0 10px', fontWeight: 700 }}>● GESTION</div>
+
+            <div style={{ fontSize: '10px', color: '#8B7355', letterSpacing: '0.12em', textTransform: 'uppercase', padding: '0 12px', margin: '16px 0 10px', fontWeight: 700 }}>● CLIENTS & FIDÉLITÉ</div>
             {([
-              { id: 'clients',   label: 'Clients',    icon: '👤', status: 'normal' },
-              { id: 'jeko',      label: 'Fidélité ✦',  icon: '✦', status: 'premium' },
-              { id: 'newsletter', label: 'Newsletter', icon: '✉', status: 'normal' },
-              { id: 'marketing', label: 'Marketing',   icon: '📣', status: 'important' },
-              { id: 'promos',    label: 'Codes promo', icon: '🎟️', status: 'normal' },
-              { id: 'livraison', label: 'Livraison',  icon: '🚚', status: 'normal' },
-              { id: 'contenu',   label: 'Contenu',    icon: '✏️', status: 'normal' },
-              { id: 'branding',  label: 'Branding',   icon: '🎨', status: 'normal' },
-            ] as { id: Tab; label: string; icon: string; status: string }[]).map(item => {
+              { id: 'clients',    label: 'Clients',    desc: 'Base de données clients',       icon: '👤', status: 'normal' },
+              { id: 'jeko',       label: 'Fidélité',   desc: 'Points Jeko, paliers, cadeaux', icon: '✦',  status: 'premium' },
+              { id: 'newsletter', label: 'Newsletter', desc: 'Abonnés & campagnes email',     icon: '✉',  status: 'normal' },
+            ] as { id: Tab; label: string; desc: string; icon: string; status: string }[]).map(item => {
               const isActive = tab === item.id;
               let bgColor = isActive ? 'linear-gradient(90deg, rgba(212,162,90,0.18) 0%, rgba(212,162,90,0.08) 100%)' : 'transparent';
               if (item.status === 'premium' && !isActive) bgColor = 'linear-gradient(90deg, rgba(212,162,90,0.08) 0%, rgba(212,162,90,0.04) 100%)';
+              const borderColor = isActive ? GOLD : 'transparent';
+              return (
+                <button key={item.id} onClick={() => { setTab(item.id); setSidebarOpen(false); }}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '11px', padding: '9px 14px', borderRadius: '10px', textAlign: 'left', cursor: 'pointer', border: 'none', marginBottom: '3px', transition: 'all .2s ease', background: bgColor, color: isActive ? '#F7EFE5' : '#C4A574', borderLeft: `3px solid ${borderColor}`, boxShadow: isActive ? '0 2px 8px rgba(212,162,90,0.15)' : 'none' }}>
+                  <span style={{ fontSize: '16px', opacity: isActive ? 1 : 0.75, color: getTabColor(isActive, item.status, GOLD), flexShrink: 0 }}>{item.icon}</span>
+                  <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: isActive ? 700 : 600, lineHeight: 1.3 }}>{item.label}</span>
+                    <span style={{ fontSize: '10px', color: isActive ? 'rgba(247,239,229,0.55)' : '#6B5A3E', fontWeight: 400, lineHeight: 1.3 }}>{item.desc}</span>
+                  </span>
+                  {item.status === 'premium' && (
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'linear-gradient(135deg, #FFD700, #FFC107)', boxShadow: '0 0 8px rgba(255,215,0,0.5)', flexShrink: 0 }} />
+                  )}
+                </button>
+              );
+            })}
+
+            <div style={{ fontSize: '10px', color: '#8B7355', letterSpacing: '0.12em', textTransform: 'uppercase', padding: '0 12px', margin: '16px 0 10px', fontWeight: 700 }}>● BOUTIQUE</div>
+            {([
+              { id: 'marketing', label: 'Marketing',   desc: 'Bannières & sections promo', icon: '📣', status: 'important' },
+              { id: 'promos',    label: 'Codes promo', desc: 'Réductions & coupons',       icon: '🎟️', status: 'normal' },
+              { id: 'livraison', label: 'Livraison',   desc: 'Zones, frais, délais',       icon: '🚚', status: 'normal' },
+              { id: 'branding',  label: 'Branding',    desc: 'Couleurs, logo, police',     icon: '🎨', status: 'normal' },
+            ] as { id: Tab; label: string; desc: string; icon: string; status: string }[]).map(item => {
+              const isActive = tab === item.id;
+              let bgColor = isActive ? 'linear-gradient(90deg, rgba(212,162,90,0.18) 0%, rgba(212,162,90,0.08) 100%)' : 'transparent';
               if (item.status === 'important' && !isActive) bgColor = 'linear-gradient(90deg, rgba(16,185,129,0.08) 0%, rgba(16,185,129,0.04) 100%)';
               const borderColor = isActive ? GOLD : 'transparent';
               return (
                 <button key={item.id} onClick={() => { setTab(item.id); setSidebarOpen(false); }}
-                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderRadius: '10px', fontSize: '13px', textAlign: 'left', cursor: 'pointer', border: 'none', marginBottom: '4px', transition: 'all .2s ease', background: bgColor, color: isActive ? '#F7EFE5' : '#C4A574', fontWeight: isActive ? 700 : 500, borderLeft: `3px solid ${borderColor}`, boxShadow: isActive ? '0 2px 8px rgba(212,162,90,0.15)' : 'none' }}>
-                  <span style={{ fontSize: '15px', opacity: isActive ? 1 : 0.8, color: getTabColor(isActive, item.status, GOLD) }}>{item.icon}</span>
-                  <span style={{ flex: 1 }}>{item.label}</span>
-                  {item.status === 'premium' && (
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'linear-gradient(135deg, #FFD700, #FFC107)', boxShadow: '0 0 8px rgba(255,215,0,0.5)' }} />
-                  )}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '11px', padding: '9px 14px', borderRadius: '10px', textAlign: 'left', cursor: 'pointer', border: 'none', marginBottom: '3px', transition: 'all .2s ease', background: bgColor, color: isActive ? '#F7EFE5' : '#C4A574', borderLeft: `3px solid ${borderColor}`, boxShadow: isActive ? '0 2px 8px rgba(212,162,90,0.15)' : 'none' }}>
+                  <span style={{ fontSize: '16px', opacity: isActive ? 1 : 0.75, color: getTabColor(isActive, item.status, GOLD), flexShrink: 0 }}>{item.icon}</span>
+                  <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: isActive ? 700 : 600, lineHeight: 1.3 }}>{item.label}</span>
+                    <span style={{ fontSize: '10px', color: isActive ? 'rgba(247,239,229,0.55)' : '#6B5A3E', fontWeight: 400, lineHeight: 1.3 }}>{item.desc}</span>
+                  </span>
                   {item.status === 'important' && (
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'linear-gradient(135deg, #10B981, #059669)', boxShadow: '0 0 8px rgba(16,185,129,0.5)' }} />
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'linear-gradient(135deg, #10B981, #059669)', boxShadow: '0 0 8px rgba(16,185,129,0.5)', flexShrink: 0 }} />
                   )}
-              </button>
+                </button>
               );
             })}
           </nav>
