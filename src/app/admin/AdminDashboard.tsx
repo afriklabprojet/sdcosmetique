@@ -33,7 +33,7 @@ import Pagination from '@/components/admin/Pagination';
 type OrderStatus = OrderDraft['status'];
 type ReviewRow = Review & { productId?: string };
 type ProductModalState = Partial<Product> & { _isNew?: boolean };
-type Tab = 'dashboard' | 'commandes' | 'produits' | 'avis' | 'temoignages' | 'categories' | 'quiz' | 'clients' | 'contenu' | 'jeko' | 'newsletter' | 'livraison' | 'marketing' | 'branding' | 'promos' | 'faq' | 'hero';
+type Tab = 'dashboard' | 'commandes' | 'produits' | 'avis' | 'temoignages' | 'categories' | 'quiz' | 'clients' | 'contenu' | 'jeko' | 'newsletter' | 'livraison' | 'marketing' | 'branding' | 'promos' | 'faq' | 'hero' | 'legal';
 type NewsletterSub = { id: string; email: string; source: string | null; unsubscribed: boolean; created_at: string };
 
 type ProductEditModalProps = {
@@ -1591,7 +1591,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
           </div>
 
           <nav style={{ flex: 1, padding: '18px 16px', overflowY: 'auto' }}>
-            <div style={{ fontSize: '10px', color: '#8B7355', letterSpacing: '0.12em', textTransform: 'uppercase', padding: '0 12px', margin: '8px 0 10px', fontWeight: 700 }}>● PRINCIPAL</div>
+            <div style={{ fontSize: '9px', color: '#8B7355', letterSpacing: '0.15em', textTransform: 'uppercase', padding: '0 12px 5px', margin: '8px 0 10px', fontWeight: 700, borderBottom: '1px solid rgba(139,115,85,0.18)' }}>PRINCIPAL</div>
             {([
               { id: 'dashboard',    label: 'Tableau de bord', icon: '▣', status: 'active' },
               { id: 'commandes',    label: 'Commandes',        icon: '◫', status: ordersInProgress > 0 ? 'alert' : 'normal' },
@@ -1616,14 +1616,15 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               );
             })}
             
-            <div style={{ fontSize: '10px', color: '#8B7355', letterSpacing: '0.12em', textTransform: 'uppercase', padding: '0 12px', margin: '16px 0 10px', fontWeight: 700 }}>● CONTENU SITE</div>
+            <div style={{ fontSize: '9px', color: '#8B7355', letterSpacing: '0.15em', textTransform: 'uppercase', padding: '0 12px 5px', margin: '16px 0 10px', fontWeight: 700, borderBottom: '1px solid rgba(139,115,85,0.18)' }}>CONTENU SITE</div>
             {([
               { id: 'hero',        label: 'Bannière Hero',  desc: "Image & texte page d'accueil", icon: '🖼', status: 'normal' },
-              { id: 'contenu',     label: 'Textes & Barre', desc: 'Topbar, confiance, messages',  icon: '✏️', status: 'normal' },
+              { id: 'contenu',     label: 'Topbar & Confiance', desc: 'Annonce haut de page, garanties', icon: '📢', status: 'normal' },
               { id: 'temoignages', label: 'Témoignages',    desc: 'Avis clients long format',     icon: '💬', status: 'normal' },
               { id: 'categories',  label: 'Catégories',     desc: 'Structure du catalogue',       icon: '🗂', status: 'normal' },
               { id: 'quiz',        label: 'Quiz Teint',     desc: 'Diagnostic type de peau',      icon: '🎯', status: 'normal' },
               { id: 'faq',         label: 'FAQ',            desc: 'Questions / Réponses',         icon: '❔', status: 'normal' },
+              { id: 'legal',       label: 'Pages légales',  desc: 'CGV, Confidentialité, Contact', icon: '📄', status: 'normal' },
             ] as { id: Tab; label: string; desc: string; icon: string; status: string }[]).map(item => {
               const isActive = tab === item.id;
               const bgColor = isActive ? 'linear-gradient(90deg, rgba(212,162,90,0.18) 0%, rgba(212,162,90,0.08) 100%)' : 'transparent';
@@ -1640,7 +1641,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               );
             })}
 
-            <div style={{ fontSize: '10px', color: '#8B7355', letterSpacing: '0.12em', textTransform: 'uppercase', padding: '0 12px', margin: '16px 0 10px', fontWeight: 700 }}>● CLIENTS & FIDÉLITÉ</div>
+            <div style={{ fontSize: '9px', color: '#8B7355', letterSpacing: '0.15em', textTransform: 'uppercase', padding: '0 12px 5px', margin: '16px 0 10px', fontWeight: 700, borderBottom: '1px solid rgba(139,115,85,0.18)' }}>CLIENTS & FIDÉLITÉ</div>
             {([
               { id: 'clients',    label: 'Clients',    desc: 'Base de données clients',       icon: '👤', status: 'normal' },
               { id: 'jeko',       label: 'Fidélité',   desc: 'Points Jeko, paliers, cadeaux', icon: '✦',  status: 'premium' },
@@ -1665,7 +1666,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               );
             })}
 
-            <div style={{ fontSize: '10px', color: '#8B7355', letterSpacing: '0.12em', textTransform: 'uppercase', padding: '0 12px', margin: '16px 0 10px', fontWeight: 700 }}>● BOUTIQUE</div>
+            <div style={{ fontSize: '9px', color: '#8B7355', letterSpacing: '0.15em', textTransform: 'uppercase', padding: '0 12px 5px', margin: '16px 0 10px', fontWeight: 700, borderBottom: '1px solid rgba(139,115,85,0.18)' }}>BOUTIQUE</div>
             {([
               { id: 'marketing', label: 'Marketing',   desc: 'Bannières & sections promo', icon: '📣', status: 'important' },
               { id: 'promos',    label: 'Codes promo', desc: 'Réductions & coupons',       icon: '🎟️', status: 'normal' },
@@ -1923,6 +1924,46 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                   );
                 })()}
               </div>
+
+              {/* ── Témoignages accueil ── */}
+              {(() => {
+                const save = async () => { await saveConfigSection('testimonials_home', siteContent.testimonials_home); };
+                const updThome = (i: number, field: string, val: string) => {
+                  const updated = siteContent.testimonials_home.map((x, j) => j === i ? { ...x, [field]: val } : x);
+                  setSiteContent({ ...siteContent, testimonials_home: updated });
+                };
+                return (
+                  <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                    <p className="text-sm font-semibold" style={{ color: GOLD }}>💬 Témoignages (page d&apos;accueil)</p>
+                    {siteContent.testimonials_home.map((t, i: number) => (
+                      <div key={`testimonial-home-${t.name.slice(0,12)}-${t.text.slice(0,8)}`} style={{ background: BG, borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <p className="text-xs font-semibold" style={{ color: TEXT2 }}>Témoignage {i + 1}</p>
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <span className="text-xs" style={{ color: TEXT3 }}>Nom</span>
+                          <input value={t.name} onChange={e => updThome(i, 'name', e.target.value)}
+                            style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '7px 10px', color: TEXT, fontSize: '12px', outline: 'none' }} />
+                        </label>
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <span className="text-xs" style={{ color: TEXT3 }}>Texte</span>
+                          <textarea value={t.text} rows={3} onChange={e => updThome(i, 'text', e.target.value)}
+                            style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '7px 10px', color: TEXT, fontSize: '12px', resize: 'vertical', outline: 'none' }} />
+                        </label>
+                        <ImageUpload
+                          value={t.avatar}
+                          onChange={(url: string) => updThome(i, 'avatar', url)}
+                          folder="avatars"
+                          label="Photo du client"
+                          previewSize={80}
+                        />
+                      </div>
+                    ))}
+                    <button onClick={save} disabled={contentSaving.testimonials_home}
+                      style={{ alignSelf: 'flex-end', background: contentSaved.testimonials_home ? S_SAVE_BG : GOLD2, color: contentSaved.testimonials_home ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                      {getSaveButtonText(contentSaved.testimonials_home, contentSaving.testimonials_home)}
+                    </button>
+                  </div>
+                );
+              })()}
             </div>
           )}
 
@@ -2362,6 +2403,32 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                   </a>
                 </div>
 
+                {/* ─── Newsletter (configuration affichage) ─── */}
+                {(() => {
+                  const n = siteContent.newsletter;
+                  const update = (patch: Partial<typeof n>) => setSiteContent((c: SiteConfig) => ({ ...c, newsletter: { ...c.newsletter, ...patch } }));
+                  const save = async () => { await saveConfigSection('newsletter', n); };
+                  return (
+                    <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <h3 style={{ color: TEXT, fontSize: '14px', fontWeight: 700 }}>Newsletter — Affichage</h3>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: TEXT2 }}>
+                        <input type="checkbox" checked={n.enabled} onChange={e => update({ enabled: e.target.checked })} id="newsletter-enabled" />{' '}Afficher le bloc newsletter
+                      </label>
+                      {(['title', 'subtitle', 'ctaLabel', 'successMessage'] as const).map(k => (
+                        <div key={k} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <span style={{ fontSize: '10px', color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{k}</span>
+                          <input value={n[k]} onChange={e => update({ [k]: e.target.value } as Partial<typeof n>)}
+                            style={{ background: SURFACE2, color: TEXT, border: `1px solid ${BORDER2}`, borderRadius: '4px', padding: '7px 10px', fontSize: '12px' }} />
+                        </div>
+                      ))}
+                      <button onClick={save} disabled={contentSaving.newsletter}
+                        style={{ alignSelf: 'flex-end', background: contentSaved.newsletter ? S_SAVE_BG : GOLD2, color: contentSaved.newsletter ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                        {getSaveButtonText(contentSaved.newsletter, contentSaving.newsletter)}
+                      </button>
+                    </div>
+                  );
+                })()}
+
                 {/* Stats */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
                   {[
@@ -2562,45 +2629,129 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               {/* ── Barre de confiance ── */}
               {trustItemsBlock}
 
-              {/* ── Témoignages accueil ── */}
+            </div>
+          )}
+
+          {/* ─── LEGAL TAB ─── */}
+          {tab === 'legal' && (
+            <div className="space-y-6">
+              <h1 className="text-lg font-bold" style={{ color: TEXT }}>📄 Pages légales</h1>
+              <p className="text-xs" style={{ color: TEXT3 }}>Éditez le contenu des pages légales affichées sur le site.</p>
+              {/* ─── Pages légales (CGV, Confidentialité, Engagements, Contact) ─── */}
               {(() => {
-                const save = async () => { await saveConfigSection('testimonials_home', siteContent.testimonials_home); };
-                const updThome = (i: number, field: string, val: string) => {
-                  const updated = siteContent.testimonials_home.map((x, j) => j === i ? { ...x, [field]: val } : x);
-                  setSiteContent({ ...siteContent, testimonials_home: updated });
-                };
+                const KEYS = [
+                  { key: 'legal_mentions' as const, label: 'Mentions légales', slug: 'mentions-legales' },
+                  { key: 'legal_cgv' as const, label: 'CGV', slug: 'cgv' },
+                  { key: 'legal_confidentialite' as const, label: 'Confidentialité', slug: 'confidentialite' },
+                  { key: 'legal_engagements' as const, label: 'Engagements', slug: 'engagements' },
+                  { key: 'legal_contact' as const, label: 'Contact', slug: 'contact' },
+                ];
                 return (
-                  <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
-                    <p className="text-sm font-semibold" style={{ color: GOLD }}>💬 Témoignages (page d&apos;accueil)</p>
-                    {siteContent.testimonials_home.map((t, i: number) => (
-                      <div key={`testimonial-home-${t.name.slice(0,12)}-${t.text.slice(0,8)}`} style={{ background: BG, borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        <p className="text-xs font-semibold" style={{ color: TEXT2 }}>Témoignage {i + 1}</p>
-                        <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          <span className="text-xs" style={{ color: TEXT3 }}>Nom</span>
-                          <input value={t.name} onChange={e => updThome(i, 'name', e.target.value)}
-                            style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '7px 10px', color: TEXT, fontSize: '12px', outline: 'none' }} />
-                        </label>
-                        <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          <span className="text-xs" style={{ color: TEXT3 }}>Texte</span>
-                          <textarea value={t.text} rows={3} onChange={e => updThome(i, 'text', e.target.value)}
-                            style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '7px 10px', color: TEXT, fontSize: '12px', resize: 'vertical', outline: 'none' }} />
-                        </label>
-                        <ImageUpload
-                          value={t.avatar}
-                          onChange={(url: string) => updThome(i, 'avatar', url)}
-                          folder="avatars"
-                          label="Photo du client"
-                          previewSize={80}
-                        />
-                      </div>
-                    ))}
-                    <button onClick={save} disabled={contentSaving.testimonials_home}
-                      style={{ alignSelf: 'flex-end', background: contentSaved.testimonials_home ? S_SAVE_BG : GOLD2, color: contentSaved.testimonials_home ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                      {getSaveButtonText(contentSaved.testimonials_home, contentSaving.testimonials_home)}
-                    </button>
+                  <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <h3 style={{ color: TEXT, fontSize: '14px', fontWeight: 700 }}>Pages légales</h3>
+                    <p style={{ color: TEXT3, fontSize: '11px' }}>
+                      Édite l&apos;eyebrow, le titre, l&apos;intro, la date de mise à jour et un éventuel bloc HTML. Si tu laisses bodyHtml vide, la page conserve son contenu rédactionnel par défaut.
+                    </p>
+                    {KEYS.map(({ key, label, slug }) => {
+                      const lp = siteContent[key];
+                      const update = (patch: Partial<typeof lp>) => setSiteContent({ ...siteContent, [key]: { ...siteContent[key], ...patch } } as SiteConfig);
+                      const save = () => saveConfigSection(key, lp);
+                      const handleLpField = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                        update({ [e.currentTarget.dataset.k as string]: e.currentTarget.value } as Partial<typeof lp>);
+                      return (
+                        <details key={key} style={{ border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '10px 12px', background: SURFACE2 }}>
+                          <summary style={{ cursor: 'pointer', color: GOLD, fontSize: '12px', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+                            <span>{label}</span>
+                            <a href={`/${slug}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
+                              style={{ fontSize: '10px', color: TEXT3, textDecoration: 'none', border: `1px solid ${BORDER2}`, padding: '2px 8px', borderRadius: '4px' }}>
+                              Aperçu ↗
+                            </a>
+                          </summary>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
+                            {(['eyebrow', 'title', 'lead', 'updatedAt'] as const).map(k => (
+                              <div key={k} style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                                <span style={{ fontSize: '10px', color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{k}</span>
+                                <input value={lp[k] ?? ''} data-k={k} onChange={handleLpField}
+                                  style={{ background: SURFACE, color: TEXT, border: `1px solid ${BORDER2}`, borderRadius: '4px', padding: '7px 10px', fontSize: '12px' }} />
+                              </div>
+                            ))}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                              <span style={{ fontSize: '10px', color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>bodyHtml (optionnel — remplace le corps)</span>
+                              <textarea value={lp.bodyHtml ?? ''} onChange={e => update({ bodyHtml: e.target.value })} rows={6}
+                                style={{ background: SURFACE, color: TEXT, border: `1px solid ${BORDER2}`, borderRadius: '4px', padding: '7px 10px', fontSize: '11px', fontFamily: 'monospace', resize: 'vertical' }} />
+                            </div>
+                            <button onClick={save} disabled={contentSaving[key]}
+                              style={{ alignSelf: 'flex-end', background: contentSaved[key] ? S_SAVE_BG : GOLD2, color: contentSaved[key] ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                              {getSaveButtonText(contentSaved[key], contentSaving[key])}
+                            </button>
+                          </div>
+                        </details>
+                      );
+                    })}
                   </div>
                 );
               })()}
+            </div>
+          )}
+
+          {/* ─── PROMOS TAB ─── */}
+          {tab === 'faq' && (() => {
+            const faq = siteContent.faq;
+            const save = async () => { await saveConfigSection('faq', faq); };
+            const handleFaqItemInput = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+              updateFaqItem(Number(e.currentTarget.dataset.ci), Number(e.currentTarget.dataset.qi), { [e.currentTarget.dataset.field as 'q' | 'a']: e.currentTarget.value });
+            };
+            const handleFaqItemRemove = (e: React.MouseEvent<HTMLButtonElement>) => {
+              removeFaqItem(Number(e.currentTarget.dataset.ci), Number(e.currentTarget.dataset.qi));
+            };
+            return (
+              <div className="space-y-6">
+                <div>
+                  <h1 className="text-lg font-bold" style={{ color: TEXT }}>FAQ</h1>
+                  <p className="text-xs" style={{ color: TEXT3 }}>Gérez les catégories et les questions/réponses affichées sur le site.</p>
+                </div>
+                <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ color: TEXT, fontSize: '14px', fontWeight: 700 }}>FAQ</h3>
+                    <button onClick={addFaqCat} style={{ background: 'transparent', color: GOLD, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '6px 12px', fontSize: '11px', cursor: 'pointer' }}>+ Catégorie</button>
+                  </div>
+                  {faq.length === 0 && <p style={{ fontSize: '12px', color: TEXT3 }}>Aucune catégorie. Ajoutez-en une.</p>}
+                  {faq.map((cat: typeof faq[number], ci: number) => (
+                    <div key={`faq-cat-${ci}-${cat.cat.slice(0, 12)}`} style={{ background: SURFACE2, border: `1px solid ${BORDER2}`, borderRadius: '6px', padding: '12px' }}>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '10px' }}>
+                        <input value={cat.cat} onChange={e => updateFaqCatTitle(ci, e.target.value)}
+                          style={{ flex: 1, background: SURFACE, color: TEXT, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '7px 10px', fontSize: '12px', fontWeight: 600 }} />
+                        <button onClick={() => addFaqItem(ci)} style={{ background: 'transparent', color: TEXT2, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 10px', fontSize: '11px', cursor: 'pointer' }}>+ Q/R</button>
+                        <button onClick={() => removeFaqCat(ci)} style={{ background: 'transparent', color: S_ERR_T, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 10px', fontSize: '11px', cursor: 'pointer' }}>🗑</button>
+                      </div>
+                      {cat.items.map((it: {q: string; a: string}, qi: number) => (
+                        <div key={`faq-item-${ci}-${qi}`} style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '10px', borderTop: `1px solid ${BORDER2}` }}>
+                          <div style={{ display: 'flex', gap: '6px' }}>
+                            <input placeholder="Question" value={it.q} data-ci={ci} data-qi={qi} data-field="q" onChange={handleFaqItemInput}
+                              style={{ flex: 1, background: SURFACE, color: TEXT, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 9px', fontSize: '12px' }} />
+                            <button data-ci={ci} data-qi={qi} onClick={handleFaqItemRemove} style={{ background: 'transparent', color: S_ERR_T, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '4px 8px', fontSize: '10px', cursor: 'pointer' }}>×</button>
+                          </div>
+                          <textarea placeholder="Réponse" value={it.a} data-ci={ci} data-qi={qi} data-field="a" onChange={handleFaqItemInput} rows={3}
+                            style={{ width: '100%', background: SURFACE, color: TEXT, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 9px', fontSize: '12px', resize: 'vertical', fontFamily: 'inherit' }} />
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                  <button onClick={save} disabled={contentSaving.faq}
+                    style={{ alignSelf: 'flex-end', background: contentSaved.faq ? S_SAVE_BG : GOLD2, color: contentSaved.faq ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                    {getSaveButtonText(contentSaved.faq, contentSaving.faq)}
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* ─── HERO TAB ─── */}
+          {tab === 'hero' && (
+            <div className="space-y-6">
+              <h1 className="text-lg font-bold" style={{ color: TEXT }}>🖼 Bannière Hero</h1>
+              <p className="text-xs" style={{ color: TEXT3 }}>Configurez le visuel principal et le message d&apos;accueil affichés en haut de la page d&apos;accueil.</p>
+              {heroSectionBlock}
 
               {/* ── Héros pages catégories ── */}
               {([
@@ -2671,162 +2822,6 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                   </div>
                 );
               })}
-
-
-              {/* ── Codes promo : déplacé dans l'onglet « Codes promo » de la sidebar ── */}
-
-              {/* ── FAQ : déplacée dans l'onglet « FAQ » de la sidebar ── */}
-
-              {/* ─── Newsletter (configuration affichage) ─── */}
-              {(() => {
-                const n = siteContent.newsletter;
-                const update = (patch: Partial<typeof n>) => setSiteContent((c: SiteConfig) => ({ ...c, newsletter: { ...c.newsletter, ...patch } }));
-                const save = async () => { await saveConfigSection('newsletter', n); };
-                return (
-                  <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <h3 style={{ color: TEXT, fontSize: '14px', fontWeight: 700 }}>Newsletter — Affichage</h3>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: TEXT2 }}>
-                      <input type="checkbox" checked={n.enabled} onChange={e => update({ enabled: e.target.checked })} id="newsletter-enabled" />{' '}Afficher le bloc newsletter
-                    </label>
-                    {(['title', 'subtitle', 'ctaLabel', 'successMessage'] as const).map(k => (
-                      <div key={k} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <span style={{ fontSize: '10px', color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{k}</span>
-                        <input value={n[k]} onChange={e => update({ [k]: e.target.value } as Partial<typeof n>)}
-                          style={{ background: SURFACE2, color: TEXT, border: `1px solid ${BORDER2}`, borderRadius: '4px', padding: '7px 10px', fontSize: '12px' }} />
-                      </div>
-                    ))}
-                    <button onClick={save} disabled={contentSaving.newsletter}
-                      style={{ alignSelf: 'flex-end', background: contentSaved.newsletter ? S_SAVE_BG : GOLD2, color: contentSaved.newsletter ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                      {getSaveButtonText(contentSaved.newsletter, contentSaving.newsletter)}
-                    </button>
-                  </div>
-                );
-              })()}
-
-              {/* ─── Pages légales (CGV, Confidentialité, Engagements, Contact) ─── */}
-              {(() => {
-                const KEYS = [
-                  { key: 'legal_mentions' as const, label: 'Mentions légales', slug: 'mentions-legales' },
-                  { key: 'legal_cgv' as const, label: 'CGV', slug: 'cgv' },
-                  { key: 'legal_confidentialite' as const, label: 'Confidentialité', slug: 'confidentialite' },
-                  { key: 'legal_engagements' as const, label: 'Engagements', slug: 'engagements' },
-                  { key: 'legal_contact' as const, label: 'Contact', slug: 'contact' },
-                ];
-                return (
-                  <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    <h3 style={{ color: TEXT, fontSize: '14px', fontWeight: 700 }}>Pages légales</h3>
-                    <p style={{ color: TEXT3, fontSize: '11px' }}>
-                      Édite l&apos;eyebrow, le titre, l&apos;intro, la date de mise à jour et un éventuel bloc HTML. Si tu laisses bodyHtml vide, la page conserve son contenu rédactionnel par défaut.
-                    </p>
-                    {KEYS.map(({ key, label, slug }) => {
-                      const lp = siteContent[key];
-                      const update = (patch: Partial<typeof lp>) => setSiteContent({ ...siteContent, [key]: { ...siteContent[key], ...patch } } as SiteConfig);
-                      const save = () => saveConfigSection(key, lp);
-                      const handleLpField = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-                        update({ [e.currentTarget.dataset.k as string]: e.currentTarget.value } as Partial<typeof lp>);
-                      return (
-                        <details key={key} style={{ border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '10px 12px', background: SURFACE2 }}>
-                          <summary style={{ cursor: 'pointer', color: GOLD, fontSize: '12px', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
-                            <span>{label}</span>
-                            <a href={`/${slug}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
-                              style={{ fontSize: '10px', color: TEXT3, textDecoration: 'none', border: `1px solid ${BORDER2}`, padding: '2px 8px', borderRadius: '4px' }}>
-                              Aperçu ↗
-                            </a>
-                          </summary>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
-                            {(['eyebrow', 'title', 'lead', 'updatedAt'] as const).map(k => (
-                              <div key={k} style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                                <span style={{ fontSize: '10px', color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{k}</span>
-                                <input value={lp[k] ?? ''} data-k={k} onChange={handleLpField}
-                                  style={{ background: SURFACE, color: TEXT, border: `1px solid ${BORDER2}`, borderRadius: '4px', padding: '7px 10px', fontSize: '12px' }} />
-                              </div>
-                            ))}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                              <span style={{ fontSize: '10px', color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>bodyHtml (optionnel — remplace le corps)</span>
-                              <textarea value={lp.bodyHtml ?? ''} onChange={e => update({ bodyHtml: e.target.value })} rows={6}
-                                style={{ background: SURFACE, color: TEXT, border: `1px solid ${BORDER2}`, borderRadius: '4px', padding: '7px 10px', fontSize: '11px', fontFamily: 'monospace', resize: 'vertical' }} />
-                            </div>
-                            <button onClick={save} disabled={contentSaving[key]}
-                              style={{ alignSelf: 'flex-end', background: contentSaved[key] ? S_SAVE_BG : GOLD2, color: contentSaved[key] ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                              {getSaveButtonText(contentSaved[key], contentSaving[key])}
-                            </button>
-                          </div>
-                        </details>
-                      );
-                    })}
-                  </div>
-                );
-              })()}
-
-              <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '14px' }}>
-                <p className="text-xs" style={{ color: TEXT3 }}>
-                  <span style={{ color: GOLD }}>ℹ️</span>{' '}
-                  Les modifications sont sauvegardées dans Supabase (table <code style={{ color: TEXT2 }}>site_config</code>).
-                  Assurez-vous que la table existe :{' '}
-                  <code style={{ color: TEXT2, fontSize: '10px' }}>CREATE TABLE site_config (key TEXT PRIMARY KEY, value JSONB, updated_at TIMESTAMPTZ DEFAULT NOW());</code>
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* ─── PROMOS TAB ─── */}
-          {tab === 'faq' && (() => {
-            const faq = siteContent.faq;
-            const save = async () => { await saveConfigSection('faq', faq); };
-            const handleFaqItemInput = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-              updateFaqItem(Number(e.currentTarget.dataset.ci), Number(e.currentTarget.dataset.qi), { [e.currentTarget.dataset.field as 'q' | 'a']: e.currentTarget.value });
-            };
-            const handleFaqItemRemove = (e: React.MouseEvent<HTMLButtonElement>) => {
-              removeFaqItem(Number(e.currentTarget.dataset.ci), Number(e.currentTarget.dataset.qi));
-            };
-            return (
-              <div className="space-y-6">
-                <div>
-                  <h1 className="text-lg font-bold" style={{ color: TEXT }}>FAQ</h1>
-                  <p className="text-xs" style={{ color: TEXT3 }}>Gérez les catégories et les questions/réponses affichées sur le site.</p>
-                </div>
-                <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ color: TEXT, fontSize: '14px', fontWeight: 700 }}>FAQ</h3>
-                    <button onClick={addFaqCat} style={{ background: 'transparent', color: GOLD, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '6px 12px', fontSize: '11px', cursor: 'pointer' }}>+ Catégorie</button>
-                  </div>
-                  {faq.length === 0 && <p style={{ fontSize: '12px', color: TEXT3 }}>Aucune catégorie. Ajoutez-en une.</p>}
-                  {faq.map((cat: typeof faq[number], ci: number) => (
-                    <div key={`faq-cat-${ci}-${cat.cat.slice(0, 12)}`} style={{ background: SURFACE2, border: `1px solid ${BORDER2}`, borderRadius: '6px', padding: '12px' }}>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '10px' }}>
-                        <input value={cat.cat} onChange={e => updateFaqCatTitle(ci, e.target.value)}
-                          style={{ flex: 1, background: SURFACE, color: TEXT, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '7px 10px', fontSize: '12px', fontWeight: 600 }} />
-                        <button onClick={() => addFaqItem(ci)} style={{ background: 'transparent', color: TEXT2, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 10px', fontSize: '11px', cursor: 'pointer' }}>+ Q/R</button>
-                        <button onClick={() => removeFaqCat(ci)} style={{ background: 'transparent', color: S_ERR_T, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 10px', fontSize: '11px', cursor: 'pointer' }}>🗑</button>
-                      </div>
-                      {cat.items.map((it: {q: string; a: string}, qi: number) => (
-                        <div key={`faq-item-${ci}-${qi}`} style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '10px', borderTop: `1px solid ${BORDER2}` }}>
-                          <div style={{ display: 'flex', gap: '6px' }}>
-                            <input placeholder="Question" value={it.q} data-ci={ci} data-qi={qi} data-field="q" onChange={handleFaqItemInput}
-                              style={{ flex: 1, background: SURFACE, color: TEXT, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 9px', fontSize: '12px' }} />
-                            <button data-ci={ci} data-qi={qi} onClick={handleFaqItemRemove} style={{ background: 'transparent', color: S_ERR_T, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '4px 8px', fontSize: '10px', cursor: 'pointer' }}>×</button>
-                          </div>
-                          <textarea placeholder="Réponse" value={it.a} data-ci={ci} data-qi={qi} data-field="a" onChange={handleFaqItemInput} rows={3}
-                            style={{ width: '100%', background: SURFACE, color: TEXT, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 9px', fontSize: '12px', resize: 'vertical', fontFamily: 'inherit' }} />
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-                  <button onClick={save} disabled={contentSaving.faq}
-                    style={{ alignSelf: 'flex-end', background: contentSaved.faq ? S_SAVE_BG : GOLD2, color: contentSaved.faq ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                    {getSaveButtonText(contentSaved.faq, contentSaving.faq)}
-                  </button>
-                </div>
-              </div>
-            );
-          })()}
-
-          {/* ─── HERO TAB ─── */}
-          {tab === 'hero' && (
-            <div className="space-y-6">
-              <h1 className="text-lg font-bold" style={{ color: TEXT }}>🖼 Bannière Hero</h1>
-              <p className="text-xs" style={{ color: TEXT3 }}>Configurez le visuel principal et le message d&apos;accueil affichés en haut de la page d&apos;accueil.</p>
-              {heroSectionBlock}
             </div>
           )}
 
