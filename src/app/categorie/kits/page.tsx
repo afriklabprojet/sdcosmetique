@@ -10,7 +10,7 @@ import SkinToneSelector from '@/components/ui/SkinToneSelector';
 import styles from './kits.module.css';
 import { DEFAULT_SITE_CONFIG } from '@/lib/site-config';
 import type { KitsHeroConfig } from '@/lib/site-config';
-import { createClient } from '@/utils/supabase/client';
+
 
 const SORT_OPTIONS = [
   { id: 'popular', label: 'Populaires' },
@@ -36,9 +36,10 @@ export default function KitsCategoryPage() {
 
   useEffect(() => { fetchProductsForClient('kits').then(setAllProducts).catch(() => {}); }, []);
   useEffect(() => {
-    const supabase = createClient();
-    supabase.from('site_config').select('value').eq('key', 'hero_kits').single()
-      .then(({ data }) => { if (data?.value) setHero(data.value as KitsHeroConfig); }, () => {});
+    fetch('/api/config/hero_kits')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.value) setHero(d.value as KitsHeroConfig); })
+      .catch(() => {});
   }, []);
 
   const products = useMemo(() => {

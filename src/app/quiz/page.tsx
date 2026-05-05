@@ -9,7 +9,7 @@ import ProductCard from '@/components/ui/ProductCard';
 import styles from './quiz.module.css';
 import { DEFAULT_SITE_CONFIG } from '@/lib/site-config';
 import type { QuizHeroConfig } from '@/lib/site-config';
-import { createClient } from '@/utils/supabase/client';
+
 
 type QuizStep = 'welcome' | 'q1' | 'q2' | 'q3' | 'result';
 
@@ -48,9 +48,10 @@ export default function QuizPage() {
   useEffect(() => {
     fetchActiveConcerns().then(data => { if (data.length) setConcerns(data); }).catch(() => {});
     fetchActiveRoutines().then(data => { if (data.length) setRoutines(data); }).catch(() => {});
-    const supabase = createClient();
-    supabase.from('site_config').select('value').eq('key', 'hero_quiz').single()
-      .then(({ data }) => { if (data?.value) setHero(data.value as QuizHeroConfig); }, () => {});
+    fetch('/api/config/hero_quiz')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.value) setHero(d.value as QuizHeroConfig); })
+      .catch(() => {});
   }, []);
 
   // Fetch recommandations via API quand on arrive sur "result"

@@ -10,7 +10,7 @@ import SkinToneSelector from '@/components/ui/SkinToneSelector';
 import styles from './duo.module.css';
 import { DEFAULT_SITE_CONFIG } from '@/lib/site-config';
 import type { DuoHeroConfig } from '@/lib/site-config';
-import { createClient } from '@/utils/supabase/client';
+
 
 const SORT_OPTIONS = [
   { id: 'popular', label: 'Populaires' },
@@ -36,9 +36,10 @@ export default function DuoCategoryPage() {
 
   useEffect(() => { fetchProductsForClient('duo').then(setAllProducts).catch(() => {}); }, []);
   useEffect(() => {
-    const supabase = createClient();
-    supabase.from('site_config').select('value').eq('key', 'hero_duo').single()
-      .then(({ data }) => { if (data?.value) setHero(data.value as DuoHeroConfig); }, () => {});
+    fetch('/api/config/hero_duo')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.value) setHero(d.value as DuoHeroConfig); })
+      .catch(() => {});
   }, []);
 
   const products = useMemo(() => {

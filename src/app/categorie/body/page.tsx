@@ -10,7 +10,7 @@ import SkinToneSelector from '@/components/ui/SkinToneSelector';
 import styles from './body.module.css';
 import { DEFAULT_SITE_CONFIG } from '@/lib/site-config';
 import type { CategoryHeroConfig } from '@/lib/site-config';
-import { createClient } from '@/utils/supabase/client';
+
 
 const SORT_OPTIONS = [
   { id: 'popular', label: 'Populaires' },
@@ -36,9 +36,10 @@ export default function BodyCategoryPage() {
 
   useEffect(() => { fetchProductsForClient('body').then(setAllProducts).catch(() => {}); }, []);
   useEffect(() => {
-    const supabase = createClient();
-    supabase.from('site_config').select('value').eq('key', 'hero_body').single()
-      .then(({ data }) => { if (data?.value) setHero(data.value as CategoryHeroConfig); }, () => {});
+    fetch('/api/config/hero_body')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.value) setHero(d.value as CategoryHeroConfig); })
+      .catch(() => {});
   }, []);
 
   const products = useMemo(() => {
