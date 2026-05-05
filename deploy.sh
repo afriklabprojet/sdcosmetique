@@ -1,5 +1,5 @@
 #!/bin/bash
-# Deploy script - Hostinger Node.js (Passenger)
+# Deploy script - Hostinger Node.js (pm2)
 # Usage: ./deploy.sh "message de commit"
 
 set -e
@@ -37,8 +37,8 @@ rsync -avz --delete \
 echo "📤 Rsync server.js..."
 rsync -avz -e "ssh -p $PORT" server.js $SERVER:$REMOTE_PATH/server.js
 
-# 5. Restart Passenger
-echo "♻️  Restart Passenger..."
-ssh -p $PORT $SERVER "touch $REMOTE_PATH/tmp/restart.txt"
+# 5. Restart pm2
+echo "♻️  Restart pm2..."
+ssh -p $PORT $SERVER "pm2 restart all || pm2 start $REMOTE_PATH/server.js --name sd-cosmetique"
 
 echo "✅ Déploiement terminé !"
