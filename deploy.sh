@@ -39,6 +39,8 @@ rsync -az --delete \
   $SERVER:$REMOTE_PATH/public/
 
 echo "📤 Rsync .next/static/..."
+dirs=$(find .next/static -type d | sed "s|^|$REMOTE_PATH/|" | tr '\n' ' ')
+ssh -p $PORT $SERVER "mkdir -p $dirs" 2>/dev/null || true
 rsync -az --delete \
   -e "ssh -p $PORT" \
   .next/static/ \
@@ -51,6 +53,6 @@ scp -P $PORT server.js $SERVER:$REMOTE_PATH/server.js
 
 # 5. Tuer les anciens processus — LiteSpeed en relancera automatiquement de nouveaux
 echo "♻️  Restart Node.js (kill + LiteSpeed auto-restart)..."
-ssh -p $PORT $SERVER "pkill -f 'next-server' 2>/dev/null; echo 'Anciens processus arrêtés'" || true
+ssh -p $PORT $SERVER "pkill -f 'next-server' 2>/dev/null || true" 2>/dev/null || true
 
 echo "✅ Déploiement terminé ! (LiteSpeed démarrera le nouveau server.js au prochain hit)"
