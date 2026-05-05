@@ -30,11 +30,11 @@ const toneColor: Record<string, string> = {
 };
 
 const toneImage: Record<string, string> = {
-  noir:           '/hero/skintone-noir.jpg',
-  marron:         '/hero/skintone-marron.jpg',
-  'marron-clair': '/hero/skintone-marron-clair.jpg',
-  clair:          '/hero/skintone-clair.jpg',
-  metisse:        '/hero/skintone-metisse.jpg',
+  noir:           '/hero/skintone-noir.svg',
+  marron:         '/hero/skintone-marron.svg',
+  'marron-clair': '/hero/skintone-marron-clair.svg',
+  clair:          '/hero/skintone-clair.svg',
+  metisse:        '/hero/skintone-metisse.svg',
 };
 
 interface Props {
