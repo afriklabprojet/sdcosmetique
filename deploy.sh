@@ -18,21 +18,24 @@ git add .
 git commit -m "$MSG" 2>/dev/null || echo "(rien à committer)"
 git push origin main
 
-# 2. Git pull sur le serveur
-echo "🔄 Git pull serveur..."
-ssh -p $PORT $SERVER "cd $REMOTE_PATH && git pull origin main"
+# 2. Git pull sur le serveur (optionnel - le déploiement se fait via rsync)
+echo "🔄 Git pull serveur (optionnel)..."
+ssh -p $PORT $SERVER "cd $REMOTE_PATH && git pull origin main" 2>/dev/null || echo "(pas de git sur le serveur - OK, déploiement via rsync)"
 
 # 3. Build local
 echo "🔨 Build local..."
 npm run build
 
-# 4. Rsync .next/
+# 4. Rsync .next/ et server.js
 echo "📤 Rsync .next/..."
 rsync -avz --delete \
   --exclude='.next/cache' \
   -e "ssh -p $PORT" \
   .next/ \
   $SERVER:$REMOTE_PATH/.next/
+
+echo "📤 Rsync server.js..."
+rsync -avz -e "ssh -p $PORT" server.js $SERVER:$REMOTE_PATH/server.js
 
 # 5. Restart Passenger
 echo "♻️  Restart Passenger..."
