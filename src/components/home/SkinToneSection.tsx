@@ -48,15 +48,11 @@ export default function SkinToneSection() {
                 cursor: 'pointer',
                 display: 'block',
                 transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                background: t.fallback,
               }}
             >
               <Image src={t.img} alt={t.label} fill
-                onError={(e) => {
-                  const target = e.currentTarget;
-                  target.style.display = 'none';
-                  const parent = target.parentElement;
-                  if (parent) parent.style.background = t.fallback;
-                }}
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
                 style={{ objectFit: 'cover' }}
                 sizes="(max-width: 768px) 20vw, 240px" />
               {/* Gradient overlay */}

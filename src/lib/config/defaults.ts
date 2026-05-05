@@ -206,6 +206,7 @@ export const DEFAULT_BRANDING: BrandingConfig = {
   facebookUrl: '',
   youtubeUrl: '',
   linkedinUrl: '',
+  adminLoginBg: '/hero/generated-skincare-hero-2-2.jpg',
 };
 
 // Configuration complète par défaut
@@ -243,6 +244,13 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   shipping: DEFAULT_SHIPPING,
   promo_codes: DEFAULT_PROMO_CODES,
   faq: DEFAULT_FAQ,
+  legal_mentions: {
+    eyebrow: 'Informations légales',
+    title: 'Mentions légales',
+    lead: 'Toutes les informations légales relatives à l\'éditeur du site.',
+    bodyHtml: '',
+    updatedAt: '',
+  },
   legal_cgv: {
     eyebrow: 'Conditions Générales de Vente',
     title: 'CGV',

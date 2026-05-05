@@ -20,7 +20,7 @@ export default function TrendingProducts({ products }: Readonly<{ products: Prod
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <div className={`reveal${visible ? ' visible' : ''}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h2 style={{
-            fontFamily: 'var(--font-inter), Inter, sans-serif',
+            fontFamily: 'var(--font-heading)',
             fontSize: 'clamp(1.1rem, 1.8vw, 1.4rem)', fontWeight: 700,
             color: 'var(--brown-deep)', letterSpacing: '0.12em',
             textTransform: 'uppercase',

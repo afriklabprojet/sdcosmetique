@@ -8,9 +8,30 @@ interface ProductGalleryProps {
   productName: string;
 }
 
-export default function ProductGallery({ images, productName }: ProductGalleryProps) {
+const ImagePlaceholder = ({ size }: { size: 'large' | 'small' }) => (
+  <div style={{
+    width: '100%',
+    height: '100%',
+    background: '#1A1A1A',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#444',
+    gap: '8px',
+  }}>
+    <span style={{ fontSize: size === 'large' ? '40px' : '18px' }}>🖼</span>
+    {size === 'large' && <span style={{ fontSize: '13px' }}>Image non disponible</span>}
+  </div>
+);
+
+export default function ProductGallery({ images, productName }: Readonly<ProductGalleryProps>) {
   const [selectedImage, setSelectedImage] = useState(0);
-  
+  const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
+
+  const markFailed = (index: number) =>
+    setFailedImages(prev => new Set([...prev, index]));
+
   if (!images || images.length === 0) {
     return (
       <div style={{
@@ -39,13 +60,18 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
         background: '#1A1A1A',
         position: 'relative'
       }}>
-        <Image
-          src={images[selectedImage]}
-          alt={productName}
-          fill
-          style={{ objectFit: 'cover' }}
-          priority
-        />
+        {failedImages.has(selectedImage) ? (
+          <ImagePlaceholder size="large" />
+        ) : (
+          <Image
+            src={images[selectedImage]}
+            alt={productName}
+            fill
+            style={{ objectFit: 'cover' }}
+            priority
+            onError={() => markFailed(selectedImage)}
+          />
+        )}
       </div>
       
       {/* Miniatures */}
@@ -58,7 +84,7 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
         }}>
           {images.map((image, index) => (
             <button
-              key={index}
+              key={image || index}
               onClick={() => setSelectedImage(index)}
               style={{
                 width: '80px',
@@ -73,12 +99,17 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
                 flexShrink: 0
               }}
             >
-              <Image
-                src={image}
-                alt={`${productName} - image ${index + 1}`}
-                fill
-                style={{ objectFit: 'cover' }}
-              />
+              {failedImages.has(index) ? (
+                <ImagePlaceholder size="small" />
+              ) : (
+                <Image
+                  src={image}
+                  alt={`${productName} - image ${index + 1}`}
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  onError={() => markFailed(index)}
+                />
+              )}
             </button>
           ))}
         </div>

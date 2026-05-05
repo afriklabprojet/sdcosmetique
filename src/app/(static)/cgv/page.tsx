@@ -29,8 +29,7 @@ export default async function CGVPage() {
       </section>
       {legal.bodyHtml && legal.bodyHtml.trim() && !legal.bodyHtml.includes('peut être édité') ? (
         <article className={styles.content}><div dangerouslySetInnerHTML={{ __html: legal.bodyHtml }} /></article>
-      ) : null}
-
+      ) : (
       <article className={styles.content}>
         <nav className={styles.toc}>
           <p className={styles.tocTitle}>Sommaire</p>
@@ -162,6 +161,7 @@ export default async function CGVPage() {
           </Link>
         </div>
       </article>
+      )}
     </div>
   );
 }

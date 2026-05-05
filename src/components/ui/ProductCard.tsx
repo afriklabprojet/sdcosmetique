@@ -158,6 +158,7 @@ function ProductMedia({
   onAddToCart,
   onWishlist,
 }: ProductMediaProps) {
+  const [imgFailed, setImgFailed] = useState(false);
   return (
       <div style={{ position: 'relative', aspectRatio: '3/4', background: 'var(--cream)', overflow: 'hidden' }}>
         <Link
@@ -175,13 +176,14 @@ function ProductMedia({
                 transition: 'transform 0.65s cubic-bezier(0.25,0.46,0.45,0.94)',
               }}
             >
-              {product.images[0] ? (
+              {product.images[0] && !imgFailed ? (
                 <Image
                   src={product.images[0]}
                   alt={product.name}
                   fill
                   sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   style={{ objectFit: 'cover' }}
+                  onError={() => setImgFailed(true)}
                 />
               ) : (
                 <div

@@ -14,7 +14,7 @@ const SORT_OPTIONS = [
   { id: 'rating',     label: 'Mieux notés' },
 ];
 
-export default function BoutiqueClient({ products }: { products: Product[] }) {
+export default function BoutiqueClient({ products }: Readonly<{ products: Product[] }>) {
   const [skinToneFilter, setSkinToneFilter] = useState<SkinTone | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState('popular');
@@ -64,7 +64,7 @@ export default function BoutiqueClient({ products }: { products: Product[] }) {
       </div>
 
       {/* Filtres & tri */}
-      <div style={{ background: 'var(--white)', borderBottom: '1px solid var(--border-gold)', position: 'sticky', top: 0, zIndex: 10 }}>
+      <div style={{ background: 'var(--white)', borderBottom: '1px solid var(--border-gold)', position: 'sticky', top: 67, zIndex: 10 }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px' }}>
 
           {/* Onglets catégories */}
@@ -116,7 +116,7 @@ export default function BoutiqueClient({ products }: { products: Product[] }) {
               <SkinToneSelector selected={skinToneFilter} onChange={setSkinToneFilter} />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-              <span style={{ fontSize: '0.72rem', color: 'var(--warm-grey)' }}>{filtered.length} produit{filtered.length !== 1 ? 's' : ''}</span>
+              <span style={{ fontSize: '0.72rem', color: 'var(--warm-grey)' }}>{filtered.length} produit{filtered.length === 1 ? '' : 's'}</span>
               <select
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value)}

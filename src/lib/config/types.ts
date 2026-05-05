@@ -201,6 +201,7 @@ export type BrandingConfig = {
   facebookUrl: string;
   youtubeUrl: string;
   linkedinUrl: string;
+  adminLoginBg?: string;
 };
 
 // ─── Configuration complète du site ─────────────────────────────────────────
@@ -221,6 +222,7 @@ export type SiteConfig = {
   shipping: ShippingConfig;
   promo_codes: PromoCode[];
   faq: FaqCategory[];
+  legal_mentions: LegalPage;
   legal_cgv: LegalPage;
   legal_confidentialite: LegalPage;
   legal_engagements: LegalPage;

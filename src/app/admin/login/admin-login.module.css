@@ -26,7 +26,6 @@
 .leftBg {
   position: absolute;
   inset: 0;
-  background-image: url('/hero/generated-skincare-hero.jpg');
   background-size: cover;
   background-position: center 30%;
   z-index: 0;

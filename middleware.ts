@@ -101,6 +101,6 @@ export const config = {
      * - manifest.webmanifest (PWA manifest généré par Next.js)
      * - fichiers publics (images, etc.)
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|manifest.webmanifest|.*\\.).*)"
+    String.raw`/((?!api|_next/static|_next/image|favicon.ico|manifest.webmanifest|.*\.).*)`
   ]
 };

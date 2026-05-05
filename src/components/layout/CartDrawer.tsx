@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import { formatPrice } from '@/lib/products';
 import { fetchSiteConfigSection, DEFAULT_SITE_CONFIG } from '@/lib/site-config';
@@ -45,7 +46,7 @@ export default function CartDrawer() {
             </h2>
             <p className="text-xs text-gray-500 mt-0.5">{totalItems} article{totalItems === 1 ? '' : 's'}</p>
           </div>
-          <button onClick={closeCart} className="p-2 hover:opacity-70 transition-opacity">
+          <button onClick={closeCart} aria-label="Fermer le panier" className="p-2 hover:opacity-70 transition-opacity">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
@@ -78,12 +79,16 @@ export default function CartDrawer() {
             items.map(item => (
               <div key={item.product.id} className="flex gap-4 pb-4 border-b" style={{ borderColor: 'var(--grey-100)' }}>
                 {/* Image */}
-                <div className="w-20 h-20 shrink-0 overflow-hidden" style={{ background: 'var(--cream)' }}>
-                  <img
-                    src={item.product.images[0]}
-                    alt={item.product.name}
-                    className="w-full h-full object-cover"
-                  />
+                <div className="w-20 h-20 shrink-0 overflow-hidden relative" style={{ background: 'var(--cream)' }}>
+                  {item.product.images[0] ? (
+                    <Image
+                      src={item.product.images[0]}
+                      alt={item.product.name}
+                      fill
+                      sizes="80px"
+                      style={{ objectFit: 'cover' }}
+                    />
+                  ) : null}
                 </div>
                 {/* Info */}
                 <div className="flex-1 min-w-0">

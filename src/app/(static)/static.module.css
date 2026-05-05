@@ -437,7 +437,7 @@
   font-size: 0.7rem;
   letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: #F5EBD9;
+  color: #F5EBD9 !important;
   margin-bottom: 0.75rem;
   position: relative;
 }
@@ -447,13 +447,14 @@
   font-size: clamp(1.6rem, 2.5vw, 2rem);
   margin: 0 0 0.75rem;
   font-weight: 400;
+  color: #fff !important;
   position: relative;
 }
 
 .bottomCtaText {
   font-family: var(--font-inter), Inter, sans-serif;
   font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.78);
+  color: rgba(255, 255, 255, 0.78) !important;
   margin: 0 0 1.75rem;
   max-width: 480px;
   margin-left: auto;
@@ -466,7 +467,8 @@
   align-items: center;
   gap: 12px;
   background: #8F5922;
-  color: #fff;
+  color: #fff !important;
+  border-bottom: none !important;
   padding: 0.95rem 2rem;
   border-radius: 10px;
   text-decoration: none;

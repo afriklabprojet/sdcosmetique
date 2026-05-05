@@ -1,13 +1,16 @@
 import Link from 'next/link';
 import styles from '../static.module.css';
 import TrustBar from '@/components/home/TrustBar';
+import { getSiteConfig } from '@/lib/site-config.server';
 
 export const metadata = {
   title: 'Mentions légales — SD Cosmétique',
   description: 'Mentions légales et informations sur la société SD Cosmétique.',
 };
 
-export default function MentionsLegalesPage() {
+export default async function MentionsLegalesPage() {
+  const cfg = await getSiteConfig();
+  const legal = cfg.legal_mentions;
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
@@ -17,19 +20,23 @@ export default function MentionsLegalesPage() {
             <span className={styles.sep}>›</span>
             <span>Mentions légales</span>
           </nav>
-          <span className={styles.eyebrow}>Informations légales</span>
+          <span className={styles.eyebrow}>{legal.eyebrow || 'Informations légales'}</span>
           <h1 className={styles.title}>
-            Mentions <span className={styles.titleAccent}>légales</span>
+            {legal.title ? legal.title : <>Mentions <span className={styles.titleAccent}>légales</span></>}
           </h1>
           <p className={styles.lede}>
-            Toutes les informations légales relatives à l&apos;éditeur du site sdcosmetique.com.
+            {legal.lead || 'Toutes les informations légales relatives à l\'éditeur du site.'}
           </p>
+          {legal.updatedAt ? <p className={styles.meta}>Dernière mise à jour · {legal.updatedAt}</p> : null}
         </div>
       </section>
 
       {/* Ajout de la TrustBar */}
       <TrustBar />
 
+      {legal.bodyHtml?.trim() ? (
+        <article className={styles.content}><div dangerouslySetInnerHTML={{ __html: legal.bodyHtml }} /></article>
+      ) : (
       <article className={styles.content}>
         <h2>Éditeur du site</h2>
         <p>
@@ -93,6 +100,7 @@ export default function MentionsLegalesPage() {
           ou par email à <a href="mailto:contact@sdcosmetique.com">contact@sdcosmetique.com</a>.
         </p>
       </article>
+      )}
     </div>
   );
 }

@@ -14,15 +14,19 @@ export default function NotFound() {
           La page que vous recherchez n&apos;existe pas ou a été déplacée.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="/">
-            <button className="px-8 py-3 text-sm font-medium text-white tracking-widest uppercase" style={{ background: 'var(--gold)' }}>
-              Retour à l&apos;accueil
-            </button>
+          <Link
+            href="/"
+            className="px-8 py-3 text-sm font-medium text-white tracking-widest uppercase text-center"
+            style={{ background: 'var(--gold)', textDecoration: 'none' }}
+          >
+            Retour à l&apos;accueil
           </Link>
-          <Link href="/categorie/gammes">
-            <button className="px-8 py-3 text-sm font-medium tracking-widest uppercase border" style={{ borderColor: 'var(--grey-200)', color: 'var(--grey-700)' }}>
-              Voir les produits
-            </button>
+          <Link
+            href="/categorie/gammes"
+            className="px-8 py-3 text-sm font-medium tracking-widest uppercase border text-center"
+            style={{ borderColor: 'var(--grey-200)', color: 'var(--grey-700)', textDecoration: 'none' }}
+          >
+            Voir les produits
           </Link>
         </div>
       </div>

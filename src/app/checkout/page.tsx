@@ -52,10 +52,22 @@ const inputSt: React.CSSProperties = {
 };
 
 const MOBILE_METHODS: { id: PaymentMethod; label: string; desc: string; logo: React.ReactNode; badge?: string }[] = [
-  { id: 'orange_money', label: 'Orange Money', desc: 'Paiement mobile Orange', logo: <span style={{ fontSize: '24px' }}>🟠</span>, badge: 'Recommandé' },
-  { id: 'wave',         label: 'Wave',         desc: 'Paiement rapide via Wave', logo: <span style={{ fontSize: '24px' }}>🌊</span> },
-  { id: 'mtn_momo',    label: 'MTN MoMo',    desc: 'Mobile Money MTN', logo: <span style={{ fontSize: '24px' }}>🟡</span> },
-  { id: 'moov_money',  label: 'Moov Money',  desc: 'Paiement Moov Money', logo: <span style={{ fontSize: '24px' }}>🔵</span> },
+  {
+    id: 'orange_money', label: 'Orange Money', desc: 'Paiement mobile Orange', badge: 'Recommandé',
+    logo: <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: '50%', background: '#FF6600', color: '#fff', fontSize: '11px', fontWeight: 800, letterSpacing: '-0.02em', flexShrink: 0 }}>OM</span>,
+  },
+  {
+    id: 'wave', label: 'Wave', desc: 'Paiement rapide via Wave',
+    logo: <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: '50%', background: '#1A9BE6', color: '#fff', fontSize: '11px', fontWeight: 800, letterSpacing: '-0.02em', flexShrink: 0 }}>W</span>,
+  },
+  {
+    id: 'mtn_momo', label: 'MTN MoMo', desc: 'Mobile Money MTN',
+    logo: <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: '50%', background: '#FFCC00', color: '#1A1A1A', fontSize: '10px', fontWeight: 800, letterSpacing: '-0.02em', flexShrink: 0 }}>MTN</span>,
+  },
+  {
+    id: 'moov_money', label: 'Moov Money', desc: 'Paiement Moov Money',
+    logo: <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: '50%', background: '#00A651', color: '#fff', fontSize: '10px', fontWeight: 800, letterSpacing: '-0.02em', flexShrink: 0 }}>MOOV</span>,
+  },
 ];
 
 

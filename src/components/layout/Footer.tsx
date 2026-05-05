@@ -179,7 +179,7 @@ export default function Footer() {
       <div style={{
         maxWidth: '1200px', margin: '36px auto 0',
         paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.1)',
-        textAlign: 'right',
+        textAlign: 'center',
         fontFamily: 'var(--font-inter), Inter, sans-serif',
         fontSize: '0.75rem', color: '#A88E68',
       }}>

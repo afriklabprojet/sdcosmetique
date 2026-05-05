@@ -13,7 +13,7 @@ export function rowToProduct(row: Record<string, unknown>): Product {
     category: row.category as Category,
     price: Number(row.price),
     originalPrice: row.original_price != null ? Number(row.original_price) : undefined,
-    images: (row.images as string[]) ?? [],
+    images: ((row.images as string[]) ?? []).filter(Boolean),
     skinTones: (row.skin_tones as SkinTone[]) ?? [],
     badges: (row.badges as string[]) ?? [],
     rating: Number(row.rating),

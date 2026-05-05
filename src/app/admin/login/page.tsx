@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
+import { fetchSiteConfigSection } from '@/lib/config/utilities';
 import styles from './admin-login.module.css';
 
 // ─── Whitelist emails autorisés (vérification UI seulement — la vraie vérif est côté serveur via middleware) ───
@@ -21,6 +22,13 @@ export default function AdminLoginPage() {
       : ''
   );
   const [loading, setLoading] = useState(false);
+  const [loginBg, setLoginBg] = useState('/hero/generated-skincare-hero-2-2.jpg');
+
+  useEffect(() => {
+    fetchSiteConfigSection('branding').then((b) => {
+      if (b?.adminLoginBg) setLoginBg(b.adminLoginBg);
+    });
+  }, []);
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -45,7 +53,7 @@ export default function AdminLoginPage() {
     <div className={styles.wrap}>
       {/* ── Gauche — Editorial ── */}
       <div className={styles.leftSide}>
-        <div className={styles.leftBg} />
+        <div className={styles.leftBg} style={{ backgroundImage: `url('${loginBg}')` }} />
 
         <div className={styles.leftBrand}>
           <span className={styles.brandName}>SD Cosmetique</span>

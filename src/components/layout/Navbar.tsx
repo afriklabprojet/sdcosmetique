@@ -249,7 +249,7 @@ export default function Navbar() {
           flex: 1;
           border: none;
           outline: none;
-          font-family: var(--font-playfair), Georgia, serif;
+          font-family: var(--font-heading);
           font-size: 1.4rem;
           color: #1A0E05;
           background: transparent;
@@ -297,7 +297,7 @@ export default function Navbar() {
         }
         .search-result-info { flex: 1; min-width: 0; }
         .search-result-name {
-          font-family: var(--font-playfair), Georgia, serif;
+          font-family: var(--font-heading);
           font-size: 0.95rem;
           color: #1A0E05;
           margin: 0 0 2px;
@@ -310,7 +310,7 @@ export default function Navbar() {
           text-transform: uppercase;
         }
         .search-result-price {
-          font-family: var(--font-playfair), Georgia, serif;
+          font-family: var(--font-heading);
           font-size: 0.95rem;
           color: #8F5922;
           flex-shrink: 0;
@@ -430,7 +430,9 @@ export default function Navbar() {
                   results.map(p => (
                     <button key={p.id} className="search-result" onClick={() => goToProduct(p.slug)}>
                       <div className="search-result-img">
-                        <Image src={p.images[0]} alt={p.name} fill sizes="56px" style={{ objectFit: 'cover' }} />
+                        {p.images[0] && (
+                          <Image src={p.images[0]} alt={p.name} fill sizes="56px" style={{ objectFit: 'cover' }} />
+                        )}
                       </div>
                       <div className="search-result-info">
                         <div className="search-result-name">{p.name}</div>

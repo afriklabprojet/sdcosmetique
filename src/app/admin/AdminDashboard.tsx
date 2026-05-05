@@ -8,10 +8,10 @@ import { createClient } from '@/utils/supabase/client';
 import { formatOrderDate, updateOrderStatus, OrderDraft } from '@/lib/orders';
 import { formatPrice, PRODUCTS } from '@/lib/products';
 import { Product, Category, SkinTone, Review } from '@/types';
-import { fetchAllOrdersFromDB, updateOrderStatusInDB, updateProductInDB, fetchProductsFromDB, addProductToDB, deleteProductFromDB, fetchAllReviewsFromDB, deleteReviewFromDB, approveReviewInDB } from '@/lib/orders-db';
+import { fetchAllOrdersFromDB, updateOrderStatusInDB, fetchProductsFromDB, fetchAllReviewsFromDB, deleteReviewFromDB, approveReviewInDB } from '@/lib/orders-db';
+import { addProduct, updateProduct, deleteProduct, saveSiteConfigSection } from './actions';
 import { DEFAULT_SITE_CONFIG } from '@/lib/site-config';
 import type { SiteConfig, PromoCode, ShippingOption, MarketingConfig, PromoBanner, WelcomePopup, UpsellRule, BrandingConfig } from '@/lib/site-config';
-import { saveSiteConfigSection } from './actions';
 import ImageUpload from '@/components/ui/ImageUpload';
 import { fetchAllTestimonialsAdmin, approveTestimonialInDB, deleteTestimonialFromDB } from '@/lib/testimonials-db';
 import type { TestimonialRow } from '@/lib/testimonials-db';
@@ -1097,7 +1097,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
     price: 0, images: [''], skinTones: [], benefits: [], rating: 0, reviewCount: 0,
     shortDescription: '', description: '', usage: '', inStock: true, stockQty: 0, lowStockThreshold: 5, isNew: false, isBestseller: false,
   });
-  const saveModal = () => {
+  const saveModal = async () => {
     if (!productModal?.name?.trim() || !productModal?.slug?.trim() || !productModal?.category) return;
     const validImages = productModal.images?.filter((u: string) => u?.trim()) ?? [];
     if (validImages.length === 0) return;
@@ -1126,16 +1126,16 @@ export default function AdminPage() { // NOSONAR typescript:S3776
       isBestseller: rest.isBestseller,
     };
     if (_isNew) {
-      addProductToDB(p);
+      await addProduct(p);
       setEditableProducts(prev => [...prev, p]);
     } else {
-      updateProductInDB(p.id, p);
+      await updateProduct(p.id, p);
       setEditableProducts(prev => prev.map(x => x.id === p.id ? p : x));
     }
     setProductModal(null);
   };
   const handleDeleteProduct = async (id: string) => {
-    await deleteProductFromDB(id);
+    await deleteProduct(id);
     setEditableProducts(prev => prev.filter(p => p.id !== id));
     setConfirmDelete(null);
   };
@@ -2651,6 +2651,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               {/* ─── Pages légales (CGV, Confidentialité, Engagements, Contact) ─── */}
               {(() => {
                 const KEYS = [
+                  { key: 'legal_mentions' as const, label: 'Mentions légales', slug: 'mentions-legales' },
                   { key: 'legal_cgv' as const, label: 'CGV', slug: 'cgv' },
                   { key: 'legal_confidentialite' as const, label: 'Confidentialité', slug: 'confidentialite' },
                   { key: 'legal_engagements' as const, label: 'Engagements', slug: 'engagements' },
@@ -3009,6 +3010,32 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                   )}
                 </div>
 
+                {/* ── Image de fond — connexion admin ── */}
+                <div style={sectionCard}>
+                  <p style={sectionTitle}>● Image de fond — page de connexion admin</p>
+                  <p style={sectionSubtitle}>Photo affichée sur la moitié gauche de l&apos;écran de connexion administrateur.</p>
+                  <ImageUpload
+                    value={br.adminLoginBg ?? '/hero/generated-skincare-hero-2-2.jpg'}
+                    onChange={(url) => update({ adminLoginBg: url })}
+                    folder="branding"
+                    label="Fond connexion admin"
+                    previewSize={160}
+                  />
+                </div>
+
+                {/* ── Image de fond — connexion admin ── */}
+                <div style={sectionCard}>
+                  <p style={sectionTitle}>● Image de fond — page de connexion admin</p>
+                  <p style={sectionSubtitle}>Photo affichée sur la moitié gauche de l&apos;écran de connexion administrateur.</p>
+                  <ImageUpload
+                    value={br.adminLoginBg ?? '/hero/generated-skincare-hero-2-2.jpg'}
+                    onChange={(url) => update({ adminLoginBg: url })}
+                    folder="branding"
+                    label="Fond connexion admin"
+                    previewSize={160}
+                  />
+                </div>
+
                 {/* ── Identité du site ── */}
                 <div style={sectionCard}>
                   <p style={sectionTitle}>● Identité du site</p>
@@ -3141,7 +3168,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                   <p style={sectionSubtitle}>Affichés dans le footer et utilisés pour les balises de partage.</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {socials.map(({ key, label, icon, placeholder, brand }) => {
-                      const v = br[key];
+                      const v = br[key] ?? '';
                       const valid = isValidUrl(v);
                       return (
                         <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: BG, border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '10px 12px' }}>
