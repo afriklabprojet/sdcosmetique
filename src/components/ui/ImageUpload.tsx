@@ -1,6 +1,5 @@
 'use client';
 import React, { useCallback, useRef, useState } from 'react';
-import { createClient } from '@/utils/supabase/client';
 
 interface ImageUploadProps {
   readonly value: string;           // URL actuelle
@@ -35,15 +34,13 @@ export default function ImageUpload({
     setError(null);
     setUploading(true);
     try {
-      const supabase = createClient();
-      const ext = file.name.split('.').pop() ?? 'jpg';
-      const filename = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-      const { error: upErr } = await supabase.storage
-        .from('site-images')
-        .upload(filename, file, { upsert: true });
-      if (upErr) throw upErr;
-      const { data } = supabase.storage.from('site-images').getPublicUrl(filename);
-      onChange(data.publicUrl);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', folder);
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? 'Erreur upload');
+      onChange(json.url);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Erreur lors de l\'upload.');
     } finally {
