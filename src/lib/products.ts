@@ -1,20 +1,49 @@
-import { createClient } from '@/utils/supabase/client';
 import { Product, SkinTone, Category } from '@/types';
-import { rowToProduct } from '@/lib/mappers';
 
-// ─── Fetch produits côté client (avec fallback sur PRODUCTS) ─────────────────
-export async function fetchProductsForClient(category?: string): Promise<Product[]> {
+// ─── Options de filtrage ──────────────────────────────────────────────────────
+export interface FetchProductsOptions {
+  category?:    string;
+  skinTone?:    SkinTone;
+  bestsellers?: boolean;
+  limit?:       number;
+}
+
+// ─── Fetch produits via API Route (fiable, centralisé) ───────────────────────
+export async function fetchProductsForClient(
+  category?: string,
+  options?: Omit<FetchProductsOptions, 'category'>
+): Promise<Product[]> {
   try {
-    const supabase = createClient();
-    let query = supabase.from('products').select('*').order('created_at');
-    if (category) query = query.eq('category', category) as typeof query;
-    const { data, error } = await query;
-    if (error || !data?.length) {
-      return category ? PRODUCTS.filter(p => p.category === category) : PRODUCTS;
-    }
-    return data.map(rowToProduct);
+    const params = new URLSearchParams();
+    if (category)               params.set('category',    category);
+    if (options?.skinTone)      params.set('skinTone',    options.skinTone);
+    if (options?.bestsellers)   params.set('bestsellers', 'true');
+    if (options?.limit != null) params.set('limit',       String(options.limit));
+
+    const res = await fetch(`/api/products?${params.toString()}`, {
+      cache: 'no-store',
+    });
+    if (!res.ok) throw new Error(`API ${res.status}`);
+    return (await res.json()) as Product[];
   } catch {
-    return category ? PRODUCTS.filter(p => p.category === category) : PRODUCTS;
+    let products = category ? PRODUCTS.filter(p => p.category === category) : PRODUCTS;
+    if (options?.skinTone)    products = products.filter(p => p.skinTones.includes(options.skinTone!));
+    if (options?.bestsellers) products = products.filter(p => p.isBestseller);
+    if (options?.limit != null) products = products.slice(0, options.limit);
+    return products;
+  }
+}
+
+// ─── Fetch un produit par slug via API Route ──────────────────────────────────
+export async function fetchProductBySlugForClient(slug: string): Promise<Product | null> {
+  try {
+    const res = await fetch(`/api/products/${encodeURIComponent(slug)}`, {
+      cache: 'no-store',
+    });
+    if (!res.ok) throw new Error(`API ${res.status}`);
+    return (await res.json()) as Product;
+  } catch {
+    return PRODUCTS.find(p => p.slug === slug) ?? null;
   }
 }
 
@@ -144,7 +173,7 @@ export const PRODUCTS: Product[] = [
     images: ['/products/creme.svg'],
     skinTones: ['noir', 'marron', 'metisse'],
     badges: ['Collection', '-23%'],
-    rating: 5.0,
+    rating: 5,
     reviewCount: 27,
     shortDescription: 'La collection complète pour la reine africaine',
     description: 'Notre gamme premium la plus complète, incluant 7 produits soigneusement sélectionnés pour une transformation totale.',

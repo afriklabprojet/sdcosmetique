@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { SkinTone, SKIN_TONES } from '@/types';
-import { getProductsBySkinTone } from '@/lib/products';
+import { SkinTone, SKIN_TONES, Product } from '@/types';
 import { fetchActiveConcerns, fetchActiveRoutines } from '@/lib/quiz-db';
 import ProductCard from '@/components/ui/ProductCard';
 import styles from './quiz.module.css';
@@ -44,6 +43,7 @@ export default function QuizPage() {
   const [concerns, setConcerns] = useState<QuizItem[]>(DEFAULT_CONCERNS);
   const [routines, setRoutines] = useState<QuizItem[]>(DEFAULT_ROUTINES);
   const [hero, setHero] = useState<QuizHeroConfig>(DEFAULT_SITE_CONFIG.hero_quiz);
+  const [recommendations, setRecommendations] = useState<Product[]>([]);
 
   useEffect(() => {
     fetchActiveConcerns().then(data => { if (data.length) setConcerns(data); }).catch(() => {});
@@ -52,6 +52,19 @@ export default function QuizPage() {
     supabase.from('site_config').select('value').eq('key', 'hero_quiz').single()
       .then(({ data }) => { if (data?.value) setHero(data.value as QuizHeroConfig); }, () => {});
   }, []);
+
+  // Fetch recommandations via API quand on arrive sur "result"
+  useEffect(() => {
+    if (step !== 'result' || !answers.skinTone) {
+      setRecommendations([]);
+      return;
+    }
+    const params = new URLSearchParams({ skinTone: answers.skinTone, limit: '4' });
+    fetch(`/api/products?${params}`)
+      .then(r => r.ok ? r.json() : [])
+      .then((data: Product[]) => setRecommendations(data.slice(0, 4)))
+      .catch(() => setRecommendations([]));
+  }, [step, answers.skinTone]);
 
   useEffect(() => {
     if (step !== 'result') return;
@@ -83,9 +96,7 @@ export default function QuizPage() {
     setStep('welcome');
   };
 
-  const recommendations = answers.skinTone
-    ? getProductsBySkinTone(answers.skinTone).slice(0, 4)
-    : [];
+  // recommendations est maintenant géré par useEffect (état API)
 
   const concernLabel  = concerns.find(c => c.id === answers.concern)?.label ?? '—';
   const routineLabel  = routines.find(r => r.id === answers.routine)?.label ?? '—';
@@ -319,7 +330,7 @@ export default function QuizPage() {
             <header className={styles.resultHeader}>
               <span className={styles.resultBadge}>Votre diagnostic</span>
               <h2 className={styles.resultTitle}>
-                Votre rituel, composé sur-mesure
+                {'Votre rituel, composé sur-mesure '}
                 <span className={styles.resultTitleAccent}>par nos experts.</span>
               </h2>
               <p className={styles.resultLede}>
