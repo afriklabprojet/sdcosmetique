@@ -9,7 +9,7 @@ import { formatOrderDate, updateOrderStatus, OrderDraft } from '@/lib/orders';
 import { formatPrice, PRODUCTS } from '@/lib/products';
 import { Product, Category, SkinTone, Review } from '@/types';
 import { fetchAllOrdersFromDB, updateOrderStatusInDB, fetchProductsFromDB, fetchAllReviewsFromDB, deleteReviewFromDB, approveReviewInDB } from '@/lib/orders-db';
-import { addProduct, deleteProduct, saveSiteConfigSection } from './actions';
+import { deleteProduct, saveSiteConfigSection } from './actions';
 import { DEFAULT_SITE_CONFIG } from '@/lib/site-config';
 import type { SiteConfig, PromoCode, ShippingOption, MarketingConfig, PromoBanner, WelcomePopup, UpsellRule, BrandingConfig } from '@/lib/site-config';
 import ImageUpload from '@/components/ui/ImageUpload';
@@ -76,6 +76,9 @@ function ProductEditModal({
       };
     });
   };
+
+  const saveLabel = productModal._isNew ? '+ Ajouter' : '✓ Enregistrer';
+  const btnLabel = isSaving ? '⏳ Enregistrement...' : saveLabel;
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex' }}>
@@ -340,7 +343,7 @@ function ProductEditModal({
         )}
         <div style={{ display: 'flex', gap: '8px', paddingTop: '12px', borderTop: `1px solid ${BTN_BG}` }}>
           <button onClick={onSave} disabled={isSaving || !productModal.name?.trim() || !productModal.slug?.trim() || !productModal.category || productModal.images?.filter((u: string) => u?.trim()).length === 0} style={{ flex: 1, padding: '10px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, background: GOLD2, color: BG, cursor: isSaving ? 'wait' : 'pointer', border: 'none', opacity: isSaving || !productModal.name?.trim() || !productModal.slug?.trim() || !productModal.category || productModal.images?.filter((u: string) => u?.trim()).length === 0 ? 0.4 : 1 }}>
-            {isSaving ? '⏳ Enregistrement...' : productModal._isNew ? '+ Ajouter' : '✓ Enregistrer'}
+            {btnLabel}
           </button>
           <button onClick={() => setProductModal(null)} disabled={isSaving} style={{ padding: '10px 16px', borderRadius: '6px', fontSize: '13px', background: SURFACE2, color: TEXT2, cursor: isSaving ? 'not-allowed' : 'pointer', border: 'none' }}>Annuler</button>
         </div>
@@ -1178,10 +1181,16 @@ export default function AdminPage() { // NOSONAR typescript:S3776
   const clearSectionSaved = (key: string) => setContentSaved(s => ({ ...s, [key]: false }));
   const saveConfigSection = async (key: string, value: unknown) => {
     setContentSaving(s => ({ ...s, [key]: true }));
-    await saveSiteConfigSection(key as keyof SiteConfig, value as SiteConfig[keyof SiteConfig]);
-    setContentSaving(s => ({ ...s, [key]: false }));
-    setContentSaved(s => ({ ...s, [key]: true }));
-    setTimeout(() => clearSectionSaved(key), 2500);
+    try {
+      await saveSiteConfigSection(key as keyof SiteConfig, value as SiteConfig[keyof SiteConfig]);
+      setContentSaved(s => ({ ...s, [key]: true }));
+      setTimeout(() => clearSectionSaved(key), 2500);
+    } catch (err) {
+      console.error('Erreur sauvegarde config:', key, err);
+      alert(`Erreur lors de la sauvegarde : ${err instanceof Error ? err.message : 'Erreur inconnue'}`);
+    } finally {
+      setContentSaving(s => ({ ...s, [key]: false }));
+    }
   };
 
   // ── testimonials handlers ──
@@ -2390,6 +2399,9 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               if (r.ok) reloadNewsletter();
               else alert('Erreur lors de la suppression');
             };
+            const n = siteContent.newsletter;
+            const update = (patch: Partial<typeof n>) => setSiteContent((c: SiteConfig) => ({ ...c, newsletter: { ...c.newsletter, ...patch } }));
+            const save = async () => { await saveConfigSection('newsletter', n); };
             return (
               <div className="space-y-6">
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
@@ -2404,30 +2416,23 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                 </div>
 
                 {/* ─── Newsletter (configuration affichage) ─── */}
-                {(() => {
-                  const n = siteContent.newsletter;
-                  const update = (patch: Partial<typeof n>) => setSiteContent((c: SiteConfig) => ({ ...c, newsletter: { ...c.newsletter, ...patch } }));
-                  const save = async () => { await saveConfigSection('newsletter', n); };
-                  return (
-                    <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      <h3 style={{ color: TEXT, fontSize: '14px', fontWeight: 700 }}>Newsletter — Affichage</h3>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: TEXT2 }}>
-                        <input type="checkbox" checked={n.enabled} onChange={e => update({ enabled: e.target.checked })} id="newsletter-enabled" />{' '}Afficher le bloc newsletter
-                      </label>
-                      {(['title', 'subtitle', 'ctaLabel', 'successMessage'] as const).map(k => (
-                        <div key={k} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          <span style={{ fontSize: '10px', color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{k}</span>
-                          <input value={n[k]} onChange={e => update({ [k]: e.target.value } as Partial<typeof n>)}
-                            style={{ background: SURFACE2, color: TEXT, border: `1px solid ${BORDER2}`, borderRadius: '4px', padding: '7px 10px', fontSize: '12px' }} />
-                        </div>
-                      ))}
-                      <button onClick={save} disabled={contentSaving.newsletter}
-                        style={{ alignSelf: 'flex-end', background: contentSaved.newsletter ? S_SAVE_BG : GOLD2, color: contentSaved.newsletter ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                        {getSaveButtonText(contentSaved.newsletter, contentSaving.newsletter)}
-                      </button>
+                <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <h3 style={{ color: TEXT, fontSize: '14px', fontWeight: 700 }}>Newsletter — Affichage</h3>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: TEXT2 }}>
+                    <input type="checkbox" checked={n.enabled} onChange={e => update({ enabled: e.target.checked })} id="newsletter-enabled" />{' '}Afficher le bloc newsletter
+                  </label>
+                  {(['title', 'subtitle', 'ctaLabel', 'successMessage'] as const).map(k => (
+                    <div key={k} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <span style={{ fontSize: '10px', color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{k}</span>
+                      <input value={n[k]} onChange={e => update({ [k]: e.target.value } as Partial<typeof n>)}
+                        style={{ background: SURFACE2, color: TEXT, border: `1px solid ${BORDER2}`, borderRadius: '4px', padding: '7px 10px', fontSize: '12px' }} />
                     </div>
-                  );
-                })()}
+                  ))}
+                  <button onClick={save} disabled={contentSaving.newsletter}
+                    style={{ alignSelf: 'flex-end', background: contentSaved.newsletter ? S_SAVE_BG : GOLD2, color: contentSaved.newsletter ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                    {getSaveButtonText(contentSaved.newsletter, contentSaving.newsletter)}
+                  </button>
+                </div>
 
                 {/* Stats */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
@@ -2752,6 +2757,25 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               <h1 className="text-lg font-bold" style={{ color: TEXT }}>🖼 Bannière Hero</h1>
               <p className="text-xs" style={{ color: TEXT3 }}>Configurez le visuel principal et le message d&apos;accueil affichés en haut de la page d&apos;accueil.</p>
               {heroSectionBlock}
+
+              {/* ── Titre section teint (accueil) ── */}
+              <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <p className="text-sm font-semibold" style={{ color: GOLD }}>🎨 Section Teint — Titre (page d&apos;accueil)</p>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span className="text-xs" style={{ color: TEXT2 }}>Titre affiché au-dessus des cercles de teint</span>
+                  <input
+                  value={siteContent.skin_tone_section_title ?? ''}
+                    onChange={(e) => setSiteContent({ ...siteContent, skin_tone_section_title: e.target.value })}
+                    style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '13px', outline: 'none' }}
+                  />
+                </label>
+                <button
+                  onClick={async () => { await saveConfigSection('skin_tone_section_title', siteContent.skin_tone_section_title); }}
+                  disabled={contentSaving['skin_tone_section_title']}
+                  style={{ alignSelf: 'flex-end', background: contentSaved['skin_tone_section_title'] ? S_SAVE_BG : GOLD2, color: contentSaved['skin_tone_section_title'] ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                  {getSaveButtonText(contentSaved['skin_tone_section_title'], contentSaving['skin_tone_section_title'])}
+                </button>
+              </div>
 
               {/* ── Héros pages catégories ── */}
               {([

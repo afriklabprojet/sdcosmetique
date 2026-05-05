@@ -13,14 +13,14 @@ try {
   console.warn('Warning: could not load required-server-files.json:', e.message)
 }
 
-const http = require('http')
-const { parse } = require('url')
+const http = require('node:http')
+const { parse } = require('node:url')
 const next = require('next')
-const fs = require('fs')
+const fs = require('node:fs')
 
 // LiteSpeed passe le socket Unix via LSNODE_SOCKET (pas de PORT TCP)
 const socket = process.env.LSNODE_SOCKET
-const port = parseInt(process.env.PORT || '3000', 10)
+const port = Number.parseInt(process.env.PORT || '3000', 10)
 const hostname = process.env.HOSTNAME || '0.0.0.0'
 const dir = __dirname
 
@@ -46,10 +46,10 @@ app.prepare().then(() => {
 
   if (socket) {
     // Supprimer l'ancien socket si présent
-    try { if (fs.existsSync(socket)) fs.unlinkSync(socket) } catch (e) {}
+    try { if (fs.existsSync(socket)) fs.unlinkSync(socket) } catch (e) { console.warn('Could not remove old socket:', e.message) }
     server.listen(socket, () => {
       // LiteSpeed a besoin de pouvoir écrire sur le socket
-      try { fs.chmodSync(socket, '777') } catch (e) {}
+      try { fs.chmodSync(socket, '666') } catch (e) { console.warn('Could not chmod socket:', e.message) }
       console.log(`> Ready on socket ${socket}`)
     })
   } else {

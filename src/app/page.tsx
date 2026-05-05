@@ -34,7 +34,9 @@ export default async function HomePage() {
     <>
       <HeroBanner config={siteConfig.hero} />
       <CategoryHighlight categories={categories} />
-      <SkinToneSection images={{
+      <SkinToneSection
+        title={siteConfig.skin_tone_section_title || undefined}
+        images={{
           noir:        siteConfig.hero_teint_noir?.image        || undefined,
           marron:      siteConfig.hero_teint_marron?.image      || undefined,
           marronClair: siteConfig.hero_teint_marron_clair?.image || undefined,

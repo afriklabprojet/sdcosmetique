@@ -240,6 +240,7 @@ export type SiteConfig = {
   hero_teint_marron_clair: TeintHeroConfig;
   hero_teint_clair: TeintHeroConfig;
   hero_teint_metisse: TeintHeroConfig;
+  skin_tone_section_title: string;
   product_tone_images: ProductToneImages;
   shipping: ShippingConfig;
   promo_codes: PromoCode[];

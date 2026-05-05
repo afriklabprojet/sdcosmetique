@@ -254,6 +254,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   hero_teint_marron_clair: DEFAULT_TEINT_HERO_MARRON_CLAIR,
   hero_teint_clair: DEFAULT_TEINT_HERO_CLAIR,
   hero_teint_metisse: DEFAULT_TEINT_HERO_METISSE,
+  skin_tone_section_title: 'Choisissez votre teint',
   product_tone_images: {
     noir:         '/hero/skintone-noir.svg',
     marron:       '/hero/skintone-marron.svg',

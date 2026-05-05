@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { requireAdmin } from '@/lib/admin-auth';
 import { createServiceClient } from '@/utils/supabase/service';
 import type { SiteConfig } from '@/lib/site-config';
@@ -24,6 +24,12 @@ export async function saveSiteConfigSection(
     .upsert({ key, value, updated_at: new Date().toISOString() });
 
   if (error) throw new Error(error.message);
+
+  // Invalide immédiatement le cache Next.js
+  revalidateTag('site-config', 'default');
+  revalidatePath('/', 'page');
+  revalidatePath('/produit/[slug]', 'page');
+  revalidatePath('/boutique');
 }
 
 // ─── Produits ────────────────────────────────────────────────────────────────

@@ -6,11 +6,11 @@ import Image from 'next/image';
 import { useReveal } from '@/hooks/useReveal';
 
 const TONES = [
-  { label: 'NOIR',         sub: 'Peaux très foncées', staticImg: '/hero/skintone-noir.jpg',         slug: 'noir',         fallback: 'var(--skin-noir)' },
-  { label: 'MARRON',       sub: 'Peaux foncées',      staticImg: '/hero/skintone-marron.jpg',       slug: 'marron',       fallback: 'var(--skin-marron)' },
-  { label: 'MARRON CLAIR', sub: 'Peaux mates',        staticImg: '/hero/skintone-marron-clair.jpg', slug: 'marron-clair', fallback: 'var(--skin-marron-clair)' },
-  { label: 'CLAIR',        sub: 'Peaux claires',      staticImg: '/hero/skintone-clair.jpg',        slug: 'clair',        fallback: 'var(--skin-clair)' },
-  { label: 'MÉTISSE',      sub: 'Peaux métissées',    staticImg: '/hero/skintone-metisse.jpg',      slug: 'metisse',      fallback: 'var(--skin-metisse)' },
+  { label: 'NOIR',         sub: 'Peaux très foncées', staticImg: '/hero/skintone-noir.svg',         slug: 'noir',         fallback: 'var(--skin-noir)' },
+  { label: 'MARRON',       sub: 'Peaux foncées',      staticImg: '/hero/skintone-marron.svg',       slug: 'marron',       fallback: 'var(--skin-marron)' },
+  { label: 'MARRON CLAIR', sub: 'Peaux mates',        staticImg: '/hero/skintone-marron-clair.svg', slug: 'marron-clair', fallback: 'var(--skin-marron-clair)' },
+  { label: 'CLAIR',        sub: 'Peaux claires',      staticImg: '/hero/skintone-clair.svg',        slug: 'clair',        fallback: 'var(--skin-clair)' },
+  { label: 'MÉTISSE',      sub: 'Peaux métissées',    staticImg: '/hero/skintone-metisse.svg',      slug: 'metisse',      fallback: 'var(--skin-metisse)' },
 ];
 
 interface SkinToneSectionProps {
@@ -21,9 +21,10 @@ interface SkinToneSectionProps {
     clair?: string;
     metisse?: string;
   };
+  title?: string;
 }
 
-export default function SkinToneSection({ images }: SkinToneSectionProps = {}) {
+export default function SkinToneSection({ images, title }: SkinToneSectionProps = {}) {
   const { ref: sectionRef, visible } = useReveal<HTMLElement>(0.1);
 
   // Map slug → image URL from Supabase config (fallback to static path)
@@ -48,7 +49,7 @@ export default function SkinToneSection({ images }: SkinToneSectionProps = {}) {
           textTransform: 'uppercase',
           marginBottom: '32px',
         }}>
-          Choisissez votre teint
+          {title || 'Choisissez votre teint'}
         </h2>
 
         <div className={`tones-grid reveal-stagger${visible ? ' visible' : ''}`} style={{

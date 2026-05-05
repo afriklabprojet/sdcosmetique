@@ -3,8 +3,7 @@
  * Ne jamais importer dans un Client Component ('use client').
  */
 import { db } from '@/lib/db';
-import { Product, Category, SkinTone } from '@/types';
-import { Review } from '@/types';
+import { Product, Category, Review } from '@/types';
 import { PRODUCTS, getRelatedProducts } from './products';
 import { rowToProduct, rowToReview } from '@/lib/mappers';
 
