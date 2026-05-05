@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { formatPrice } from '@/lib/products';
 import { Product, Review, CATEGORIES, SKIN_TONES, SkinTone } from '@/types';
-import type { ProductTrustItem, PaymentBadge } from '@/lib/site-config';
+import type { ProductTrustItem, PaymentBadge, ProductToneImages } from '@/lib/site-config';
 import ProductCard from '@/components/ui/ProductCard';
 import StarRating from '@/components/ui/StarRating';
 import { useCart } from '@/context/CartContext';
@@ -45,6 +45,8 @@ interface Props {
   readonly trustItems?: ProductTrustItem[];
   /** Badges paiement (depuis site_config). */
   readonly paymentBadges?: PaymentBadge[];
+  /** Images cercles teint (depuis site_config). */
+  readonly toneImages?: ProductToneImages;
 }
 
 function BenefitIcon({ i }: { readonly i: number }) {
@@ -100,8 +102,11 @@ interface TonePickerProps {
   readonly selectedTone: string;
   readonly onSelect: (t: string) => void;
   readonly size?: number;
+  /** Surcharge des images de teint (depuis site_config). */
+  readonly customToneImages?: Record<string, string>;
 }
-function TonePicker({ skinTones, selectedTone, onSelect, size = 40 }: TonePickerProps) {
+function TonePicker({ skinTones, selectedTone, onSelect, size = 40, customToneImages }: TonePickerProps) {
+  const resolvedToneImage = { ...toneImage, ...customToneImages };
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
       {skinTones.map(tone => {
@@ -111,9 +116,9 @@ function TonePicker({ skinTones, selectedTone, onSelect, size = 40 }: TonePicker
           <button key={tone} onClick={() => onSelect(tone)}
             style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
             <div style={{ width: size, height: size, borderRadius: '50%', background: toneColor[tone] ?? '#888', border: `2px solid ${isActive ? GOLD : BORDER}`, position: 'relative', overflow: 'hidden', boxShadow: isActive ? `0 0 0 2px white, 0 0 0 4px ${GOLD}` : 'none', transition: 'box-shadow .2s' }}>
-              {toneImage[tone] && (
+              {resolvedToneImage[tone] && (
                 <Image
-                  src={toneImage[tone]}
+                  src={resolvedToneImage[tone]}
                   alt={info?.label ?? tone}
                   fill
                   sizes="48px"
@@ -149,8 +154,9 @@ interface PurchaseCardProps {
   readonly handleBuyNow: () => void;
   readonly adding: boolean;
   readonly discount: number | null;
+  readonly customToneImages?: Record<string, string>;
 }
-function PurchaseCard({ product, selectedTone, setSelectedTone, qty, setQty, payments, handleAddToCart, handleBuyNow, adding, discount }: PurchaseCardProps) {
+function PurchaseCard({ product, selectedTone, setSelectedTone, qty, setQty, payments, handleAddToCart, handleBuyNow, adding, discount, customToneImages }: PurchaseCardProps) {
   return (
     <div style={{ background: 'white', border: `1px solid ${BORDER}`, borderRadius: 8, padding: '20px 18px' }}>
 
@@ -178,7 +184,7 @@ function PurchaseCard({ product, selectedTone, setSelectedTone, qty, setQty, pay
           <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: TXT, marginBottom: 12 }}>
             Votre teint
           </p>
-          <TonePicker skinTones={product.skinTones} selectedTone={selectedTone} onSelect={t => setSelectedTone(t as import('@/types').SkinTone)} />
+          <TonePicker skinTones={product.skinTones} selectedTone={selectedTone} onSelect={t => setSelectedTone(t as import('@/types').SkinTone)} customToneImages={customToneImages} />
         </div>
       )}
 
@@ -221,13 +227,22 @@ function PurchaseCard({ product, selectedTone, setSelectedTone, qty, setQty, pay
   );
 }
 
-export default function ProductDetail({ product, related, reviews, trustItems, paymentBadges }: Props) {
+export default function ProductDetail({ product, related, reviews, trustItems, paymentBadges, toneImages }: Props) {
   const router               = useRouter();
   const { addItem }          = useCart();
   const { toggle, isInWishlist } = useWishlist();
 
   const trust    = trustItems    ?? DEFAULT_TRUST;
   const payments = paymentBadges ?? DEFAULT_PAYMENT_BADGES;
+
+  /** Images teint admin-configurables — mappe marron_clair → 'marron-clair' */
+  const customToneImages: Record<string, string> | undefined = toneImages ? {
+    noir:           toneImages.noir          || toneImage.noir,
+    marron:         toneImages.marron        || toneImage.marron,
+    'marron-clair': toneImages.marron_clair  || toneImage['marron-clair'],
+    clair:          toneImages.clair         || toneImage.clair,
+    metisse:        toneImages.metisse       || toneImage.metisse,
+  } : undefined;
 
   const [mainImg,      setMainImg]      = useState(0);
   const [qty,          setQty]          = useState(1);
@@ -374,6 +389,7 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
               handleBuyNow={handleBuyNow}
               adding={adding}
               discount={discount}
+              customToneImages={customToneImages}
             />
           </div>
 
@@ -469,6 +485,7 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
               handleBuyNow={handleBuyNow}
               adding={adding}
               discount={discount}
+              customToneImages={customToneImages}
             />
 
         </div>{/* end mobile */}

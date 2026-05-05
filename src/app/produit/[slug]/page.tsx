@@ -91,6 +91,7 @@ export default async function ProductPage({ params }: PageProps) {
         reviews={reviews}
         trustItems={siteConfig.product_trust}
         paymentBadges={siteConfig.payment_badges}
+        toneImages={siteConfig.product_tone_images}
       />
     </>
   );

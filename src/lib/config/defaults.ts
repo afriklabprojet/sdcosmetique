@@ -4,6 +4,7 @@
 
 import type {
   SiteConfig,
+  ProductToneImages,
   TopBarConfig,
   HeroConfig,
   TrustItem,
@@ -253,6 +254,13 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   hero_teint_marron_clair: DEFAULT_TEINT_HERO_MARRON_CLAIR,
   hero_teint_clair: DEFAULT_TEINT_HERO_CLAIR,
   hero_teint_metisse: DEFAULT_TEINT_HERO_METISSE,
+  product_tone_images: {
+    noir:         '/hero/skintone-noir.jpg',
+    marron:       '/hero/skintone-marron.jpg',
+    marron_clair: '/hero/skintone-marron-clair.jpg',
+    clair:        '/hero/skintone-clair.jpg',
+    metisse:      '/hero/skintone-metisse.jpg',
+  } satisfies ProductToneImages,
   shipping: DEFAULT_SHIPPING,
   promo_codes: DEFAULT_PROMO_CODES,
   faq: DEFAULT_FAQ,

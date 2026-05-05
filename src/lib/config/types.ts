@@ -94,6 +94,16 @@ export type TeintHeroConfig = {
   image: string;
 };
 
+// ─── Images cercles teint (fiches produit) ────────────────────────────────────
+
+export type ProductToneImages = {
+  noir: string;
+  marron: string;
+  marron_clair: string;
+  clair: string;
+  metisse: string;
+};
+
 // ─── Livraison ────────────────────────────────────────────────────────────────
 
 export type ShippingOption = {
@@ -230,6 +240,7 @@ export type SiteConfig = {
   hero_teint_marron_clair: TeintHeroConfig;
   hero_teint_clair: TeintHeroConfig;
   hero_teint_metisse: TeintHeroConfig;
+  product_tone_images: ProductToneImages;
   shipping: ShippingConfig;
   promo_codes: PromoCode[];
   faq: FaqCategory[];
