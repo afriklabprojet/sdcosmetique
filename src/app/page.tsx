@@ -34,7 +34,13 @@ export default async function HomePage() {
     <>
       <HeroBanner config={siteConfig.hero} />
       <CategoryHighlight categories={categories} />
-      <SkinToneSection />
+      <SkinToneSection images={{
+          noir:        siteConfig.hero_teint_noir?.image        || undefined,
+          marron:      siteConfig.hero_teint_marron?.image      || undefined,
+          marronClair: siteConfig.hero_teint_marron_clair?.image || undefined,
+          clair:       siteConfig.hero_teint_clair?.image       || undefined,
+          metisse:     siteConfig.hero_teint_metisse?.image     || undefined,
+        }} />
       <Suspense fallback={<TrendingProductsSkeleton count={5} />}>
         <BestsellersSection />
       </Suspense>

@@ -6,15 +6,34 @@ import Image from 'next/image';
 import { useReveal } from '@/hooks/useReveal';
 
 const TONES = [
-  { label: 'NOIR',         sub: 'Peaux très foncées', img: '/hero/skintone-noir.jpg',         slug: 'noir',         fallback: 'var(--skin-noir)' },
-  { label: 'MARRON',       sub: 'Peaux foncées',      img: '/hero/skintone-marron.jpg',       slug: 'marron',       fallback: 'var(--skin-marron)' },
-  { label: 'MARRON CLAIR', sub: 'Peaux mates',        img: '/hero/skintone-marron-clair.jpg', slug: 'marron-clair', fallback: 'var(--skin-marron-clair)' },
-  { label: 'CLAIR',        sub: 'Peaux claires',      img: '/hero/skintone-clair.jpg',        slug: 'clair',        fallback: 'var(--skin-clair)' },
-  { label: 'MÉTISSE',      sub: 'Peaux métissées',    img: '/hero/skintone-metisse.jpg',      slug: 'metisse',      fallback: 'var(--skin-metisse)' },
+  { label: 'NOIR',         sub: 'Peaux très foncées', staticImg: '/hero/skintone-noir.jpg',         slug: 'noir',         fallback: 'var(--skin-noir)' },
+  { label: 'MARRON',       sub: 'Peaux foncées',      staticImg: '/hero/skintone-marron.jpg',       slug: 'marron',       fallback: 'var(--skin-marron)' },
+  { label: 'MARRON CLAIR', sub: 'Peaux mates',        staticImg: '/hero/skintone-marron-clair.jpg', slug: 'marron-clair', fallback: 'var(--skin-marron-clair)' },
+  { label: 'CLAIR',        sub: 'Peaux claires',      staticImg: '/hero/skintone-clair.jpg',        slug: 'clair',        fallback: 'var(--skin-clair)' },
+  { label: 'MÉTISSE',      sub: 'Peaux métissées',    staticImg: '/hero/skintone-metisse.jpg',      slug: 'metisse',      fallback: 'var(--skin-metisse)' },
 ];
 
-export default function SkinToneSection() {
+interface SkinToneSectionProps {
+  images?: {
+    noir?: string;
+    marron?: string;
+    marronClair?: string;
+    clair?: string;
+    metisse?: string;
+  };
+}
+
+export default function SkinToneSection({ images }: SkinToneSectionProps = {}) {
   const { ref: sectionRef, visible } = useReveal<HTMLElement>(0.1);
+
+  // Map slug → image URL from Supabase config (fallback to static path)
+  const imageMap: Record<string, string> = {
+    'noir':         images?.noir        || '',
+    'marron':       images?.marron      || '',
+    'marron-clair': images?.marronClair || '',
+    'clair':        images?.clair       || '',
+    'metisse':      images?.metisse     || '',
+  };
 
   return (
     <section ref={sectionRef} style={{ background: 'var(--white)', padding: 'var(--space-section) clamp(12px, 3vw, 24px)' }}>
@@ -37,7 +56,9 @@ export default function SkinToneSection() {
           gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
           gap: '12px',
         }}>
-          {TONES.map((t) => (
+          {TONES.map((t) => {
+            const imgSrc = imageMap[t.slug] || t.staticImg;
+            return (
             <Link key={t.slug} href={`/teint/${t.slug}`}
               className="tone-card"
               style={{
@@ -51,7 +72,7 @@ export default function SkinToneSection() {
                 background: t.fallback,
               }}
             >
-              <Image src={t.img} alt={t.label} fill
+              <Image src={imgSrc} alt={t.label} fill
                 onError={(e) => { e.currentTarget.style.display = 'none'; }}
                 style={{ objectFit: 'cover' }}
                 sizes="(max-width: 768px) 20vw, 240px" />
@@ -76,7 +97,8 @@ export default function SkinToneSection() {
                 }}>{t.label}</div>
               </div>
             </Link>
-          ))}
+          ); })}
+
         </div>
       </div>
       <style jsx>{`

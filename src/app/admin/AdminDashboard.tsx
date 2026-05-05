@@ -52,11 +52,14 @@ type ProductEditModalProps = {
   BTN_BG: string;
   S_ERR_BG: string;
   S_ERR_T: string;
+  isSaving?: boolean;
+  saveError?: string | null;
 };
 
 function ProductEditModal({ 
   productModal, setProductModal, onSave, inputStyle,
-  SURFACE, TEXT, TEXT2, TEXT3, BORDER, BG, GOLD2, SURFACE2, BTN_BG, S_ERR_BG, S_ERR_T 
+  SURFACE, TEXT, TEXT2, TEXT3, BORDER, BG, GOLD2, SURFACE2, BTN_BG, S_ERR_BG, S_ERR_T,
+  isSaving, saveError
 }: Readonly<ProductEditModalProps>) {
   if (!productModal) return null;
 
@@ -330,11 +333,16 @@ function ProductEditModal({
             ))}
           </div>
         </fieldset>
+        {saveError && (
+          <div style={{ background: S_ERR_BG, color: S_ERR_T, borderRadius: '6px', padding: '10px 12px', fontSize: '12px', lineHeight: '1.4' }}>
+            ❌ {saveError}
+          </div>
+        )}
         <div style={{ display: 'flex', gap: '8px', paddingTop: '12px', borderTop: `1px solid ${BTN_BG}` }}>
-          <button onClick={onSave} disabled={!productModal.name?.trim() || !productModal.slug?.trim() || !productModal.category || productModal.images?.filter((u: string) => u?.trim()).length === 0} style={{ flex: 1, padding: '10px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, background: GOLD2, color: BG, cursor: 'pointer', border: 'none', opacity: !productModal.name?.trim() || !productModal.slug?.trim() || !productModal.category || productModal.images?.filter((u: string) => u?.trim()).length === 0 ? 0.4 : 1 }}>
-            {productModal._isNew ? '+ Ajouter' : '✓ Enregistrer'}
+          <button onClick={onSave} disabled={isSaving || !productModal.name?.trim() || !productModal.slug?.trim() || !productModal.category || productModal.images?.filter((u: string) => u?.trim()).length === 0} style={{ flex: 1, padding: '10px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, background: GOLD2, color: BG, cursor: isSaving ? 'wait' : 'pointer', border: 'none', opacity: isSaving || !productModal.name?.trim() || !productModal.slug?.trim() || !productModal.category || productModal.images?.filter((u: string) => u?.trim()).length === 0 ? 0.4 : 1 }}>
+            {isSaving ? '⏳ Enregistrement...' : productModal._isNew ? '+ Ajouter' : '✓ Enregistrer'}
           </button>
-          <button onClick={() => setProductModal(null)} style={{ padding: '10px 16px', borderRadius: '6px', fontSize: '13px', background: SURFACE2, color: TEXT2, cursor: 'pointer', border: 'none' }}>Annuler</button>
+          <button onClick={() => setProductModal(null)} disabled={isSaving} style={{ padding: '10px 16px', borderRadius: '6px', fontSize: '13px', background: SURFACE2, color: TEXT2, cursor: isSaving ? 'not-allowed' : 'pointer', border: 'none' }}>Annuler</button>
         </div>
       </div>
     </div>
@@ -987,6 +995,8 @@ export default function AdminPage() { // NOSONAR typescript:S3776
   const [editableProducts, setEditableProducts] = useState<EditableProduct[]>([]);
   // product modal (null = closed)
   const [productModal, setProductModal] = useState<ProductModalState | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   // delete confirmation
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   // reviews
@@ -1125,14 +1135,30 @@ export default function AdminPage() { // NOSONAR typescript:S3776
       isNew: rest.isNew,
       isBestseller: rest.isBestseller,
     };
-    if (_isNew) {
-      await addProduct(p);
-      setEditableProducts(prev => [...prev, p]);
-    } else {
-      await addProduct(p); // upsert: insère si absent, met à jour si existant
-      setEditableProducts(prev => prev.map(x => x.id === p.id ? p : x));
+    setIsSaving(true);
+    setSaveError(null);
+    try {
+      const res = await fetch('/api/admin/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(p),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error ?? `Erreur ${res.status}`);
+      }
+      if (_isNew) {
+        setEditableProducts(prev => [...prev, p]);
+      } else {
+        setEditableProducts(prev => prev.map(x => x.id === p.id ? p : x));
+      }
+      setProductModal(null);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setSaveError(msg);
+    } finally {
+      setIsSaving(false);
     }
-    setProductModal(null);
   };
   const handleDeleteProduct = async (id: string) => {
     await deleteProduct(id);
@@ -4044,6 +4070,8 @@ export default function AdminPage() { // NOSONAR typescript:S3776
         BTN_BG={BTN_BG}
         S_ERR_BG={S_ERR_BG}
         S_ERR_T={S_ERR_T}
+        isSaving={isSaving}
+        saveError={saveError}
       />
 
       {/* ─── JEKO ADJUST MODAL ─── */}
