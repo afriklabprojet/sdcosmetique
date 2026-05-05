@@ -54,7 +54,9 @@
 .crumbsCurrent { color: var(--charcoal); }
 
 .eyebrow {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
   font-size: 0.7rem;
   letter-spacing: 0.32em;
   text-transform: uppercase;
@@ -62,6 +64,14 @@
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--gold);
+}
+
+.eyebrow::before {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: var(--gold);
+  flex-shrink: 0;
 }
 
 .title {
@@ -88,23 +98,79 @@
   color: rgba(0, 0, 0, 0.62);
 }
 
+/* ─── CTA hero ─────────────────────────────────────── */
+.heroActions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+
+.heroBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.875rem 1.875rem;
+  background: var(--charcoal, #1a1a1a);
+  color: #fff;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-decoration: none;
+  font-weight: 500;
+  border: 1.5px solid var(--charcoal, #1a1a1a);
+  transition: background 0.3s ease, border-color 0.3s ease, transform 0.25s ease, box-shadow 0.3s ease;
+}
+
+.heroBtn:hover {
+  background: var(--gold, #8f5922);
+  border-color: var(--gold, #8f5922);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(143, 89, 34, 0.3);
+}
+
+.heroBadge {
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold, #8f5922);
+  border: 1px solid rgba(143, 89, 34, 0.45);
+  padding: 0.4rem 0.9rem;
+  border-radius: 50px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
 .heroVisual {
   position: relative;
   aspect-ratio: 4 / 5;
   max-height: 420px;
   border-radius: 2px;
   overflow: hidden;
-  box-shadow: 0 30px 60px -25px rgba(143, 89, 34, 0.35);
+  box-shadow:
+    0 30px 60px -20px rgba(143, 89, 34, 0.35),
+    0 4px 16px rgba(0, 0, 0, 0.12);
   animation: fadeIn 1.2s ease-out 0.2s both;
+  transform: translateY(0);
+  transition: transform 0.6s ease, box-shadow 0.6s ease;
+}
+
+.heroVisual:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 40px 70px -20px rgba(143, 89, 34, 0.40),
+    0 6px 20px rgba(0, 0, 0, 0.14);
 }
 
 .heroVisual::after {
   content: '';
   position: absolute;
-  inset: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  inset: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
   pointer-events: none;
   z-index: 2;
+  transition: inset 0.5s ease;
 }
 
 /* ─── CATÉGORIES nav ─────────────────────────────────────── */
