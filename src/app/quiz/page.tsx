@@ -46,11 +46,11 @@ export default function QuizPage() {
   const [hero, setHero] = useState<QuizHeroConfig>(DEFAULT_SITE_CONFIG.hero_quiz);
 
   useEffect(() => {
-    fetchActiveConcerns().then(data => { if (data.length) setConcerns(data); });
-    fetchActiveRoutines().then(data => { if (data.length) setRoutines(data); });
+    fetchActiveConcerns().then(data => { if (data.length) setConcerns(data); }).catch(() => {});
+    fetchActiveRoutines().then(data => { if (data.length) setRoutines(data); }).catch(() => {});
     const supabase = createClient();
     supabase.from('site_config').select('value').eq('key', 'hero_quiz').single()
-      .then(({ data }) => { if (data?.value) setHero(data.value as QuizHeroConfig); });
+      .then(({ data }) => { if (data?.value) setHero(data.value as QuizHeroConfig); }, () => {});
   }, []);
 
   useEffect(() => {

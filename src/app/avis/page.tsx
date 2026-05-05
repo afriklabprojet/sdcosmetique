@@ -65,7 +65,7 @@ export default function AvisPage() {
   const [ratingFilter, setRatingFilter] = useState<number | null>(null);
   const [reviews, setReviews] = useState<Review[]>(REVIEWS);
 
-  useEffect(() => { fetchReviewsFromDB().then(setReviews); }, []);
+  useEffect(() => { fetchReviewsFromDB().then(setReviews).catch(() => {}); }, []);;
 
   const filtered = useMemo(
     () => (ratingFilter ? reviews.filter((r) => r.rating === ratingFilter) : reviews),

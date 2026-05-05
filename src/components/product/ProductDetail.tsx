@@ -573,7 +573,16 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
           {/* Right : Résultats avec image */}
           <div className="lg:col-span-3" style={{ border: `1px solid ${BORDER}`, borderRadius: 6, background: BG, overflow: 'hidden', display: 'flex', alignItems: 'stretch' }}>
             <div style={{ position: 'relative', width: '45%', flexShrink: 0, background: '#E8DFD0' }}>
-              <Image src={product.images[0]} alt={product.name} fill style={{ objectFit: 'cover' }} sizes="180px" />
+              {product.images?.[0] ? (
+                <Image
+                  src={product.images[0]}
+                  alt={product.name}
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  sizes="180px"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                />
+              ) : null}
             </div>
             <div style={{ padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
               <p style={{ fontSize: 18, fontWeight: 800, color: TXT, fontFamily: 'Georgia,serif', lineHeight: 1.2, marginBottom: 8 }}>

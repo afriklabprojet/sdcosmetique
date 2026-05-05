@@ -34,11 +34,11 @@ export default function GammesCategoryPage() {
   const [allProducts, setAllProducts] = useState(PRODUCTS.filter(p => p.category === 'gammes'));
   const [hero, setHero] = useState<CategoryHeroConfig>(DEFAULT_SITE_CONFIG.hero_gammes);
 
-  useEffect(() => { fetchProductsForClient('gammes').then(setAllProducts); }, []);
+  useEffect(() => { fetchProductsForClient('gammes').then(setAllProducts).catch(() => {}); }, []);
   useEffect(() => {
     const supabase = createClient();
     supabase.from('site_config').select('value').eq('key', 'hero_gammes').single()
-      .then(({ data }) => { if (data?.value) setHero(data.value as CategoryHeroConfig); });
+      .then(({ data }) => { if (data?.value) setHero(data.value as CategoryHeroConfig); }, () => {});
   }, []);
 
   const products = useMemo(() => {

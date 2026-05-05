@@ -34,11 +34,11 @@ export default function FaceCategoryPage() {
   const [allProducts, setAllProducts] = useState(PRODUCTS.filter(p => p.category === 'face'));
   const [hero, setHero] = useState<CategoryHeroConfig>(DEFAULT_SITE_CONFIG.hero_face);
 
-  useEffect(() => { fetchProductsForClient('face').then(setAllProducts); }, []);
+  useEffect(() => { fetchProductsForClient('face').then(setAllProducts).catch(() => {}); }, []);
   useEffect(() => {
     const supabase = createClient();
     supabase.from('site_config').select('value').eq('key', 'hero_face').single()
-      .then(({ data }) => { if (data?.value) setHero(data.value as CategoryHeroConfig); });
+      .then(({ data }) => { if (data?.value) setHero(data.value as CategoryHeroConfig); }, () => {});
   }, []);
 
   const products = useMemo(() => {

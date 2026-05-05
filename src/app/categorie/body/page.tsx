@@ -34,11 +34,11 @@ export default function BodyCategoryPage() {
   const [allProducts, setAllProducts] = useState(PRODUCTS.filter(p => p.category === 'body'));
   const [hero, setHero] = useState<CategoryHeroConfig>(DEFAULT_SITE_CONFIG.hero_body);
 
-  useEffect(() => { fetchProductsForClient('body').then(setAllProducts); }, []);
+  useEffect(() => { fetchProductsForClient('body').then(setAllProducts).catch(() => {}); }, []);
   useEffect(() => {
     const supabase = createClient();
     supabase.from('site_config').select('value').eq('key', 'hero_body').single()
-      .then(({ data }) => { if (data?.value) setHero(data.value as CategoryHeroConfig); });
+      .then(({ data }) => { if (data?.value) setHero(data.value as CategoryHeroConfig); }, () => {});
   }, []);
 
   const products = useMemo(() => {

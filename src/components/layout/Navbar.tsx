@@ -28,7 +28,7 @@ export default function Navbar() {
   const router = useRouter();
   const { totalItems, openCart } = useCart();
 
-  useEffect(() => { fetchProductsForClient().then(setSearchProducts); }, []);
+  useEffect(() => { fetchProductsForClient().then(setSearchProducts).catch(() => {}); }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);

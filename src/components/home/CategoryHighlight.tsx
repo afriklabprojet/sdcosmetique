@@ -60,6 +60,7 @@ export default function CategoryHighlight({ categories }: Readonly<Props>) {
                   sizes="80px"
                   className="cat-img"
                   style={{ objectFit: 'cover', objectPosition: 'center top' }}
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 />
               </div>
 

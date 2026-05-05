@@ -34,11 +34,11 @@ export default function DuoCategoryPage() {
   const [allProducts, setAllProducts] = useState(PRODUCTS.filter(p => p.category === 'duo'));
   const [hero, setHero] = useState<DuoHeroConfig>(DEFAULT_SITE_CONFIG.hero_duo);
 
-  useEffect(() => { fetchProductsForClient('duo').then(setAllProducts); }, []);
+  useEffect(() => { fetchProductsForClient('duo').then(setAllProducts).catch(() => {}); }, []);
   useEffect(() => {
     const supabase = createClient();
     supabase.from('site_config').select('value').eq('key', 'hero_duo').single()
-      .then(({ data }) => { if (data?.value) setHero(data.value as DuoHeroConfig); });
+      .then(({ data }) => { if (data?.value) setHero(data.value as DuoHeroConfig); }, () => {});
   }, []);
 
   const products = useMemo(() => {

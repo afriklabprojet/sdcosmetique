@@ -129,7 +129,7 @@ export default function ComptePage() {
       setUser(data.user);
       setLoading(false);
       if (data.user) {
-        fetchUserOrdersFromDB(data.user.id).then(setOrders);
+        fetchUserOrdersFromDB(data.user.id).then(setOrders).catch(() => {});
 
         // Charger le profil depuis la table profiles
         const { data: profile } = await supabase
@@ -150,8 +150,8 @@ export default function ComptePage() {
         }
 
         // Charger l'historique Jeko + config
-        getJekoHistory(data.user.id).then(setJekoHistory);
-        fetchJekoConfig().then(setJekoConfig);
+        getJekoHistory(data.user.id).then(setJekoHistory).catch(() => {});
+        fetchJekoConfig().then(setJekoConfig).catch(() => {});
       } else {
         setOrders(getOrders());
       }
@@ -962,7 +962,9 @@ export default function ComptePage() {
                     {wishlistItems.map(product => (
                       <div key={product.id} style={{ background: '#fff', borderRadius: 16, border: '1px solid #EDE8E0', overflow: 'hidden' }}>
                         <div style={{ position: 'relative', height: 180, background: '#FAF8F5' }}>
-                          <Image src={product.images[0]} alt={product.name} fill style={{ objectFit: 'cover' }} />
+                          <Image src={product.images[0]} alt={product.name} fill style={{ objectFit: 'cover' }}
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                          />
                           <button
                             onClick={() => removeFromWishlist(product.id)}
                             style={{ position: 'absolute', top: 10, right: 10, width: 32, height: 32, borderRadius: '50%', background: '#fff', border: '1px solid #EDE8E0', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 14, color: '#DC2626' }}

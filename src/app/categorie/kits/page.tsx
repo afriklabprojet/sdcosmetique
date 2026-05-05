@@ -34,11 +34,11 @@ export default function KitsCategoryPage() {
   const [allProducts, setAllProducts] = useState(PRODUCTS.filter(p => p.category === 'kits'));
   const [hero, setHero] = useState<KitsHeroConfig>(DEFAULT_SITE_CONFIG.hero_kits);
 
-  useEffect(() => { fetchProductsForClient('kits').then(setAllProducts); }, []);
+  useEffect(() => { fetchProductsForClient('kits').then(setAllProducts).catch(() => {}); }, []);
   useEffect(() => {
     const supabase = createClient();
     supabase.from('site_config').select('value').eq('key', 'hero_kits').single()
-      .then(({ data }) => { if (data?.value) setHero(data.value as KitsHeroConfig); });
+      .then(({ data }) => { if (data?.value) setHero(data.value as KitsHeroConfig); }, () => {});
   }, []);
 
   const products = useMemo(() => {
