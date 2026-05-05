@@ -88,6 +88,12 @@ export type QuizHeroConfig = {
   floaterText: string;
 };
 
+// ─── Héros pages teint ────────────────────────────────────────────────────────
+
+export type TeintHeroConfig = {
+  image: string;
+};
+
 // ─── Livraison ────────────────────────────────────────────────────────────────
 
 export type ShippingOption = {
@@ -219,6 +225,11 @@ export type SiteConfig = {
   hero_kits: KitsHeroConfig;
   hero_duo: DuoHeroConfig;
   hero_quiz: QuizHeroConfig;
+  hero_teint_noir: TeintHeroConfig;
+  hero_teint_marron: TeintHeroConfig;
+  hero_teint_marron_clair: TeintHeroConfig;
+  hero_teint_clair: TeintHeroConfig;
+  hero_teint_metisse: TeintHeroConfig;
   shipping: ShippingConfig;
   promo_codes: PromoCode[];
   faq: FaqCategory[];

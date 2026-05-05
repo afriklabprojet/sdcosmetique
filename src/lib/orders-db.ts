@@ -120,11 +120,10 @@ export async function saveOrderToDB(order: OrderDraft, userId?: string | null): 
         image_url:    item.product.images[0] ?? null,
         shade:        null,
       }));
-      const { error: itemErr } = await supabase.from('order_items').insert(items);
-      
+      await supabase.from('order_items').insert(items);
     }
   } catch (e) {
-    
+    console.error('orders-db:', e);
   }
 }
 
@@ -163,43 +162,49 @@ export async function fetchUserOrdersFromDB(userId: string): Promise<OrderDraft[
 export async function updateOrderStatusInDB(orderNumber: string, status: OrderDraft['status']): Promise<void> {
   try {
     const supabase = createClient();
-    const { error } = await supabase
+    await supabase
       .from('orders')
       .update({ status })
       .eq('order_number', orderNumber);
-    
   } catch (e) {
-    
+    console.error('orders-db:', e);
   }
 }
 
 // ─── Mettre à jour un produit (admin – tous les champs) ─────────────────────
+function buildProductPayload(updates: Partial<Omit<Product, 'id'>>): Record<string, unknown> {
+  const d: Record<string, unknown> = {};
+  const set = (k: string, v: unknown) => { if (v !== undefined) d[k] = v; };
+
+  set('name',              updates.name);
+  set('slug',              updates.slug);
+  set('category',          updates.category);
+  set('price',             updates.price);
+  set('images',            updates.images);
+  set('skin_tones',        updates.skinTones);
+  set('badges',            updates.badges);
+  set('short_description', updates.shortDescription);
+  set('description',       updates.description);
+  set('benefits',          updates.benefits);
+  set('usage',             updates.usage);
+  set('in_stock',          updates.inStock);
+  set('is_new',            updates.isNew);
+  set('is_bestseller',     updates.isBestseller);
+
+  if ('originalPrice' in updates)     d.original_price = updates.originalPrice ?? null;
+  if ('ingredients' in updates)       d.ingredients = updates.ingredients ?? null;
+  if ('stockQty' in updates)          d.stock_qty = updates.stockQty ?? null;
+  if ('lowStockThreshold' in updates) d.low_stock_threshold = updates.lowStockThreshold ?? null;
+
+  return d;
+}
+
 export async function updateProductInDB(id: string, updates: Partial<Omit<Product, 'id'>>): Promise<void> {
   try {
     const supabase = createClient();
-    const d: Record<string, unknown> = {};
-    if (updates.name !== undefined)             d.name = updates.name;
-    if (updates.slug !== undefined)             d.slug = updates.slug;
-    if (updates.category !== undefined)         d.category = updates.category;
-    if (updates.price !== undefined)            d.price = updates.price;
-    if ('originalPrice' in updates)             d.original_price = updates.originalPrice ?? null;
-    if (updates.images !== undefined)           d.images = updates.images;
-    if (updates.skinTones !== undefined)        d.skin_tones = updates.skinTones;
-    if (updates.badges !== undefined)           d.badges = updates.badges;
-    if (updates.shortDescription !== undefined) d.short_description = updates.shortDescription;
-    if (updates.description !== undefined)      d.description = updates.description;
-    if (updates.benefits !== undefined)         d.benefits = updates.benefits;
-    if (updates.usage !== undefined)            d.usage = updates.usage;
-    if ('ingredients' in updates)               d.ingredients = updates.ingredients ?? null;
-    if (updates.inStock !== undefined)          d.in_stock = updates.inStock;
-    if ('stockQty' in updates)                  d.stock_qty = updates.stockQty ?? null;
-    if ('lowStockThreshold' in updates)         d.low_stock_threshold = updates.lowStockThreshold ?? null;
-    if (updates.isNew !== undefined)            d.is_new = updates.isNew;
-    if (updates.isBestseller !== undefined)     d.is_bestseller = updates.isBestseller;
-    const { error } = await supabase.from('products').update(d).eq('id', id);
-    
+    await supabase.from('products').update(buildProductPayload(updates)).eq('id', id);
   } catch (e) {
-    
+    console.error('orders-db:', e);
   }
 }
 
@@ -207,7 +212,7 @@ export async function updateProductInDB(id: string, updates: Partial<Omit<Produc
 export async function addProductToDB(product: Product): Promise<void> {
   try {
     const supabase = createClient();
-    const { error } = await supabase.from('products').insert({
+    await supabase.from('products').insert({
       id: product.id,
       name: product.name,
       slug: product.slug,
@@ -230,9 +235,8 @@ export async function addProductToDB(product: Product): Promise<void> {
       is_new: product.isNew ?? false,
       is_bestseller: product.isBestseller ?? false,
     });
-    
   } catch (e) {
-    
+    console.error('orders-db:', e);
   }
 }
 
@@ -240,10 +244,9 @@ export async function addProductToDB(product: Product): Promise<void> {
 export async function deleteProductFromDB(id: string): Promise<void> {
   try {
     const supabase = createClient();
-    const { error } = await supabase.from('products').delete().eq('id', id);
-    
+    await supabase.from('products').delete().eq('id', id);
   } catch (e) {
-    
+    console.error('orders-db:', e);
   }
 }
 
@@ -290,10 +293,9 @@ export async function fetchAllReviewsFromDB(): Promise<(Review & { productId?: s
 export async function deleteReviewFromDB(id: string): Promise<void> {
   try {
     const supabase = createClient();
-    const { error } = await supabase.from('reviews').delete().eq('id', id);
-    
+    await supabase.from('reviews').delete().eq('id', id);
   } catch (e) {
-    
+    console.error('orders-db:', e);
   }
 }
 
@@ -301,9 +303,8 @@ export async function deleteReviewFromDB(id: string): Promise<void> {
 export async function approveReviewInDB(id: string, verified: boolean): Promise<void> {
   try {
     const supabase = createClient();
-    const { error } = await supabase.from('reviews').update({ verified }).eq('id', id);
-    
+    await supabase.from('reviews').update({ verified }).eq('id', id);
   } catch (e) {
-    
+    console.error('orders-db:', e);
   }
 }

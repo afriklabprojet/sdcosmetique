@@ -2,8 +2,7 @@
  * mappers.ts — Convertisseurs DB row → types métier.
  * Ce fichier est isomorphe : importable côté client ET serveur.
  */
-import type { Product, SkinTone, Category } from '@/types';
-import type { Review } from '@/types';
+import type { Product, SkinTone, Category, Review } from '@/types';
 
 export function rowToProduct(row: Record<string, unknown>): Product {
   return {
@@ -18,18 +17,18 @@ export function rowToProduct(row: Record<string, unknown>): Product {
     badges: (row.badges as string[]) ?? [],
     rating: Number(row.rating),
     reviewCount: Number(row.review_count),
-    shortDescription: String(row.short_description ?? ''),
-    description: String(row.description ?? ''),
+    shortDescription: row.short_description != null ? String(row.short_description) : '',
+    description: row.description != null ? String(row.description) : '',
     benefits: (row.benefits as string[]) ?? [],
-    usage: String(row.usage ?? ''),
-    ingredients: row.ingredients ? String(row.ingredients) : undefined,
+    usage: row.usage != null ? String(row.usage) : '',
+    ingredients: row.ingredients != null ? String(row.ingredients) : undefined,
     inStock: Boolean(row.in_stock),
     stockQty: row.stock_qty != null ? Number(row.stock_qty) : undefined,
     lowStockThreshold: row.low_stock_threshold != null ? Number(row.low_stock_threshold) : undefined,
     isNew: Boolean(row.is_new),
     isBestseller: Boolean(row.is_bestseller),
-    resultsTitle: row.results_title ? String(row.results_title) : undefined,
-    resultsSubtitle: row.results_subtitle ? String(row.results_subtitle) : undefined,
+    resultsTitle: row.results_title != null ? String(row.results_title) : undefined,
+    resultsSubtitle: row.results_subtitle != null ? String(row.results_subtitle) : undefined,
   };
 }
 
@@ -38,7 +37,7 @@ export function rowToReview(row: Record<string, unknown>): Review {
     id: String(row.id),
     author: String(row.author),
     rating: Number(row.rating),
-    comment: String(row.comment ?? ''),
+    comment: row.comment != null ? String(row.comment) : '',
     date: String(row.created_at),
     skinTone: (row.skin_tone as SkinTone) ?? undefined,
     verified: Boolean(row.verified),

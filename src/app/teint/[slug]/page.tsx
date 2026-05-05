@@ -3,13 +3,26 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import {} from '@/lib/products';
 import { fetchProducts } from '@/lib/products-server';
+import { fetchSiteConfigSection } from '@/lib/site-config';
 import { SKIN_TONES, type SkinTone } from '@/types';
 import ProductCard from '@/components/ui/ProductCard';
 import styles from '../../(static)/static.module.css';
 
+// Revalide à chaque requête pour que les images admin soient toujours à jour
+export const revalidate = 0;
+
 export function generateStaticParams() {
   return SKIN_TONES.map((t) => ({ slug: t.id }));
 }
+
+// Mapping SkinTone → clé de config Supabase
+const TEINT_CONFIG_KEYS: Record<SkinTone, 'hero_teint_noir' | 'hero_teint_marron' | 'hero_teint_marron_clair' | 'hero_teint_clair' | 'hero_teint_metisse'> = {
+  'noir':         'hero_teint_noir',
+  'marron':       'hero_teint_marron',
+  'marron-clair': 'hero_teint_marron_clair',
+  'clair':        'hero_teint_clair',
+  'metisse':      'hero_teint_metisse',
+};
 
 const TONE_META: Record<SkinTone, { hero: string; title: string; intro: string; tips: string[] }> = {
   noir: {
@@ -75,6 +88,11 @@ export default async function TeintPage({ params }: { params: Promise<{ slug: st
   if (!tone) notFound();
 
   const meta = TONE_META[tone.id];
+
+  // Image héro dynamique depuis la config admin (fallback sur meta.hero si non définie)
+  const teintConfig = await fetchSiteConfigSection(TEINT_CONFIG_KEYS[tone.id]);
+  const heroImage = teintConfig.image || meta.hero;
+
   const allProducts = await fetchProducts();
   const products = allProducts.filter((p) => p.skinTones.includes(tone.id)).slice(0, 8);
 
@@ -92,7 +110,7 @@ export default async function TeintPage({ params }: { params: Promise<{ slug: st
         }}
       >
         <Image
-          src={meta.hero}
+          src={heroImage}
           alt={`Soins ${meta.title}`}
           fill
           priority

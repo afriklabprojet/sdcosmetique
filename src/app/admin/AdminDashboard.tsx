@@ -2560,6 +2560,11 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                 { key: 'hero_kits' as const,   label: '🎁 Hero — Kits',   fields: ['eyebrow','title','titleAccent','lead','image','stat1Num','stat1Label','stat2Num','stat2Label','stat3Num','stat3Label'] as const },
                 { key: 'hero_duo' as const,    label: '👥 Hero — Duo',    fields: ['eyebrow','title','titleAccent','lead','image','synergyNum','synergyText'] as const },
                 { key: 'hero_quiz' as const,   label: '📋 Hero — Quiz Teint', fields: ['eyebrow','title','titleAccent','lead','image','floaterLabel','floaterText'] as const },
+                { key: 'hero_teint_noir' as const,         label: '🖤 Hero — Teint Noir',         fields: ['image'] as const },
+                { key: 'hero_teint_marron' as const,       label: '🤎 Hero — Teint Marron',       fields: ['image'] as const },
+                { key: 'hero_teint_marron_clair' as const, label: '🧡 Hero — Teint Marron Clair', fields: ['image'] as const },
+                { key: 'hero_teint_clair' as const,        label: '🤍 Hero — Teint Clair',        fields: ['image'] as const },
+                { key: 'hero_teint_metisse' as const,      label: '💛 Hero — Teint Métisse',      fields: ['image'] as const },
               ] as const).map(({ key, label, fields }) => {
                 const fieldLabels: Record<string, string> = {
                   eyebrow: 'Accroche (texte au-dessus du titre)',
