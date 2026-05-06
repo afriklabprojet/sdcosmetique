@@ -27,9 +27,10 @@ export async function saveSiteConfigSection(
 
   // Invalide immédiatement le cache Next.js
   revalidateTag('site-config', 'default');
-  revalidatePath('/', 'page');
-  revalidatePath('/produit/[slug]', 'page');
-  revalidatePath('/boutique');
+  revalidatePath('/', 'layout');
+  revalidatePath('/produit/[slug]', 'layout');
+  revalidatePath('/teint/[slug]', 'layout');
+  revalidatePath('/boutique', 'layout');
 }
 
 // ─── Produits ────────────────────────────────────────────────────────────────

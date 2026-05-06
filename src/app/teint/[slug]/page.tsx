@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { fetchProducts } from '@/lib/products-server';
-import { fetchSiteConfigSection } from '@/lib/site-config';
+import { getSiteConfig } from '@/lib/site-config.server';
 import { SKIN_TONES, type SkinTone } from '@/types';
 import ProductCard from '@/components/ui/ProductCard';
 import styles from '../../(static)/static.module.css';
@@ -89,8 +89,9 @@ export default async function TeintPage({ params }: Readonly<{ params: Promise<{
   const meta = TONE_META[tone.id];
 
   // Image héro dynamique depuis la config admin (fallback sur meta.hero si non définie)
-  const teintConfig = await fetchSiteConfigSection(TEINT_CONFIG_KEYS[tone.id]);
-  const heroImage = teintConfig.image || meta.hero;
+  const siteConfig = await getSiteConfig();
+  const teintConfigKey = TEINT_CONFIG_KEYS[tone.id];
+  const heroImage = siteConfig[teintConfigKey]?.image || meta.hero;
 
   const allProducts = await fetchProducts();
   const products = allProducts.filter((p) => p.skinTones.includes(tone.id)).slice(0, 8);

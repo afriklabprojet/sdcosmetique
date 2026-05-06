@@ -91,7 +91,13 @@ export default async function ProductPage({ params }: PageProps) {
         reviews={reviews}
         trustItems={siteConfig.product_trust}
         paymentBadges={siteConfig.payment_badges}
-        toneImages={siteConfig.product_tone_images}
+        toneImages={{
+          noir:        siteConfig.hero_teint_noir?.image        || '',
+          marron:      siteConfig.hero_teint_marron?.image      || '',
+          marron_clair: siteConfig.hero_teint_marron_clair?.image || '',
+          clair:       siteConfig.hero_teint_clair?.image       || '',
+          metisse:     siteConfig.hero_teint_metisse?.image     || '',
+        }}
       />
     </>
   );

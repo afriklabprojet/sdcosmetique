@@ -1,17 +1,80 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useReveal } from '@/hooks/useReveal';
 
 const TONES = [
-  { label: 'NOIR',         sub: 'Peaux très foncées', staticImg: '/hero/skintone-noir.svg',         slug: 'noir',         fallback: 'var(--skin-noir)' },
-  { label: 'MARRON',       sub: 'Peaux foncées',      staticImg: '/hero/skintone-marron.svg',       slug: 'marron',       fallback: 'var(--skin-marron)' },
-  { label: 'MARRON CLAIR', sub: 'Peaux mates',        staticImg: '/hero/skintone-marron-clair.svg', slug: 'marron-clair', fallback: 'var(--skin-marron-clair)' },
-  { label: 'CLAIR',        sub: 'Peaux claires',      staticImg: '/hero/skintone-clair.svg',        slug: 'clair',        fallback: 'var(--skin-clair)' },
-  { label: 'MÉTISSE',      sub: 'Peaux métissées',    staticImg: '/hero/skintone-metisse.svg',      slug: 'metisse',      fallback: 'var(--skin-metisse)' },
+  { label: 'NOIR',         sub: 'Peaux très foncées', staticImg: '/hero/skintone-noir.jpg',         slug: 'noir',         fallback: 'var(--skin-noir)' },
+  { label: 'MARRON',       sub: 'Peaux foncées',      staticImg: '/hero/skintone-marron.jpg',       slug: 'marron',       fallback: 'var(--skin-marron)' },
+  { label: 'MARRON CLAIR', sub: 'Peaux mates',        staticImg: '/hero/skintone-marron-clair.jpg', slug: 'marron-clair', fallback: 'var(--skin-marron-clair)' },
+  { label: 'CLAIR',        sub: 'Peaux claires',      staticImg: '/hero/skintone-clair.jpg',        slug: 'clair',        fallback: 'var(--skin-clair)' },
+  { label: 'MÉTISSE',      sub: 'Peaux métissées',    staticImg: '/hero/skintone-metisse.jpg',      slug: 'metisse',      fallback: 'var(--skin-metisse)' },
 ];
+
+type Tone = typeof TONES[number];
+
+function ToneCard({ tone, override }: Readonly<{ tone: Tone; override?: string }>) {
+  // Cascade: Supabase override -> static local file -> hide (CSS color shows)
+  const sources = useMemo(
+    () => [override, tone.staticImg].filter(Boolean) as string[],
+    [override, tone.staticImg]
+  );
+  const [idx, setIdx] = useState(0);
+  const [hidden, setHidden] = useState(false);
+  const src = sources[idx];
+
+  return (
+    <Link
+      href={`/teint/${tone.slug}`}
+      className="tone-card"
+      style={{
+        position: 'relative',
+        borderRadius: '12px',
+        overflow: 'hidden',
+        aspectRatio: '3 / 4',
+        cursor: 'pointer',
+        display: 'block',
+        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+        background: tone.fallback,
+      }}
+    >
+      {src && !hidden && (
+        <Image
+          src={src}
+          alt={tone.label}
+          fill
+          onError={() => {
+            if (idx < sources.length - 1) setIdx(idx + 1);
+            else setHidden(true);
+          }}
+          style={{ objectFit: 'cover' }}
+          sizes="(max-width: 768px) 20vw, 240px"
+          unoptimized={src.startsWith('http')}
+        />
+      )}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(to top, rgba(26,14,5,0.88) 0%, rgba(26,14,5,0.3) 55%, transparent 100%)',
+        pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'absolute', left: 0, right: 0, bottom: 0,
+        padding: '14px 8px 10px',
+        textAlign: 'center',
+      }}>
+        <div className="tone-label" style={{
+          fontFamily: 'var(--font-inter), Inter, sans-serif',
+          fontSize: '0.65rem', fontWeight: 800,
+          letterSpacing: '0.14em', textTransform: 'uppercase',
+          color: '#fff', lineHeight: 1.2,
+          whiteSpace: 'nowrap',
+        }}>{tone.label}</div>
+      </div>
+    </Link>
+  );
+}
 
 interface SkinToneSectionProps {
   images?: {
@@ -57,48 +120,9 @@ export default function SkinToneSection({ images, title }: SkinToneSectionProps 
           gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
           gap: '12px',
         }}>
-          {TONES.map((t) => {
-            const imgSrc = imageMap[t.slug] || t.staticImg;
-            return (
-            <Link key={t.slug} href={`/teint/${t.slug}`}
-              className="tone-card"
-              style={{
-                position: 'relative',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                aspectRatio: '3 / 4',
-                cursor: 'pointer',
-                display: 'block',
-                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                background: t.fallback,
-              }}
-            >
-              <Image src={imgSrc} alt={t.label} fill
-                onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                style={{ objectFit: 'cover' }}
-                sizes="(max-width: 768px) 20vw, 240px" />
-              {/* Gradient overlay */}
-              <div style={{
-                position: 'absolute', inset: 0,
-                background: 'linear-gradient(to top, rgba(26,14,5,0.88) 0%, rgba(26,14,5,0.3) 55%, transparent 100%)',
-                pointerEvents: 'none',
-              }} />
-              {/* Label */}
-              <div style={{
-                position: 'absolute', left: 0, right: 0, bottom: 0,
-                padding: '14px 8px 10px',
-                textAlign: 'center',
-              }}>
-                <div className="tone-label" style={{
-                  fontFamily: 'var(--font-inter), Inter, sans-serif',
-                  fontSize: '0.65rem', fontWeight: 800,
-                  letterSpacing: '0.14em', textTransform: 'uppercase',
-                  color: '#fff', lineHeight: 1.2,
-                  whiteSpace: 'nowrap',
-                }}>{t.label}</div>
-              </div>
-            </Link>
-          ); })}
+          {TONES.map((t) => (
+            <ToneCard key={t.slug} tone={t} override={imageMap[t.slug]} />
+          ))}
 
         </div>
       </div>
