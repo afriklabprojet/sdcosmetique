@@ -12,8 +12,7 @@
 .section::before {
   content: "";
   position: absolute;
-  inset: 0 0 auto;
-  height: clamp(470px, 44vw, 575px);
+  inset: 0;
   background: #f0e6d6;
   z-index: 0;
 }
@@ -351,7 +350,6 @@
   .floatCard { display: none; }
   .cornerAccent { display: none; }
   .section { padding: 42px 0 48px; }
-  .section::before { height: 760px; }
   .cardWrap { margin-top: 24px; }
   .card { max-width: 100%; padding: 28px 16px 36px; }
   .thumb { width: 150px; height: 150px; }
@@ -379,7 +377,6 @@
     border-radius: 22px;
   }
   .section { padding: 18px 0 44px; }
-  .section::before { height: 690px; }
   .cardWrap { margin-top: 24px; }
   .model { max-width: 390px; }
   .thumb { width: 120px; height: 120px; margin-bottom: 18px; }
