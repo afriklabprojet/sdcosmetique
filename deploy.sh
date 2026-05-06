@@ -28,6 +28,7 @@ npm run build
 echo "📤 Rsync standalone (app + node_modules)..."
 rsync -az --checksum --delete \
   --exclude='.next/cache' \
+  --exclude='.next/static' \
   -e "ssh -p $PORT" \
   .next/standalone/ \
   $SERVER:$REMOTE_PATH/
