@@ -48,17 +48,15 @@ export default function TrendingProducts({ products }: Readonly<{ products: Prod
           className={`prod-grid reveal-stagger${visible ? ' visible' : ''}`}
           style={{
             display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '20px',
-            overflowX: 'auto', scrollbarWidth: 'none',
           }}
         >
           {products.map(product => <ProductCard key={product.id} product={product} />)}
         </div>
       </div>
       <style jsx>{`
-        .prod-grid::-webkit-scrollbar { display: none; }
         @media (max-width: 1024px) { .prod-grid { grid-template-columns: repeat(3, 1fr) !important; } }
         @media (max-width: 640px)  { .prod-grid { grid-template-columns: repeat(2, 1fr) !important; } }
-        @media (max-width: 1024px) { .scroll-arrows { display: none !important; } }
+        .scroll-arrows { display: none !important; }
       `}</style>
     </section>
   );

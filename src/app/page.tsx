@@ -21,7 +21,7 @@ async function TestimonialsSection() {
 }
 
 async function BestsellersSection() {
-  const products = await fetchBestsellerProducts(5);
+  const products = await fetchBestsellerProducts(10);
   return <TrendingProducts products={products} />;
 }
 
@@ -43,7 +43,7 @@ export default async function HomePage() {
           clair:       siteConfig.hero_teint_clair?.image       || undefined,
           metisse:     siteConfig.hero_teint_metisse?.image     || undefined,
         }} />
-      <Suspense fallback={<TrendingProductsSkeleton count={5} />}>
+      <Suspense fallback={<TrendingProductsSkeleton count={10} />}>
         <BestsellersSection />
       </Suspense>
       <TrustBar items={siteConfig.trust_items} />
