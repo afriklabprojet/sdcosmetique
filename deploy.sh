@@ -51,6 +51,10 @@ rsync -az --delete \
 echo "📋 Copie server.js custom (LiteSpeed socket support)..."
 scp -P $PORT server.js $SERVER:$REMOTE_PATH/server.js
 
+# 4b. Copier .env.production (clé encryption Server Actions, etc.)
+echo "📋 Copie .env.production..."
+scp -P $PORT .env.production $SERVER:$REMOTE_PATH/.env.production
+
 # 5. Tuer les anciens processus — LiteSpeed en relancera automatiquement de nouveaux
 echo "♻️  Restart Node.js (kill + LiteSpeed auto-restart)..."
 ssh -p $PORT $SERVER "pkill -f 'next-server' 2>/dev/null || true" 2>/dev/null || true
