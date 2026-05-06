@@ -26,7 +26,7 @@ npm run build
 # .next/standalone/ contient : server.js + node_modules + .next/
 # .next/static/ et public/ ne sont PAS inclus dans standalone — on les sync séparément
 echo "📤 Rsync standalone (app + node_modules)..."
-rsync -az --delete \
+rsync -az --checksum --delete \
   --exclude='.next/cache' \
   -e "ssh -p $PORT" \
   .next/standalone/ \
@@ -41,7 +41,7 @@ rsync -az --delete \
 echo "📤 Rsync .next/static/..."
 dirs=$(find .next/static -type d | sed "s|^|$REMOTE_PATH/|" | tr '\n' ' ')
 ssh -p $PORT $SERVER "mkdir -p $dirs" 2>/dev/null || true
-rsync -az --delete \
+rsync -az --checksum --delete \
   -e "ssh -p $PORT" \
   .next/static/ \
   $SERVER:$REMOTE_PATH/.next/static/
@@ -57,6 +57,6 @@ scp -P $PORT .env.production $SERVER:$REMOTE_PATH/.env.production
 
 # 5. Tuer les anciens processus — LiteSpeed en relancera automatiquement de nouveaux
 echo "♻️  Restart Node.js (kill + LiteSpeed auto-restart)..."
-ssh -p $PORT $SERVER "pkill -f 'next-server' 2>/dev/null || true" 2>/dev/null || true
+ssh -p $PORT $SERVER "pkill -f 'lsnode' 2>/dev/null; pkill -f 'server\.js' 2>/dev/null; true" 2>/dev/null || true
 
 echo "✅ Déploiement terminé ! (LiteSpeed démarrera le nouveau server.js au prochain hit)"
