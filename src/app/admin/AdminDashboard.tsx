@@ -6,9 +6,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import { formatOrderDate, updateOrderStatus, OrderDraft } from '@/lib/orders';
-import { formatPrice, PRODUCTS } from '@/lib/products';
+import { formatPrice } from '@/lib/products';
 import { Product, Category, SkinTone, Review } from '@/types';
-import { fetchAllOrdersFromDB, updateOrderStatusInDB, fetchProductsFromDB, fetchAllReviewsFromDB, deleteReviewFromDB, approveReviewInDB } from '@/lib/orders-db';
+import { fetchAllReviewsFromDB, deleteReviewFromDB, approveReviewInDB } from '@/lib/orders-db';
+
 import { deleteProduct, saveSiteConfigSection } from './actions';
 import { DEFAULT_SITE_CONFIG } from '@/lib/site-config';
 import type { SiteConfig, PromoCode, ShippingOption, MarketingConfig, PromoBanner, WelcomePopup, UpsellRule, BrandingConfig } from '@/lib/site-config';
@@ -35,6 +36,27 @@ type ReviewRow = Review & { productId?: string };
 type ProductModalState = Partial<Product> & { _isNew?: boolean };
 type Tab = 'dashboard' | 'commandes' | 'produits' | 'avis' | 'temoignages' | 'categories' | 'quiz' | 'clients' | 'contenu' | 'jeko' | 'newsletter' | 'livraison' | 'marketing' | 'branding' | 'promos' | 'faq' | 'hero' | 'legal';
 type NewsletterSub = { id: string; email: string; source: string | null; unsubscribed: boolean; created_at: string };
+
+async function fetchAdminOrders(): Promise<OrderDraft[]> {
+  const res = await fetch('/api/admin/orders', { cache: 'no-store' });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data?.error ?? `Erreur ${res.status}`);
+  }
+  return Array.isArray(data?.orders) ? (data.orders as OrderDraft[]) : [];
+}
+
+async function patchAdminOrderStatus(orderNumber: string, status: OrderDraft['status']): Promise<void> {
+  const res = await fetch('/api/admin/orders', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ orderNumber, status }),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data?.error ?? `Erreur ${res.status}`);
+  }
+}
 
 type ProductEditModalProps = {
   productModal: ProductModalState | null;
@@ -335,6 +357,20 @@ function ProductEditModal({
               </label>
             ))}
           </div>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '10px' }}>
+            <span style={{ fontSize: '11px', color: TEXT2 }}>Badges personnalisés <span style={{ color: TEXT3 }}>(séparés par virgule, ex: "Bestseller, -22%")</span></span>
+            <input
+              type="text"
+              value={(productModal.badges ?? []).join(', ')}
+              onChange={(e) => {
+                const val = e.target.value;
+                const arr = val.split(',').map(s => s.trim()).filter(Boolean);
+                setProductModal((p) => p ? { ...p, badges: arr } : p);
+              }}
+              placeholder="Bestseller, -22%, Nouveau"
+              style={inputStyle}
+            />
+          </label>
         </fieldset>
         {saveError && (
           <div style={{ background: S_ERR_BG, color: S_ERR_T, borderRadius: '6px', padding: '10px 12px', fontSize: '12px', lineHeight: '1.4' }}>
@@ -593,6 +629,9 @@ const ProductsTab: React.FC<ProductsTabProps> = ({
                         {p.isNew && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: S_INFO_BG, color: S_INFO_T }}>Nouveau</span>}
                         {p.isBestseller && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: S_ERR_BG, color: S_ERR_T }}>Bestseller</span>}
                         {p.originalPrice && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: S_WARN_BG, color: S_WARN_T }}>Promo</span>}
+                        {(p.badges ?? []).map((b) => (
+                          <span key={b} className="text-xs px-2 py-0.5 rounded-full" style={{ background: SURFACE2, color: TEXT2, border: `1px solid ${BORDER2}` }}>{b}</span>
+                        ))}
                       </div>
                     </td>
                     <td style={tdStyle}>
@@ -778,13 +817,18 @@ function DashboardTab({
           { label: 'CA ce mois', value: formatPrice(revenueThisMonth), sub: new Date().toLocaleDateString('fr-FR', { month: 'long' }), pct: totalRevenue > 0 ? Math.round((revenueThisMonth / totalRevenue) * 100) : 0, icon: '▲', color: S_OK_T },
           { label: 'Commandes totales', value: String(orders.length), sub: 'Depuis le début', pct: 100, icon: '◫', color: S_INFO_T },
           { label: 'En attente', value: String(ordersInProgress), sub: ordersInProgress > 0 ? 'À traiter' : 'Tout est traité ✓', pct: orders.length > 0 ? Math.round((ordersInProgress / orders.length) * 100) : 0, icon: '⏳', color: S_ERR_T },
-          { label: 'Produits', value: String(editableProducts.length || PRODUCTS.length), sub: 'Dans le catalogue', pct: 100, icon: '◇', color: ACCENT_P },
+          { label: 'Produits', value: String(editableProducts.length), sub: 'Dans le catalogue', pct: 100, icon: '◇', color: ACCENT_P },
           { label: 'Avis clients', value: String(reviews.length), sub: `${reviews.filter(r => r.verified).length} vérifiés`, pct: reviews.length > 0 ? Math.round((reviews.filter(r => r.verified).length / reviews.length) * 100) : 0, icon: '★', color: ACCENT_Y },
           ...(() => {
             const tracked = editableProducts.filter(p => p.stockQty != null);
-            const low = tracked.filter(p => (p.stockQty ?? 0) > 0 && (p.stockQty ?? 0) <= (p.lowStockThreshold ?? 5)).length;
-            const out = tracked.filter(p => (p.stockQty ?? 0) <= 0).length;
-            return [{ label: 'Stock à surveiller', value: String(low + out), sub: out > 0 ? `${out} en rupture` : `${low} stock bas`, pct: tracked.length > 0 ? Math.round(((low + out) / tracked.length) * 100) : 0, icon: '◰', color: out > 0 ? S_ERR_T : S_WARN_T }];
+            const lowTracked = tracked.filter(p => (p.stockQty ?? 0) > 0 && (p.stockQty ?? 0) <= (p.lowStockThreshold ?? 5)).length;
+            const outTracked = tracked.filter(p => (p.stockQty ?? 0) <= 0).length;
+            // Produits sans suivi de quantité mais marqués hors stock (in_stock = false)
+            const outUntracked = editableProducts.filter(p => p.stockQty == null && p.inStock === false).length;
+            const out = outTracked + outUntracked;
+            const low = lowTracked;
+            const total = editableProducts.length;
+            return [{ label: 'Stock à surveiller', value: String(low + out), sub: out > 0 ? `${out} en rupture` : `${low} stock bas`, pct: total > 0 ? Math.round(((low + out) / total) * 100) : 0, icon: '◰', color: out > 0 ? S_ERR_T : S_WARN_T }];
           })(),
         ].map(kpi => (
           <div key={kpi.label} style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '18px', position: 'relative', overflow: 'hidden' }}>
@@ -968,12 +1012,10 @@ function fetchNewsletterSubs(setNewsletterSubs: (subs: NewsletterSub[]) => void)
 }
 
 function loadEditableProducts(setEditableProducts: (p: Product[]) => void) {
-  fetchProductsFromDB().then(rows =>
-    setEditableProducts((rows ?? []).length > 0
-      ? (rows as Product[]).map(p => ({ ...p }))
-      : PRODUCTS.map(p => ({ ...p }))
-    )
-  );
+  fetch('/api/admin/products', { cache: 'no-store' })
+    .then(r => r.ok ? r.json() : Promise.reject(new Error(`${r.status}`)))
+    .then((products: Product[]) => setEditableProducts(products))
+    .catch(() => setEditableProducts([]));
 }
 
 export default function AdminPage() { // NOSONAR typescript:S3776
@@ -1052,7 +1094,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
   const initAfterAuth = useCallback(async (user: { email?: string | null }) => {
     setAuthChecked(true);
     setUserEmail(user.email ?? '');
-    fetchAllOrdersFromDB().then(setOrders);
+    fetchAdminOrders().then(setOrders).catch(() => setOrders([]));
     loadEditableProducts(setEditableProducts);
     fetchAllReviewsFromDB().then(rows => setReviews(rows as ReviewRow[]));
     fetchAllTestimonialsAdmin().then(setTestimonials);
@@ -1086,10 +1128,15 @@ export default function AdminPage() { // NOSONAR typescript:S3776
     router.push('/');
   };
 
-  const handleStatusChange = (orderNumber: string, status: OrderStatus) => {
+  const handleStatusChange = async (orderNumber: string, status: OrderStatus) => {
+    const previousOrders = orders;
     updateOrderStatus(orderNumber, status);
-    updateOrderStatusInDB(orderNumber, status);
     setOrders(prev => prev.map(o => o.orderNumber === orderNumber ? { ...o, status } : o));
+    try {
+      await patchAdminOrderStatus(orderNumber, status);
+    } catch {
+      setOrders(previousOrders);
+    }
     // Email d'expédition (fire & forget)
     if (status === 'shipped') {
       const order = orders.find(o => o.orderNumber === orderNumber);
@@ -1141,12 +1188,16 @@ export default function AdminPage() { // NOSONAR typescript:S3776
     setIsSaving(true);
     setSaveError(null);
     try {
+      console.log('[admin] POST /api/admin/products payload:', {
+        id: p.id, inStock: p.inStock, badges: p.badges, isNew: p.isNew, isBestseller: p.isBestseller, stockQty: p.stockQty,
+      });
       const res = await fetch('/api/admin/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(p),
       });
       const data = await res.json();
+      console.log('[admin] POST result:', res.status, data);
       if (!res.ok) {
         throw new Error(data.error ?? `Erreur ${res.status}`);
       }
@@ -1155,6 +1206,8 @@ export default function AdminPage() { // NOSONAR typescript:S3776
       } else {
         setEditableProducts(prev => prev.map(x => x.id === p.id ? p : x));
       }
+      // Re-fetch DB pour vérifier la persistance réelle
+      loadEditableProducts(setEditableProducts);
       setProductModal(null);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);

@@ -2,7 +2,32 @@ import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/admin-auth';
 import { createServiceClient } from '@/utils/supabase/service';
+import { rowToProduct } from '@/lib/mappers';
 import type { Product } from '@/types';
+
+export async function GET() {
+  try {
+    const user = await requireAdmin();
+    if (!user) {
+      return NextResponse.json({ error: 'Accès refusé' }, { status: 401 });
+    }
+
+    const supabase = createServiceClient();
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .order('created_at');
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json((data ?? []).map(rowToProduct));
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
