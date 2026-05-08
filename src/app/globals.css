@@ -179,6 +179,7 @@ h1,h2,h3,h4,h5,h6 {
   scrollbar-width: none;
   gap: 10px;
   padding-bottom: 4px;
+  justify-content: center;
   --tone-card-aspect: 2 / 3;
   --tone-card-maxh: 220px;
   --tone-card-w: 160px;
