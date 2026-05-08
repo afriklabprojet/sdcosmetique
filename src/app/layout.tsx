@@ -77,11 +77,11 @@ export default async function RootLayout({
     <html lang="fr" data-scroll-behavior="smooth" className={`h-full ${playfair.variable} ${inter.variable}`}>
       <head>
         {/* ── Préchargement connexions tierces (LCP + tracking) ──────────── */}
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* next/font sert les polices localement — pas de requête vers fonts.gstatic.com */}
+        <link rel="preconnect" href="https://spcguwuqqwvjfnfctrzs.supabase.co" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://connect.facebook.net" />
         <link rel="dns-prefetch" href="https://analytics.tiktok.com" />
-        <link rel="dns-prefetch" href="https://spcguwuqqwvjfnfctrzs.supabase.co" />
       </head>
       <body className="min-h-full flex flex-col" style={{ fontFamily: 'var(--font-inter), sans-serif' }}>
         {siteConfig.marketing && <TrackingScripts marketing={siteConfig.marketing} />}
