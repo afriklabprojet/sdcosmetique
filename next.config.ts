@@ -9,9 +9,15 @@ const nextConfig: NextConfig = {
 
   // ── Tree-shaking agressif des librairies à sous-modules ───────────────────
   experimental: {
+    // Inline le CSS critique dans le HTML → élimine les requêtes render-blocking CSS
+    optimizeCss: true,
+    // Optimisation server React (Next 16+)
+    optimizeServerReact: true,
     optimizePackageImports: [
       '@supabase/supabase-js',
       '@supabase/ssr',
+      '@upstash/ratelimit',
+      '@upstash/redis',
     ],
   },
 
@@ -38,6 +44,18 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "spcguwuqqwvjfnfctrzs.supabase.co" },
     ],
+  },
+
+  // ── Redirect www → non-www (évite la chaîne de redirections) ───────────────
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.sdcosmetique.ci' }],
+        destination: 'https://sdcosmetique.ci/:path*',
+        permanent: true,
+      },
+    ];
   },
 
   async headers() {

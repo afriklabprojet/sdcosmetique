@@ -2,6 +2,9 @@ import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import HeroBanner from '@/components/home/HeroBanner';
 import CategoryHighlight from '@/components/home/CategoryHighlight';
+
+// ── ISR : cache HTML 5 minutes → réduit TTFB (Document request latency) ────
+export const revalidate = 300;
 // Sections below-fold : code-splitting JS pour réduire le bundle initial (score Lighthouse "unused JS")
 const SkinToneSection  = dynamic(() => import('@/components/home/SkinToneSection'),  { ssr: true });
 const TrustBar         = dynamic(() => import('@/components/home/TrustBar'),          { ssr: true });
