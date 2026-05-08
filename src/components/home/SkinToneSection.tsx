@@ -107,7 +107,7 @@ export default function SkinToneSection({ images, title }: SkinToneSectionProps 
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <h2 className={`reveal${visible ? ' visible' : ''}`} style={{
           fontFamily: 'var(--font-playfair), "Playfair Display", Georgia, serif',
-          fontSize: 'clamp(1.5rem, 2.5vw, 2.2rem)',
+          fontSize: 'clamp(1.1rem, 3vw, 2.2rem)',
           fontWeight: 600,
           color: '#1A0E05',
           letterSpacing: '0.06em',
