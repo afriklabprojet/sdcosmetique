@@ -1987,45 +1987,14 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                 })()}
               </div>
 
-              {/* ── Témoignages accueil ── */}
-              {(() => {
-                const save = async () => { await saveConfigSection('testimonials_home', siteContent.testimonials_home); };
-                const updThome = (i: number, field: string, val: string) => {
-                  const updated = siteContent.testimonials_home.map((x, j) => j === i ? { ...x, [field]: val } : x);
-                  setSiteContent({ ...siteContent, testimonials_home: updated });
-                };
-                return (
-                  <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
-                    <p className="text-sm font-semibold" style={{ color: GOLD }}>💬 Témoignages (page d&apos;accueil)</p>
-                    {siteContent.testimonials_home.map((t, i: number) => (
-                      <div key={`testimonial-home-${t.name.slice(0,12)}-${t.text.slice(0,8)}`} style={{ background: BG, borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        <p className="text-xs font-semibold" style={{ color: TEXT2 }}>Témoignage {i + 1}</p>
-                        <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          <span className="text-xs" style={{ color: TEXT3 }}>Nom</span>
-                          <input value={t.name} onChange={e => updThome(i, 'name', e.target.value)}
-                            style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '7px 10px', color: TEXT, fontSize: '12px', outline: 'none' }} />
-                        </label>
-                        <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          <span className="text-xs" style={{ color: TEXT3 }}>Texte</span>
-                          <textarea value={t.text} rows={3} onChange={e => updThome(i, 'text', e.target.value)}
-                            style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '7px 10px', color: TEXT, fontSize: '12px', resize: 'vertical', outline: 'none' }} />
-                        </label>
-                        <ImageUpload
-                          value={t.avatar}
-                          onChange={(url: string) => updThome(i, 'avatar', url)}
-                          folder="avatars"
-                          label="Photo du client"
-                          previewSize={80}
-                        />
-                      </div>
-                    ))}
-                    <button onClick={save} disabled={contentSaving.testimonials_home}
-                      style={{ alignSelf: 'flex-end', background: contentSaved.testimonials_home ? S_SAVE_BG : GOLD2, color: contentSaved.testimonials_home ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                      {getSaveButtonText(contentSaved.testimonials_home, contentSaving.testimonials_home)}
-                    </button>
-                  </div>
-                );
-              })()}
+              {/* Les témoignages affichés sur la page d'accueil viennent uniquement
+                  des avis clients approuvés (table testimonials). Approuvez-les
+                  dans le tableau ci-dessus pour qu'ils apparaissent sur le site. */}
+              <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '16px 20px' }}>
+                <p className="text-xs" style={{ color: TEXT3, lineHeight: 1.6 }}>
+                  💡 Les témoignages affichés en page d&apos;accueil proviennent automatiquement des <strong style={{ color: TEXT }}>avis clients approuvés</strong> ci-dessus. Approuvez un avis pour qu&apos;il apparaisse sur le site — aucune saisie manuelle n&apos;est nécessaire.
+                </p>
+              </div>
             </div>
           )}
 
@@ -3886,7 +3855,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                       <p style={{ color: GOLD, fontSize: '13px', fontWeight: 700, marginBottom: '16px' }}>⚙️ Paramètres généraux</p>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                         <label style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                          <span style={{ color: TEXT3, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Points par 1000€</span>
+                          <span style={{ color: TEXT3, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Points par 1000 F CFA</span>
                           <input type="number" value={jekoSettingsEdit?.points_per_1000 ?? 0}
                             onChange={e => setJekoSettingsEdit(s => s ? { ...s, points_per_1000: +e.target.value } : s)}
                             style={{ background: SURFACE2, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '9px 12px', color: TEXT, fontSize: '14px', fontWeight: 700, outline: 'none' }} />

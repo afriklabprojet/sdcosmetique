@@ -3,8 +3,6 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import type { TestimonialItem } from '@/lib/site-config';
-import { DEFAULT_SITE_CONFIG } from '@/lib/site-config';
 import type { TestimonialRow } from '@/lib/testimonials-db';
 import { useReveal } from '@/hooks/useReveal';
 
@@ -41,20 +39,18 @@ function AvatarImg({ src, name }: Readonly<{ src: string; name: string }>) {
 
 export default function Testimonials({
   rows,
-  fallbackItems = DEFAULT_SITE_CONFIG.testimonials_home,
-  items,
 }: Readonly<{
   rows?: TestimonialRow[];
-  fallbackItems?: TestimonialItem[];
-  items?: TestimonialItem[];
 }>) {
-  // Priorité : rows (DB) → items (legacy) → fallbackItems (défauts site_config)
+  // Uniquement les vrais avis clients approuvés — aucun fallback éditorial
   const display: { name: string; text: string; avatar: string }[] =
     rows && rows.length > 0
       ? rows.map(r => ({ name: r.name, text: r.text, avatar: r.avatar_url || '/placeholder-avatar.jpg' }))
-      : (items ?? fallbackItems).map(t => ({ name: t.name, text: t.text, avatar: t.avatar }));
+      : [];
 
   const { ref: sectionRef, visible } = useReveal<HTMLElement>(0.1);
+
+  if (display.length === 0) return null;
 
   return (
     <section ref={sectionRef} style={{ background: 'var(--white)', padding: 'var(--space-section) 24px' }}>

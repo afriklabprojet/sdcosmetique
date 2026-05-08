@@ -16,7 +16,6 @@ import { fetchBestsellerProducts } from '@/lib/products-server';
 import { getSiteConfig } from '@/lib/site-config.server';
 import { fetchApprovedTestimonials } from '@/lib/testimonials-server';
 import { fetchActiveCategories } from '@/lib/categories-server';
-import type { SiteConfig } from '@/lib/site-config';
 
 // ─── Section bestsellers dans son propre Suspense boundary ──────────────────
 async function BestsellersSection() {
@@ -47,7 +46,7 @@ export default async function HomePage() {
         <BestsellersSection />
       </Suspense>
       <TrustBar items={siteConfig.trust_items} />
-      <Testimonials rows={testimonials} fallbackItems={siteConfig.testimonials_home} />
+      <Testimonials rows={testimonials} />
       <PaymentBand />
     </>
   );
