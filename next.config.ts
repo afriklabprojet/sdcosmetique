@@ -9,8 +9,8 @@ const nextConfig: NextConfig = {
 
   // ── Tree-shaking agressif des librairies à sous-modules ───────────────────
   experimental: {
-    // Inline le CSS critique dans le HTML → élimine les requêtes render-blocking CSS
-    optimizeCss: true,
+    // optimizeCss désactivé : préchargeait tous les chunks CSS de toutes les routes
+    // → générait des warnings "preloaded but not used" sur chaque page
     // Optimisation server React (Next 16+)
     optimizeServerReact: true,
     optimizePackageImports: [
