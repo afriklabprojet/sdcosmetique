@@ -125,36 +125,6 @@ export default function SkinToneSection({ images, title }: SkinToneSectionProps 
 
         </div>
       </div>
-      <style jsx>{`
-        .tones-grid {
-          display: flex;
-          flex-wrap: nowrap;
-          overflow-x: auto;
-          -webkit-overflow-scrolling: touch;
-          scrollbar-width: none;
-          gap: 10px;
-          padding-bottom: 4px;
-          --tone-card-aspect: 2 / 3;
-          --tone-card-maxh: 220px;
-          --tone-card-w: 160px;
-        }
-        .tones-grid::-webkit-scrollbar {
-          display: none;
-        }
-        @media (max-width: 768px) {
-          .tones-grid {
-            --tone-card-aspect: 3 / 4;
-            --tone-card-maxh: 170px;
-            --tone-card-w: 130px;
-          }
-        }
-        @media (max-width: 480px) {
-          .tones-grid {
-            --tone-card-maxh: 150px;
-            --tone-card-w: 110px;
-          }
-        }
-      `}</style>
     </section>
   );
 }
