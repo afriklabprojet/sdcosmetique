@@ -71,10 +71,10 @@ ssh -p $PORT $SERVER "pkill -9 -f 'next-server' 2>/dev/null; pkill -9 -f 'server
 # 7. Vérifier que le site répond
 echo "🔍 Vérification du site (attente démarrage ~15s)..."
 sleep 15
-STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://floralwhite-fish-697630.hostingersite.com/ 2>/dev/null)
+STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://sdcosmetique.ci/ 2>/dev/null)
 if [ "$STATUS" = "200" ]; then
   echo "✅ Déploiement réussi ! Site opérationnel (HTTP $STATUS)"
 else
-  echo "⚠️  Site répond HTTP $STATUS — vérifiez https://floralwhite-fish-697630.hostingersite.com/"
+  echo "⚠️  Site répond HTTP $STATUS — vérifiez https://sdcosmetique.ci/"
   echo "   Si 500 persiste : ssh -p $PORT $SERVER 'pkill -9 -f next-server; pkill -9 -f server\\.js'"
 fi

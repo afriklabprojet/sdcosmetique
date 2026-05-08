@@ -51,7 +51,7 @@ function ToneCard({ tone, override }: Readonly<{ tone: Tone; override?: string }
             else setHidden(true);
           }}
           style={{ objectFit: 'cover' }}
-          sizes="(max-width: 768px) 20vw, 160px"
+          sizes="(max-width: 768px) 45vw, (max-width: 1024px) 32vw, 200px"
           unoptimized={src.startsWith('http')}
         />
       )}
@@ -142,16 +142,22 @@ export default function SkinToneSection({ images, title }: SkinToneSectionProps 
         @media (max-width: 768px) {
           .tones-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-            gap: 6px !important;
+            gap: 8px !important;
           }
           .tone-card {
-            border-radius: 10px;
-            aspect-ratio: 2 / 3 !important;
-            max-height: 180px !important;
+            border-radius: 8px;
+            aspect-ratio: 3 / 4 !important;
+            max-height: 140px !important;
           }
           .tone-label {
-            font-size: 0.72rem !important;
-            letter-spacing: 0.1em !important;
+            font-size: 0.62rem !important;
+            letter-spacing: 0.08em !important;
+            padding: 8px 4px 6px !important;
+          }
+        }
+        @media (max-width: 480px) {
+          .tone-card {
+            max-height: 120px !important;
           }
         }
         @media (max-width: 768px) {
