@@ -4,7 +4,7 @@ import styles from "./HeroBanner.module.css";
 import type { HeroConfig } from "@/lib/site-config";
 import { DEFAULT_SITE_CONFIG } from "@/lib/site-config";
 
-export default function HeroBanner({ config = DEFAULT_SITE_CONFIG.hero }: { config?: HeroConfig }) {
+export default function HeroBanner({ config = DEFAULT_SITE_CONFIG.hero }: Readonly<{ config?: HeroConfig }>) {
   return (
     <section className={styles.section} aria-labelledby="hero-title">
       <div className={styles.container}>
@@ -50,6 +50,8 @@ export default function HeroBanner({ config = DEFAULT_SITE_CONFIG.hero }: { conf
                 width={1001}
                 height={588}
                 priority
+                fetchPriority="high"
+                sizes="(max-width: 768px) 100vw, 50vw"
                 className={styles.model}
               />
               <div className={styles.floatCard} aria-hidden="true">

@@ -1,6 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/utils/supabase/middleware";
 
+// Routes publiques qui n'ont jamais besoin d'auth → bypass complet (réduit latence + chaîne de redirections)
+const PUBLIC_PREFIXES = ['/', '/boutique', '/produit', '/categorie', '/quiz', '/teint', '/avis', '/confirmation'];
+
+function isPublicOnly(pathname: string): boolean {
+  // Racine exacte
+  if (pathname === '/') return true;
+  return PUBLIC_PREFIXES.slice(1).some(p => pathname.startsWith(p));
+}
+
 export async function middleware(request: NextRequest) {
   // Routes protégées qui nécessitent une authentification
   const protectedRoutes = ['/admin', '/compte', '/checkout'];

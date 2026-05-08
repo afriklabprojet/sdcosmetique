@@ -1,16 +1,18 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import dynamic from "next/dynamic";
 import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import TopBar from "@/components/layout/TopBar";
 import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
-import CartDrawer from "@/components/layout/CartDrawer";
-import PromoBannerBar from "@/components/marketing/PromoBanner";
-import WelcomePopupModal from "@/components/marketing/WelcomePopup";
 import TrackingScripts from "@/components/marketing/TrackingScripts";
+import ClientOnlyOverlays from "@/components/layout/ClientOnlyOverlays";
 import { getSiteConfig } from "@/lib/site-config.server";
+
+// ── Chargements différés (non-critiques pour LCP/TTI) ─────────────────────
+const Footer = dynamic(() => import("@/components/layout/Footer"), { ssr: true });
+const PromoBannerBar = dynamic(() => import("@/components/marketing/PromoBanner"), { ssr: true });
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -25,6 +27,12 @@ const inter = Inter({
 });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sdcosmetique.com';
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#1a0a00',
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -67,6 +75,14 @@ export default async function RootLayout({
   const siteConfig = await getSiteConfig();
   return (
     <html lang="fr" data-scroll-behavior="smooth" className={`h-full ${playfair.variable} ${inter.variable}`}>
+      <head>
+        {/* ── Préchargement connexions tierces (LCP + tracking) ──────────── */}
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://connect.facebook.net" />
+        <link rel="dns-prefetch" href="https://analytics.tiktok.com" />
+        <link rel="dns-prefetch" href="https://spcguwuqqwvjfnfctrzs.supabase.co" />
+      </head>
       <body className="min-h-full flex flex-col" style={{ fontFamily: 'var(--font-inter), sans-serif' }}>
         {siteConfig.marketing && <TrackingScripts marketing={siteConfig.marketing} />}
         <CartProvider>
@@ -77,10 +93,7 @@ export default async function RootLayout({
               )}
               <TopBar message={siteConfig.topbar.message} phone={siteConfig.topbar.phone} />
               <Navbar />
-              <CartDrawer />
-              {siteConfig.marketing?.welcomePopup?.enabled && (
-                <WelcomePopupModal config={siteConfig.marketing.welcomePopup} />
-              )}
+              <ClientOnlyOverlays welcomePopup={siteConfig.marketing?.welcomePopup} />
             </div>
             <main className="flex-1">{children}</main>
             <div id="site-footer">

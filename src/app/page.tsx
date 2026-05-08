@@ -1,23 +1,24 @@
 import { Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import HeroBanner from '@/components/home/HeroBanner';
 import CategoryHighlight from '@/components/home/CategoryHighlight';
-import SkinToneSection from '@/components/home/SkinToneSection';
-import TrendingProducts from '@/components/home/TrendingProducts';
-import TrustBar from '@/components/home/TrustBar';
-import Testimonials from '@/components/home/Testimonials';
-import PaymentBand from '@/components/home/PaymentBand';
+// Sections below-fold : code-splitting JS pour réduire le bundle initial (score Lighthouse "unused JS")
+const SkinToneSection  = dynamic(() => import('@/components/home/SkinToneSection'),  { ssr: true });
+const TrustBar         = dynamic(() => import('@/components/home/TrustBar'),          { ssr: true });
+const Testimonials     = dynamic(() => import('@/components/home/Testimonials'),      { ssr: true });
+const TrendingProducts = dynamic(() => import('@/components/home/TrendingProducts'),  { ssr: true });
+const PaymentBand      = dynamic(() => import('@/components/home/PaymentBand'),       { ssr: true });
 import { TrendingProductsSkeleton } from '@/components/ui/ProductCardSkeleton';
 import { fetchBestsellerProducts } from '@/lib/products-server';
 import { getSiteConfig } from '@/lib/site-config.server';
 import { fetchApprovedTestimonials } from '@/lib/testimonials-server';
 import { fetchActiveCategories } from '@/lib/categories-server';
+import type { SiteConfig } from '@/lib/site-config';
 
-async function TestimonialsSection() {
-  const [testimonials, siteConfig] = await Promise.all([
-    fetchApprovedTestimonials(),
-    getSiteConfig(),
-  ]);
-  return <Testimonials rows={testimonials} fallbackItems={siteConfig.testimonials_home} />;
+// ─── Sections asynchrones isolées dans leurs propres Suspense boundaries ─────
+async function TestimonialsSection({ fallbackItems }: Readonly<{ fallbackItems: SiteConfig['testimonials_home'] }>) {
+  const testimonials = await fetchApprovedTestimonials();
+  return <Testimonials rows={testimonials} fallbackItems={fallbackItems} />;
 }
 
 async function BestsellersSection() {
@@ -48,7 +49,7 @@ export default async function HomePage() {
       </Suspense>
       <TrustBar items={siteConfig.trust_items} />
       <Suspense fallback={<div style={{ minHeight: '320px' }} />}>
-        <TestimonialsSection />
+        <TestimonialsSection fallbackItems={siteConfig.testimonials_home} />
       </Suspense>
       <PaymentBand />
     </>

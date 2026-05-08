@@ -181,3 +181,21 @@ h1,h2,h3,h4,h5,h6 {
   from { transform: scaleX(0); opacity: 0; }
   to   { transform: scaleX(1); opacity: 1; }
 }
+
+/* ── Optimisations performance ──────────────────────────────── */
+
+/* Désactive les animations coûteuses si l'utilisateur le préfère */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .animate-marquee { animation: none; }
+}
+
+/* Optimise le rendu des sections hors-écran (CLS + paint) */
+.section-offscreen {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 500px;
+}

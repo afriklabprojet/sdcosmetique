@@ -10,7 +10,7 @@ interface TrackingScriptsProps {
  * uniquement si l'ID correspondant est renseigné dans la config admin.
  * Utilise next/script avec strategy="afterInteractive" pour ne pas bloquer le LCP.
  */
-export default function TrackingScripts({ marketing }: TrackingScriptsProps) {
+export default function TrackingScripts({ marketing }: Readonly<TrackingScriptsProps>) {
   const { facebookPixelId, googleAdsId, googleTagManagerId, tiktokPixelId } = marketing;
 
   return (

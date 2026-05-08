@@ -2,6 +2,19 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+
+  // ── Réduction bundle ───────────────────────────────────────────────────────
+  compress: true,
+  poweredByHeader: false,
+
+  // ── Tree-shaking agressif des librairies à sous-modules ───────────────────
+  experimental: {
+    optimizePackageImports: [
+      '@supabase/supabase-js',
+      '@supabase/ssr',
+    ],
+  },
+
   // Variables publiques toujours disponibles au build et au runtime
   env: {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://spcguwuqqwvjfnfctrzs.supabase.co',
@@ -9,7 +22,16 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://floralwhite-fish-697630.hostingersite.com',
     NEXT_PUBLIC_SITE_NAME: process.env.NEXT_PUBLIC_SITE_NAME ?? 'SD Cosmétique',
   },
+
+  // ── Optimisation images ────────────────────────────────────────────────────
   images: {
+    // Formats modernes (AVIF ~50% plus léger que JPEG, WebP ~30%)
+    formats: ['image/avif', 'image/webp'],
+    // Tailles adaptées aux breakpoints mobiles/tablette/desktop
+    deviceSizes: [375, 640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 64, 96, 128, 256, 384],
+    // Cache CDN 1 an (31 536 000 s) — évite re-optimisation
+    minimumCacheTTL: 31536000,
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     remotePatterns: [
@@ -17,8 +39,60 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "spcguwuqqwvjfnfctrzs.supabase.co" },
     ],
   },
+
   async headers() {
     return [
+      // ── Assets statiques Next.js : cache 1 an immuable ────────────────────
+      {
+        source: "/_next/static/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      // ── Polices Google (via next/font, servi localement) ──────────────────
+      {
+        source: "/_next/static/media/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      // ── Images publiques ─────────────────────────────────────────────────
+      {
+        source: "/images/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, must-revalidate",
+          },
+        ],
+      },
+      // ── Assets publics (hero, produits, categories) ───────────────────────
+      {
+        source: "/(hero|products|categories)/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400, stale-while-revalidate=3600",
+          },
+        ],
+      },
+      // ── Manifest PWA ──────────────────────────────────────────────────────
+      {
+        source: "/manifest.webmanifest",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400",
+          },
+        ],
+      },
+      // ── Toutes les routes : headers sécurité + perf ───────────────────────
       {
         source: "/:path*",
         headers: [
@@ -36,6 +110,8 @@ const nextConfig: NextConfig = {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=()",
           },
+          // Réduit les redirections HTTP → HTTPS
+          { key: "X-DNS-Prefetch-Control", value: "on" },
         ],
       },
     ];
