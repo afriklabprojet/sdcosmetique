@@ -2869,45 +2869,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                 );
               })}
 
-              {/* ─── Cercles Teint — Fiches Produit ─── */}
-              <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <div>
-                  <p className="text-sm font-semibold" style={{ color: GOLD }}>🔵 Cercles Teint — Fiches Produit</p>
-                  <p className="text-xs" style={{ color: TEXT3, marginTop: '4px' }}>Photos affichées dans le sélecteur de teint sur les pages produit.</p>
-                </div>
-                {(
-                  [
-                    { key: 'noir',         label: '🖤 Noir',         field: 'noir' },
-                    { key: 'marron',       label: '🤎 Marron',       field: 'marron' },
-                    { key: 'marron_clair', label: '🧡 Marron Clair', field: 'marron_clair' },
-                    { key: 'clair',        label: '🤍 Clair',        field: 'clair' },
-                    { key: 'metisse',      label: '💛 Métisse',      field: 'metisse' },
-                  ] as const
-                ).map(({ label, field }) => (
-                  <div key={field} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span className="text-xs" style={{ color: TEXT2, width: '100px', flexShrink: 0 }}>{label}</span>
-                    <ImageUpload
-                      value={(siteContent.product_tone_images as Record<string, string>)[field] ?? ''}
-                      onChange={(url: string) => setSiteContent({
-                        ...siteContent,
-                        product_tone_images: {
-                          ...siteContent.product_tone_images,
-                          [field]: url,
-                        },
-                      })}
-                      folder="teint"
-                      label=""
-                      previewSize={60}
-                    />
-                  </div>
-                ))}
-                <button
-                  onClick={async () => { await saveConfigSection('product_tone_images', siteContent.product_tone_images); }}
-                  disabled={contentSaving['product_tone_images']}
-                  style={{ alignSelf: 'flex-end', background: contentSaved['product_tone_images'] ? S_SAVE_BG : GOLD2, color: contentSaved['product_tone_images'] ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                  {getSaveButtonText(contentSaved['product_tone_images'], contentSaving['product_tone_images'])}
-                </button>
-              </div>
+
             </div>
           )}
 
