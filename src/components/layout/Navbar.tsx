@@ -39,9 +39,13 @@ export default function Navbar() {
   useEffect(() => {
     if (searchOpen || menuOpen) {
       if (searchOpen) setTimeout(() => inputRef.current?.focus(), 50);
+      // Compenser la largeur de la scrollbar pour éviter le layout shift CLS
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.paddingRight = scrollbarWidth > 0 ? `${scrollbarWidth}px` : '';
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setQuery('');
     }

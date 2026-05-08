@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { PromoBanner } from '@/lib/site-config';
 
 interface PromoBannerProps {
   banners: PromoBanner[];
 }
 
-export default function PromoBannerBar({ banners }: PromoBannerProps) {
+export default function PromoBannerBar({ banners }: Readonly<PromoBannerProps>) {
   const [dismissed, setDismissed] = useState(false);
 
   // Find first active + date-valid banner
@@ -29,8 +29,7 @@ export default function PromoBannerBar({ banners }: PromoBannerProps) {
   );
 
   return (
-    <div
-      role="banner"
+    <header
       style={{
         background: banner.bgColor,
         color: banner.textColor,
@@ -69,6 +68,6 @@ export default function PromoBannerBar({ banners }: PromoBannerProps) {
       >
         ×
       </button>
-    </div>
+    </header>
   );
 }

@@ -18,21 +18,17 @@ import { fetchApprovedTestimonials } from '@/lib/testimonials-server';
 import { fetchActiveCategories } from '@/lib/categories-server';
 import type { SiteConfig } from '@/lib/site-config';
 
-// ─── Sections asynchrones isolées dans leurs propres Suspense boundaries ─────
-async function TestimonialsSection({ fallbackItems }: Readonly<{ fallbackItems: SiteConfig['testimonials_home'] }>) {
-  const testimonials = await fetchApprovedTestimonials();
-  return <Testimonials rows={testimonials} fallbackItems={fallbackItems} />;
-}
-
+// ─── Section bestsellers dans son propre Suspense boundary ──────────────────
 async function BestsellersSection() {
   const products = await fetchBestsellerProducts(10);
   return <TrendingProducts products={products} />;
 }
 
 export default async function HomePage() {
-  const [siteConfig, categories] = await Promise.all([
+  const [siteConfig, categories, testimonials] = await Promise.all([
     getSiteConfig(),
     fetchActiveCategories(),
+    fetchApprovedTestimonials(),
   ]);
   return (
     <>
@@ -51,9 +47,7 @@ export default async function HomePage() {
         <BestsellersSection />
       </Suspense>
       <TrustBar items={siteConfig.trust_items} />
-      <Suspense fallback={<div style={{ minHeight: '320px' }} />}>
-        <TestimonialsSection fallbackItems={siteConfig.testimonials_home} />
-      </Suspense>
+      <Testimonials rows={testimonials} fallbackItems={siteConfig.testimonials_home} />
       <PaymentBand />
     </>
   );

@@ -10,14 +10,15 @@ import TrackingScripts from "@/components/marketing/TrackingScripts";
 import ClientOnlyOverlays from "@/components/layout/ClientOnlyOverlays";
 import { getSiteConfig } from "@/lib/site-config.server";
 
+import PromoBannerBar from "@/components/marketing/PromoBanner";
+
 // ── Chargements différés (non-critiques pour LCP/TTI) ─────────────────────
 const Footer = dynamic(() => import("@/components/layout/Footer"), { ssr: true });
-const PromoBannerBar = dynamic(() => import("@/components/marketing/PromoBanner"), { ssr: true });
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
   variable: '--font-playfair',
-  display: 'swap',
+  display: 'optional',
 });
 
 const inter = Inter({
@@ -77,8 +78,9 @@ export default async function RootLayout({
     <html lang="fr" data-scroll-behavior="smooth" className={`h-full ${playfair.variable} ${inter.variable}`}>
       <head>
         {/* ── Préchargement connexions tierces (LCP + tracking) ──────────── */}
-        {/* next/font sert les polices localement — pas de requête vers fonts.gstatic.com */}
+        {/* Supabase Storage : préconnexion pour les images produits/hero */}
         <link rel="preconnect" href="https://spcguwuqqwvjfnfctrzs.supabase.co" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://spcguwuqqwvjfnfctrzs.supabase.co" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://connect.facebook.net" />
         <link rel="dns-prefetch" href="https://analytics.tiktok.com" />
