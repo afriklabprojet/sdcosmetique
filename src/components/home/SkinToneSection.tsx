@@ -37,6 +37,8 @@ function ToneCard({ tone, override }: Readonly<{ tone: Tone; override?: string }
         display: 'block',
         transition: 'transform 0.3s ease, box-shadow 0.3s ease',
         background: tone.fallback,
+        aspectRatio: 'var(--tone-card-aspect, 2/3)',
+        maxHeight: 'var(--tone-card-maxh, 220px)',
       }}
     >
       {src && !hidden && (
@@ -126,11 +128,9 @@ export default function SkinToneSection({ images, title }: SkinToneSectionProps 
         </div>
       </div>
       <style jsx>{`
-        @media (hover: hover) and (pointer: fine) {
-          .tone-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 16px 40px rgba(0,0,0,0.22);
-          }
+        .tones-grid {
+          --tone-card-aspect: 2 / 3;
+          --tone-card-maxh: 220px;
         }
         @media (max-width: 1024px) {
           .tones-grid {
@@ -141,34 +141,19 @@ export default function SkinToneSection({ images, title }: SkinToneSectionProps 
           .tones-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
             gap: 8px !important;
+            --tone-card-aspect: 3 / 4;
+            --tone-card-maxh: 140px;
           }
-          .tone-card {
-            border-radius: 8px;
-            aspect-ratio: 3 / 4 !important;
-            max-height: 140px !important;
-          }
-          .tone-label {
-            font-size: 0.62rem !important;
-            letter-spacing: 0.08em !important;
-            padding: 8px 4px 6px !important;
-          }
-        }
-        @media (max-width: 480px) {
-          .tone-card {
-            max-height: 120px !important;
-          }
-        }
-        @media (max-width: 768px) {
           .tones-grid > a:last-child:nth-child(odd) {
             grid-column: 1 / -1;
             max-width: min(62%, 260px);
             justify-self: center;
           }
         }
-        .tone-card {
-          display: block;
-          aspect-ratio: 2 / 3;
-          max-height: 220px;
+        @media (max-width: 480px) {
+          .tones-grid {
+            --tone-card-maxh: 120px;
+          }
         }
       `}</style>
     </section>
