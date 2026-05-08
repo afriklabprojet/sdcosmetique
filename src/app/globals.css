@@ -173,11 +173,11 @@ h1,h2,h3,h4,h5,h6 {
 /* ── SkinTone Section ───────────────────────────────────────── */
 .tones-grid {
   display: flex;
-  flex-direction: column;
-  flex-wrap: nowrap;
-  overflow-x: unset;
-  align-items: center;
-  gap: 10px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 12px;
   padding-bottom: 4px;
   --tone-card-aspect: 2 / 3;
   --tone-card-maxh: 220px;
