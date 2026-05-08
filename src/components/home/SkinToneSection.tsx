@@ -33,8 +33,6 @@ function ToneCard({ tone, override }: Readonly<{ tone: Tone; override?: string }
         position: 'relative',
         borderRadius: '12px',
         overflow: 'hidden',
-        aspectRatio: '2 / 3',
-        maxHeight: '220px',
         cursor: 'pointer',
         display: 'block',
         transition: 'transform 0.3s ease, box-shadow 0.3s ease',
@@ -167,7 +165,11 @@ export default function SkinToneSection({ images, title }: SkinToneSectionProps 
             justify-self: center;
           }
         }
-        .tone-card { display: block; }
+        .tone-card {
+          display: block;
+          aspect-ratio: 2 / 3;
+          max-height: 220px;
+        }
       `}</style>
     </section>
   );
