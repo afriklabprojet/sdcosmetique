@@ -4,7 +4,6 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { CategoryRow } from '@/lib/categories-db';
-import { useReveal } from '@/hooks/useReveal';
 
 const FALLBACK_CATEGORIES: CategoryRow[] = [
   { id: '1', slug: 'body',   label: 'CORPS',      sub_label: 'Prendre soin de\nvotre corps',       image: 'https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?auto=format&fit=crop&w=300&q=80',   href: '/categorie/body',   icon: '', is_quiz: false, order_index: 1, active: true, created_at: '' },
@@ -21,15 +20,13 @@ interface Props {
 export default function CategoryHighlight({ categories }: Readonly<Props>) {
   const raw = (categories && categories.length > 0) ? categories : FALLBACK_CATEGORIES;
   const display = raw.filter(c => !c.is_quiz);
-  const { ref: sectionRef, visible } = useReveal<HTMLElement>(0.1);
 
   return (
     <section
-      ref={sectionRef}
       style={{ background: 'transparent', padding: '0', position: 'relative', zIndex: 10, marginTop: 'clamp(-80px, -6vw, -8px)' }}
     >
       <div
-        className={`cat-card reveal${visible ? ' visible' : ''}`}
+        className="cat-card"
         style={{
           width: '90%', marginLeft: 'auto', marginRight: 'auto',
           background: '#FFFFFF', borderRadius: '20px',
