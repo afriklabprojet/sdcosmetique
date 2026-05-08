@@ -39,6 +39,8 @@ function ToneCard({ tone, override }: Readonly<{ tone: Tone; override?: string }
         background: tone.fallback,
         aspectRatio: 'var(--tone-card-aspect, 2/3)',
         maxHeight: 'var(--tone-card-maxh, 220px)',
+        minWidth: 'var(--tone-card-w, 150px)',
+        flexShrink: 0,
       }}
     >
       {src && !hidden && (
@@ -116,11 +118,7 @@ export default function SkinToneSection({ images, title }: SkinToneSectionProps 
           {title || 'Choisissez votre teint'}
         </h2>
 
-        <div className={`tones-grid reveal-stagger${visible ? ' visible' : ''}`} style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
-          gap: '6px',
-        }}>
+        <div className={`tones-grid reveal-stagger${visible ? ' visible' : ''}`}>
           {TONES.map((t) => (
             <ToneCard key={t.slug} tone={t} override={imageMap[t.slug]} />
           ))}
@@ -129,30 +127,31 @@ export default function SkinToneSection({ images, title }: SkinToneSectionProps 
       </div>
       <style jsx>{`
         .tones-grid {
+          display: flex;
+          flex-wrap: nowrap;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+          gap: 10px;
+          padding-bottom: 4px;
           --tone-card-aspect: 2 / 3;
           --tone-card-maxh: 220px;
+          --tone-card-w: 160px;
         }
-        @media (max-width: 1024px) {
-          .tones-grid {
-            grid-template-columns: repeat(3, 1fr) !important;
-          }
+        .tones-grid::-webkit-scrollbar {
+          display: none;
         }
         @media (max-width: 768px) {
           .tones-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-            gap: 8px !important;
             --tone-card-aspect: 3 / 4;
-            --tone-card-maxh: 140px;
-          }
-          .tones-grid > a:last-child:nth-child(odd) {
-            grid-column: 1 / -1;
-            max-width: min(62%, 260px);
-            justify-self: center;
+            --tone-card-maxh: 170px;
+            --tone-card-w: 130px;
           }
         }
         @media (max-width: 480px) {
           .tones-grid {
-            --tone-card-maxh: 120px;
+            --tone-card-maxh: 150px;
+            --tone-card-w: 110px;
           }
         }
       `}</style>
