@@ -170,33 +170,54 @@ h1,h2,h3,h4,h5,h6 {
 .reveal-stagger > *:nth-child(7) { transition-delay: 480ms; }
 .reveal-stagger > *:nth-child(8) { transition-delay: 560ms; }
 
-/* ── SkinTone Section ───────────────────────────────────────── */
+/* ── SkinTone Section ─── mobile-first ──────────────────────── */
+/* Base = mobile : scroll horizontal sur une ligne */
 .tones-grid {
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  justify-content: flex-start;
   align-items: flex-start;
   gap: 12px;
-  padding-bottom: 4px;
-  --tone-card-aspect: 2 / 3;
-  --tone-card-maxh: 220px;
-  --tone-card-w: 160px;
+  padding-bottom: 12px;
+  width: 100%;
+  --tone-card-aspect: 3 / 4;
+  --tone-card-maxh: 150px;
+  --tone-card-w: 110px;
+}
+.tones-grid > * {
+  flex-shrink: 0;
+  scroll-snap-align: start;
 }
 .tones-grid::-webkit-scrollbar {
   display: none;
 }
-@media (max-width: 768px) {
+/* Tablette */
+@media (min-width: 481px) {
   .tones-grid {
-    --tone-card-aspect: 3 / 4;
     --tone-card-maxh: 170px;
     --tone-card-w: 130px;
   }
 }
-@media (max-width: 480px) {
+/* Desktop : grille centrée, pas de scroll */
+@media (min-width: 769px) {
   .tones-grid {
-    --tone-card-maxh: 150px;
-    --tone-card-w: 110px;
+    flex-wrap: wrap;
+    overflow-x: visible;
+    scroll-snap-type: none;
+    -webkit-overflow-scrolling: auto;
+    justify-content: center;
+    padding-bottom: 4px;
+    --tone-card-aspect: 2 / 3;
+    --tone-card-maxh: 220px;
+    --tone-card-w: 160px;
+  }
+  .tones-grid > * {
+    flex-shrink: 1;
+    scroll-snap-align: none;
   }
 }
 
