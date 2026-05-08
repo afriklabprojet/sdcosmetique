@@ -31,6 +31,8 @@ const nextConfig: NextConfig = {
 
   // ── Optimisation images ────────────────────────────────────────────────────
   images: {
+    // En dev, bypass le pipeline d'optimisation (évite le check "private ip" NAT64)
+    unoptimized: process.env.NODE_ENV === 'development',
     // Formats modernes (AVIF ~50% plus léger que JPEG, WebP ~30%)
     formats: ['image/avif', 'image/webp'],
     // Tailles adaptées aux breakpoints mobiles/tablette/desktop

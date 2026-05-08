@@ -15,7 +15,7 @@
     "not op_mini all"
   ],
   "scripts": {
-    "dev": "next dev",
+    "dev": "NODE_OPTIONS='--dns-result-order=ipv4first' next dev",
     "build": "next build --webpack",
     "start": "next start -p ${PORT:-3000}",
     "lint": "eslint",

@@ -33,7 +33,8 @@ function ToneCard({ tone, override }: Readonly<{ tone: Tone; override?: string }
         position: 'relative',
         borderRadius: '12px',
         overflow: 'hidden',
-        aspectRatio: '3 / 4',
+        aspectRatio: '2 / 3',
+        maxHeight: '220px',
         cursor: 'pointer',
         display: 'block',
         transition: 'transform 0.3s ease, box-shadow 0.3s ease',
@@ -50,7 +51,7 @@ function ToneCard({ tone, override }: Readonly<{ tone: Tone; override?: string }
             else setHidden(true);
           }}
           style={{ objectFit: 'cover' }}
-          sizes="(max-width: 768px) 20vw, 240px"
+          sizes="(max-width: 768px) 20vw, 160px"
           unoptimized={src.startsWith('http')}
         />
       )}
@@ -100,7 +101,7 @@ export default function SkinToneSection({ images, title }: SkinToneSectionProps 
   };
 
   return (
-    <section ref={sectionRef} style={{ background: 'var(--white)', padding: 'var(--space-section) clamp(12px, 3vw, 24px)' }}>
+    <section ref={sectionRef} style={{ background: 'var(--white)', padding: 'clamp(24px, 4vw, 48px) clamp(12px, 3vw, 24px)' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <h2 className={`reveal${visible ? ' visible' : ''}`} style={{
           fontFamily: 'var(--font-playfair), "Playfair Display", Georgia, serif',
@@ -110,7 +111,7 @@ export default function SkinToneSection({ images, title }: SkinToneSectionProps 
           letterSpacing: '0.06em',
           textAlign: 'center',
           textTransform: 'uppercase',
-          marginBottom: '32px',
+          marginBottom: '16px',
         }}>
           {title || 'Choisissez votre teint'}
         </h2>
@@ -118,7 +119,7 @@ export default function SkinToneSection({ images, title }: SkinToneSectionProps 
         <div className={`tones-grid reveal-stagger${visible ? ' visible' : ''}`} style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
-          gap: '12px',
+          gap: '6px',
         }}>
           {TONES.map((t) => (
             <ToneCard key={t.slug} tone={t} override={imageMap[t.slug]} />
@@ -141,11 +142,12 @@ export default function SkinToneSection({ images, title }: SkinToneSectionProps 
         @media (max-width: 768px) {
           .tones-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-            gap: 10px !important;
+            gap: 6px !important;
           }
           .tone-card {
             border-radius: 10px;
-            aspect-ratio: 4 / 5 !important;
+            aspect-ratio: 2 / 3 !important;
+            max-height: 180px !important;
           }
           .tone-label {
             font-size: 0.72rem !important;

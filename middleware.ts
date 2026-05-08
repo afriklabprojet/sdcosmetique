@@ -33,6 +33,11 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith(route)
   );
 
+  // ── Fast-path : routes publiques → skip auth (0 round-trip Supabase) ───────
+  if (isPublicOnly(request.nextUrl.pathname)) {
+    return NextResponse.next();
+  }
+
   try {
     // updateSession initialise Supabase, rafraîchit la session et retourne la response finale
     const { session, error, response } = await updateSession(request);
@@ -107,9 +112,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - manifest.webmanifest (PWA manifest généré par Next.js)
-     * - fichiers publics (images, etc.)
+     * - tout fichier avec extension (.*\.) — couvre manifest, images, fonts, etc.
      */
-    String.raw`/((?!api|_next/static|_next/image|favicon.ico|manifest.webmanifest|.*\.).*)`
+    String.raw`/((?!api|_next/static|_next/image|favicon.ico|.*\.).*)`
   ]
 };
