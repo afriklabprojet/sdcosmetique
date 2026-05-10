@@ -361,14 +361,14 @@ function PaymentStep({ paymentMethod, setPaymentMethod, mobileNumber, setMobileN
                 </div>
                 {/* Recommandé badge */}
                 {pm.badge && (
-                  <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '99px', background: '#DCFCE7', color: '#16A34A', flexShrink: 0 }}>
+                  <span className="checkout-payment-badge" style={{ fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '99px', background: '#DCFCE7', color: '#16A34A', flexShrink: 0 }}>
                     {pm.badge}
                   </span>
                 )}
               </label>
               {/* Phone input for selected mobile method */}
               {paymentMethod === pm.id && (
-                <div style={{ padding: '0 24px 16px', paddingLeft: '83px', background: BG_ROW, borderLeft: `3px solid ${GOLD}` }}>
+                <div className="checkout-phone-panel" style={{ background: BG_ROW, borderLeft: `3px solid ${GOLD}` }}>
                   <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: TXT2, marginBottom: '6px' }}>
                     Numéro {pm.label} *
                   </label>
@@ -551,7 +551,7 @@ export default function CheckoutPage() {
           <p style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: TXT, textAlign: 'center', marginBottom: '24px' }}>
             Procédure de paiement
           </p>
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }}>
+          <div className="checkout-stepper-row" style={{ display: 'flex', alignItems: 'flex-start', width: '100%' }}>
             {STEPS.map((s, i) => {
               const idx = STEP_ORDER.indexOf(s.key as CheckoutStep);
               const isActive = step === s.key;
@@ -560,15 +560,15 @@ export default function CheckoutPage() {
               if (isActive) { labelColor = GOLD; } else if (isDone) { labelColor = TXT; } else { labelColor = TXT3; }
               return (
                 <React.Fragment key={s.key}>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', minWidth: '88px', maxWidth: '100px' }}>
-                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: isActive || isDone ? GOLD : '#EDE5DC', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}>
+                  <div className="checkout-stepper-step" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', flex: 1, minWidth: 0 }}>
+                    <div className="checkout-stepper-circle" style={{ width: '36px', height: '36px', borderRadius: '50%', background: isActive || isDone ? GOLD : '#EDE5DC', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}>
                       <span style={{ fontSize: '13px', fontWeight: 700, color: isActive || isDone ? 'white' : TXT3 }}>{i + 1}</span>
                     </div>
-                    <span style={{ fontSize: '12px', fontWeight: isActive ? 700 : 500, color: labelColor, textAlign: 'center', lineHeight: 1.2 }}>{s.label}</span>
-                    <span style={{ fontSize: '10px', color: TXT3, textAlign: 'center', lineHeight: 1.2 }}>{s.sub}</span>
+                    <span className="checkout-stepper-label" style={{ fontSize: '12px', fontWeight: isActive ? 700 : 500, color: labelColor, textAlign: 'center', lineHeight: 1.2 }}>{s.label}</span>
+                    <span className="checkout-stepper-sub" style={{ fontSize: '10px', color: TXT3, textAlign: 'center', lineHeight: 1.2 }}>{s.sub}</span>
                   </div>
                   {i < STEPS.length - 1 && (
-                    <div style={{ height: '2px', width: '52px', background: stepIdx > i ? GOLD : '#EDE5DC', marginTop: '17px', flexShrink: 0, transition: 'background 0.3s' }} />
+                    <div className="checkout-stepper-connector" style={{ height: '2px', flexBasis: '52px', maxWidth: '52px', background: stepIdx > i ? GOLD : '#EDE5DC', marginTop: '17px', flexShrink: 1, transition: 'background 0.3s' }} />
                   )}
                 </React.Fragment>
               );
@@ -618,8 +618,39 @@ export default function CheckoutPage() {
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* 2-col form grid */
         .checkout-form-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         @media (max-width: 480px) { .checkout-form-2col { grid-template-columns: 1fr !important; } }
+
+        /* Cart step layout – stacks on mobile */
+        .checkout-cart-layout { display: flex; gap: 24px; }
+        .checkout-cart-sidebar { width: 320px; flex-shrink: 0; }
+        @media (max-width: 768px) {
+          .checkout-cart-layout { flex-direction: column; }
+          .checkout-cart-sidebar { width: 100%; }
+        }
+
+        /* Responsive stepper */
+        .checkout-stepper-row { width: 100%; }
+        @media (max-width: 600px) {
+          .checkout-stepper-step { gap: 4px !important; }
+          .checkout-stepper-connector { flex-basis: 12px !important; max-width: 12px !important; }
+          .checkout-stepper-circle { width: 26px !important; height: 26px !important; }
+          .checkout-stepper-sub { display: none !important; }
+          .checkout-stepper-label { font-size: 9px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px; }
+        }
+
+        /* Payment phone input indent */
+        .checkout-phone-panel { padding: 0 24px 16px; padding-left: 83px; }
+        @media (max-width: 600px) {
+          .checkout-phone-panel { padding: 0 16px 16px !important; }
+        }
+
+        /* Hide payment badge on small screens */
+        @media (max-width: 480px) {
+          .checkout-payment-badge { display: none !important; }
+        }
       `}</style>
     </div>
   );

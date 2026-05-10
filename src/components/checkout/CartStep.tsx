@@ -44,7 +44,16 @@ export default function CartStep({ onNext }: CartStepProps) {
   }
   
   return (
-    <div style={{ display: 'flex', gap: '24px' }}>
+    <>
+      <style>{`
+        .cs-layout { display: flex; flex-direction: column; gap: 24px; }
+        .cs-sidebar { width: 100%; flex-shrink: 0; }
+        @media (min-width: 768px) {
+          .cs-layout { flex-direction: row; align-items: flex-start; }
+          .cs-sidebar { width: 320px; }
+        }
+      `}</style>
+      <div className="cs-layout">
       <div style={{ flex: 1 }}>
         <h2 style={{ fontSize: '20px', color: '#FAFAFA', marginBottom: '16px' }}>Vérification du panier</h2>
         
@@ -142,7 +151,7 @@ export default function CartStep({ onNext }: CartStepProps) {
         </div>
       </div>
       
-      <div style={{ width: '320px' }}>
+      <div className="cs-sidebar">
         <div style={{
           background: '#0A0A0A',
           padding: '20px',
@@ -202,5 +211,6 @@ export default function CartStep({ onNext }: CartStepProps) {
         </div>
       </div>
     </div>
+    </>
   );
 }
