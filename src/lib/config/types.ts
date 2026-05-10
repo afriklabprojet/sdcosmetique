@@ -144,6 +144,15 @@ export type LegalPage = {
   lead: string;
   bodyHtml: string;
   updatedAt?: string;
+  // Champs spécifiques à la page Contact
+  contactEmail?: string;
+  contactPhone?: string;
+  contactHours?: string;
+  officeAddress?: string;
+  officeCity?: string;
+  officeHours?: string;
+  pressEmail?: string;
+  partnersEmail?: string;
 };
 
 // ─── Newsletter ───────────────────────────────────────────────────────────────

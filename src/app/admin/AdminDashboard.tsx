@@ -2707,6 +2707,52 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                               <textarea value={lp.bodyHtml ?? ''} onChange={e => update({ bodyHtml: e.target.value })} rows={6}
                                 style={{ background: SURFACE, color: TEXT, border: `1px solid ${BORDER2}`, borderRadius: '4px', padding: '7px 10px', fontSize: '11px', fontFamily: 'monospace', resize: 'vertical' }} />
                             </div>
+                            {/* ─── Champs spécifiques à la page Contact ─── */}
+                            {slug === 'contact' && (
+                              <>
+                                <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: '10px', marginTop: '4px' }}>
+                                  <span style={{ fontSize: '10px', color: GOLD, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>📞 Service client</span>
+                                </div>
+                                {([
+                                  { k: 'contactEmail', label: 'Email service client' },
+                                  { k: 'contactPhone', label: 'Téléphone' },
+                                  { k: 'contactHours', label: 'Horaires (ex: Lun–Ven · 9h–18h GMT)' },
+                                ] as const).map(({ k, label }) => (
+                                  <div key={k} style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                                    <span style={{ fontSize: '10px', color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</span>
+                                    <input value={(lp as Record<string, string>)[k] ?? ''} data-k={k} onChange={handleLpField}
+                                      style={{ background: SURFACE, color: TEXT, border: `1px solid ${BORDER2}`, borderRadius: '4px', padding: '7px 10px', fontSize: '12px' }} />
+                                  </div>
+                                ))}
+                                <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: '10px', marginTop: '4px' }}>
+                                  <span style={{ fontSize: '10px', color: GOLD, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>📍 Adresse atelier</span>
+                                </div>
+                                {([
+                                  { k: 'officeAddress', label: 'Adresse (rue)' },
+                                  { k: 'officeCity', label: 'Ville / CP' },
+                                  { k: 'officeHours', label: 'Horaires atelier (ex: Mar–Sam · 10h–19h)' },
+                                ] as const).map(({ k, label }) => (
+                                  <div key={k} style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                                    <span style={{ fontSize: '10px', color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</span>
+                                    <input value={(lp as Record<string, string>)[k] ?? ''} data-k={k} onChange={handleLpField}
+                                      style={{ background: SURFACE, color: TEXT, border: `1px solid ${BORDER2}`, borderRadius: '4px', padding: '7px 10px', fontSize: '12px' }} />
+                                  </div>
+                                ))}
+                                <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: '10px', marginTop: '4px' }}>
+                                  <span style={{ fontSize: '10px', color: GOLD, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>✉️ Presse & Partenariats</span>
+                                </div>
+                                {([
+                                  { k: 'pressEmail', label: 'Email presse' },
+                                  { k: 'partnersEmail', label: 'Email partenariats' },
+                                ] as const).map(({ k, label }) => (
+                                  <div key={k} style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                                    <span style={{ fontSize: '10px', color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</span>
+                                    <input value={(lp as Record<string, string>)[k] ?? ''} data-k={k} onChange={handleLpField}
+                                      style={{ background: SURFACE, color: TEXT, border: `1px solid ${BORDER2}`, borderRadius: '4px', padding: '7px 10px', fontSize: '12px' }} />
+                                  </div>
+                                ))}
+                              </>
+                            )}
                             <button onClick={save} disabled={contentSaving[key]}
                               style={{ alignSelf: 'flex-end', background: contentSaved[key] ? S_SAVE_BG : GOLD2, color: contentSaved[key] ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
                               {getSaveButtonText(contentSaved[key], contentSaving[key])}

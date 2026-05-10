@@ -152,24 +152,24 @@ export default function ContactPage() {
             <InfoBlock
               title="Service client"
               items={[
-                { label: 'contact@sdcosmetique.com', href: 'mailto:contact@sdcosmetique.com' },
-                { label: '+221 33 869 42 18', href: 'tel:+221338694218' },
-                { label: 'Lun–Ven · 9h–18h GMT', muted: true },
+                ...(legal.contactEmail ? [{ label: legal.contactEmail, href: `mailto:${legal.contactEmail}` }] : []),
+                ...(legal.contactPhone ? [{ label: legal.contactPhone, href: `tel:${legal.contactPhone.replace(/\s/g, '')}` }] : []),
+                ...(legal.contactHours ? [{ label: legal.contactHours, muted: true }] : []),
               ]}
             />
             <InfoBlock
-              title="Atelier Dakar"
+              title="Atelier"
               items={[
-                { label: 'Route des Almadies', muted: true },
-                { label: 'BP 21850 · Dakar, Sénégal', muted: true },
-                { label: 'Mar–Sam · 10h–19h', muted: true },
+                ...(legal.officeAddress ? [{ label: legal.officeAddress, muted: true }] : []),
+                ...(legal.officeCity ? [{ label: legal.officeCity, muted: true }] : []),
+                ...(legal.officeHours ? [{ label: legal.officeHours, muted: true }] : []),
               ]}
             />
             <InfoBlock
               title="Presse & Partenariats"
               items={[
-                { label: 'presse@sdcosmetique.com', href: 'mailto:presse@sdcosmetique.com' },
-                { label: 'partenariats@sdcosmetique.com', href: 'mailto:partenariats@sdcosmetique.com' },
+                ...(legal.pressEmail ? [{ label: legal.pressEmail, href: `mailto:${legal.pressEmail}` }] : []),
+                ...(legal.partnersEmail ? [{ label: legal.partnersEmail, href: `mailto:${legal.partnersEmail}` }] : []),
               ]}
             />
           </aside>
