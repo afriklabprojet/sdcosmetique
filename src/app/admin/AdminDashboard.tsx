@@ -3113,7 +3113,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                   <p style={sectionTitle}>● Image de fond — page de connexion admin</p>
                   <p style={sectionSubtitle}>Photo affichée sur la moitié gauche de l&apos;écran de connexion administrateur.</p>
                   <ImageUpload
-                    value={br.adminLoginBg ?? '/hero/generated-skincare-hero-2-2.jpg'}
+                    value={br.adminLoginBg ?? '/hero/generated-skincare-hero-2.jpg'}
                     onChange={(url) => update({ adminLoginBg: url })}
                     folder="branding"
                     label="Fond connexion admin"
@@ -3126,7 +3126,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                   <p style={sectionTitle}>● Image de fond — page de connexion admin</p>
                   <p style={sectionSubtitle}>Photo affichée sur la moitié gauche de l&apos;écran de connexion administrateur.</p>
                   <ImageUpload
-                    value={br.adminLoginBg ?? '/hero/generated-skincare-hero-2-2.jpg'}
+                    value={br.adminLoginBg ?? '/hero/generated-skincare-hero-2.jpg'}
                     onChange={(url) => update({ adminLoginBg: url })}
                     folder="branding"
                     label="Fond connexion admin"

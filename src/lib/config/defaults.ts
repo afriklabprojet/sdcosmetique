@@ -214,7 +214,7 @@ export const DEFAULT_BRANDING: BrandingConfig = {
   facebookUrl: '',
   youtubeUrl: '',
   linkedinUrl: '',
-  adminLoginBg: '/hero/generated-skincare-hero-2-2.jpg',
+  adminLoginBg: '/hero/generated-skincare-hero-2.jpg',
 };
 
 // Configuration complète par défaut

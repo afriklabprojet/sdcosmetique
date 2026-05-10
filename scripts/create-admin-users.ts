@@ -20,8 +20,8 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
 });
 
 const ADMINS = [
-  { email: 'admin@sdcosmetique.com', password: 'Admin@SD2026!' },
-  { email: 'teya@sdcosmetique.com',  password: 'Teya@SD2026!'  },
+  { email: 'admin@sdcosmetique.ci', password: 'Admin@SD2026!' },
+  { email: 'teya@sdcosmetique.ci',  password: 'Teya@SD2026!'  },
 ];
 
 async function main() {

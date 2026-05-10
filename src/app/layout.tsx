@@ -18,7 +18,7 @@ const Footer = dynamic(() => import("@/components/layout/Footer"), { ssr: true }
 const playfair = Playfair_Display({
   subsets: ['latin'],
   variable: '--font-playfair',
-  display: 'optional',
+  display: 'swap',
 });
 
 const inter = Inter({
@@ -27,7 +27,7 @@ const inter = Inter({
   display: 'swap',
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sdcosmetique.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sdcosmetique.ci';
 
 export const viewport: Viewport = {
   width: 'device-width',

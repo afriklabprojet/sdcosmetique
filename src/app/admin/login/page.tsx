@@ -22,7 +22,7 @@ export default function AdminLoginPage() {
       : ''
   );
   const [loading, setLoading] = useState(false);
-  const [loginBg, setLoginBg] = useState('/hero/generated-skincare-hero-2-2.jpg');
+  const [loginBg, setLoginBg] = useState('/hero/generated-skincare-hero-2.jpg');
 
   useEffect(() => {
     fetchSiteConfigSection('branding').then((b) => {
