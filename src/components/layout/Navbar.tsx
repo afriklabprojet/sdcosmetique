@@ -91,6 +91,7 @@ export default function Navbar({ logoUrl, logoCaption, siteName }: Readonly<{ lo
         transition: 'all 0.3s ease',
       }}
     >
+      <style>{`.nb-logo-text { display: flex; } @media (max-width: 767px) { .nb-logo-text { display: none; } }`}</style>
       <div
         className="nav-bar"
         style={{
@@ -113,7 +114,7 @@ export default function Navbar({ logoUrl, logoCaption, siteName }: Readonly<{ lo
             priority
             style={{ height: 44, width: 'auto', flexShrink: 0 }}
           />
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
+          <div className="nb-logo-text" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
             {siteName && (
               <span style={{
                 fontSize: 17,

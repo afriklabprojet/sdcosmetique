@@ -7,7 +7,7 @@ import { useCart } from '@/context/CartContext';
 import { formatPrice } from '@/lib/products';
 
 interface CartStepProps {
-  onNext: () => void;
+  readonly onNext: () => void;
 }
 
 export default function CartStep({ onNext }: CartStepProps) {
