@@ -13,6 +13,8 @@ const NAV = [
   { label: 'CORPS', href: '/categorie/body' },
   { label: 'GAMMES', href: '/categorie/gammes' },
   { label: 'KITS', href: '/categorie/kits' },
+  { label: 'KIT LÈVRE', href: '/categorie/kit-levre' },
+  { label: 'MINCEUR', href: '/categorie/minceur' },
   { label: 'DUO', href: '/categorie/duo' },
   { label: 'QUIZ TEINT', href: '/quiz' },
 ];
