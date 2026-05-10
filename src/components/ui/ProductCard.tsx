@@ -304,8 +304,8 @@ function ProductMedia({
             top: 10,
             right: 10,
             zIndex: 3,
-            width: 44,
-            height: 44,
+            width: 34,
+            height: 34,
             borderRadius: '50%',
             background: 'rgba(255,255,255,0.96)',
             border: 'none',
@@ -322,8 +322,8 @@ function ProductMedia({
           aria-pressed={inWishlist}
         >
           <svg
-            width="16"
-            height="16"
+            width="13"
+            height="13"
             viewBox="0 0 24 24"
             fill={inWishlist ? 'var(--gold)' : 'none'}
             stroke={inWishlist ? 'var(--gold)' : '#7A6A5A'}
