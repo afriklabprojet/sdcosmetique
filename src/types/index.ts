@@ -10,14 +10,16 @@ export const SKIN_TONES: { id: SkinTone; label: string; color: string; descripti
   { id: 'metisse',      label: 'Métisse',      color: '#A0714F', description: 'Teint mixte' },
 ];
 
-export type Category = 'body' | 'face' | 'gammes' | 'kits' | 'duo';
+export type Category = 'body' | 'face' | 'gammes' | 'kits' | 'duo' | 'kit-levre' | 'minceur';
 
 export const CATEGORIES: { id: Category; label: string; icon: string; description: string }[] = [
   { id: 'body',   label: 'Corps',   icon: '✦', description: 'Soins du corps' },
   { id: 'face',   label: 'Visage',  icon: '◈', description: 'Soins du visage' },
   { id: 'gammes', label: 'Gammes',  icon: '◇', description: 'Collections complètes' },
   { id: 'kits',   label: 'Kits',    icon: '◆', description: 'Coffrets beauté' },
-  { id: 'duo',    label: 'Duo',     icon: '⊕', description: 'Duos essentiels' },
+  { id: 'duo',       label: 'Duo',       icon: '⊕', description: 'Duos essentiels' },
+  { id: 'kit-levre', label: 'Kit Lèvre', icon: '◈', description: 'Kits lèvres & soins des lèvres' },
+  { id: 'minceur',   label: 'Minceur',   icon: '◇', description: 'Soins minceur & remodelants' },
 ];
 
 export interface Product {

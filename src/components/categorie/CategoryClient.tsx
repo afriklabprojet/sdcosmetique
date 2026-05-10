@@ -21,6 +21,8 @@ const CATEGORY_IMAGES: Record<Category, string> = {
   gammes: '/categories/gammes.png',
   kits: '/categories/kits.png',
   duo: '/categories/duo.png',
+  'kit-levre': '/categories/kits.png',
+  minceur: '/categories/corps.png',
 };
 
 interface Props {
