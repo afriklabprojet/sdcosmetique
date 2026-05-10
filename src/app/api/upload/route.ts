@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { createServiceClient } from '@/utils/supabase/service';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_SIZE = 5 * 1024 * 1024; // 5 Mo
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const supabase = await db();
+    const supabase = createServiceClient();
     const ext = file.name.split('.').pop() ?? 'jpg';
     const filename = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
