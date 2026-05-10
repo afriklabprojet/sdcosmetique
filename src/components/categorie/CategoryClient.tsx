@@ -30,9 +30,12 @@ interface Props {
   slug: Category;
 }
 
+const NO_SKIN_FILTER_CATEGORIES: Category[] = ['minceur'];
+
 export default function CategoryClient({ initialProducts, slug }: Props) {
   const [skinToneFilter, setSkinToneFilter] = useState<SkinTone | null>(null);
   const [sortBy, setSortBy] = useState('popular');
+  const showSkinToneFilter = !NO_SKIN_FILTER_CATEGORIES.includes(slug);
 
   const category = CATEGORIES.find(c => c.id === slug);
   const activeSkinTone = skinToneFilter
@@ -112,7 +115,9 @@ export default function CategoryClient({ initialProducts, slug }: Props) {
         {/* Toolbar */}
         <div className="flex flex-col lg:flex-row gap-6 mb-8">
           <div className="flex-1">
-            <SkinToneSelector selected={skinToneFilter} onChange={setSkinToneFilter} />
+            {showSkinToneFilter && (
+              <SkinToneSelector selected={skinToneFilter} onChange={setSkinToneFilter} />
+            )}
           </div>
           <div className="flex items-center gap-4 shrink-0">
             <span className="text-xs" style={{ color: 'var(--grey-500)' }}>
@@ -132,7 +137,7 @@ export default function CategoryClient({ initialProducts, slug }: Props) {
         </div>
 
         {/* Active filters */}
-        {skinToneFilter && (
+        {showSkinToneFilter && skinToneFilter && (
           <div className="flex items-center gap-2 mb-6">
             <span className="text-xs" style={{ color: 'var(--grey-500)' }}>Filtre actif :</span>
             <button
@@ -161,7 +166,7 @@ export default function CategoryClient({ initialProducts, slug }: Props) {
               Aucun produit pour ce filtre
             </h3>
             <p className="text-sm text-center max-w-sm" style={{ color: 'var(--grey-500)' }}>
-              Essayez une autre carnation ou consultez une autre catégorie.
+              {showSkinToneFilter ? 'Essayez une autre carnation ou consultez une autre catégorie.' : 'Aucun produit disponible pour cette catégorie pour le moment.'}
             </p>
             <button
               onClick={() => setSkinToneFilter(null)}
