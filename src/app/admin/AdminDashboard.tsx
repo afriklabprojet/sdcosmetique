@@ -2850,6 +2850,8 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                 { key: 'hero_face' as const,   label: '🧴 Hero — Visage',  fields: ['eyebrow','title','titleAccent','lead','image'] as const },
                 { key: 'hero_body' as const,   label: '💆 Hero — Corps',   fields: ['eyebrow','title','titleAccent','lead','image'] as const },
                 { key: 'hero_gammes' as const, label: '✨ Hero — Gammes',  fields: ['eyebrow','title','titleAccent','lead','image'] as const },
+                { key: 'hero_kit_levre' as const, label: '💋 Hero — Kit Lèvre', fields: ['eyebrow','title','titleAccent','lead','image'] as const },
+                { key: 'hero_minceur' as const,   label: '🌿 Hero — Minceur',   fields: ['eyebrow','title','titleAccent','lead','image'] as const },
                 { key: 'hero_kits' as const,   label: '🎁 Hero — Kits',   fields: ['eyebrow','title','titleAccent','lead','image','stat1Num','stat1Label','stat2Num','stat2Label','stat3Num','stat3Label'] as const },
                 { key: 'hero_duo' as const,    label: '👥 Hero — Duo',    fields: ['eyebrow','title','titleAccent','lead','image','synergyNum','synergyText'] as const },
                 { key: 'hero_quiz' as const,   label: '📋 Hero — Quiz Teint', fields: ['eyebrow','title','titleAccent','lead','image','floaterLabel','floaterText'] as const },

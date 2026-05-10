@@ -241,6 +241,8 @@ export type SiteConfig = {
   hero_face: CategoryHeroConfig;
   hero_body: CategoryHeroConfig;
   hero_gammes: CategoryHeroConfig;
+  hero_kit_levre: CategoryHeroConfig;
+  hero_minceur: CategoryHeroConfig;
   hero_kits: KitsHeroConfig;
   hero_duo: DuoHeroConfig;
   hero_quiz: QuizHeroConfig;

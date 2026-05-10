@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product, Category, SkinTone, CATEGORIES } from '@/types';
@@ -35,6 +35,15 @@ const NO_SKIN_FILTER_CATEGORIES = new Set<Category>(['minceur', 'kit-levre']);
 export default function CategoryClient({ initialProducts, slug }: Readonly<Props>) {
   const [skinToneFilter, setSkinToneFilter] = useState<SkinTone | null>(null);
   const [sortBy, setSortBy] = useState('popular');
+  const [heroImage, setHeroImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const configKey = `hero_${slug.replace(/-/g, '_')}`;
+    fetch(`/api/config/${configKey}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.value?.image) setHeroImage(d.value.image); })
+      .catch(() => {});
+  }, [slug]);
   const showSkinToneFilter = !NO_SKIN_FILTER_CATEGORIES.has(slug);
 
   const category = CATEGORIES.find(c => c.id === slug);
@@ -68,7 +77,7 @@ export default function CategoryClient({ initialProducts, slug }: Readonly<Props
       {/* Hero banner */}
       <div className="relative h-72 lg:h-88 overflow-hidden flex items-center" style={{ background: 'linear-gradient(135deg, #fbf7f0 0%, #fff 58%, #f4eadb 100%)' }}>
         <Image
-          src={CATEGORY_IMAGES[slug] || CATEGORY_IMAGES.gammes}
+          src={heroImage || CATEGORY_IMAGES[slug] || CATEGORY_IMAGES.gammes}
           alt={category.label}
           fill
           priority
