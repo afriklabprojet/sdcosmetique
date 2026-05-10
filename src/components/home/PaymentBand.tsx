@@ -76,6 +76,18 @@ function VisaMastercardLogo() {
   );
 }
 
+function DjamoLogo() {
+  return (
+    <div style={{ background: '#4C35A8', borderRadius: '10px', padding: '10px 18px', display: 'flex', alignItems: 'center', gap: '8px', minWidth: '110px' }}>
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="13" fill="rgba(255,255,255,0.2)" />
+        <text x="14" y="19" textAnchor="middle" fontSize="9" fontWeight="900" fill="white" fontFamily="Arial,sans-serif">DJ</text>
+      </svg>
+      <span style={{ color: '#fff', fontSize: '0.78rem', fontWeight: 800, fontFamily: 'Arial,sans-serif', letterSpacing: '0.04em' }}>djamo</span>
+    </div>
+  );
+}
+
 export default function PaymentBand() {
   return (
     <section style={{ background: '#3D1A06', padding: '28px 24px' }}>
@@ -99,6 +111,7 @@ export default function PaymentBand() {
           <WaveLogo />
           <MtnMomoLogo />
           <MoovMoneyLogo />
+          <DjamoLogo />
           <VisaMastercardLogo />
         </div>
       </div>

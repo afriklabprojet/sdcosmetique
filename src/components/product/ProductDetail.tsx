@@ -93,6 +93,7 @@ const DEFAULT_PAYMENT_BADGES: PaymentBadge[] = [
   { label: 'Wave',           bg: '#0066CC' },
   { label: 'MTN MoMo',       bg: '#FFCC00', text: '#1A1A1A' },
   { label: 'Moov Money',     bg: '#00A651' },
+  { label: 'Djamo',          bg: '#4C35A8' },
   { label: 'Carte Bancaire', bg: '#1A1F71' },
 ];
 
