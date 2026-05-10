@@ -304,8 +304,8 @@ function ProductMedia({
             top: 10,
             right: 10,
             zIndex: 3,
-            width: 34,
-            height: 34,
+            width: 26,
+            height: 26,
             borderRadius: '50%',
             background: 'rgba(255,255,255,0.96)',
             border: 'none',
@@ -313,7 +313,7 @@ function ProductMedia({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.12)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
             opacity: 1,
             transform: inWishlist ? 'scale(1.12)' : 'scale(1)',
             transition: 'transform 0.35s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease',
@@ -322,8 +322,8 @@ function ProductMedia({
           aria-pressed={inWishlist}
         >
           <svg
-            width="13"
-            height="13"
+            width="10"
+            height="10"
             viewBox="0 0 24 24"
             fill={inWishlist ? 'var(--gold)' : 'none'}
             stroke={inWishlist ? 'var(--gold)' : '#7A6A5A'}
