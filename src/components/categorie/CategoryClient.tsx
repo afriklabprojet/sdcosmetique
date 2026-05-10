@@ -30,7 +30,7 @@ interface Props {
   slug: Category;
 }
 
-const NO_SKIN_FILTER_CATEGORIES: Category[] = ['minceur'];
+const NO_SKIN_FILTER_CATEGORIES: Category[] = ['minceur', 'kit-levre'];
 
 export default function CategoryClient({ initialProducts, slug }: Props) {
   const [skinToneFilter, setSkinToneFilter] = useState<SkinTone | null>(null);
