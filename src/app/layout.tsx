@@ -100,7 +100,7 @@ export default async function RootLayout({
                 instagram={siteConfig.branding?.instagramUrl || undefined}
                 tiktok={siteConfig.branding?.tiktokUrl || undefined}
               />
-              <Navbar logoUrl={siteConfig.branding?.logoUrl || undefined} />
+              <Navbar logoUrl={siteConfig.branding?.logoUrl || undefined} logoCaption={siteConfig.branding?.tagline || undefined} />
               <ClientOnlyOverlays welcomePopup={siteConfig.marketing?.welcomePopup} />
             </div>
             <main className="flex-1">{children}</main>

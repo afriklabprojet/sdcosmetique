@@ -19,7 +19,7 @@ const NAV = [
   { label: 'QUIZ TEINT', href: '/quiz' },
 ];
 
-export default function Navbar({ logoUrl }: Readonly<{ logoUrl?: string }>) {
+export default function Navbar({ logoUrl, logoCaption }: Readonly<{ logoUrl?: string; logoCaption?: string }>) {
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -104,7 +104,7 @@ export default function Navbar({ logoUrl }: Readonly<{ logoUrl?: string }>) {
         }}
       >
         {/* LOGO */}
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+        <Link href="/" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textDecoration: 'none', gap: 2 }}>
           <Image
             src={logoUrl || '/logo.svg'}
             alt="SD Cosmetique"
@@ -113,6 +113,18 @@ export default function Navbar({ logoUrl }: Readonly<{ logoUrl?: string }>) {
             priority
             style={{ height: 44, width: 'auto' }}
           />
+          {logoCaption && (
+            <span style={{
+              fontSize: 10,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              color: '#b8860b',
+              fontFamily: 'var(--font-inter), Inter, sans-serif',
+              fontStyle: 'italic',
+              lineHeight: 1,
+              paddingLeft: 2,
+            }}>{logoCaption}</span>
+          )}
         </Link>
 
         {/* NAV */}
