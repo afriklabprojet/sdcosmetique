@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { OrderDraft } from '@/lib/orders';
 import { sendOrderShipped } from '@/lib/emails';
+import { sendWaOrderShipped } from '@/lib/whatsapp';
 import { db } from '@/lib/db';
 
 export const runtime = 'nodejs';
@@ -24,5 +25,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'invalid_order' }, { status: 400 });
   }
   sendOrderShipped(order, trackingUrl).catch(() => {});
+  // WhatsApp en parallèle si le client a un numéro
+  if (order.delivery.phone) {
+    sendWaOrderShipped(order, trackingUrl).catch(() => {});
+  }
   return NextResponse.json({ ok: true });
 }

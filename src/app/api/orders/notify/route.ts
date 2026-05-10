@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { OrderDraft } from '@/lib/orders';
 import { sendOrderConfirmation } from '@/lib/emails';
+import { sendWaOrderConfirmation } from '@/lib/whatsapp';
 import { db } from '@/lib/db';
 
 export const runtime = 'nodejs';
@@ -23,7 +24,11 @@ export async function POST(req: Request) {
   if (!order?.orderNumber || !order?.delivery?.email) {
     return NextResponse.json({ error: 'invalid_order' }, { status: 400 });
   }
-  // Fire and forget — on ne fait pas attendre le client en cas de panne SMTP.
+  // Fire and forget — on ne fait pas attendre le client en cas de panne.
   sendOrderConfirmation(order).catch(() => {});
+  // WhatsApp en parallèle si le client a un numéro
+  if (order.delivery.phone) {
+    sendWaOrderConfirmation(order).catch(() => {});
+  }
   return NextResponse.json({ ok: true });
 }
