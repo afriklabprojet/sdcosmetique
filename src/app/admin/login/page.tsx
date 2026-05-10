@@ -45,8 +45,10 @@ export default function AdminLoginPage() {
     }
 
     // La protection réelle est dans src/middleware.ts (server-side).
-    // On redirige vers /admin — le middleware bloquera si non admin.
-    router.replace('/admin');
+    // window.location.href force un rechargement complet de la page pour que
+    // les cookies Supabase soient propagés côté serveur avant la navigation.
+    // (router.replace est client-side et peut arriver avant que les cookies soient commits)
+    window.location.href = '/admin';
   };
 
   return (
