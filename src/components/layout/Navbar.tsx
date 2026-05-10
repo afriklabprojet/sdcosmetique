@@ -19,7 +19,7 @@ const NAV = [
   { label: 'QUIZ TEINT', href: '/quiz' },
 ];
 
-export default function Navbar() {
+export default function Navbar({ logoUrl }: Readonly<{ logoUrl?: string }>) {
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -106,7 +106,7 @@ export default function Navbar() {
         {/* LOGO */}
         <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
           <Image
-            src="/logo.svg"
+            src={logoUrl || '/logo.svg'}
             alt="SD Cosmetique"
             width={340}
             height={64}

@@ -40,7 +40,7 @@ const COLS = [
   },
 ];
 
-export default function Footer() {
+export default function Footer({ logoUrl }: Readonly<{ logoUrl?: string }>) {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
 
@@ -73,7 +73,7 @@ export default function Footer() {
         {/* Colonne logo */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: '14px' }}>
-            <Image src="/logo.svg" alt="SD Cosmetique" width={160} height={40} style={{ height: 40, width: 'auto', filter: 'brightness(0) invert(1) sepia(1) saturate(2) hue-rotate(5deg)' }} />
+            <Image src={logoUrl || '/logo.svg'} alt="SD Cosmetique" width={160} height={40} style={{ height: 40, width: 'auto', filter: 'brightness(0) invert(1) sepia(1) saturate(2) hue-rotate(5deg)' }} />
           </div>
           <p style={{
             fontFamily: 'var(--font-inter), Inter, sans-serif',
