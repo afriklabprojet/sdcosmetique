@@ -1,107 +1,73 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 
-/* Logos SVG inline pour chaque moyen de paiement */
-function OrangeMoneyLogo() {
-  return (
+/* ─── Fallbacks SVG (affichés si aucune image réelle n'est configurée) ─── */
+const LABELS: Record<string, string> = {
+  orange_money: 'Orange Money',
+  wave: 'Wave',
+  mtn_momo: 'MTN MoMo',
+  moov_money: 'Moov Money',
+  djamo: 'Djamo',
+  visa_mastercard: 'Visa / Mastercard',
+};
+
+const SVG_FALLBACKS: Record<string, React.ReactNode> = {
+  orange_money: (
     <div style={{ background: '#FF6600', borderRadius: '10px', padding: '10px 18px', display: 'flex', alignItems: 'center', gap: '8px', minWidth: '130px' }}>
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-        <circle cx="14" cy="14" r="13" fill="white" />
-        <text x="14" y="19" textAnchor="middle" fontSize="11" fontWeight="900" fill="#FF6600" fontFamily="Arial,sans-serif">OM</text>
-      </svg>
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="13" fill="white" /><text x="14" y="19" textAnchor="middle" fontSize="11" fontWeight="900" fill="#FF6600" fontFamily="Arial,sans-serif">OM</text></svg>
       <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-        <span style={{ color: '#fff', fontSize: '0.62rem', fontWeight: 700, fontFamily: 'Arial,sans-serif', letterSpacing: '0.02em' }}>Orange</span>
+        <span style={{ color: '#fff', fontSize: '0.62rem', fontWeight: 700, fontFamily: 'Arial,sans-serif' }}>Orange</span>
         <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.6rem', fontFamily: 'Arial,sans-serif' }}>Money</span>
       </div>
     </div>
-  );
-}
-
-function WaveLogo() {
-  return (
+  ),
+  wave: (
     <div style={{ background: '#009EE3', borderRadius: '10px', padding: '10px 18px', display: 'flex', alignItems: 'center', gap: '8px', minWidth: '110px' }}>
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-        <circle cx="14" cy="14" r="13" fill="white" />
-        <path d="M7 16 Q10 10, 14 14 Q18 18, 21 12" stroke="#009EE3" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-      </svg>
-      <span style={{ color: '#fff', fontSize: '0.78rem', fontWeight: 800, fontFamily: 'Arial,sans-serif', letterSpacing: '0.04em' }}>Wave</span>
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="13" fill="white" /><path d="M7 16 Q10 10, 14 14 Q18 18, 21 12" stroke="#009EE3" strokeWidth="2.5" fill="none" strokeLinecap="round" /></svg>
+      <span style={{ color: '#fff', fontSize: '0.78rem', fontWeight: 800, fontFamily: 'Arial,sans-serif' }}>Wave</span>
     </div>
-  );
-}
-
-function MtnMomoLogo() {
-  return (
+  ),
+  mtn_momo: (
     <div style={{ background: '#FFCC00', borderRadius: '10px', padding: '10px 18px', display: 'flex', alignItems: 'center', gap: '8px', minWidth: '120px' }}>
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-        <circle cx="14" cy="14" r="13" fill="white" />
-        <text x="14" y="19" textAnchor="middle" fontSize="9" fontWeight="900" fill="#FFCC00" fontFamily="Arial,sans-serif">MTN</text>
-      </svg>
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="13" fill="white" /><text x="14" y="19" textAnchor="middle" fontSize="9" fontWeight="900" fill="#FFCC00" fontFamily="Arial,sans-serif">MTN</text></svg>
       <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
         <span style={{ color: '#1A0E05', fontSize: '0.62rem', fontWeight: 800, fontFamily: 'Arial,sans-serif' }}>MTN</span>
         <span style={{ color: 'rgba(26,14,5,0.75)', fontSize: '0.6rem', fontFamily: 'Arial,sans-serif' }}>MoMo</span>
       </div>
     </div>
-  );
-}
-
-function MoovMoneyLogo() {
-  return (
+  ),
+  moov_money: (
     <div style={{ background: '#003087', borderRadius: '10px', padding: '10px 18px', display: 'flex', alignItems: 'center', gap: '8px', minWidth: '110px' }}>
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-        <circle cx="14" cy="14" r="13" fill="white" />
-        <path d="M8 14 L14 8 L20 14" stroke="#003087" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M10 16 L14 12 L18 16" stroke="#003087" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="13" fill="white" /><path d="M8 14 L14 8 L20 14" stroke="#003087" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" /><path d="M10 16 L14 12 L18 16" stroke="#003087" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
       <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
         <span style={{ color: '#fff', fontSize: '0.62rem', fontWeight: 700, fontFamily: 'Arial,sans-serif' }}>Moov</span>
         <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.6rem', fontFamily: 'Arial,sans-serif' }}>Money</span>
       </div>
     </div>
-  );
-}
-
-function VisaMastercardLogo() {
-  return (
+  ),
+  visa_mastercard: (
     <div style={{ background: '#fff', borderRadius: '10px', padding: '10px 18px', display: 'flex', alignItems: 'center', gap: '8px', minWidth: '140px' }}>
-      {/* VISA */}
-      <svg width="42" height="14" viewBox="0 0 42 14" fill="none">
-        <text x="0" y="12" fontSize="14" fontWeight="900" fill="#1A1F71" fontFamily="Arial,sans-serif" letterSpacing="-0.5">VISA</text>
-      </svg>
+      <svg width="42" height="14" viewBox="0 0 42 14" fill="none"><text x="0" y="12" fontSize="14" fontWeight="900" fill="#1A1F71" fontFamily="Arial,sans-serif">VISA</text></svg>
       <div style={{ width: '1px', height: '20px', background: '#ddd' }} />
-      {/* Mastercard circles */}
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+      <div style={{ display: 'flex', alignItems: 'center' }}>
         <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#EB001B' }} />
         <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#F79E1B', marginLeft: '-8px' }} />
       </div>
     </div>
-  );
-}
-
-function DjamoLogo() {
-  return (
+  ),
+  djamo: (
     <div style={{ background: '#4C35A8', borderRadius: '10px', padding: '10px 18px', display: 'flex', alignItems: 'center', gap: '8px', minWidth: '110px' }}>
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-        <circle cx="14" cy="14" r="13" fill="rgba(255,255,255,0.2)" />
-        <text x="14" y="19" textAnchor="middle" fontSize="9" fontWeight="900" fill="white" fontFamily="Arial,sans-serif">DJ</text>
-      </svg>
-      <span style={{ color: '#fff', fontSize: '0.78rem', fontWeight: 800, fontFamily: 'Arial,sans-serif', letterSpacing: '0.04em' }}>djamo</span>
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="13" fill="rgba(255,255,255,0.2)" /><text x="14" y="19" textAnchor="middle" fontSize="9" fontWeight="900" fill="white" fontFamily="Arial,sans-serif">DJ</text></svg>
+      <span style={{ color: '#fff', fontSize: '0.78rem', fontWeight: 800, fontFamily: 'Arial,sans-serif' }}>djamo</span>
     </div>
-  );
-}
+  ),
+};
 
 const ALL_LOGO_IDS = ['orange_money', 'wave', 'mtn_momo', 'moov_money', 'djamo', 'visa_mastercard'];
 
-const LOGOS: Record<string, React.ReactNode> = {
-  orange_money: <OrangeMoneyLogo />,
-  wave: <WaveLogo />,
-  mtn_momo: <MtnMomoLogo />,
-  moov_money: <MoovMoneyLogo />,
-  djamo: <DjamoLogo />,
-  visa_mastercard: <VisaMastercardLogo />,
-};
-
 export default function PaymentBand() {
   const [active, setActive] = useState<string[]>(ALL_LOGO_IDS);
+  const [images, setImages] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetch('/api/config/payment_methods_active')
@@ -111,7 +77,16 @@ export default function PaymentBand() {
           setActive(data.value);
         }
       })
-      .catch(() => { /* garde les valeurs par défaut */ });
+      .catch(() => {});
+
+    fetch('/api/config/payment_images')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.value && typeof data.value === 'object') {
+          setImages(data.value as Record<string, string>);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   return (
@@ -132,9 +107,18 @@ export default function PaymentBand() {
         </div>
         {/* Logos */}
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-          {ALL_LOGO_IDS.filter(id => active.includes(id)).map(id => (
-            <React.Fragment key={id}>{LOGOS[id]}</React.Fragment>
-          ))}
+          {ALL_LOGO_IDS.filter(id => active.includes(id)).map(id => {
+            const imgUrl = images[id];
+            if (imgUrl) {
+              return (
+                <div key={id} style={{ background: 'rgba(255,255,255,0.08)', borderRadius: '10px', padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '100px', height: '52px' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={imgUrl} alt={LABELS[id] ?? id} style={{ maxHeight: '36px', maxWidth: '120px', objectFit: 'contain' }} />
+                </div>
+              );
+            }
+            return <React.Fragment key={id}>{SVG_FALLBACKS[id]}</React.Fragment>;
+          })}
         </div>
       </div>
     </section>
