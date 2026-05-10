@@ -219,16 +219,16 @@ function ProductMedia({
               <span
                 style={{
                   position: 'absolute',
-                  top: 10,
-                  left: 10,
+                  top: 7,
+                  left: 7,
                   zIndex: 3,
                   background: 'var(--gold)',
                   color: '#fff',
-                  fontSize: '0.64rem',
+                  fontSize: '0.52rem',
                   fontWeight: 700,
-                  letterSpacing: '0.1em',
-                  padding: '4px 9px',
-                  borderRadius: 4,
+                  letterSpacing: '0.08em',
+                  padding: '2px 6px',
+                  borderRadius: 3,
                   textTransform: 'uppercase',
                 }}
               >
