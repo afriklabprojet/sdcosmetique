@@ -62,7 +62,7 @@ export default function ContactPage() {
       </section>
 
       <article className={styles.content} style={{ maxWidth: 1080 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.5fr) minmax(260px, 1fr)', gap: '3rem' }}>
+        <div className={styles.contactGrid}>
           {/* FORM */}
           <div>
             {sent ? (
@@ -77,7 +77,7 @@ export default function ContactPage() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                <div className={styles.formRow}>
                   <Field label="Nom complet" id="nom">
                     <input
                       id="nom"
@@ -125,7 +125,7 @@ export default function ContactPage() {
                   />
                 </Field>
 
-                <button type="submit" disabled={submitting} style={{ ...submitStyle, opacity: submitting ? 0.7 : 1, cursor: submitting ? 'wait' : 'pointer' }}>
+                <button type="submit" disabled={submitting} className={styles.submitBtn}>
                   {submitting ? 'Envoi en cours…' : 'Envoyer le message'}
                   {!submitting && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <line x1="5" y1="12" x2="19" y2="12" />
@@ -192,25 +192,7 @@ const inputStyle: React.CSSProperties = {
   transition: 'border-color 0.2s ease',
 };
 
-const submitStyle: React.CSSProperties = {
-  alignSelf: 'flex-start',
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: 12,
-  background: '#8F5922',
-  color: '#fff',
-  border: 'none',
-  padding: '1rem 2rem',
-  borderRadius: '10px',
-  fontFamily: 'var(--font-inter), Inter, sans-serif',
-  fontSize: '0.78rem',
-  fontWeight: 600,
-  letterSpacing: '0.18em',
-  textTransform: 'uppercase',
-  cursor: 'pointer',
-  transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-  boxShadow: '0 4px 14px rgba(143, 89, 34, 0.3)',
-};
+
 
 function Field({ label, id, children }: Readonly<{ label: string; id: string; children: React.ReactNode }>) {
   return (

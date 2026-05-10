@@ -502,6 +502,50 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ============== CONTACT PAGE LAYOUT ============== */
+.contactGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr);
+  gap: 3rem;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.submitBtn {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: #8F5922;
+  color: #fff;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 10px;
+  font-family: var(--font-inter), Inter, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  box-shadow: 0 4px 14px rgba(143, 89, 34, 0.3);
+}
+
+.submitBtn:hover:not(:disabled) {
+  background: #6B4019;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(143, 89, 34, 0.4);
+}
+
+.submitBtn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
 /* ============== RESPONSIVE ============== */
 @media (max-width: 768px) {
   .heroInner {
@@ -525,5 +569,21 @@
   .bottomCta {
     padding: 2.5rem 1.5rem;
     border-radius: 14px;
+  }
+
+  /* Contact — empilage mobile */
+  .contactGrid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+
+  .submitBtn {
+    align-self: stretch;
+    justify-content: center;
+    width: 100%;
   }
 }
