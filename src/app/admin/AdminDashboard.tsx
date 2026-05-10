@@ -34,7 +34,7 @@ import Pagination from '@/components/admin/Pagination';
 type OrderStatus = OrderDraft['status'];
 type ReviewRow = Review & { productId?: string };
 type ProductModalState = Partial<Product> & { _isNew?: boolean };
-type Tab = 'dashboard' | 'commandes' | 'produits' | 'avis' | 'temoignages' | 'categories' | 'quiz' | 'clients' | 'contenu' | 'jeko' | 'newsletter' | 'livraison' | 'marketing' | 'branding' | 'promos' | 'faq' | 'hero' | 'legal';
+type Tab = 'dashboard' | 'commandes' | 'produits' | 'avis' | 'temoignages' | 'categories' | 'quiz' | 'clients' | 'contenu' | 'jeko' | 'newsletter' | 'livraison' | 'marketing' | 'branding' | 'promos' | 'faq' | 'hero' | 'legal' | 'paiement';
 type NewsletterSub = { id: string; email: string; source: string | null; unsubscribed: boolean; created_at: string };
 
 async function fetchAdminOrders(): Promise<OrderDraft[]> {
@@ -1734,6 +1734,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               { id: 'promos',    label: 'Codes promo', desc: 'Réductions & coupons',       icon: '🎟️', status: 'normal' },
               { id: 'livraison', label: 'Livraison',   desc: 'Zones, frais, délais',       icon: '🚚', status: 'normal' },
               { id: 'branding',  label: 'Branding',    desc: 'Couleurs, logo, police',     icon: '🎨', status: 'normal' },
+              { id: 'paiement',  label: 'Paiement',   desc: 'Moyens de paiement visibles', icon: '💳', status: 'normal' },
             ] as { id: Tab; label: string; desc: string; icon: string; status: string }[]).map(item => {
               const isActive = tab === item.id;
               let bgColor = isActive ? 'linear-gradient(90deg, rgba(212,162,90,0.18) 0%, rgba(212,162,90,0.08) 100%)' : 'transparent';
@@ -3351,6 +3352,75 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                   <button onClick={save} disabled={contentSaving.branding}
                     style={{ padding: '12px 32px', borderRadius: '10px', border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer', background: contentSaved.branding ? S_SAVE_BG : GOLD2, color: contentSaved.branding ? S_SAVE_T : BG, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
                     {getSaveButtonText(contentSaved.branding, contentSaving.branding)}
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* ─── PAIEMENT TAB ─── */}
+          {tab === 'paiement' && (() => {
+            const ALL_METHODS = [
+              { id: 'orange_money',   label: 'Orange Money',      emoji: '🟠', color: '#FF6600', desc: "Orange Money Côte d'Ivoire" },
+              { id: 'wave',           label: 'Wave',              emoji: '🔵', color: '#009EE3', desc: 'Wave Mobile Money' },
+              { id: 'mtn_momo',       label: 'MTN MoMo',          emoji: '🟡', color: '#FFCC00', desc: 'MTN Mobile Money' },
+              { id: 'moov_money',     label: 'Moov Money',        emoji: '🔷', color: '#003087', desc: 'Moov Africa' },
+              { id: 'djamo',          label: 'Djamo',             emoji: '🟣', color: '#4C35A8', desc: 'Carte virtuelle Djamo' },
+              { id: 'visa_mastercard',label: 'Visa / Mastercard', emoji: '💳', color: '#1A1F71', desc: 'Carte bancaire internationale' },
+            ];
+            const active: string[] = (siteContent as Record<string, unknown>).payment_methods_active
+              ? ((siteContent as Record<string, unknown>).payment_methods_active as string[])
+              : ALL_METHODS.map(m => m.id);
+
+            const toggle = (id: string) => {
+              const next = active.includes(id) ? active.filter(x => x !== id) : [...active, id];
+              setSiteContent((c: SiteConfig) => ({ ...c, payment_methods_active: next } as SiteConfig));
+            };
+
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                <div>
+                  <h2 style={{ fontSize: '22px', fontWeight: 800, color: GOLD, margin: '0 0 4px' }}>💳 Moyens de Paiement</h2>
+                  <p style={{ color: '#8B7355', fontSize: '13px', margin: 0 }}>Activez ou désactivez les logos affichés dans la bande de paiement en bas de la page d'accueil.</p>
+                </div>
+
+                <div style={{ background: SURFACE, borderRadius: '14px', border: `1px solid ${GOLD_D3}`, overflow: 'hidden' }}>
+                  {ALL_METHODS.map((m, i) => {
+                    const isOn = active.includes(m.id);
+                    return (
+                      <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 20px', borderBottom: i < ALL_METHODS.length - 1 ? `1px solid ${GOLD_D3}` : 'none' }}>
+                        <span style={{ fontSize: '28px', flexShrink: 0 }}>{m.emoji}</span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 700, fontSize: '14px', color: '#F7EFE5' }}>{m.label}</div>
+                          <div style={{ fontSize: '12px', color: '#8B7355' }}>{m.desc}</div>
+                        </div>
+                        <button
+                          onClick={() => toggle(m.id)}
+                          style={{ width: '50px', height: '26px', borderRadius: '13px', border: 'none', cursor: 'pointer', background: isOn ? GOLD : '#3A2E20', position: 'relative', transition: 'background .2s', flexShrink: 0 }}
+                          title={isOn ? 'Désactiver' : 'Activer'}
+                        >
+                          <span style={{ position: 'absolute', top: '3px', left: isOn ? '26px' : '3px', width: '20px', height: '20px', borderRadius: '50%', background: isOn ? '#1A1410' : '#8B7355', transition: 'left .2s' }} />
+                        </button>
+                        <span style={{ fontSize: '12px', fontWeight: 600, color: isOn ? '#10B981' : '#8B7355', width: '60px', textAlign: 'right' }}>{isOn ? '✓ Actif' : '✗ Masqué'}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div style={{ background: 'rgba(212,162,90,0.06)', borderRadius: '12px', border: `1px solid ${GOLD_D3}`, padding: '16px 20px' }}>
+                  <p style={{ margin: '0 0 8px', fontSize: '13px', color: '#C4A574', fontWeight: 600 }}>Aperçu — logos actifs</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                    {active.length === 0 && <span style={{ fontSize: '12px', color: '#8B7355', fontStyle: 'italic' }}>Aucun moyen de paiement actif</span>}
+                    {active.map(id => { const m = ALL_METHODS.find(x => x.id === id); return m ? <span key={id} style={{ background: m.color, color: '#fff', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 700 }}>{m.emoji} {m.label}</span> : null; })}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <button
+                    onClick={() => saveConfigSection('payment_methods_active', active)}
+                    disabled={contentSaving.payment_methods_active}
+                    style={{ padding: '12px 32px', borderRadius: '10px', border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer', background: contentSaved.payment_methods_active ? S_SAVE_BG : GOLD2, color: contentSaved.payment_methods_active ? S_SAVE_T : BG, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                    {getSaveButtonText(contentSaved.payment_methods_active, contentSaving.payment_methods_active)}
                   </button>
                 </div>
               </div>

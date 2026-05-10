@@ -1,4 +1,5 @@
-import React from 'react';
+'use client';
+import React, { useEffect, useState } from 'react';
 
 /* Logos SVG inline pour chaque moyen de paiement */
 function OrangeMoneyLogo() {
@@ -88,7 +89,31 @@ function DjamoLogo() {
   );
 }
 
+const ALL_LOGO_IDS = ['orange_money', 'wave', 'mtn_momo', 'moov_money', 'djamo', 'visa_mastercard'];
+
+const LOGOS: Record<string, React.ReactNode> = {
+  orange_money: <OrangeMoneyLogo />,
+  wave: <WaveLogo />,
+  mtn_momo: <MtnMomoLogo />,
+  moov_money: <MoovMoneyLogo />,
+  djamo: <DjamoLogo />,
+  visa_mastercard: <VisaMastercardLogo />,
+};
+
 export default function PaymentBand() {
+  const [active, setActive] = useState<string[]>(ALL_LOGO_IDS);
+
+  useEffect(() => {
+    fetch('/api/config/payment_methods_active')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.value && Array.isArray(data.value) && data.value.length > 0) {
+          setActive(data.value);
+        }
+      })
+      .catch(() => { /* garde les valeurs par défaut */ });
+  }, []);
+
   return (
     <section style={{ background: '#3D1A06', padding: '28px 24px' }}>
       <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
@@ -107,12 +132,9 @@ export default function PaymentBand() {
         </div>
         {/* Logos */}
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-          <OrangeMoneyLogo />
-          <WaveLogo />
-          <MtnMomoLogo />
-          <MoovMoneyLogo />
-          <DjamoLogo />
-          <VisaMastercardLogo />
+          {ALL_LOGO_IDS.filter(id => active.includes(id)).map(id => (
+            <React.Fragment key={id}>{LOGOS[id]}</React.Fragment>
+          ))}
         </div>
       </div>
     </section>
