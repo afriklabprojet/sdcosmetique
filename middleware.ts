@@ -99,12 +99,13 @@ export const config = {
   matcher: [
     /*
      * Matcher pour toutes les routes sauf :
-     * - api (API routes)
+     * - api (API routes) → sauf /api/upload qui nécessite une session fraîche
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - tout fichier avec extension (.*\.) — couvre manifest, images, fonts, etc.
      */
-    String.raw`/((?!api|_next/static|_next/image|favicon.ico|.*\.).*)`
+    String.raw`/((?!api|_next/static|_next/image|favicon.ico|.*\.).*)`  ,
+    '/api/upload',  // inclus pour refresh session avant upload auth check
   ]
 };

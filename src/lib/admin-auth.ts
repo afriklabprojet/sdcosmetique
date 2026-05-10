@@ -2,28 +2,44 @@ import 'server-only';
 import { db } from '@/lib/db';
 
 /**
- * Emails autorisés en tant qu'administrateurs.
- * Définis côté serveur uniquement — ne jamais exposer dans un composant client.
- */
-const ADMIN_EMAILS: ReadonlySet<string> = new Set(
-  (process.env.ADMIN_EMAILS ?? '')
-    .split(',')
-    .map(e => e.trim().toLowerCase())
-    .filter(Boolean)
-);
-
-/**
  * Vérifie que la requête courante est faite par un admin authentifié.
  * Retourne l'user si autorisé, null sinon.
+ *
+ * ADMIN_EMAILS est lu dynamiquement (pas en module-level) pour garantir
+ * que process.env est bien chargé au moment de l'appel (standalone mode).
  */
 export async function requireAdmin() {
   try {
+    // Lecture dynamique — évite le problème de module chargé avant env.production
+    const adminEmails = new Set(
+      (process.env.ADMIN_EMAILS ?? '')
+        .split(',')
+        .map(e => e.trim().toLowerCase())
+        .filter(Boolean)
+    );
+
+    if (adminEmails.size === 0) {
+      console.error('[requireAdmin] ADMIN_EMAILS env var est vide ou manquant');
+    }
+
     const userClient = await db();
-    const { data: { user } } = await userClient.auth.getUser();
-    if (!user?.email) return null;
-    if (!ADMIN_EMAILS.has(user.email.toLowerCase())) return null;
+    const { data: { user }, error } = await userClient.auth.getUser();
+
+    if (error) {
+      console.error('[requireAdmin] getUser error:', error.message);
+      return null;
+    }
+    if (!user?.email) {
+      console.warn('[requireAdmin] Pas de session utilisateur');
+      return null;
+    }
+    if (!adminEmails.has(user.email.toLowerCase())) {
+      console.warn(`[requireAdmin] Email non autorisé: ${user.email}`);
+      return null;
+    }
     return user;
-  } catch {
+  } catch (err) {
+    console.error('[requireAdmin] Erreur inattendue:', err);
     return null;
   }
 }
