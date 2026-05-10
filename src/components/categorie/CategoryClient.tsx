@@ -4,6 +4,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product, Category, SkinTone, CATEGORIES } from '@/types';
+import type { CategoryHeroConfig } from '@/lib/config/types';
+import { DEFAULT_SITE_CONFIG } from '@/lib/site-config';
 import ProductCard from '@/components/ui/ProductCard';
 import SkinToneSelector from '@/components/ui/SkinToneSelector';
 
@@ -35,13 +37,18 @@ const NO_SKIN_FILTER_CATEGORIES = new Set<Category>(['minceur', 'kit-levre']);
 export default function CategoryClient({ initialProducts, slug }: Readonly<Props>) {
   const [skinToneFilter, setSkinToneFilter] = useState<SkinTone | null>(null);
   const [sortBy, setSortBy] = useState('popular');
-  const [heroImage, setHeroImage] = useState<string | null>(null);
+  const [heroConfig, setHeroConfig] = useState<CategoryHeroConfig | null>(null);
 
   useEffect(() => {
     const configKey = `hero_${slug.replace(/-/g, '_')}`;
+    // Pré-charger le défaut local pour éviter un flash vide
+    const defVal = DEFAULT_SITE_CONFIG[configKey as keyof typeof DEFAULT_SITE_CONFIG];
+    if (defVal && typeof defVal === 'object' && 'eyebrow' in defVal) {
+      setHeroConfig(defVal as CategoryHeroConfig);
+    }
     fetch(`/api/config/${configKey}`)
       .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.value?.image) setHeroImage(d.value.image); })
+      .then(d => { if (d?.value?.eyebrow) setHeroConfig(d.value as CategoryHeroConfig); })
       .catch(() => {});
   }, [slug]);
   const showSkinToneFilter = !NO_SKIN_FILTER_CATEGORIES.has(slug);
@@ -75,31 +82,68 @@ export default function CategoryClient({ initialProducts, slug }: Readonly<Props
   return (
     <div>
       {/* Hero banner */}
-      <div className="relative h-72 lg:h-88 overflow-hidden flex items-center" style={{ background: 'linear-gradient(135deg, #fbf7f0 0%, #fff 58%, #f4eadb 100%)' }}>
+      <div className="relative h-80 lg:h-[26rem] overflow-hidden flex items-center" style={{ background: 'linear-gradient(135deg, #fbf7f0 0%, #fff 55%, #f4eadb 100%)' }}>
         <Image
-          src={heroImage || CATEGORY_IMAGES[slug] || CATEGORY_IMAGES.gammes}
-          alt={category.label}
+          src={heroConfig?.image || CATEGORY_IMAGES[slug] || CATEGORY_IMAGES.gammes}
+          alt={heroConfig?.title || category.label}
           fill
           priority
           sizes="100vw"
-          className="object-contain object-right opacity-95"
+          className="object-contain object-right opacity-90"
         />
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.86) 42%, rgba(255,255,255,0.16) 100%)' }} />
+        {/* Dégradé overlay — fort à gauche, transparent à droite */}
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(95deg, rgba(255,255,255,0.99) 0%, rgba(255,255,255,0.93) 36%, rgba(255,255,255,0.38) 65%, rgba(255,255,255,0.02) 100%)' }} />
+
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-xs tracking-widest uppercase" style={{ color: 'var(--gold)', fontSize: '0.65rem' }}>Catégories</span>
-            <span style={{ color: 'var(--grey-700)' }}>›</span>
-            <span className="text-xs tracking-widest uppercase" style={{ color: 'var(--grey-700)', fontSize: '0.65rem' }}>{category.label}</span>
-          </div>
-          <h1 className="text-4xl lg:text-5xl font-bold" style={{ fontFamily: 'var(--font-heading)', color: 'var(--charcoal)' }}>
-            {category.label}
+          {/* Fil d'Ariane */}
+          <nav className="flex items-center gap-2 mb-5" aria-label="Fil d'Ariane">
+            <Link href="/" className="text-xs tracking-widest uppercase transition-opacity hover:opacity-60" style={{ color: 'var(--gold)', fontSize: '0.62rem' }}>Accueil</Link>
+            <span aria-hidden="true" style={{ color: 'var(--grey-400)', fontSize: '0.75rem' }}>›</span>
+            <span className="text-xs tracking-widest uppercase" style={{ color: 'var(--grey-600)', fontSize: '0.62rem' }}>{heroConfig?.eyebrow || category.label}</span>
+          </nav>
+
+          {/* Eyebrow */}
+          {heroConfig?.eyebrow && (
+            <div className="flex items-center gap-3 mb-3">
+              <span className="block w-6 h-px flex-shrink-0" style={{ background: 'var(--gold)' }} aria-hidden="true" />
+              <span className="text-xs font-medium tracking-[0.2em] uppercase" style={{ color: 'var(--gold)', fontSize: '0.68rem' }}>{heroConfig.eyebrow}</span>
+            </div>
+          )}
+
+          {/* Titre principal */}
+          <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight" style={{ fontFamily: 'var(--font-heading)', color: 'var(--charcoal)' }}>
+            {heroConfig?.title || category.label}
+            {heroConfig?.titleAccent && (
+              <>
+                <br />
+                <span className="font-light italic" style={{ color: 'var(--gold)', fontSize: '0.82em' }}>
+                  {heroConfig.titleAccent}
+                </span>
+              </>
+            )}
           </h1>
-          <p className="mt-3 text-sm max-w-md leading-relaxed" style={{ color: 'var(--grey-700)' }}>{category.description}</p>
+
+          {/* Lead */}
+          <p className="mt-4 text-sm max-w-xs lg:max-w-sm" style={{ color: 'var(--grey-600)', lineHeight: '1.8' }}>
+            {heroConfig?.lead || category.description}
+          </p>
+
+          {/* CTA discret */}
+          <a
+            href="#catalogue"
+            className="inline-flex items-center gap-2 mt-6 text-xs font-medium tracking-[0.18em] uppercase transition-opacity hover:opacity-60"
+            style={{ color: 'var(--charcoal)', fontSize: '0.65rem' }}
+          >
+            Voir les produits
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+            </svg>
+          </a>
         </div>
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div id="catalogue" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
         <nav className="flex gap-2 overflow-x-auto pb-2 mb-8" aria-label="Toutes les catégories">
           {CATEGORIES.map(item => {
