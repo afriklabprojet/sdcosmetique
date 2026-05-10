@@ -19,7 +19,7 @@ const NAV = [
   { label: 'QUIZ TEINT', href: '/quiz' },
 ];
 
-export default function Navbar({ logoUrl, logoCaption }: Readonly<{ logoUrl?: string; logoCaption?: string }>) {
+export default function Navbar({ logoUrl, logoCaption, siteName }: Readonly<{ logoUrl?: string; logoCaption?: string; siteName?: string }>) {
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -104,27 +104,39 @@ export default function Navbar({ logoUrl, logoCaption }: Readonly<{ logoUrl?: st
         }}
       >
         {/* LOGO */}
-        <Link href="/" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textDecoration: 'none', gap: 2 }}>
+        <Link href="/" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', textDecoration: 'none', gap: 10 }}>
           <Image
             src={logoUrl || '/logo.svg'}
-            alt="SD Cosmetique"
+            alt={siteName || 'SD Cosmetique'}
             width={340}
             height={64}
             priority
-            style={{ height: 44, width: 'auto' }}
+            style={{ height: 44, width: 'auto', flexShrink: 0 }}
           />
-          {logoCaption && (
-            <span style={{
-              fontSize: 10,
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              color: '#b8860b',
-              fontFamily: 'var(--font-inter), Inter, sans-serif',
-              fontStyle: 'italic',
-              lineHeight: 1,
-              paddingLeft: 2,
-            }}>{logoCaption}</span>
-          )}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
+            {siteName && (
+              <span style={{
+                fontSize: 17,
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                color: '#1a1a1a',
+                fontFamily: 'var(--font-playfair), Playfair Display, serif',
+                lineHeight: 1.1,
+                whiteSpace: 'nowrap',
+              }}>{siteName}</span>
+            )}
+            {logoCaption && (
+              <span style={{
+                fontSize: 10,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                color: '#b8860b',
+                fontFamily: 'var(--font-inter), Inter, sans-serif',
+                fontStyle: 'italic',
+                lineHeight: 1,
+              }}>{logoCaption}</span>
+            )}
+          </div>
         </Link>
 
         {/* NAV */}
