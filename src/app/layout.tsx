@@ -105,7 +105,7 @@ export default async function RootLayout({
             </div>
             <main className="flex-1">{children}</main>
             <div id="site-footer">
-              <Footer logoUrl={siteConfig.branding?.logoUrl || undefined} />
+              <Footer logoUrl={siteConfig.branding?.logoUrl || undefined} siteName={siteConfig.branding?.siteName || 'SD Cosmetique'} />
             </div>
           </WishlistProvider>
         </CartProvider>

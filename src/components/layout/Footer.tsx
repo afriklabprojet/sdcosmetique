@@ -40,7 +40,7 @@ const COLS = [
   },
 ];
 
-export default function Footer({ logoUrl }: Readonly<{ logoUrl?: string }>) {
+export default function Footer({ logoUrl, siteName }: Readonly<{ logoUrl?: string; siteName?: string }>) {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
 
@@ -72,8 +72,19 @@ export default function Footer({ logoUrl }: Readonly<{ logoUrl?: string }>) {
       }}>
         {/* Colonne logo */}
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '14px' }}>
-            <Image src={logoUrl || '/logo.svg'} alt="SD Cosmetique" width={160} height={40} style={{ height: 40, width: 'auto', filter: 'brightness(0) invert(1) sepia(1) saturate(2) hue-rotate(5deg)' }} />
+          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginBottom: '14px', gap: 10 }}>
+            <Image src={logoUrl || '/logo.svg'} alt={siteName || 'SD Cosmetique'} width={160} height={40} style={{ height: 40, width: 'auto', filter: 'brightness(0) invert(1) sepia(1) saturate(2) hue-rotate(5deg)', flexShrink: 0 }} />
+            {siteName && (
+              <span style={{
+                fontSize: 17,
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                color: '#fff',
+                fontFamily: 'var(--font-playfair), Playfair Display, serif',
+                lineHeight: 1.1,
+                whiteSpace: 'nowrap',
+              }}>{siteName}</span>
+            )}
           </div>
           <p style={{
             fontFamily: 'var(--font-inter), Inter, sans-serif',
