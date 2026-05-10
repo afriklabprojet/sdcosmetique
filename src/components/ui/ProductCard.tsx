@@ -256,14 +256,14 @@ function ProductMedia({
             disabled={!product.inStock}
             style={{
               width: '100%',
-              height: 44,
+              height: 34,
               background: adding ? 'rgba(26,26,26,0.95)' : 'rgba(255,255,255,0.96)',
               color: adding ? '#fff' : 'var(--gold-dark)',
               border: 'none',
-              borderRadius: 8,
-              fontSize: '0.74rem',
+              borderRadius: 6,
+              fontSize: '0.62rem',
               fontWeight: 700,
-              letterSpacing: '0.12em',
+              letterSpacing: '0.10em',
               textTransform: 'uppercase',
               cursor: product.inStock ? 'pointer' : 'not-allowed',
               opacity: product.inStock ? 1 : 0.6,
