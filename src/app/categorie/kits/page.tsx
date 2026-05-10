@@ -109,7 +109,7 @@ export default function KitsCategoryPage() {
 
         <div className={styles.heroRight}>
           <Image
-            src="/categories/kits.png"
+            src={hero.image || '/categories/kits.png'}
             alt="Kits SD Cosmétique"
             fill
             priority
