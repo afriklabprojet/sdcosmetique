@@ -2085,7 +2085,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                             const slug = label.toLowerCase()
                               .normalize('NFD').replaceAll(/[\u0300-\u036f]/g, '')
                               .replaceAll(/[^a-z0-9]+/g, '-').replaceAll(/^-|-$/g, '');
-                            setCatModal(prev => prev ? { ...prev, label, slug } : prev);
+                            setCatModal(prev => prev ? { ...prev, label, slug, href: `/categorie/${slug}` } : prev);
                           }}
                           style={{ ...inputStyle, width: '100%' }}
                         />
@@ -2103,7 +2103,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                       </div>
                       {([
                         { key: 'sub_label', label: String.raw`Sous-titre (2 lignes avec \n)` },
-                        { key: 'href', label: 'Lien (ex: /categorie/body)' },
+                        { key: 'href', label: 'Lien (auto-généré, modifiable si besoin)' },
                         { key: 'order_index', label: 'Ordre d\'affichage', type: 'number' },
                       ] as { key: keyof CategoryRow; label: string; required?: boolean; type?: string }[]).map(field => (
                         <div key={String(field.key)}>
