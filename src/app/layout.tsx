@@ -93,7 +93,13 @@ export default async function RootLayout({
               {siteConfig.marketing?.banners?.length > 0 && (
                 <PromoBannerBar banners={siteConfig.marketing.banners} />
               )}
-              <TopBar message={siteConfig.topbar.message} phone={siteConfig.topbar.phone} />
+              <TopBar
+                message={siteConfig.topbar.message}
+                phone={siteConfig.topbar.phone}
+                facebook={siteConfig.branding?.facebookUrl || undefined}
+                instagram={siteConfig.branding?.instagramUrl || undefined}
+                tiktok={siteConfig.branding?.tiktokUrl || undefined}
+              />
               <Navbar />
               <ClientOnlyOverlays welcomePopup={siteConfig.marketing?.welcomePopup} />
             </div>
