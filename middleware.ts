@@ -18,13 +18,6 @@ export async function middleware(request: NextRequest) {
   const isAdminLogin = request.nextUrl.pathname === '/admin/login';
   const isAdminRoute = request.nextUrl.pathname.startsWith('/admin') && !isAdminLogin;
 
-  const ADMIN_EMAILS = new Set(
-    (process.env.ADMIN_EMAILS ?? '')
-      .split(',')
-      .map(e => e.trim().toLowerCase())
-      .filter(Boolean)
-  );
-
   const isProtectedRoute = !isAdminLogin && protectedRoutes.some(route => 
     request.nextUrl.pathname.startsWith(route)
   );
@@ -74,13 +67,11 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/connexion', request.url));
     }
 
-    // Route admin : exiger un email autorisé
-    if (isAdminRoute) {
-      const email = session?.user.email?.toLowerCase();
-      if (!email || !ADMIN_EMAILS.has(email)) {
-        console.log('🚫 Accès admin refusé:', email ?? 'no-session');
-        return NextResponse.redirect(new URL('/admin/login?error=unauthorized', request.url));
-      }
+    // Route admin : exiger une session valide
+    // Le contrôle ADMIN_EMAILS est fait côté serveur dans requireAdmin() (Node.js, .env.production)
+    if (isAdminRoute && !session?.user) {
+      console.log('🚫 Accès admin refusé: pas de session');
+      return NextResponse.redirect(new URL('/admin/login', request.url));
     }
 
     // Utilisateur connecté essayant d'accéder aux pages d'auth publiques (pas admin/login)

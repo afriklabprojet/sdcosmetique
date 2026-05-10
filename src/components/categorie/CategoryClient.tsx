@@ -30,12 +30,12 @@ interface Props {
   slug: Category;
 }
 
-const NO_SKIN_FILTER_CATEGORIES: Category[] = ['minceur', 'kit-levre'];
+const NO_SKIN_FILTER_CATEGORIES = new Set<Category>(['minceur', 'kit-levre']);
 
-export default function CategoryClient({ initialProducts, slug }: Props) {
+export default function CategoryClient({ initialProducts, slug }: Readonly<Props>) {
   const [skinToneFilter, setSkinToneFilter] = useState<SkinTone | null>(null);
   const [sortBy, setSortBy] = useState('popular');
-  const showSkinToneFilter = !NO_SKIN_FILTER_CATEGORIES.includes(slug);
+  const showSkinToneFilter = !NO_SKIN_FILTER_CATEGORIES.has(slug);
 
   const category = CATEGORIES.find(c => c.id === slug);
   const activeSkinTone = skinToneFilter
@@ -121,7 +121,7 @@ export default function CategoryClient({ initialProducts, slug }: Props) {
           </div>
           <div className="flex items-center gap-4 shrink-0">
             <span className="text-xs" style={{ color: 'var(--grey-500)' }}>
-              {products.length} produit{products.length !== 1 ? 's' : ''}
+              {products.length} produit{products.length === 1 ? '' : 's'}
             </span>
             <select
               value={sortBy}

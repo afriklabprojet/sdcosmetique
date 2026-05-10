@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     const rawFolder = (formData.get('folder') as string | null) ?? 'uploads';
 
     // 2. Sanitisation du dossier — empêche le path traversal (ex: "../../etc")
-    const folder = rawFolder.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64) || 'uploads';
+    const folder = rawFolder.replaceAll(/[^a-zA-Z0-9_-]/g, '').slice(0, 64) || 'uploads';
 
     if (!file) {
       return NextResponse.json({ error: 'Aucun fichier fourni.' }, { status: 400 });
