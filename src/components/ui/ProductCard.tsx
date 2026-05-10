@@ -224,11 +224,11 @@ function ProductMedia({
                   zIndex: 3,
                   background: 'var(--gold)',
                   color: '#fff',
-                  fontSize: '0.52rem',
+                  fontSize: '0.42rem',
                   fontWeight: 700,
                   letterSpacing: '0.08em',
-                  padding: '2px 6px',
-                  borderRadius: 3,
+                  padding: '1px 4px',
+                  borderRadius: 2,
                   textTransform: 'uppercase',
                 }}
               >
