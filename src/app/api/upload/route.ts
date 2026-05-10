@@ -11,6 +11,22 @@ const ALLOWED_MIME: Record<string, string> = {
 };
 const MAX_SIZE = 5 * 1024 * 1024; // 5 Mo
 
+/**
+ * Détecte le type réel du fichier par ses magic bytes.
+ * Indépendant du Content-Type envoyé par le client (non fiable).
+ */
+function detectMimeFromBytes(buf: Uint8Array): string | null {
+  if (buf[0] === 0xFF && buf[1] === 0xD8 && buf[2] === 0xFF) return 'image/jpeg';
+  if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4E && buf[3] === 0x47) return 'image/png';
+  if (buf[0] === 0x47 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x38) return 'image/gif';
+  // WebP : "RIFF" (4 octets) + taille (4) + "WEBP"
+  if (
+    buf[0] === 0x52 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x46 &&
+    buf[8] === 0x57 && buf[9] === 0x45 && buf[10] === 0x42 && buf[11] === 0x50
+  ) return 'image/webp';
+  return null;
+}
+
 export async function POST(req: NextRequest) {
   // 1. Authentification admin obligatoire
   const admin = await requireAdmin();
@@ -48,9 +64,20 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = createServiceClient();
+    const arrayBuffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
+
+    // 5. Validation des magic bytes — vérifie le contenu réel, indépendant du Content-Type client (spoofable)
+    const realMime = detectMimeFromBytes(bytes);
+    if (realMime !== file.type) {
+      return NextResponse.json(
+        { error: 'Le contenu du fichier ne correspond pas à son type déclaré.' },
+        { status: 400 }
+      );
+    }
+
     const filename = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
-    const arrayBuffer = await file.arrayBuffer();
     const { error: upErr } = await supabase.storage
       .from('site-images')
       .upload(filename, arrayBuffer, {
