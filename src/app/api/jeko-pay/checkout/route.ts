@@ -23,6 +23,27 @@ function siteUrl(): string {
   return process.env.SITE_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
 }
 
+/**
+ * Normalise un numéro de téléphone ivoirien au format international +225XXXXXXXXXX
+ * Exemples acceptés : "0700123456", "07 00 12 34 56", "225 07 00 12 34 56", "+22507...
+ */
+function normalizePhone(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  // Supprimer espaces, tirets, parenthèses
+  const digits = raw.replace(/[\s\-().]/g, '');
+  if (!digits) return undefined;
+  // Déjà au format international
+  if (digits.startsWith('+')) return digits;
+  // Format 225XXXXXXXXXX → +225XXXXXXXXXX
+  if (digits.startsWith('225') && digits.length >= 11) return `+${digits}`;
+  // Format local 0XXXXXXXXX (10 chiffres, commence par 0) → +2250XXXXXXXXX... non:
+  // En CI les numéros locaux font 10 chiffres : 07 00 XX XX XX → +225 07 00 XX XX XX
+  if (digits.startsWith('0') && digits.length === 10) return `+225${digits}`;
+  // Si déjà 8 ou 9 chiffres sans indicatif → préfixer +225
+  if (digits.length >= 8 && digits.length <= 9) return `+225${digits}`;
+  return digits; // laisser passer et laisser Jeko valider
+}
+
 function resolveProvider(method: string): JekoPayProvider | null {
   // Accepte soit le code interne soit directement un provider Jeko
   if (method in PAYMENT_METHOD_TO_JEKO) return PAYMENT_METHOD_TO_JEKO[method];
@@ -73,7 +94,7 @@ export async function POST(req: NextRequest) {
       paymentMethod:       provider,
       successUrl:          `${base}/confirmation?ref=${ref}&status=success`,
       errorUrl:            `${base}/checkout?ref=${ref}&status=error`,
-      payerPhone:          body.payerPhone,
+      payerPhone:          normalizePhone(body.payerPhone),
       forceProviderDirect: body.forceProviderDirect,
     });
 
