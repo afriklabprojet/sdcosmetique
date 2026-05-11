@@ -1709,7 +1709,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
             <div style={{ fontSize: '9px', color: '#8B7355', letterSpacing: '0.15em', textTransform: 'uppercase', padding: '0 12px 5px', margin: '16px 0 10px', fontWeight: 700, borderBottom: '1px solid rgba(139,115,85,0.18)' }}>CLIENTS & FIDÉLITÉ</div>
             {([
               { id: 'clients',    label: 'Clients',    desc: 'Base de données clients',       icon: '👤', status: 'normal' },
-              { id: 'jeko',       label: 'Fidélité',   desc: 'Points Jeko, paliers, cadeaux', icon: '✦',  status: 'premium' },
+              { id: 'jeko',       label: 'Fidélité',   desc: 'Points SDZ, paliers, cadeaux', icon: '✦',  status: 'premium' },
               { id: 'newsletter', label: 'Newsletter', desc: 'Abonnés & campagnes email',     icon: '✉',  status: 'normal' },
             ] as { id: Tab; label: string; desc: string; icon: string; status: string }[]).map(item => {
               const isActive = tab === item.id;

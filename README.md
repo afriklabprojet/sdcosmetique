@@ -20,7 +20,7 @@ Boutique e-commerce de cosmétiques haut de gamme pour peaux à mélanine, déve
 - Authentification (inscription, connexion, mot de passe oublié)
 - Compte client avec historique commandes
 - Dashboard admin avec analytics, gestion commandes/produits/clients
-- Programme fidélité Jeko (tiers Bronze → Or → Platine)
+- Programme fidélité SDZ Fidélité (tiers Bronze → Or → Platine)
 - Emails transactionnels (confirmation commande, expédition, bienvenue)
 - PWA ready (manifest, offline support)
 - SEO : sitemap.xml, robots.txt, OG images, métadonnées dynamiques

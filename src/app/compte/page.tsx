@@ -103,7 +103,7 @@ export default function ComptePage() {
   const [pwdForm, setPwdForm] = useState({ current: '', next: '', confirm: '' });
   const [pwdMsg, setPwdMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
-  // Points fidélité Jeko
+  // Points fidélité SDZ
   const [userPoints, setUserPoints] = useState(0);
   const [jekoHistory, setJekoHistory] = useState<JekoTransaction[]>([]);
   const [redeemingReward, setRedeemingReward] = useState<JekoReward | null>(null);
@@ -1013,7 +1013,7 @@ export default function ComptePage() {
               </div>
             )}
 
-            {/* ── POINTS JEKO ── */}
+            {/* ── POINTS SDZ FIDÉLITÉ ── */}
             {active === 'points' && (() => {
               const tier = getJekoTierFromList(userPoints, jekoConfig.tiers);
               const nextPts = tier.next === Infinity ? userPoints : tier.next;

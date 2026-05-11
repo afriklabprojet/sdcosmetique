@@ -1,5 +1,5 @@
 /**
- * jeko.ts — Système de fidélité "Jeko"
+ * jeko.ts — Système de fidélité "SDZ Fidélité"
  * Règle : 1 000 FCFA dépensé = 10 points ; 1 point = 10 FCFA de réduction
  *
  * Sécurité :

@@ -3,7 +3,7 @@
  * Doc: https://developer.jeko.africa
  *
  * NB. Ne PAS confondre avec `src/lib/jeko.ts` qui gère le programme
- * de fidélité interne "Jeko" de la marque.
+ * de fidélité interne "SDZ Fidélité" de la marque.
  *
  * Auth: deux headers obligatoires sur chaque requête.
  *   - X-API-KEY     : la clé API
