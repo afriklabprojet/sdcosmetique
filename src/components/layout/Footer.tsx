@@ -64,10 +64,24 @@ export default function Footer({ logoUrl, siteName }: Readonly<{ logoUrl?: strin
 
   return (
     <footer style={{ background: '#3D1400', color: '#fff', padding: '48px 24px 24px' }}>
+      <style>{`
+        .footer-grid {
+          grid-template-columns: 1.3fr 1fr 1fr 1fr 1.5fr;
+        }
+        @media (max-width: 900px) {
+          .footer-grid {
+            grid-template-columns: 1fr 1fr !important;
+          }
+        }
+        @media (max-width: 520px) {
+          .footer-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
       <div className="footer-grid" style={{
         maxWidth: '1200px', margin: '0 auto',
         display: 'grid',
-        gridTemplateColumns: '1.3fr 1fr 1fr 1fr 1.5fr',
         gap: '32px',
       }}>
         {/* Colonne logo */}
@@ -94,7 +108,7 @@ export default function Footer({ logoUrl, siteName }: Readonly<{ logoUrl?: strin
             Prenez soin de vous,<br />
             nous prenons soin de vous.
           </p>
-          <div style={{ display: 'flex', gap: '14px' }}>
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
             {[
               { letter: 'f', href: 'https://www.facebook.com/sdcosmetique', label: 'Facebook' },
               { letter: 'in', href: 'https://www.linkedin.com/company/sd-cosmetique', label: 'LinkedIn' },
@@ -103,7 +117,7 @@ export default function Footer({ logoUrl, siteName }: Readonly<{ logoUrl?: strin
               { letter: 'YT', href: 'https://www.youtube.com/@sdcosmetique', label: 'YouTube' },
             ].map(({ letter, href, label }) => (
               <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} style={{
-                width: 30, height: 30, borderRadius: '50%',
+                minWidth: 44, minHeight: 44, borderRadius: '50%',
                 border: '1px solid rgba(255,255,255,0.25)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: '#fff', fontSize: '0.7rem', fontWeight: 600,

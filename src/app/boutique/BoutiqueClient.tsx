@@ -118,6 +118,7 @@ export default function BoutiqueClient({ products }: Readonly<{ products: Produc
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
               <span style={{ fontSize: '0.72rem', color: 'var(--warm-grey)' }}>{filtered.length} produit{filtered.length === 1 ? '' : 's'}</span>
               <select
+                aria-label="Trier les produits"
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value)}
                 style={{

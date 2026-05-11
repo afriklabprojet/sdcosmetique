@@ -177,6 +177,7 @@ export default function CategoryClient({ initialProducts, slug }: Readonly<Props
               {products.length} produit{products.length === 1 ? '' : 's'}
             </span>
             <select
+              aria-label="Trier les produits"
               value={sortBy}
               onChange={e => setSortBy(e.target.value)}
               className="text-xs px-3 py-2 border outline-none"

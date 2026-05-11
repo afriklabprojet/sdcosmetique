@@ -143,6 +143,7 @@ export default function Navbar({ logoUrl, logoCaption, siteName }: Readonly<{ lo
         {/* NAV */}
         <nav
           className="nav-list"
+          aria-label="Navigation principale"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -379,7 +380,7 @@ export default function Navbar({ logoUrl, logoCaption, siteName }: Readonly<{ lo
             animation: 'searchFade 0.2s ease',
           }}
         >
-          <nav style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <nav aria-label="Menu mobile" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {NAV.map((it) => {
               const isActive = pathname === it.href || (it.href !== '/' && pathname.startsWith(it.href));
               return (
@@ -491,5 +492,6 @@ const iconBtn: React.CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  padding: 4,
+  padding: 13, // 18px icon + 13px*2 = 44px min touch target
+  margin: -13, // compense le padding pour ne pas décaler le layout
 };

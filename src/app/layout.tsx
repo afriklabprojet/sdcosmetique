@@ -85,7 +85,14 @@ export default async function RootLayout({
         <link rel="dns-prefetch" href="https://connect.facebook.net" />
         <link rel="dns-prefetch" href="https://analytics.tiktok.com" />
       </head>
-      <body className="min-h-full flex flex-col" style={{ fontFamily: 'var(--font-inter), sans-serif' }}>
+      <body className="min-h-full flex flex-col" style={{ fontFamily: 'var(--font-inter), sans-serif', overflowX: 'hidden' }}>
+        {/* Lien d'évitement pour lecteurs d'écran */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[200] focus:px-4 focus:py-2 focus:bg-white focus:text-[#1A0E05] focus:font-semibold focus:shadow-lg focus:rounded focus:outline focus:outline-[#8F5922]"
+        >
+          Aller au contenu principal
+        </a>
         {siteConfig.marketing && <TrackingScripts marketing={siteConfig.marketing} />}
         <CartProvider>
           <WishlistProvider>
@@ -103,7 +110,7 @@ export default async function RootLayout({
               <Navbar logoUrl={siteConfig.branding?.logoUrl || undefined} logoCaption={siteConfig.branding?.tagline || undefined} siteName={siteConfig.branding?.siteName || 'SD Cosmetique'} />
               <ClientOnlyOverlays welcomePopup={siteConfig.marketing?.welcomePopup} />
             </div>
-            <main className="flex-1">{children}</main>
+            <main id="main-content" className="flex-1" tabIndex={-1}>{children}</main>
             <div id="site-footer">
               <Footer logoUrl={siteConfig.branding?.logoUrl || undefined} siteName={siteConfig.branding?.siteName || 'SD Cosmetique'} />
             </div>
