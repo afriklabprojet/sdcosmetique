@@ -1,15 +1,15 @@
 name: 🚀 Deploy to Hostinger
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
-    # Déclenchement manuel uniquement
-    # Le déploiement automatique est géré par ./deploy.sh (standalone mode requis)
 
 jobs:
   deploy:
-    name: Build & Deploy via rsync
+    name: Build & Deploy (standalone + LiteSpeed)
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
 
     steps:
       - name: 📦 Checkout code
@@ -24,11 +24,11 @@ jobs:
       - name: 📦 Install dependencies
         run: npm ci
 
-      - name: 🔨 Build Next.js
+      - name: 🔨 Build Next.js (standalone)
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          NEXT_PUBLIC_SITE_URL: https://floralwhite-fish-697630.hostingersite.com
+          NEXT_PUBLIC_SITE_URL: https://sdcosmetique.ci
           NEXT_PUBLIC_SITE_NAME: SD Cosmétique
         run: npm run build
 
@@ -39,30 +39,55 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
-      - name: 📤 Upload build via rsync
+      - name: 📤 Upload build via rsync (standalone)
         run: |
           REMOTE="${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}"
-          NODEJS_DIR="domains/floralwhite-fish-697630.hostingersite.com/nodejs"
+          NODEJS_DIR="domains/sdcosmetique.ci/nodejs"
+          SSH_OPTS="-i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }}"
+
+          # Standalone bundle (app + node_modules inclus)
+          rsync -az --checksum --delete \
+            --exclude='.next/cache' \
+            --exclude='.next/static' \
+            -e "ssh $SSH_OPTS" \
+            .next/standalone/ \
+            ${REMOTE}:${NODEJS_DIR}/
+
+          # Fichiers statiques
           rsync -az --delete \
-            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }}" \
-            .next/ \
-            ${REMOTE}:${NODEJS_DIR}/.next/
-          rsync -az --delete \
-            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }}" \
+            -e "ssh $SSH_OPTS" \
             public/ \
             ${REMOTE}:${NODEJS_DIR}/public/
 
-      - name: 🔄 Restart Passenger
+          rsync -az --checksum --delete \
+            -e "ssh $SSH_OPTS" \
+            .next/static/ \
+            ${REMOTE}:${NODEJS_DIR}/.next/static/
+
+      - name: 📋 Upload server.js & .env.production
         run: |
-          ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }} \
-            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
-            "touch \$HOME/domains/floralwhite-fish-697630.hostingersite.com/nodejs/tmp/restart.txt && echo 'Passenger restarted'"
+          SSH_OPTS="-i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }}"
+          REMOTE="${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}"
+          NODEJS_DIR="domains/sdcosmetique.ci/nodejs"
+
+          # server.js custom (support LSNODE_SOCKET LiteSpeed)
+          scp $SSH_OPTS server.js ${REMOTE}:${NODEJS_DIR}/server.js
+
+          # Variables d'environnement production
+          echo "${{ secrets.ENV_PRODUCTION }}" | ssh $SSH_OPTS ${REMOTE} \
+            "cat > ${NODEJS_DIR}/.env.production"
+
+      - name: ♻️ Restart LiteSpeed (pkill)
+        run: |
+          SSH_OPTS="-i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }}"
+          ssh $SSH_OPTS ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+            "pkill -9 -f 'next-server' 2>/dev/null; pkill -9 -f 'server\.js' 2>/dev/null; pkill -f 'lsnode' 2>/dev/null; true" || true
 
       - name: 🏥 Health check
         run: |
           echo "⏳ Attente démarrage app (20s)..."
           sleep 20
-          STATUS=$(curl -sk --max-time 15 -o /dev/null -w "%{http_code}" "https://floralwhite-fish-697630.hostingersite.com/")
+          STATUS=$(curl -sk --max-time 15 -o /dev/null -w "%{http_code}" "https://sdcosmetique.ci/")
           echo "HTTP Status: $STATUS"
           if [ "$STATUS" != "200" ]; then
             echo "❌ Health check failed: HTTP $STATUS"
