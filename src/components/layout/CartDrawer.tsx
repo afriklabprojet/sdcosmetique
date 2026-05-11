@@ -29,16 +29,33 @@ export default function CartDrawer() {
         />
       )}
 
+      {/* Wrapper clip — overflow:hidden sur un fixed clippe ses enfants absolute,
+          évitant que le drawer fermé (translateX(100%)) dépasse de 448px à droite */}
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          overflow: 'hidden',
+          pointerEvents: 'none',
+          zIndex: 70,
+        }}
+      >
       {/* Drawer */}
       <div
         role="dialog"
-        aria-modal="true"
+        aria-modal={isOpen || undefined}
         aria-label="Panier"
-        className="fixed top-0 right-0 h-full z-70 flex flex-col w-full max-w-md transition-transform duration-500"
+        aria-hidden={!isOpen}
+        className="flex flex-col w-full max-w-md transition-transform duration-500"
         style={{
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          height: '100%',
           background: 'white',
           transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
           boxShadow: 'var(--shadow-xl)',
+          pointerEvents: isOpen ? 'auto' : 'none',
         }}
       >
         {/* Annonce SR live — mise à jour à chaque changement du panier */}
@@ -204,6 +221,7 @@ export default function CartDrawer() {
           </div>
         )}
       </div>
+      </div> {/* /clip wrapper */}
     </>
   );
 }

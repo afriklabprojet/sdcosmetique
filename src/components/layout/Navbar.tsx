@@ -168,6 +168,10 @@ export default function Navbar({ logoUrl, logoCaption, siteName }: Readonly<{ lo
                   textDecoration: 'none',
                   paddingBottom: 6,
                   transition: 'color 0.2s ease',
+                  // touch target ≥ 44px (WCAG 2.5.5)
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  minHeight: 44,
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.color = '#8F5922'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.color = isActive ? '#8F5922' : '#1A0E05'; }}
@@ -224,7 +228,7 @@ export default function Navbar({ logoUrl, logoCaption, siteName }: Readonly<{ lo
             className="hamburger-btn"
             aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
             onClick={() => setMenuOpen(!menuOpen)}
-            style={{ background: 'transparent', border: 'none', cursor: 'pointer', alignItems: 'center', justifyContent: 'center', padding: 4, color: '#1A0E05' }}
+            style={{ background: 'transparent', border: 'none', cursor: 'pointer', alignItems: 'center', justifyContent: 'center', padding: 12, color: '#1A0E05' }}
           >
             {menuOpen ? (
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">

@@ -566,6 +566,7 @@ const ProductsTab: React.FC<ProductsTabProps> = ({
           style={{ ...inputStyle, width: '180px' }}
         />
         <select
+          aria-label="Filtrer par catégorie"
           value={productCatFilter}
           onChange={e => { setProductCatFilter(e.target.value); setProductPage(1); }}
           style={{ ...inputStyle, width: '130px', cursor: 'pointer' }}
@@ -692,7 +693,8 @@ function OrdersTab({
             className="text-xs px-3 py-1.5 rounded border" 
             style={{ background: SURFACE, borderColor: BORDER2, color: TEXT, width: '200px' }}
           />
-          <select 
+          <select
+            aria-label="Filtrer par statut de commande"
             value={orderStatusFilter}
             onChange={e => setOrderStatusFilter(e.target.value)}
             className="text-xs px-2 py-1.5 rounded border"
@@ -739,6 +741,7 @@ function OrdersTab({
                     <td style={tdStyle}>{PAYMENT_LABELS[o.paymentMethod] ?? o.paymentMethod}</td>
                     <td style={tdStyle}>
                       <select
+                        aria-label={`Statut de la commande ${o.orderNumber ?? ''}`}
                         value={o.status}
                         onChange={e => handleStatusChange(o.orderNumber, e.target.value as OrderStatus)}
                         style={{ 
