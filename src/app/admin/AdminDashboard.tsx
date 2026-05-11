@@ -30,6 +30,7 @@ import type { JekoTierConfig, JekoRewardConfig, JekoMember, JekoTransactionAdmin
 import QuizAnalyticsCard from '@/components/admin/QuizAnalyticsCard';
 import StatusBadge from '@/components/admin/StatusBadge';
 import Pagination from '@/components/admin/Pagination';
+import GlobalPromoCard from '@/components/admin/GlobalPromoCard';
 
 type OrderStatus = OrderDraft['status'];
 type ReviewRow = Review & { productId?: string };
@@ -2941,9 +2942,23 @@ export default function AdminPage() { // NOSONAR typescript:S3776
             return (
               <div className="space-y-6">
                 <div>
-                  <h1 className="text-lg font-bold" style={{ color: TEXT }}>Codes promo</h1>
-                  <p className="text-xs" style={{ color: TEXT3 }}>Créez et gérez les codes de réduction utilisables au checkout.</p>
+                  <h1 className="text-lg font-bold" style={{ color: TEXT }}>Promotions</h1>
+                  <p className="text-xs" style={{ color: TEXT3 }}>Promo globale et codes de réduction utilisables au checkout.</p>
                 </div>
+
+                {/* ── Promo globale ── */}
+                <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <p className="text-sm font-semibold" style={{ color: GOLD }}>🌍 Promotion globale</p>
+                    <span style={{ fontSize: '11px', padding: '2px 7px', borderRadius: 4, background: siteContent.global_promo?.enabled ? 'rgba(76,175,80,0.12)' : 'rgba(255,255,255,0.06)', color: siteContent.global_promo?.enabled ? '#4CAF50' : TEXT3 }}>
+                      {siteContent.global_promo?.enabled ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                  <p className="text-xs" style={{ color: TEXT3, marginBottom: 2 }}>Appliquez automatiquement une remise sur tous les produits.</p>
+                  <GlobalPromoCard initialConfig={siteContent.global_promo} />
+                </div>
+
+                {/* ── Codes promo ── */}
                 <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <p className="text-sm font-semibold" style={{ color: GOLD }}>🎟️ Codes promo</p>
@@ -3173,15 +3188,28 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                   />
                 </div>
 
-                {/* ── Image de fond — connexion admin ── */}
+                {/* ── Image de fond — Espace Client (/compte) ── */}
                 <div style={sectionCard}>
-                  <p style={sectionTitle}>● Image de fond — page de connexion admin</p>
-                  <p style={sectionSubtitle}>Photo affichée sur la moitié gauche de l&apos;écran de connexion administrateur.</p>
+                  <p style={sectionTitle}>● Image de fond — Espace Client</p>
+                  <p style={sectionSubtitle}>Photo affichée en arrière-plan de la page Espace Client (/compte).</p>
                   <ImageUpload
-                    value={br.adminLoginBg ?? '/hero/generated-skincare-hero-2.jpg'}
-                    onChange={(url) => update({ adminLoginBg: url })}
+                    value={br.compteHeroBg ?? '/hero/generated-skincare-hero.jpg'}
+                    onChange={(url) => update({ compteHeroBg: url })}
                     folder="branding"
-                    label="Fond connexion admin"
+                    label="Fond espace client"
+                    previewSize={160}
+                  />
+                </div>
+
+                {/* ── Image de fond — Carte Parrainage ── */}
+                <div style={sectionCard}>
+                  <p style={sectionTitle}>● Image de fond — Carte Parrainage</p>
+                  <p style={sectionSubtitle}>Photo en arrière-plan de la carte "Parrainez et gagnez" sur la page Espace Client.</p>
+                  <ImageUpload
+                    value={br.parrainageHeroBg ?? '/hero/generated-skincare-hero-2.jpg'}
+                    onChange={(url) => update({ parrainageHeroBg: url })}
+                    folder="branding"
+                    label="Fond parrainage"
                     previewSize={160}
                   />
                 </div>

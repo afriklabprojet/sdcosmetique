@@ -52,7 +52,7 @@ export default async function MentionsLegalesPage() {
         <h2>Direction de la publication</h2>
         <p>
           <strong>Sarah Diop</strong>, Présidente<br />
-          Contact&nbsp;: <a href="mailto:contact@sdcosmetique.com">contact@sdcosmetique.com</a>
+          Contact&nbsp;: <a href={`mailto:${cfg.legal_contact.contactEmail}`}>{cfg.legal_contact.contactEmail}</a>
         </p>
 
         <h2>Hébergement</h2>
@@ -97,7 +97,7 @@ export default async function MentionsLegalesPage() {
         <h2>Contact</h2>
         <p>
           Pour toute question, contactez-nous via notre <Link href="/contact">formulaire de contact</Link>{' '}
-          ou par email à <a href="mailto:contact@sdcosmetique.com">contact@sdcosmetique.com</a>.
+          ou par email à <a href={`mailto:${cfg.legal_contact.contactEmail}`}>{cfg.legal_contact.contactEmail}</a>.
         </p>
       </article>
       )}

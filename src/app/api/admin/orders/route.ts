@@ -41,6 +41,12 @@ const VALID_STATUS: ReadonlySet<string> = new Set([
 ]);
 
 function rowToOrder(row: OrderRow): OrderDraft {
+  // Synthétiser 'pending_payment' pour les commandes mobile money en attente de paiement
+  // (payment_status='pending' + status='confirmed' = paiement mobile non encore confirmé)
+  const effectiveStatus: OrderStatus =
+    row.payment_status === 'pending' && row.status === 'confirmed'
+      ? 'pending_payment'
+      : ((row.status as OrderStatus) ?? 'confirmed');
   return {
     orderNumber: row.order_number,
     date: row.created_at,
@@ -48,7 +54,7 @@ function rowToOrder(row: OrderRow): OrderDraft {
     shippingCost: Number(row.shipping_cost),
     total: Number(row.total),
     paymentMethod: row.payment_method ?? '',
-    status: (row.status as OrderStatus) ?? 'pending_payment',
+    status: effectiveStatus,
     delivery: {
       firstName: row.delivery_first_name ?? '',
       lastName: row.delivery_last_name ?? '',

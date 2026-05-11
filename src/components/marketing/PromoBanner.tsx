@@ -2,15 +2,76 @@
 
 import { useState } from 'react';
 import type { PromoBanner } from '@/lib/site-config';
+import type { GlobalPromoConfig } from '@/lib/config/types';
+import { isPromoActive } from '@/lib/promo';
 
 interface PromoBannerProps {
   banners: PromoBanner[];
+  globalPromo?: GlobalPromoConfig;
 }
 
-export default function PromoBannerBar({ banners }: Readonly<PromoBannerProps>) {
+export default function PromoBannerBar({ banners, globalPromo }: Readonly<PromoBannerProps>) {
   const [dismissed, setDismissed] = useState(false);
 
-  // Find first active + date-valid banner
+  if (dismissed) return null;
+
+  // Bouton fermer réutilisable
+  const closeBtn = (
+    <button
+      onClick={() => setDismissed(true)}
+      aria-label="Fermer la bannière"
+      style={{
+        position: 'absolute',
+        right: '12px',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        color: 'inherit',
+        opacity: 0.7,
+        fontSize: '16px',
+        lineHeight: 1,
+        padding: '4px',
+      }}
+    >
+      ×
+    </button>
+  );
+
+  // ── Bannière promotion globale (priorité) ────────────────────────────────────
+  if (globalPromo && isPromoActive(globalPromo)) {
+    return (
+      <header
+        role="banner"
+        aria-label="Promotion en cours"
+        style={{
+          background: globalPromo.badgeColor,
+          color: '#fff',
+          fontSize: '13px',
+          fontWeight: 700,
+          padding: '10px 40px 10px 16px',
+          textAlign: 'center',
+          position: 'relative',
+          lineHeight: 1.4,
+          letterSpacing: '0.02em',
+        }}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+          <span aria-hidden="true">🎉</span>
+          <span>
+            {globalPromo.label}
+            {' · '}
+            <strong>-{globalPromo.discountPercentage}%</strong>
+            {' '}sur tous les produits
+          </span>
+        </span>
+        {closeBtn}
+      </header>
+    );
+  }
+
+  // ── Bannière marketing classique ─────────────────────────────────────────────
   const now = new Date();
   const banner = banners.find(b => {
     if (!b.active) return false;
@@ -19,7 +80,7 @@ export default function PromoBannerBar({ banners }: Readonly<PromoBannerProps>) 
     return true;
   });
 
-  if (!banner || dismissed) return null;
+  if (!banner) return null;
 
   const content = (
     <span style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
@@ -48,26 +109,7 @@ export default function PromoBannerBar({ banners }: Readonly<PromoBannerProps>) 
       ) : (
         content
       )}
-      <button
-        onClick={() => setDismissed(true)}
-        aria-label="Fermer la bannière"
-        style={{
-          position: 'absolute',
-          right: '12px',
-          top: '50%',
-          transform: 'translateY(-50%)',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          color: 'inherit',
-          opacity: 0.7,
-          fontSize: '16px',
-          lineHeight: 1,
-          padding: '4px',
-        }}
-      >
-        ×
-      </button>
+      {closeBtn}
     </header>
   );
 }

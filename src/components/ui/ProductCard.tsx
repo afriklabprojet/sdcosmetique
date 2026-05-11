@@ -35,6 +35,9 @@ import { CATEGORIES, Product } from '@/types';
 import { formatPrice } from '@/lib/products';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
+import { useGlobalPromo } from '@/context/PromoContext';
+import { computeEffectivePrice, type EffectivePrice } from '@/lib/promo';
+import { PromoBadge } from '@/components/ui/PromoBadge';
 
 interface ProductCardProps {
   readonly product: Product;
@@ -69,6 +72,8 @@ function isLowStock(product: Product): boolean {
 export default function ProductCard({ product }: Readonly<ProductCardProps>) {
   const { addItem } = useCart();
   const { toggle, isInWishlist } = useWishlist();
+  const globalPromo = useGlobalPromo();
+  const effectivePrice = computeEffectivePrice(product, globalPromo);
   const [adding, setAdding] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [canHover, setCanHover] = useState(false);
@@ -121,6 +126,8 @@ export default function ProductCard({ product }: Readonly<ProductCardProps>) {
       <ProductMedia
         product={product}
         primaryBadge={primaryBadge}
+        effectivePrice={effectivePrice}
+        badgeColor={globalPromo.badgeColor}
         interactiveHover={interactiveHover}
         adding={adding}
         inWishlist={inWishlist}
@@ -131,6 +138,7 @@ export default function ProductCard({ product }: Readonly<ProductCardProps>) {
       <ProductInfo
         product={product}
         category={category}
+        effectivePrice={effectivePrice}
         adding={adding}
         onAddToCart={handleAddToCart}
       />
@@ -141,6 +149,8 @@ export default function ProductCard({ product }: Readonly<ProductCardProps>) {
 interface ProductMediaProps {
   readonly product: Product;
   readonly primaryBadge: string | null;
+  readonly effectivePrice: EffectivePrice;
+  readonly badgeColor: string;
   readonly interactiveHover: boolean;
   readonly adding: boolean;
   readonly inWishlist: boolean;
@@ -152,6 +162,8 @@ interface ProductMediaProps {
 function ProductMedia({
   product,
   primaryBadge,
+  effectivePrice,
+  badgeColor,
   interactiveHover,
   adding,
   inWishlist,
@@ -215,27 +227,41 @@ function ProductMedia({
               }}
             />
 
-            {/* Badge */}
-            {primaryBadge && (
-              <span
-                style={{
-                  position: 'absolute',
-                  top: 7,
-                  left: 7,
-                  zIndex: 3,
-                  background: 'var(--gold)',
-                  color: '#fff',
-                  fontSize: '0.42rem',
-                  fontWeight: 700,
-                  letterSpacing: '0.08em',
-                  padding: '1px 4px',
-                  borderRadius: 2,
-                  textTransform: 'uppercase',
-                }}
-              >
-                {primaryBadge}
-              </span>
-            )}
+            {/* Badges overlay — promo + badge produit */}
+            <div
+              style={{
+                position: 'absolute',
+                top: 7,
+                left: 7,
+                zIndex: 3,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 3,
+              }}
+            >
+              {effectivePrice.hasDiscount && (
+                <PromoBadge
+                  discountPct={effectivePrice.discountPct}
+                  color={badgeColor}
+                />
+              )}
+              {primaryBadge && (
+                <span
+                  style={{
+                    background: 'var(--gold)',
+                    color: '#fff',
+                    fontSize: '0.42rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.08em',
+                    padding: '1px 4px',
+                    borderRadius: 2,
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {primaryBadge}
+                </span>
+              )}
+            </div>
           </div>
         </Link>
 
@@ -340,11 +366,12 @@ function ProductMedia({
 interface ProductInfoProps {
   readonly product: Product;
   readonly category: { label: string } | undefined;
+  readonly effectivePrice: EffectivePrice;
   readonly adding: boolean;
   readonly onAddToCart: () => void;
 }
 
-function ProductInfo({ product, category, adding, onAddToCart }: ProductInfoProps) {
+function ProductInfo({ product, category, effectivePrice, adding, onAddToCart }: ProductInfoProps) {
   return (
       <div style={{ padding: '12px 13px 14px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px' }}>
@@ -386,10 +413,10 @@ function ProductInfo({ product, category, adding, onAddToCart }: ProductInfoProp
 
             {/* Prix */}
             <div>
-              <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--gold-dark)' }}>
-                {formatPrice(product.price)}
+              <span style={{ fontSize: '0.92rem', fontWeight: 700, color: effectivePrice.hasDiscount ? '#C0392B' : 'var(--gold-dark)' }}>
+                {formatPrice(effectivePrice.salePrice)}
               </span>
-              {product.originalPrice && (
+              {effectivePrice.hasDiscount && effectivePrice.strikePrice !== null && (
                 <span
                   style={{
                     fontSize: '0.72rem',
@@ -398,7 +425,7 @@ function ProductInfo({ product, category, adding, onAddToCart }: ProductInfoProp
                     display: 'block',
                   }}
                 >
-                  {formatPrice(product.originalPrice)}
+                  {formatPrice(effectivePrice.strikePrice)}
                 </span>
               )}
             </div>

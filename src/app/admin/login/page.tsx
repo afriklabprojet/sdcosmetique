@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import { fetchSiteConfigSection } from '@/lib/config/utilities';
 import styles from './admin-login.module.css';
@@ -11,7 +11,6 @@ import styles from './admin-login.module.css';
 // La protection réelle est assurée par src/middleware.ts + lib/admin-auth.ts.
 
 export default function AdminLoginPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -48,7 +47,7 @@ export default function AdminLoginPage() {
     // window.location.href force un rechargement complet de la page pour que
     // les cookies Supabase soient propagés côté serveur avant la navigation.
     // (router.replace est client-side et peut arriver avant que les cookies soient commits)
-    window.location.href = '/admin';
+    globalThis.location.href = '/admin';
   };
 
   return (

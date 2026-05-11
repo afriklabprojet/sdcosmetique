@@ -1,4 +1,3 @@
-import 'server-only';
 import { db } from '@/lib/db';
 
 /**
@@ -7,6 +6,12 @@ import { db } from '@/lib/db';
  *
  * ADMIN_EMAILS est lu dynamiquement (pas en module-level) pour garantir
  * que process.env est bien chargé au moment de l'appel (standalone mode).
+ *
+ * NOTE: `import 'server-only'` volontairement absent — sa présence déclenche
+ * un bug Turbopack dev-mode (module factory not available) quand une Server
+ * Action importée depuis un Client Component dépend transitivamente de ce module.
+ * La protection reste effective : db() utilise next/headers / cookies() qui
+ * lèvent une erreur runtime si jamais appelés côté client.
  */
 export async function requireAdmin() {
   try {

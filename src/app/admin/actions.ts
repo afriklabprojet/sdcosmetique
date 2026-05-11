@@ -2,9 +2,23 @@
 
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { requireAdmin } from '@/lib/admin-auth';
-import { createServiceClient } from '@/utils/supabase/service';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { SiteConfig } from '@/lib/site-config';
 import type { Product } from '@/types';
+
+// ⚠️ Ne PAS importer depuis @/utils/supabase/service ici :
+// ce fichier a `import 'server-only'` qui déclenche un bug Turbopack dev-mode
+// (module factory not available) quand une Server Action est importée depuis un Client Component.
+// Le service role key n'est jamais exposé côté client (variable non NEXT_PUBLIC_).
+let _serviceClient: SupabaseClient | null = null;
+function getServiceClient(): SupabaseClient {
+  if (_serviceClient) return _serviceClient;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) throw new Error('[actions] SUPABASE env vars manquantes');
+  _serviceClient = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+  return _serviceClient;
+}
 
 /**
  * Sauvegarde une section de site_config côté serveur.
@@ -18,7 +32,7 @@ export async function saveSiteConfigSection(
   const user = await requireAdmin();
   if (!user) throw new Error('Accès refusé');
 
-  const supabase = createServiceClient();
+  const supabase = getServiceClient();
   const { error } = await supabase
     .from('site_config')
     .upsert({ key, value, updated_at: new Date().toISOString() });
@@ -26,7 +40,7 @@ export async function saveSiteConfigSection(
   if (error) throw new Error(error.message);
 
   // Invalide immédiatement le cache Next.js
-  revalidateTag('site-config', 'default');
+  revalidateTag('site-config');
   revalidatePath('/', 'layout');
   revalidatePath('/produit/[slug]', 'layout');
   revalidatePath('/teint/[slug]', 'layout');
@@ -39,7 +53,7 @@ export async function addProduct(product: Product): Promise<void> {
   const user = await requireAdmin();
   if (!user) throw new Error('Accès refusé');
 
-  const supabase = createServiceClient();
+  const supabase = getServiceClient();
   const { error } = await supabase.from('products').upsert({
     id: product.id,
     name: product.name,
@@ -79,7 +93,7 @@ export async function updateProduct(
   if (!user) throw new Error('Accès refusé');
 
   const d = buildUpdatePayload(updates);
-  const supabase = createServiceClient();
+  const supabase = getServiceClient();
   const { error } = await supabase.from('products').update(d).eq('id', id);
   if (error) throw new Error(error.message);
 
@@ -127,7 +141,7 @@ export async function deleteProduct(id: string): Promise<void> {
   const user = await requireAdmin();
   if (!user) throw new Error('Accès refusé');
 
-  const supabase = createServiceClient();
+  const supabase = getServiceClient();
   const { error } = await supabase.from('products').delete().eq('id', id);
   if (error) throw new Error(error.message);
 

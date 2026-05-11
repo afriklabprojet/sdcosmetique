@@ -3,6 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: 'standalone',
 
+  // ── Turbopack : forcer la racine de workspace pour éviter le panic dev-mode ─
+  turbopack: {
+    root: __dirname,
+  },
+
   // ── Réduction bundle ───────────────────────────────────────────────────────
   compress: true,
   poweredByHeader: false,
@@ -60,27 +65,30 @@ const nextConfig: NextConfig = {
   },
 
   async headers() {
+    const isProd = process.env.NODE_ENV === 'production';
     return [
-      // ── Assets statiques Next.js : cache 1 an immuable ────────────────────
-      {
-        source: "/_next/static/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
-      // ── Polices Google (via next/font, servi localement) ──────────────────
-      {
-        source: "/_next/static/media/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
+      // ── Assets statiques Next.js : cache 1 an immuable (prod uniquement)
+      // En dev, on laisse Turbopack gérer → évite le chunk mismatch après rebuild
+      ...(isProd ? [
+        {
+          source: "/_next/static/:path*",
+          headers: [
+            {
+              key: "Cache-Control",
+              value: "public, max-age=31536000, immutable",
+            },
+          ],
+        },
+        {
+          source: "/_next/static/media/:path*",
+          headers: [
+            {
+              key: "Cache-Control",
+              value: "public, max-age=31536000, immutable",
+            },
+          ],
+        },
+      ] : []),
       // ── Images publiques ─────────────────────────────────────────────────
       {
         source: "/images/:path*",

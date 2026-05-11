@@ -15,7 +15,7 @@
     "not op_mini all"
   ],
   "scripts": {
-    "dev": "NODE_OPTIONS='--dns-result-order=ipv4first' next dev",
+    "dev": "NODE_OPTIONS='--dns-result-order=ipv4first' next dev --webpack",
     "build": "next build --webpack",
     "start": "next start -p ${PORT:-3000}",
     "lint": "eslint",
@@ -30,7 +30,8 @@
     "@supabase/supabase-js": "^2.105.1",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.37.0",
-    "next": "16.2.4",
+    "framer-motion": "^12.38.0",
+    "next": "16.2.6",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "sharp": "^0.34.5"

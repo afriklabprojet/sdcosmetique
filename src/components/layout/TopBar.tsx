@@ -1,14 +1,16 @@
+import { DEFAULT_TOP_BAR } from '@/lib/site-config';
+
 type TopBarProps = {
-  message?: string;
-  phone?: string;
-  facebook?: string;
-  instagram?: string;
-  tiktok?: string;
+  readonly message?: string;
+  readonly phone?: string;
+  readonly facebook?: string;
+  readonly instagram?: string;
+  readonly tiktok?: string;
 };
 
 export default function TopBar({
   message = "Livraison rapide partout en Côte d'Ivoire et à l'international",
-  phone = '+225 07 49 49 49 49',
+  phone = DEFAULT_TOP_BAR.phone,
   facebook = 'https://www.facebook.com/sdcosmetique',
   instagram = 'https://www.instagram.com/sdcosmetique',
   tiktok = 'https://www.tiktok.com/@sdcosmetique',
@@ -33,8 +35,7 @@ export default function TopBar({
           justifyContent: 'space-between',
           gap: 16,
           flexWrap: 'wrap',
-        }}
-      >
+        }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M3 7h11v10H3zM14 10h4l3 3v4h-7" />

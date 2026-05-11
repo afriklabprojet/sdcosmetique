@@ -51,8 +51,9 @@ export async function POST(req: NextRequest) {
       shipping_cost:       order.shippingCost ?? 0,
       total,
       payment_method:      paymentMethod,
-      // Seuls ces deux statuts sont acceptables à la création
-      status:              (order.status === 'pending_payment') ? 'pending_payment' : 'confirmed',
+      // status = toujours 'confirmed' (contrainte DB) ; payment_status distingue les paiements en attente
+      status:              'confirmed',
+      payment_status:      (order.status === 'pending_payment') ? 'pending' : 'paid',
       delivery_first_name: delivery.firstName,
       delivery_last_name:  delivery.lastName,
       delivery_email:      delivery.email,

@@ -22,7 +22,8 @@ import type {
   LegalPage,
   NewsletterConfig,
   MarketingConfig,
-  BrandingConfig
+  BrandingConfig,
+  GlobalPromoConfig,
 } from './types';
 
 // ─── Configurations par défaut ──────────────────────────────────────────────
@@ -215,6 +216,17 @@ export const DEFAULT_BRANDING: BrandingConfig = {
   youtubeUrl: '',
   linkedinUrl: '',
   adminLoginBg: '/hero/generated-skincare-hero-2.jpg',
+  compteHeroBg: '/hero/generated-skincare-hero.jpg',
+  parrainageHeroBg: '/hero/generated-skincare-hero-2.jpg',
+};
+
+export const DEFAULT_GLOBAL_PROMO: GlobalPromoConfig = {
+  enabled: false,
+  discountPercentage: 10,
+  startAt: null,
+  endAt: null,
+  label: 'PROMO',
+  badgeColor: '#C0392B',
 };
 
 // Configuration complète par défaut
@@ -326,6 +338,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   marketing: DEFAULT_MARKETING,
   branding: DEFAULT_BRANDING,
   payment_methods_active: ['orange_money', 'wave', 'mtn_momo', 'moov_money', 'djamo', 'visa_mastercard', 'cash_on_delivery'],
+  global_promo: DEFAULT_GLOBAL_PROMO,
 };
 
 // ─── Configurations par défaut ──────────────────────────────────────────────

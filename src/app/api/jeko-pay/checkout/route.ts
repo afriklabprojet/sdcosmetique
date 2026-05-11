@@ -30,7 +30,7 @@ function siteUrl(): string {
 function normalizePhone(raw: string | undefined): string | undefined {
   if (!raw) return undefined;
   // Supprimer espaces, tirets, parenthèses
-  const digits = raw.replace(/[\s\-().]/g, '');
+  const digits = raw.replaceAll(/[\s\-().]/g, '');
   if (!digits) return undefined;
   // Déjà au format international
   if (digits.startsWith('+')) return digits;
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
   }
 
-  if (!body.orderNumber || !body.amountXof || !body.paymentMethod) {
+  if (!body.orderNumber || !body.amountXof || body.amountXof <= 0 || !body.paymentMethod) {
     return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
   }
 
@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
   }
 
   const base = siteUrl();
-  const ref  = encodeURIComponent(body.orderNumber);
+  const ref = encodeURIComponent(body.orderNumber);
 
   try {
     const payment = await createRedirectPayment({

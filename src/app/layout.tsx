@@ -4,6 +4,7 @@ import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
+import { GlobalPromoProvider } from "@/context/PromoContext";
 import TopBar from "@/components/layout/TopBar";
 import Navbar from "@/components/layout/Navbar";
 import TrackingScripts from "@/components/marketing/TrackingScripts";
@@ -94,11 +95,15 @@ export default async function RootLayout({
           Aller au contenu principal
         </a>
         {siteConfig.marketing && <TrackingScripts marketing={siteConfig.marketing} />}
+        <GlobalPromoProvider initialConfig={siteConfig.global_promo}>
         <CartProvider>
           <WishlistProvider>
             <div id="site-chrome">
-              {siteConfig.marketing?.banners?.length > 0 && (
-                <PromoBannerBar banners={siteConfig.marketing.banners} />
+              {(siteConfig.marketing?.banners?.length > 0 || siteConfig.global_promo?.enabled) && (
+                <PromoBannerBar
+                  banners={siteConfig.marketing?.banners ?? []}
+                  globalPromo={siteConfig.global_promo}
+                />
               )}
               <TopBar
                 message={siteConfig.topbar.message}
@@ -116,6 +121,7 @@ export default async function RootLayout({
             </div>
           </WishlistProvider>
         </CartProvider>
+        </GlobalPromoProvider>
       </body>
     </html>
   );

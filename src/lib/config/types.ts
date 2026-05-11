@@ -207,6 +207,27 @@ export type MarketingConfig = {
   tiktokPixelId?: string;
 };
 
+// ─── Promotion globale ────────────────────────────────────────────────────────
+
+/**
+ * Configuration d'une promotion globale appliquée automatiquement à tous les produits.
+ * Différent de PromoCode (code cart-level) : ici c'est un rabais affiché sur le prix produit.
+ */
+export type GlobalPromoConfig = {
+  /** Active ou désactive la promotion globale */
+  enabled: boolean;
+  /** Pourcentage de réduction (0–100) */
+  discountPercentage: number;
+  /** Date de début (ISO 8601). Null = immédiatement */
+  startAt: string | null;
+  /** Date de fin (ISO 8601). Null = pas d'expiration */
+  endAt: string | null;
+  /** Libellé affiché sur le badge (ex: "SOLDES", "VENTE FLASH") */
+  label: string;
+  /** Couleur de fond du badge (CSS color token ou hex) */
+  badgeColor: string;
+};
+
 // ─── Branding & identité ─────────────────────────────────────────────────────
 
 export type BrandingConfig = {
@@ -227,6 +248,10 @@ export type BrandingConfig = {
   youtubeUrl: string;
   linkedinUrl: string;
   adminLoginBg?: string;
+  /** Image de fond du hero sur la page Espace Client (/compte) */
+  compteHeroBg?: string;
+  /** Image de fond de la carte Parrainage sur la page Espace Client */
+  parrainageHeroBg?: string;
 };
 
 // ─── Configuration complète du site ─────────────────────────────────────────
@@ -265,4 +290,5 @@ export type SiteConfig = {
   marketing: MarketingConfig;
   branding: BrandingConfig;
   payment_methods_active?: string[];
+  global_promo: GlobalPromoConfig;
 };

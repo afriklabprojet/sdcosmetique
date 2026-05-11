@@ -16,6 +16,8 @@ import {
   JEKO_REWARDS, JEKO_TIERS,
   type JekoTransaction, type JekoReward, type JekoConfig,
 } from '@/lib/jeko';
+import { DEFAULT_SITE_CONFIG } from '@/lib/config/defaults';
+import { fetchSiteConfigSection } from '@/lib/config/utilities';
 
 function jekoNextLabel(currentLabel: string, tiers: typeof JEKO_TIERS): string {
   const idx = tiers.findIndex(t => t.label === currentLabel);
@@ -104,6 +106,8 @@ export default function ComptePage() {
   const [pwdMsg, setPwdMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
   // Points fidélité SDZ
+  const [compteHeroBg, setCompteHeroBg] = useState('/hero/generated-skincare-hero.jpg');
+  const [parrainageHeroBg, setParrainageHeroBg] = useState('/hero/generated-skincare-hero-2.jpg');
   const [userPoints, setUserPoints] = useState(0);
   const [jekoHistory, setJekoHistory] = useState<JekoTransaction[]>([]);
   const [redeemingReward, setRedeemingReward] = useState<JekoReward | null>(null);
@@ -113,6 +117,13 @@ export default function ComptePage() {
     tiers: JEKO_TIERS,
     rewards: JEKO_REWARDS,
   });
+
+  useEffect(() => {
+    fetchSiteConfigSection('branding').then(br => {
+      if (br?.compteHeroBg) setCompteHeroBg(br.compteHeroBg);
+      if (br?.parrainageHeroBg) setParrainageHeroBg(br.parrainageHeroBg);
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     const updateViewport = () => {
@@ -401,7 +412,7 @@ export default function ComptePage() {
               <div style={{ margin: '0 8px 8px', borderRadius: 14, overflow: 'hidden', background: 'linear-gradient(135deg,#3D1400 0%,#5A2800 100%)', position: 'relative' }}>
                 <div style={{ padding: '16px 14px 12px' }}>
                   <p style={{ color: '#D4A96A', fontSize: 9, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 4 }}>Exclusif</p>
-                  <p style={{ color: '#fff', fontSize: 12, fontWeight: 800, lineHeight: 1.3, marginBottom: 4 }}>SD COSMÉTIQUE<br />CLUB PRIVÉ</p>
+                  <p style={{ color: '#fff', fontSize: 12, fontWeight: 800, lineHeight: 1.3, marginBottom: 4 }}>{(DEFAULT_SITE_CONFIG?.branding?.siteName ?? 'SD Cosmetique').toUpperCase()}<br />CLUB PRIVÉ</p>
                   <p style={{ color: 'rgba(255,255,255,.55)', fontSize: 10, margin: '0 0 12px', lineHeight: 1.5 }}>Des avantages exclusifs rien que pour vous !</p>
                   <button style={{
                     width: '100%', padding: '8px 0', background: 'linear-gradient(90deg,#C8974A,#E8B870)',
@@ -434,13 +445,11 @@ export default function ComptePage() {
                   }}>
                     {/* Photo plein fond */}
                     <div style={{ position: 'absolute', inset: 0 }}>
-                      <Image src="/hero/generated-skincare-hero.jpg" alt="SD Cosmétique" fill sizes="70vw" loading="eager"
+                      <Image src={compteHeroBg} alt="SD Cosmétique" fill sizes="70vw" loading="eager"
                         style={{ objectFit: 'cover', objectPosition: 'center 20%' }} />
                     </div>
                     {/* Overlay dégradé horizontal */}
                     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(105deg, rgba(28,10,0,.96) 0%, rgba(61,20,0,.88) 42%, rgba(61,20,0,.45) 65%, transparent 100%)' }} />
-                    {/* Grain texture subtil */}
-                    <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\'/%3E%3C/filter%3E%3Crect width=\'200\' height=\'200\' filter=\'url(%23n)\' opacity=\'.04\'/%3E%3C/svg%3E")', opacity: 0.6 }} />
 
                     <div style={{ position: 'relative', padding: '32px 32px 28px', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 0 }}>
                       {/* Badge membre */}
@@ -476,7 +485,7 @@ export default function ComptePage() {
 
                       <p style={{ color: 'rgba(255,255,255,.5)', fontSize: 12, lineHeight: 1.6, marginBottom: 22, maxWidth: 240, fontWeight: 400 }}>
                         Merci de faire partie de la famille<br />
-                        <span style={{ color: 'rgba(255,255,255,.75)', fontWeight: 600 }}>SD Cosmétique.</span>
+                        <span style={{ color: 'rgba(255,255,255,.75)', fontWeight: 600 }}>{DEFAULT_SITE_CONFIG?.branding?.siteName ?? 'SD Cosmetique'}.</span>
                       </p>
 
                       {/* CTA */}
@@ -670,7 +679,7 @@ export default function ComptePage() {
                     display: 'flex', flexDirection: 'column',
                   }}>
                     <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', borderRadius: 16 }}>
-                      <Image src="/hero/generated-skincare-hero-2.jpg" alt="" fill sizes="33vw" style={{ objectFit: 'cover', opacity: .25 }} />
+                      <Image src={parrainageHeroBg} alt="" fill sizes="33vw" style={{ objectFit: 'cover', opacity: .25 }} />
                     </div>
                     <div style={{ position: 'relative', padding: '24px 20px' }}>
                       <p style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.08em', color: '#92400E', textTransform: 'uppercase', marginBottom: 8 }}>Parrainez et gagnez</p>
@@ -936,7 +945,7 @@ export default function ComptePage() {
                     <p style={{ fontSize: 20, fontWeight: 800, letterSpacing: '0.15em', marginBottom: 8 }}>**** **** **** ••••</p>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, opacity: .8 }}>
                       <span>{displayName.toUpperCase()}</span>
-                      <span>SD COSMÉTIQUE</span>
+                      <span>{(DEFAULT_SITE_CONFIG?.branding?.siteName ?? 'SD Cosmetique').toUpperCase()}</span>
                     </div>
                   </div>
                   <div style={{ background: '#FFF7ED', border: '1px dashed #C8974A', borderRadius: 12, padding: '20px 24px', textAlign: 'center' }}>
@@ -1325,7 +1334,7 @@ export default function ComptePage() {
                 <p style={{ fontSize: 13, color: '#9A8A7A', marginBottom: 32 }}>Gérez vos préférences de communication.</p>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  {[{ key: 'newsletter', label: 'Newsletter SD Cosmétique', desc: 'Recevez nos actualités, offres exclusives et conseils beauté.' }, { key: 'promo', label: 'Offres promotionnelles', desc: 'Soyez informé(e) en avant-première de nos soldes et codes promo.' }, { key: 'tips', label: 'Conseils & astuces beauté', desc: 'Recevez nos guides et tutoriels pour sublimer votre peau.' }].map(item => (
+                  {[{ key: 'newsletter', label: `Newsletter ${DEFAULT_SITE_CONFIG?.branding?.siteName ?? 'SD Cosmetique'}`, desc: 'Recevez nos actualités, offres exclusives et conseils beauté.' }, { key: 'promo', label: 'Offres promotionnelles', desc: 'Soyez informé(e) en avant-première de nos soldes et codes promo.' }, { key: 'tips', label: 'Conseils & astuces beauté', desc: 'Recevez nos guides et tutoriels pour sublimer votre peau.' }].map(item => (
                     <div key={item.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 20px', background: '#FAF8F5', borderRadius: 12, border: '1px solid #EDE8E0' }}>
                       <div>
                         <p style={{ fontSize: 14, fontWeight: 700, color: '#1A1A1A', marginBottom: 4 }}>{item.label}</p>

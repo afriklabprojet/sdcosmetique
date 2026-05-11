@@ -6,6 +6,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getLastOrder, formatOrderDate, OrderDraft } from '@/lib/orders';
 import { formatPrice } from '@/lib/products';
+import { DEFAULT_SITE_CONFIG } from '@/lib/site-config';
+
+// ── Coordonnées de contact (centralisées dans le config) ──────────────────────
+const CONTACT_PHONE = DEFAULT_SITE_CONFIG.legal_contact.contactPhone;   // '+225 07 49 49 49 49'
+const CONTACT_PHONE_TEL = CONTACT_PHONE.replaceAll(/\s/g, '');          // 'tel:+2250749494949'
+const CONTACT_EMAIL = DEFAULT_SITE_CONFIG.legal_contact.contactEmail;   // 'contact@sdcosmetique.ci'
+const CONTACT_WA    = `https://wa.me/${CONTACT_PHONE_TEL.replaceAll('+', '')}`;  
+
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 const DARK   = '#3D1400';
@@ -351,7 +359,7 @@ export default function ConfirmationPage() {
                 Notre équipe est disponible pour vous accompagner.
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <a href="tel:+2250749494949" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
+                <a href={`tel:${CONTACT_PHONE_TEL}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
                   <div style={{
                     width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
                     background: '#FAF8F5', border: `1px solid ${BORDER}`,
@@ -361,9 +369,9 @@ export default function ConfirmationPage() {
                       <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.39 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.128.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.8a16 16 0 0 0 5.55 5.55l.95-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.572 2.81.7A2 2 0 0 1 21 16.92z"/>
                     </svg>
                   </div>
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: TXT }}>+225 07 49 49 49 49</span>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: TXT }}>{CONTACT_PHONE}</span>
                 </a>
-                <a href="mailto:contact@sdcosmetique.com" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
+                <a href={`mailto:${CONTACT_EMAIL}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
                   <div style={{
                     width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
                     background: '#FAF8F5', border: `1px solid ${BORDER}`,
@@ -374,9 +382,9 @@ export default function ConfirmationPage() {
                       <polyline points="22,6 12,13 2,6"/>
                     </svg>
                   </div>
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: TXT }}>contact@sdcosmetique.com</span>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: TXT }}>{CONTACT_EMAIL}</span>
                 </a>
-                <a href="https://wa.me/2250749494949" target="_blank" rel="noopener noreferrer"
+                <a href={CONTACT_WA} target="_blank" rel="noopener noreferrer"
                   style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
                   <div style={{
                     width: 32, height: 32, borderRadius: '50%', flexShrink: 0,

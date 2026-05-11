@@ -91,7 +91,9 @@ export async function saveOrderToDB(order: OrderDraft, userId?: string | null): 
         shipping_cost:       order.shippingCost,
         total:               order.total,
         payment_method:      order.paymentMethod,
-        status:              order.status ?? 'pending_payment',
+        // 'pending_payment' n'est pas un statut DB valide → mapper sur confirmed + payment_status
+        status:              (order.status === 'pending_payment') ? 'confirmed' : (order.status ?? 'confirmed'),
+        payment_status:      (order.status === 'pending_payment') ? 'pending' : 'paid',
         delivery_first_name: order.delivery?.firstName ?? '',
         delivery_last_name:  order.delivery?.lastName ?? '',
         delivery_email:      order.delivery?.email ?? '',
