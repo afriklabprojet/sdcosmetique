@@ -41,6 +41,7 @@ export const PAYMENT_METHOD_TO_JEKO: Record<string, JekoPayProvider | null> = {
   orange_money: 'orange',
   mtn_momo:     'mtn',
   moov_money:   'moov',
+  djamo:        'djamo',
   visa:         null, // non supporté par le flux redirect mobile money
   mastercard:   null,
 };

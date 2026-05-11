@@ -42,7 +42,7 @@ export default function CheckoutPage() {
   const [promoInput, setPromoInput] = useState('');
   const [appliedPromo, setAppliedPromo] = useState<{ code: PromoCode; discount: number } | null>(null);
   const [promoError, setPromoError] = useState<string | null>(null);
-  const [activeMethods, setActiveMethods] = useState<string[]>(['orange_money', 'wave', 'mtn_momo', 'moov_money', 'cash_on_delivery']);
+  const [activeMethods, setActiveMethods] = useState<string[]>(['orange_money', 'wave', 'mtn_momo', 'moov_money', 'djamo', 'cash_on_delivery']);
   useEffect(() => {
     fetchSiteConfigSection('shipping').then(cfg => {
       setShippingCfg(cfg);
@@ -98,7 +98,7 @@ export default function CheckoutPage() {
   }
   const total = Math.max(0, totalPrice + shippingCost - discount);
   const stepIdx = STEP_ORDER.indexOf(step);
-  const isMobile = ['orange_money', 'wave', 'mtn_momo', 'moov_money'].includes(paymentMethod);
+  const isMobile = ['orange_money', 'wave', 'mtn_momo', 'moov_money', 'djamo'].includes(paymentMethod);
 
   const handleDeliverySubmit = (e: React.SyntheticEvent) => { e.preventDefault(); setStep('payment'); };
 
@@ -145,7 +145,7 @@ export default function CheckoutPage() {
           body: JSON.stringify({
             orderNumber:   num,
             amountXof:     total,
-            paymentMethod,                 // 'orange_money' | 'wave' | 'mtn_momo' | 'moov_money'
+            paymentMethod,                 // 'orange_money' | 'wave' | 'mtn_momo' | 'moov_money' | 'djamo'
             payerPhone:    mobileNumber.trim() || undefined,
           }),
         });

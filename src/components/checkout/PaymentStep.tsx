@@ -21,6 +21,10 @@ const MOBILE_METHODS: { id: PaymentMethod; label: string; desc: string; logo: Re
     id: 'moov_money', label: 'Moov Money', desc: 'Paiement Moov Money',
     logo: <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: '50%', background: '#00A651', color: '#fff', fontSize: '10px', fontWeight: 800, letterSpacing: '-0.02em', flexShrink: 0 }}>MOOV</span>,
   },
+  {
+    id: 'djamo', label: 'Djamo', desc: 'Paiement par carte Djamo',
+    logo: <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: '50%', background: '#6C3CE1', color: '#fff', fontSize: '10px', fontWeight: 800, letterSpacing: '-0.02em', flexShrink: 0 }}>DJA</span>,
+  },
 ];
 
 interface PaymentStepProps {
@@ -35,8 +39,8 @@ interface PaymentStepProps {
   readonly activeMethods?: string[];
 }
 
-export default function PaymentStep({ paymentMethod, setPaymentMethod, mobileNumber, setMobileNumber, handlePlaceOrder, processing, setStep, isMobile, activeMethods = ['orange_money', 'wave', 'mtn_momo', 'moov_money', 'cash_on_delivery'] }: PaymentStepProps) {
-  const showMobileInput = ['orange_money', 'wave', 'mtn_momo', 'moov_money'].includes(paymentMethod);
+export default function PaymentStep({ paymentMethod, setPaymentMethod, mobileNumber, setMobileNumber, handlePlaceOrder, processing, setStep, isMobile, activeMethods = ['orange_money', 'wave', 'mtn_momo', 'moov_money', 'djamo', 'cash_on_delivery'] }: PaymentStepProps) {
+  const showMobileInput = ['orange_money', 'wave', 'mtn_momo', 'moov_money', 'djamo'].includes(paymentMethod);
   const visibleMobile = MOBILE_METHODS.filter(m => activeMethods.includes(m.id));
   const showCashOnDelivery = activeMethods.includes('cash_on_delivery');
   return (
