@@ -40,7 +40,7 @@ export async function saveSiteConfigSection(
   if (error) throw new Error(error.message);
 
   // Invalide immédiatement le cache Next.js
-  revalidateTag('site-config');
+  revalidateTag('site-config', 'default');
   revalidatePath('/', 'layout');
   revalidatePath('/produit/[slug]', 'layout');
   revalidatePath('/teint/[slug]', 'layout');

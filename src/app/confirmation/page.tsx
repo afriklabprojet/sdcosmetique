@@ -9,7 +9,7 @@ import { formatPrice } from '@/lib/products';
 import { DEFAULT_SITE_CONFIG } from '@/lib/site-config';
 
 // ── Coordonnées de contact (centralisées dans le config) ──────────────────────
-const CONTACT_PHONE = DEFAULT_SITE_CONFIG.legal_contact.contactPhone;   // '+225 07 49 49 49 49'
+const CONTACT_PHONE = DEFAULT_SITE_CONFIG.legal_contact.contactPhone ?? '';   // '+225 07 49 49 49 49'
 const CONTACT_PHONE_TEL = CONTACT_PHONE.replaceAll(/\s/g, '');          // 'tel:+2250749494949'
 const CONTACT_EMAIL = DEFAULT_SITE_CONFIG.legal_contact.contactEmail;   // 'contact@sdcosmetique.ci'
 const CONTACT_WA    = `https://wa.me/${CONTACT_PHONE_TEL.replaceAll('+', '')}`;  
