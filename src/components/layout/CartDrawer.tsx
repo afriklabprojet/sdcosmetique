@@ -31,6 +31,9 @@ export default function CartDrawer() {
 
       {/* Drawer */}
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Panier"
         className="fixed top-0 right-0 h-full z-70 flex flex-col w-full max-w-md transition-transform duration-500"
         style={{
           background: 'white',
@@ -38,13 +41,33 @@ export default function CartDrawer() {
           boxShadow: 'var(--shadow-xl)',
         }}
       >
+        {/* Annonce SR live — mise à jour à chaque changement du panier */}
+        <div
+          aria-live="polite"
+          aria-atomic="true"
+          style={{
+            position: 'absolute',
+            width: 1,
+            height: 1,
+            padding: 0,
+            margin: -1,
+            overflow: 'hidden',
+            clip: 'rect(0,0,0,0)',
+            whiteSpace: 'nowrap',
+            border: 0,
+          }}
+        >
+          {items.length === 0
+            ? 'Panier vide'
+            : `${totalItems} article${totalItems === 1 ? '' : 's'} dans le panier, total ${formatPrice(totalPrice)}`}
+        </div>
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b" style={{ borderColor: 'var(--grey-200)' }}>
           <div>
             <h2 className="text-lg font-semibold" style={{ fontFamily: 'var(--font-heading)' }}>
               Mon Panier
             </h2>
-            <p className="text-xs text-gray-500 mt-0.5">{totalItems} article{totalItems === 1 ? '' : 's'}</p>
+            <p className="text-xs text-gray-500 mt-0.5" aria-live="polite">{totalItems} article{totalItems === 1 ? '' : 's'}</p>
           </div>
           <button onClick={closeCart} aria-label="Fermer le panier" className="p-2 hover:opacity-70 transition-opacity">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">

@@ -117,6 +117,38 @@ h1,h2,h3,h4,h5,h6 {
 .delay-400 { animation-delay: 400ms; }
 .delay-500 { animation-delay: 500ms; }
 
+/* ── Sprint 2 : Focus visible accessible (WCAG 2.4.7) ───────── */
+:focus { outline: none; }
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ── Sprint 2 : Cart badge pulse ─────────────────────────────── */
+@keyframes cartBadgePulse {
+  0%, 100% { transform: scale(1); }
+  40%       { transform: scale(1.35); }
+  70%       { transform: scale(0.9); }
+}
+.cart-badge-pulse { animation: cartBadgePulse 0.45s cubic-bezier(0.4, 0, 0.2, 1); }
+
+/* ── Sprint 2 : Focus visible accessible (WCAG 2.4.7) ───────── */
+:focus { outline: none; }
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ── Sprint 2 : Cart badge pulse ─────────────────────────────── */
+@keyframes cartBadgePulse {
+  0%, 100% { transform: scale(1); }
+  40%       { transform: scale(1.35); }
+  70%       { transform: scale(0.9); }
+}
+.cart-badge-pulse { animation: cartBadgePulse 0.45s cubic-bezier(0.4, 0, 0.2, 1); }
+
 .skeleton {
   background: linear-gradient(90deg, var(--grey-100) 25%, var(--grey-200) 50%, var(--grey-100) 75%);
   background-size: 1000px 100%;

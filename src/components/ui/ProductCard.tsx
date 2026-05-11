@@ -17,6 +17,7 @@ function CartIcon({ added }: { readonly added: boolean }) {
 }
 
 import React, { useEffect, useState } from 'react';
+import StarRating from './StarRating';
 // Icône étoile factorisée
 function StarIcon({ filled }: { readonly filled: boolean }) {
   return (
@@ -371,11 +372,9 @@ function ProductInfo({ product, category, adding, onAddToCart }: ProductInfoProp
               {category?.label ?? 'Soin'} · {product.inStock ? 'En stock' : 'Indisponible'}
             </p>
 
-            {/* Étoiles */}
-            <div style={{ display: 'flex', gap: 2, marginBottom: 10 }}>
-              {[1, 2, 3, 4, 5].map(star => (
-                <StarIcon key={star} filled={star <= product.rating} />
-              ))}
+            {/* Étoiles + avis */}
+            <div style={{ marginBottom: 10 }}>
+              <StarRating rating={product.rating} count={product.reviewCount} showCount size={11} />
             </div>
 
             {/* Stock faible */}
