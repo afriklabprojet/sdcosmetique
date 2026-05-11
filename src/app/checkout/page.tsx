@@ -3,7 +3,7 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { useCart } from '@/context/CartContext';
 import { PaymentMethod } from '@/types';
-import { saveOrder, generateOrderNumber } from '@/lib/orders';
+import { saveOrder, generateOrderNumber, type OrderDraft } from '@/lib/orders';
 import { DEFAULT_SITE_CONFIG, fetchSiteConfigSection, ShippingOption, ShippingConfig, PromoCode, applyPromoCode } from '@/lib/site-config';
 import { CheckoutStep, DeliveryInfo, GOLD, BORDER, TXT, TXT2, TXT3 } from '@/components/checkout/shared';
 
@@ -110,7 +110,8 @@ export default function CheckoutPage() {
     const orderData = {
       orderNumber: num, date: new Date().toISOString(), items: [...items],
       subtotal: totalPrice, shippingCost, total, delivery, paymentMethod,
-      status: 'confirmed' as const,
+      // Mobile money → en attente de confirmation Jeko ; COD → confirmé d'office
+      status: (isMobile ? 'pending_payment' : 'confirmed') as OrderDraft['status'],
     };
 
         // 1. Création de la commande côté serveur — unique source de vérité [ARCH-01/02]

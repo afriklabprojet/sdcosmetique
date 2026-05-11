@@ -13,6 +13,7 @@ type OrderRow = {
   total: number;
   payment_method: string | null;
   status: string;
+  payment_status: string | null;
   delivery_first_name: string | null;
   delivery_last_name: string | null;
   delivery_email: string | null;
@@ -31,6 +32,7 @@ type OrderRow = {
 };
 
 const VALID_STATUS: ReadonlySet<string> = new Set([
+  'pending_payment',
   'confirmed',
   'processing',
   'shipped',
@@ -46,7 +48,7 @@ function rowToOrder(row: OrderRow): OrderDraft {
     shippingCost: Number(row.shipping_cost),
     total: Number(row.total),
     paymentMethod: row.payment_method ?? '',
-    status: (row.status as OrderStatus) ?? 'confirmed',
+    status: (row.status as OrderStatus) ?? 'pending_payment',
     delivery: {
       firstName: row.delivery_first_name ?? '',
       lastName: row.delivery_last_name ?? '',

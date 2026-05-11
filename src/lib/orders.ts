@@ -19,7 +19,7 @@ export interface OrderDraft {
     country: string;
   };
   paymentMethod: string;
-  status: 'confirmed' | 'processing' | 'shipped' | 'delivered';
+  status: 'pending_payment' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
 }
 
 // ─── Storage keys ─────────────────────────────────────────────────────────────

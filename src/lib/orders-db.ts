@@ -49,7 +49,7 @@ function rowToOrder(row: OrderRow): OrderDraft {
     shippingCost: Number(row.shipping_cost),
     total: Number(row.total),
     paymentMethod: row.payment_method ?? '',
-    status: (row.status as OrderDraft['status']) ?? 'confirmed',
+    status: (row.status as OrderDraft['status']) ?? 'pending_payment',
     delivery: {
       firstName: row.delivery_first_name ?? '',
       lastName: row.delivery_last_name ?? '',
@@ -91,7 +91,7 @@ export async function saveOrderToDB(order: OrderDraft, userId?: string | null): 
         shipping_cost:       order.shippingCost,
         total:               order.total,
         payment_method:      order.paymentMethod,
-        status:              order.status ?? 'confirmed',
+        status:              order.status ?? 'pending_payment',
         delivery_first_name: order.delivery?.firstName ?? '',
         delivery_last_name:  order.delivery?.lastName ?? '',
         delivery_email:      order.delivery?.email ?? '',

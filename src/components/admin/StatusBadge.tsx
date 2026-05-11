@@ -5,6 +5,7 @@ interface StatusBadgeProps {
 }
 
 const STATUS_OPTIONS = [
+  { value: 'pending_payment', label: 'Paiement en attente', color: '#F59E0B' },
   { value: 'pending', label: 'En attente', color: '#F59E0B' },
   { value: 'confirmed', label: 'Confirmée', color: '#10B981' },
   { value: 'shipped', label: 'Expédiée', color: '#3B82F6' },

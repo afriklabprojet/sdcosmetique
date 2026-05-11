@@ -47,6 +47,8 @@ export async function POST(req: NextRequest) {
       .from('orders')
       .update({
         payment_status:          isSuccess ? 'paid' : 'failed',
+        // Paiement validé → commande confirmée ; échec → reste en attente (retry possible)
+        ...(isSuccess ? { status: 'confirmed' } : {}),
         payment_provider:        'jeko',
         payment_provider_txn_id: txnId,
         payment_reference:       reference,
