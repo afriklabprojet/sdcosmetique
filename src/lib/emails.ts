@@ -49,7 +49,7 @@ async function sendViaResend(payload: {
     });
     if (!r.ok) {
       const txt = await r.text().catch(() => '');
-      void txt;
+      console.error('[emails] Resend HTTP error', r.status, txt);
       return { ok: false, error: `http_${r.status}` };
     }
     const j = (await r.json().catch(() => ({}))) as { id?: string };

@@ -33,10 +33,13 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json(products, {
-      headers: { 'Cache-Control': 'no-store' },
+      // [PERF-01] Catalogue public : mise en cache CDN 60s, s-w-r 5 min.
+      // Évite de frapper Supabase à chaque page vue boutique.
+      headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300' },
     });
-  } catch {
+  } catch (err) {
     // fallback sur données statiques
+    console.error('[api/products] Erreur DB, fallback statique:', err);
     return NextResponse.json(PRODUCTS);
   }
 }

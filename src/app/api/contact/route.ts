@@ -21,9 +21,12 @@ export async function POST(req: NextRequest) {
 
   const { nom, email, sujet, message } = body as Record<string, unknown>;
 
+  // [CQ-01] Validation email robuste — email.includes('@') accepte 'a@' ou '@b'
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   if (
     typeof nom !== 'string' || !nom.trim() ||
-    typeof email !== 'string' || !email.includes('@') ||
+    typeof email !== 'string' || !EMAIL_RE.test(email.trim()) ||
     typeof sujet !== 'string' || !sujet.trim() ||
     typeof message !== 'string' || !message.trim()
   ) {

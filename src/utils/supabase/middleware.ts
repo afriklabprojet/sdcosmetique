@@ -31,8 +31,10 @@ export const updateSession = async (request: NextRequest) => {
     },
   });
 
-  // Appel getSession ici pour que supabaseResponse soit final (setAll peut le mettre à jour)
-  const { data: { session }, error } = await supabase.auth.getSession();
+  // [SEC-05] getUser() vérifie la session côté serveur Auth Supabase,
+  // contrairement à getSession() qui fait confiance au cookie sans vérification réseau.
+  // https://supabase.com/docs/guides/auth/server-side/nextjs#security-note
+  const { data: { user }, error } = await supabase.auth.getUser();
 
-  return { supabase, session, error, response: supabaseResponse };
+  return { supabase, session: user ? { user } : null, error, response: supabaseResponse };
 };

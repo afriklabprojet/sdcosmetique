@@ -19,6 +19,7 @@ export async function POST(req: NextRequest) {
     reason: 'manual',
     label: (label?.trim()) || (points > 0 ? `+${points} pts (ajustement admin)` : `${points} pts (ajustement admin)`),
     reference_id: null,
+    modified_by: user.id,
   });
 
   if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });

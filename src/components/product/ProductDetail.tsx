@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -9,6 +9,7 @@ import { Product, Review, CATEGORIES, SKIN_TONES, SkinTone } from '@/types';
 import type { ProductTrustItem, PaymentBadge, ProductToneImages } from '@/lib/site-config';
 import ProductCard from '@/components/ui/ProductCard';
 import StarRating from '@/components/ui/StarRating';
+import Button    from '@/components/ui/Button';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 
@@ -193,25 +194,24 @@ function PurchaseCard({ product, selectedTone, setSelectedTone, qty, setQty, pay
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
         <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: TXT, margin: 0 }}>Qté</p>
         <div style={{ display: 'flex', alignItems: 'center', border: `1px solid ${BORDER}`, borderRadius: 4, overflow: 'hidden' }}>
-          <button onClick={() => setQty(Math.max(1, qty - 1))}
-            style={{ width: 32, height: 32, background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: TXT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+          <button onClick={() => setQty(Math.max(1, qty - 1))} aria-label="Diminuer la quantité"
+            style={{ width: 44, height: 44, background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: TXT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
           <span style={{ minWidth: 28, textAlign: 'center', fontSize: 14, fontWeight: 600, color: TXT }}>{qty}</span>
-          <button onClick={() => setQty(qty + 1)}
-            style={{ width: 32, height: 32, background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: TXT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+          <button onClick={() => setQty(qty + 1)} aria-label="Augmenter la quantité"
+            style={{ width: 44, height: 44, background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: TXT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
         </div>
       </div>
 
       {/* Bouton Ajouter au panier */}
-      <button onClick={handleAddToCart} disabled={adding}
-        style={{ width: '100%', padding: '14px 0', background: DARK, color: 'white', border: 'none', borderRadius: 4, fontSize: 13, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', cursor: adding ? 'wait' : 'pointer', marginBottom: 10, opacity: adding ? 0.8 : 1, transition: 'opacity .2s' }}>
-        {adding ? '✓ Ajouté !' : 'Ajouter au panier'}
-      </button>
+      <Button variant="primary" fullWidth onClick={handleAddToCart} disabled={adding}
+        style={{ marginBottom: 10, opacity: adding ? 0.8 : 1, transition: 'opacity .2s', cursor: adding ? 'wait' : 'pointer' }}>
+        {adding ? '✓ Ajouté !' : 'Ajouter au panier'}
+      </Button>
 
       {/* Bouton Acheter maintenant */}
-      <button onClick={handleBuyNow}
-        style={{ width: '100%', padding: '13px 0', background: 'transparent', color: DARK, border: `2px solid ${DARK}`, borderRadius: 4, fontSize: 13, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', marginBottom: 18 }}>
+      <Button variant="outline" fullWidth onClick={handleBuyNow} style={{ marginBottom: 18 }}>
         Acheter maintenant
-      </button>
+      </Button>
 
       {/* Badges paiement */}
       {payments.length > 0 && (
@@ -250,6 +250,20 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
   const [selectedTone, setSelectedTone] = useState<SkinTone>(product.skinTones[0] ?? 'noir');
   const [activeTab,    setActiveTab]    = useState<'description' | 'usage' | 'ingredients' | 'reviews'>('description');
   const [adding,       setAdding]       = useState(false);
+
+  /* ── Sticky CTA mobile ───────────────────────────────────────── */
+  const mobilePurchaseRef                = useRef<HTMLDivElement>(null);
+  const [showSticky, setShowSticky]      = useState(false);
+  useEffect(() => {
+    const el = mobilePurchaseRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => setShowSticky(!e.isIntersecting),
+      { threshold: 0.1 },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
 
   const category         = CATEGORIES.find(c => c.id === product.category);
   const inWishlist       = isInWishlist(product.id);
@@ -325,7 +339,7 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
               </div>
             )}
             <button onClick={() => toggle(product)}
-              style={{ position: 'absolute', bottom: 14, right: 14, width: 38, height: 38, borderRadius: '50%', background: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,.15)' }}>
+              style={{ position: 'absolute', bottom: 14, right: 14, width: 44, height: 44, borderRadius: '50%', background: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,.15)' }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill={inWishlist ? GOLD : 'none'} stroke={inWishlist ? GOLD : TXT2} strokeWidth="1.8">
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
               </svg>
@@ -410,7 +424,7 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
               </div>
             )}
             <button onClick={() => toggle(product)}
-              style={{ position: 'absolute', bottom: 12, right: 12, width: 36, height: 36, borderRadius: '50%', background: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,.15)' }}>
+              style={{ position: 'absolute', bottom: 12, right: 12, width: 44, height: 44, borderRadius: '50%', background: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,.15)' }}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill={inWishlist ? GOLD : 'none'} stroke={inWishlist ? GOLD : TXT2} strokeWidth="1.8">
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
               </svg>
@@ -475,7 +489,8 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
           </div>
 
           {/* Purchase card */}
-          <PurchaseCard
+          <div ref={mobilePurchaseRef}>
+            <PurchaseCard
               product={product}
               selectedTone={selectedTone}
               setSelectedTone={setSelectedTone}
@@ -488,6 +503,7 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
               discount={discount}
               customToneImages={customToneImages}
             />
+          </div>
 
         </div>{/* end mobile */}
 
@@ -628,6 +644,48 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
         )}
 
       </div>
+
+      {/* ── Sticky CTA mobile (s'affiche quand la PurchaseCard sort du viewport) ── */}
+      {showSticky && (
+        <div
+          className="lg:hidden"
+          role="region"
+          aria-label="Acheter rapidement"
+          style={{
+            position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100,
+            background: 'white', borderTop: `1px solid ${BORDER}`,
+            padding: '10px 16px',
+            display: 'flex', alignItems: 'center', gap: 12,
+            boxShadow: '0 -4px 20px rgba(0,0,0,0.1)',
+          }}
+        >
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: TXT, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {product.name}
+            </p>
+            <p style={{ fontSize: 14, fontWeight: 800, color: GOLD, margin: 0 }}>
+              {product.price.toLocaleString('fr-FR')}&nbsp;FCFA
+            </p>
+          </div>
+          <button
+            onClick={handleAddToCart}
+            disabled={adding}
+            aria-label="Ajouter au panier"
+            style={{
+              flexShrink: 0, minWidth: 152, height: 44,
+              background: adding ? GOLD : DARK, color: 'white',
+              border: 'none', borderRadius: 4,
+              fontSize: 12, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase',
+              cursor: adding ? 'wait' : 'pointer',
+              transition: 'background 0.2s',
+              padding: '0 16px',
+            }}
+          >
+            {adding ? '✓ Ajouté !' : 'Ajouter au panier'}
+          </button>
+        </div>
+      )}
+
     </div>
   );
 }

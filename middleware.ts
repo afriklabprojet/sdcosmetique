@@ -2,7 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/utils/supabase/middleware";
 
 // Routes publiques qui n'ont jamais besoin d'auth → bypass complet (réduit latence + chaîne de redirections)
-const PUBLIC_PREFIXES = ['/', '/boutique', '/produit', '/categorie', '/quiz', '/teint', '/avis', '/confirmation'];
+// Note : /confirmation intentionnellement absente — la session Supabase doit s'initialiser (redirect mobile money)
+const PUBLIC_PREFIXES = ['/', '/boutique', '/produit', '/categorie', '/quiz', '/teint', '/avis'];
 
 function isPublicOnly(pathname: string): boolean {
   // Racine exacte

@@ -58,12 +58,15 @@ export async function POST(req: NextRequest) {
       .neq('payment_status', 'paid');
 
     if (error) {
-      
+      // [LOG-01] Logguer l'erreur DB pour débogage — Jeko retentera automatiquement
+      // car on retourne 500 (retry policy Jeko : 3 tentatives espacées de 5 min).
+      console.error('[jeko-webhook] Erreur DB update ordre', reference, error);
       // 5xx → Jeko retentera
       return NextResponse.json({ error: 'db_error' }, { status: 500 });
     }
   } catch (e) {
-    
+    // [LOG-01] Catch inattendu : logguer pour diagnostiquer
+    console.error('[jeko-webhook] Erreur inattendue', reference, e);
     return NextResponse.json({ error: 'internal_error' }, { status: 500 });
   }
 

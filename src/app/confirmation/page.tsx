@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { getLastOrder, formatOrderDate, OrderDraft } from '@/lib/orders';
 import { formatPrice } from '@/lib/products';
 
@@ -64,7 +65,16 @@ const SPARKLES = [
 ];
 
 export default function ConfirmationPage() {
+  const router = useRouter();
   const [order] = useState<OrderDraft | null>(() => getLastOrder());
+
+  // SEC-04 : si aucune commande en localStorage, l'utilisateur n'arrive pas du checkout
+  // → rediriger vers la boutique pour éviter l'affichage d'une fausse "confirmation"
+  useEffect(() => {
+    if (order === null) {
+      router.replace('/boutique');
+    }
+  }, [order, router]);
 
   const orderDate = order
     ? formatOrderDate(order.date)
@@ -91,7 +101,7 @@ export default function ConfirmationPage() {
             }}>
               {/* Sparkles */}
               {SPARKLES.map((s, i) => (
-                <span key={i} aria-hidden="true" style={{
+                <span key={`${s.top}-${s.left}`} aria-hidden="true" style={{
                   position: 'absolute', top: s.top, left: s.left,
                   fontSize: s.size, lineHeight: 1, opacity: s.op,
                   transform: `rotate(${s.rot}deg)`, pointerEvents: 'none',

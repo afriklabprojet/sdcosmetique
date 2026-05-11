@@ -20,7 +20,9 @@ export async function POST(request: Request) {
     const skin_tone = typeof body.skin_tone === 'string' ? body.skin_tone.slice(0, 50) : null;
     const concern = typeof body.concern === 'string' ? body.concern.slice(0, 80) : null;
     const routine = typeof body.routine === 'string' ? body.routine.slice(0, 80) : null;
-    const user_email = typeof body.email === 'string' && body.email.includes('@') ? body.email.slice(0, 200) : null;
+    // [CQ-08] Regex email identique à celle du contact — email.includes('@') trop permissif
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const user_email = typeof body.email === 'string' && EMAIL_RE.test(body.email) ? body.email.slice(0, 200) : null;
 
     const supabase = createServiceClient();
     const { error } = await supabase.from('quiz_submissions').insert({ skin_tone, concern, routine, user_email });

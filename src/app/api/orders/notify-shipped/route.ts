@@ -24,10 +24,15 @@ export async function POST(req: Request) {
   if (!order?.orderNumber || !order?.delivery?.email) {
     return NextResponse.json({ error: 'invalid_order' }, { status: 400 });
   }
-  sendOrderShipped(order, trackingUrl).catch(() => {});
+  // [PERF-02] Log les erreurs pour détecter les pannes silencieuses Resend/WhatsApp.
+  sendOrderShipped(order, trackingUrl).catch((err) =>
+    console.error('[notify-shipped] sendOrderShipped error', order.orderNumber, err)
+  );
   // WhatsApp en parallèle si le client a un numéro
   if (order.delivery.phone) {
-    sendWaOrderShipped(order, trackingUrl).catch(() => {});
+    sendWaOrderShipped(order, trackingUrl).catch((err) =>
+      console.error('[notify-shipped] sendWaOrderShipped error', order.orderNumber, err)
+    );
   }
   return NextResponse.json({ ok: true });
 }

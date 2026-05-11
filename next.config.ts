@@ -21,10 +21,11 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // Variables publiques toujours disponibles au build et au runtime
+  // [SEC-01] Variables publiques : plus de fallbacks hardcodés pour les secrets.
+  // Les clés Supabase DOIVENT être définies dans .env.local / env de déploiement.
   env: {
-    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://spcguwuqqwvjfnfctrzs.supabase.co',
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwY2d1d3VxcXd2amZuZmN0cnpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0MzExNjMsImV4cCI6MjA2MjAwNzE2M30.YPixgCyODVWO7gptpuNd-m32nLvLDqdXCJRIrTpr2dE',
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://floralwhite-fish-697630.hostingersite.com',
     NEXT_PUBLIC_SITE_NAME: process.env.NEXT_PUBLIC_SITE_NAME ?? 'SD Cosmétique',
   },
@@ -130,6 +131,24 @@ const nextConfig: NextConfig = {
           },
           // Réduit les redirections HTTP → HTTPS
           { key: "X-DNS-Prefetch-Control", value: "on" },
+          // [SEC-02] Content-Security-Policy — Report-Only pour collecter sans bloquer.
+          // Passer en Content-Security-Policy (enforced) après validation des rapports.
+          {
+            key: "Content-Security-Policy-Report-Only",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: blob: https://spcguwuqqwvjfnfctrzs.supabase.co https://images.unsplash.com",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://graph.facebook.com https://api.resend.com",
+              "font-src 'self' data:",
+              "frame-ancestors 'none'",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "report-uri /api/csp-report",
+            ].join('; '),
+          },
         ],
       },
     ];

@@ -68,7 +68,7 @@ export interface Review {
   verified: boolean;
 }
 
-export type PaymentMethod = 'orange_money' | 'wave' | 'mtn_momo' | 'moov_money';
+export type PaymentMethod = 'orange_money' | 'wave' | 'mtn_momo' | 'moov_money' | 'cash_on_delivery';
 
 export const PAYMENT_METHODS: { id: PaymentMethod; label: string; icon: string }[] = [
   { id: 'orange_money', label: 'Orange Money', icon: '/icons/orange-money.svg' },

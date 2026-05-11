@@ -25,10 +25,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'invalid_order' }, { status: 400 });
   }
   // Fire and forget — on ne fait pas attendre le client en cas de panne.
-  sendOrderConfirmation(order).catch(() => {});
+  // [PERF-02] Log les erreurs pour détecter les pannes silencieuses Resend/WhatsApp.
+  sendOrderConfirmation(order).catch((err) =>
+    console.error('[notify] sendOrderConfirmation error', order.orderNumber, err)
+  );
   // WhatsApp en parallèle si le client a un numéro
   if (order.delivery.phone) {
-    sendWaOrderConfirmation(order).catch(() => {});
+    sendWaOrderConfirmation(order).catch((err) =>
+      console.error('[notify] sendWaOrderConfirmation error', order.orderNumber, err)
+    );
   }
   return NextResponse.json({ ok: true });
 }
