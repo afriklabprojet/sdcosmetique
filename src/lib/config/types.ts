@@ -264,4 +264,5 @@ export type SiteConfig = {
   newsletter: NewsletterConfig;
   marketing: MarketingConfig;
   branding: BrandingConfig;
+  payment_methods_active?: string[];
 };
