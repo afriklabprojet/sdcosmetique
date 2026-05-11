@@ -2,12 +2,12 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import styles from '../auth.module.css';
 
-export default function ConnexionPage() {
+function ConnexionContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [showPwd, setShowPwd] = useState(false);
@@ -189,5 +189,13 @@ export default function ConnexionPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function ConnexionPage() {
+  return (
+    <Suspense>
+      <ConnexionContent />
+    </Suspense>
   );
 }
