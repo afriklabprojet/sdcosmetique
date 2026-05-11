@@ -83,12 +83,22 @@ export async function POST(req: NextRequest) {
     });
   } catch (e) {
     if (e instanceof JekoPayError) {
+      console.error('[jeko-pay] Erreur API Jeko:', {
+        httpStatus: e.status,
+        jekoMessage: e.body?.message,
+        jekoId: e.body?.id,
+        jekoExtras: e.body?.extras,
+        provider,
+        amountXof: body.amountXof,
+        orderNumber: body.orderNumber,
+      });
       return NextResponse.json(
         { error: 'jeko_error', status: e.status, body: e.body },
         { status: e.status >= 500 ? 502 : e.status },
       );
     }
     
-    return NextResponse.json({ error: 'internal_error' }, { status: 500 });
+    console.error('[jeko-pay] Erreur interne:', e instanceof Error ? e.message : e);
+    return NextResponse.json({ error: 'internal_error', message: e instanceof Error ? e.message : 'unknown' }, { status: 500 });
   }
 }
