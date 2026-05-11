@@ -11,6 +11,8 @@ const PUBLIC_CONFIG_KEYS = new Set([
   'free_shipping_threshold',
   'site_announcement',
   'promo_banner_text',
+  'payment_images',
+  'payment_methods_active',
 ]);
 
 export async function GET(

@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import type { OrderDraft } from '@/lib/orders';
 import { sendOrderConfirmation } from '@/lib/emails';
 import { sendWaOrderConfirmation } from '@/lib/whatsapp';
-import { db } from '@/lib/db';
 
 export const runtime = 'nodejs';
 
@@ -12,9 +11,6 @@ export const runtime = 'nodejs';
  * No-op si RESEND_API_KEY est absent.
  */
 export async function POST(req: Request) {
-  const userClient = await db();
-  const { data: { user } } = await userClient.auth.getUser();
-  if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   let order: OrderDraft;
   try {
     order = (await req.json()) as OrderDraft;
