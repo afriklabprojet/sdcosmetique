@@ -3,6 +3,30 @@
 // DOIT être défini AVANT tout require Next.js
 process.env.NODE_ENV = 'production'
 
+// Charger .env.production EXPLICITEMENT avant Next.js
+// (Next.js standalone ne charge pas toujours les env vars runtime correctement)
+;(function loadEnvProduction() {
+  const path = require('node:path')
+  const fs = require('node:fs')
+  try {
+    const envFile = path.join(__dirname, '.env.production')
+    if (!fs.existsSync(envFile)) return
+    const lines = fs.readFileSync(envFile, 'utf8').split('\n')
+    for (const line of lines) {
+      const trimmed = line.trim()
+      if (!trimmed || trimmed.startsWith('#')) continue
+      const eqIdx = trimmed.indexOf('=')
+      if (eqIdx === -1) continue
+      const key = trimmed.slice(0, eqIdx).trim()
+      const value = trimmed.slice(eqIdx + 1)
+      if (key) process.env[key] = value
+    }
+    console.log('[server] .env.production chargé explicitement')
+  } catch (e) {
+    console.warn('[server] Impossible de charger .env.production:', e.message)
+  }
+})()
+
 // En mode standalone, Next.js supprime webpack de node_modules.
 // La var __NEXT_PRIVATE_STANDALONE_CONFIG signale à Next.js d'utiliser
 // la config JSON du build et de ne PAS lever l'erreur webpack manquant.

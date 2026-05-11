@@ -6,7 +6,7 @@ set -e
 
 SERVER="u799662826@82.29.186.206"
 PORT="65002"
-REMOTE_PATH="~/domains/floralwhite-fish-697630.hostingersite.com/nodejs"
+REMOTE_PATH="~/domains/sdcosmetique.ci/nodejs"
 
 MSG="${1:-update}"
 
