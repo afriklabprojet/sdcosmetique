@@ -24,7 +24,7 @@ interface GlobalPromoProviderProps {
 
 export function GlobalPromoProvider({ initialConfig, children }: GlobalPromoProviderProps) {
   return (
-    <PromoContext.Provider value={initialConfig}>
+    <PromoContext.Provider value={initialConfig ?? DEFAULT_GLOBAL_PROMO}>
       {children}
     </PromoContext.Provider>
   );

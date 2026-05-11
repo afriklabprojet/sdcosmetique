@@ -11,8 +11,8 @@ import type { Product } from '@/types';
 /**
  * Vérifie si la promotion est actuellement active (dates + flag enabled).
  */
-export function isPromoActive(promo: GlobalPromoConfig): boolean {
-  if (!promo.enabled) return false;
+export function isPromoActive(promo: GlobalPromoConfig | null | undefined): boolean {
+  if (!promo?.enabled) return false;
   const now = Date.now();
   if (promo.startAt && new Date(promo.startAt).getTime() > now) return false;
   if (promo.endAt && new Date(promo.endAt).getTime() < now) return false;
@@ -43,7 +43,7 @@ export interface EffectivePrice {
  */
 export function computeEffectivePrice(
   product: Product,
-  promo: GlobalPromoConfig,
+  promo: GlobalPromoConfig | null | undefined,
 ): EffectivePrice {
   const basePrice = product.price;
 
@@ -55,7 +55,7 @@ export function computeEffectivePrice(
 
   // Remise globale
   const globalActive = isPromoActive(promo);
-  const globalPct = globalActive ? Math.min(Math.max(promo.discountPercentage, 0), 99) : 0;
+  const globalPct = globalActive ? Math.min(Math.max(promo?.discountPercentage ?? 0, 0), 99) : 0;
 
   // On choisit la meilleure remise
   if (individualPct <= 0 && globalPct <= 0) {
