@@ -3370,6 +3370,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               { id: 'moov_money',     label: 'Moov Money',        emoji: '🔷', color: '#003087', desc: 'Moov Africa' },
               { id: 'djamo',          label: 'Djamo',             emoji: '🟣', color: '#4C35A8', desc: 'Carte virtuelle Djamo' },
               { id: 'visa_mastercard',label: 'Visa / Mastercard', emoji: '💳', color: '#1A1F71', desc: 'Carte bancaire internationale' },
+              { id: 'cash_on_delivery', label: 'Paiement à la livraison', emoji: '💵', color: '#10B981', desc: 'Paiement en espèces à la réception' },
             ];
             const active: string[] = (siteContent as Record<string, unknown>).payment_methods_active
               ? ((siteContent as Record<string, unknown>).payment_methods_active as string[])

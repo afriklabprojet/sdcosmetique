@@ -42,6 +42,7 @@ export default function CheckoutPage() {
   const [promoInput, setPromoInput] = useState('');
   const [appliedPromo, setAppliedPromo] = useState<{ code: PromoCode; discount: number } | null>(null);
   const [promoError, setPromoError] = useState<string | null>(null);
+  const [activeMethods, setActiveMethods] = useState<string[]>(['orange_money', 'wave', 'mtn_momo', 'moov_money', 'cash_on_delivery']);
   useEffect(() => {
     fetchSiteConfigSection('shipping').then(cfg => {
       setShippingCfg(cfg);
@@ -49,6 +50,14 @@ export default function CheckoutPage() {
       if (first) setSelectedShipping(first);
     }).catch(() => {});
     fetchSiteConfigSection('promo_codes').then(setPromoCodes).catch(() => {});
+    fetch('/api/config/payment_methods_active')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.value && Array.isArray(data.value) && data.value.length > 0) {
+          setActiveMethods(data.value);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   // Re-valider la promo si le sous-total ou la liste change
@@ -205,7 +214,7 @@ export default function CheckoutPage() {
             <Suspense fallback={null}>
               {step === 'cart'     && <CartStep onNext={() => setStep('delivery')} />}
               {step === 'delivery' && <DeliveryStep delivery={delivery} setDelivery={setDelivery} setStep={setStep} handleDeliverySubmit={handleDeliverySubmit} shippingOptions={shippingCfg.options ?? []} selectedShipping={selectedShipping} setSelectedShipping={setSelectedShipping} />}
-              {step === 'payment'  && <PaymentStep paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} mobileNumber={mobileNumber} setMobileNumber={setMobileNumber} handlePlaceOrder={handlePlaceOrder} processing={processing} setStep={setStep} isMobile={isMobile} />}
+              {step === 'payment'  && <PaymentStep paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} mobileNumber={mobileNumber} setMobileNumber={setMobileNumber} handlePlaceOrder={handlePlaceOrder} processing={processing} setStep={setStep} isMobile={isMobile} activeMethods={activeMethods} />}
             </Suspense>
           </div>
 

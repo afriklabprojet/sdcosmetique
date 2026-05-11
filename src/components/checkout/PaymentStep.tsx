@@ -32,19 +32,23 @@ interface PaymentStepProps {
   readonly processing: boolean;
   readonly setStep: (s: CheckoutStep) => void;
   readonly isMobile: boolean;
+  readonly activeMethods?: string[];
 }
 
-export default function PaymentStep({ paymentMethod, setPaymentMethod, mobileNumber, setMobileNumber, handlePlaceOrder, processing, setStep, isMobile }: PaymentStepProps) {
+export default function PaymentStep({ paymentMethod, setPaymentMethod, mobileNumber, setMobileNumber, handlePlaceOrder, processing, setStep, isMobile, activeMethods = ['orange_money', 'wave', 'mtn_momo', 'moov_money', 'cash_on_delivery'] }: PaymentStepProps) {
   const showMobileInput = ['orange_money', 'wave', 'mtn_momo', 'moov_money'].includes(paymentMethod);
+  const visibleMobile = MOBILE_METHODS.filter(m => activeMethods.includes(m.id));
+  const showCashOnDelivery = activeMethods.includes('cash_on_delivery');
   return (
     <div style={{ background: 'white', border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '24px' }}>
       <h2 style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: TXT, marginBottom: '20px' }}>Mode de paiement</h2>
       <form onSubmit={handlePlaceOrder} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         {/* Mobile money methods */}
+        {visibleMobile.length > 0 && (
         <div>
           <p style={{ fontSize: '11px', fontWeight: 600, color: TXT2, marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Paiement Mobile</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {MOBILE_METHODS.map(m => {
+            {visibleMobile.map(m => {
               const isSelected = paymentMethod === m.id;
               return (
                 <div key={m.id} role="radio" aria-checked={isSelected} tabIndex={0}
@@ -62,6 +66,7 @@ export default function PaymentStep({ paymentMethod, setPaymentMethod, mobileNum
             })}
           </div>
         </div>
+        )}
 
         {/* Phone number (shown when mobile payment selected) */}
         {showMobileInput && (
@@ -71,7 +76,8 @@ export default function PaymentStep({ paymentMethod, setPaymentMethod, mobileNum
           </div>
         )}
 
-        {/* Cash on delivery */}
+        {/* Cash on delivery — visible uniquement si activé en admin */}
+        {showCashOnDelivery && (
         <div role="radio" aria-checked={paymentMethod === 'cash_on_delivery'} tabIndex={0}
           onClick={() => setPaymentMethod('cash_on_delivery')}
           onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setPaymentMethod('cash_on_delivery'); } }}
@@ -82,6 +88,7 @@ export default function PaymentStep({ paymentMethod, setPaymentMethod, mobileNum
             <p style={{ fontSize: '11px', color: TXT2 }}>Payez en espèces à la réception</p>
           </div>
         </div>
+        )}
 
         <div style={{ display: 'flex', gap: '10px', marginTop: '8px', justifyContent: 'space-between' }}>
           <button type="button" onClick={() => setStep('delivery')}
