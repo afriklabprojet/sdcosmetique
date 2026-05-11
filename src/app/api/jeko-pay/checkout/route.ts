@@ -18,7 +18,9 @@ interface CheckoutBody {
 }
 
 function siteUrl(): string {
-  return process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+  // SITE_URL est lu au runtime (pas inliné au build) — priorité sur NEXT_PUBLIC_SITE_URL
+  // qui lui est inliné au build-time et peut être figé à http://localhost:3000
+  return process.env.SITE_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
 }
 
 function resolveProvider(method: string): JekoPayProvider | null {

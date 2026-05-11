@@ -17,6 +17,7 @@ export async function GET() {
     JEKO_API_KEY_ID:   process.env.JEKO_API_KEY_ID ? `✅ ${process.env.JEKO_API_KEY_ID}` : '❌ MANQUANT',
     JEKO_STORE_ID:     process.env.JEKO_STORE_ID ? `✅ ${process.env.JEKO_STORE_ID}` : '❌ MANQUANT',
     JEKO_API_BASE_URL: process.env.JEKO_API_BASE_URL ?? '(défaut: https://api.jeko.africa)',
+    SITE_URL: process.env.SITE_URL ?? '❌ MANQUANT',
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL ?? '❌ MANQUANT → localhost:3000',
   };
 
@@ -36,7 +37,7 @@ export async function GET() {
   // On utilise une référence unique pour ce test
   try {
     const testRef = `TEST-DIAG-${Date.now()}`;
-    const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+    const base = process.env.SITE_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
     const payment = await createRedirectPayment({
       amountCents: 10000, // 100 XOF * 100 centimes
       reference: testRef,
