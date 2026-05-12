@@ -5,33 +5,34 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { formatPrice } from '@/lib/products';
+import { GOLD, BORDER, TXT, TXT2 } from './shared';
 
 interface CartStepProps {
   readonly onNext: () => void;
 }
 
 export default function CartStep({ onNext }: CartStepProps) {
-  const { items, updateQty, removeItem, totalPrice } = useCart();
+  const { items, updateQty, removeItem } = useCart();
   
   if (items.length === 0) {
     return (
       <div style={{
         textAlign: 'center',
         padding: '48px 24px',
-        background: '#0A0A0A',
+        background: 'white',
         borderRadius: '12px',
-        border: '1px solid #222'
+        border: `1px solid ${BORDER}`
       }}>
         <div style={{ fontSize: '64px', marginBottom: '16px' }}>🛍️</div>
-        <h2 style={{ fontSize: '20px', color: '#FAFAFA', marginBottom: '8px' }}>Votre panier est vide</h2>
-        <p style={{ color: '#888', marginBottom: '24px' }}>Découvrez nos produits et ajoutez-les à votre panier.</p>
+        <h2 style={{ fontSize: '20px', color: TXT, marginBottom: '8px' }}>Votre panier est vide</h2>
+        <p style={{ color: TXT2, marginBottom: '24px' }}>Découvrez nos produits et ajoutez-les à votre panier.</p>
         <Link
           href="/boutique"
           style={{
             display: 'inline-block',
             padding: '12px 24px',
-            background: '#D4A24E',
-            color: '#000',
+            background: GOLD,
+            color: 'white',
             textDecoration: 'none',
             borderRadius: '8px',
             fontWeight: 600
@@ -44,88 +45,85 @@ export default function CartStep({ onNext }: CartStepProps) {
   }
   
   return (
-    <>
-      <style>{`
-        .cs-layout { display: flex; flex-direction: column; gap: 24px; }
-        .cs-sidebar { width: 100%; flex-shrink: 0; }
-        @media (min-width: 768px) {
-          .cs-layout { flex-direction: row; align-items: flex-start; }
-          .cs-sidebar { width: 320px; }
-        }
-      `}</style>
-      <div className="cs-layout">
-      <div style={{ flex: 1 }}>
-        <h2 style={{ fontSize: '20px', color: '#FAFAFA', marginBottom: '16px' }}>Vérification du panier</h2>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <h2 style={{ fontSize: '18px', fontWeight: 700, color: TXT, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '4px' }}>Vérification du panier</h2>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {items.map(item => (
             <div key={item.product.id} style={{
               display: 'flex',
-              gap: '16px',
-              padding: '16px',
-              background: '#0A0A0A',
-              borderRadius: '12px',
-              border: '1px solid #222'
+              gap: '14px',
+              padding: '14px 16px',
+              background: 'white',
+              borderRadius: '10px',
+              border: `1px solid ${BORDER}`,
+              alignItems: 'center'
             }}>
               <div style={{
-                width: '80px',
-                height: '80px',
+                width: '72px',
+                height: '72px',
                 borderRadius: '8px',
                 overflow: 'hidden',
-                background: '#1A1A1A'
+                background: '#F5EDE5',
+                flexShrink: 0,
+                border: `1px solid ${BORDER}`
               }}>
                 <Image
                   src={item.product.images?.[0] || '/placeholder.jpg'}
                   alt={item.product.name}
-                  width={80}
-                  height={80}
+                  width={72}
+                  height={72}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
               </div>
               
-              <div style={{ flex: 1 }}>
-                <h3 style={{ fontSize: '16px', color: '#FAFAFA', marginBottom: '4px' }}>{item.product.name}</h3>
-                <p style={{ fontSize: '14px', color: '#D4A24E', fontWeight: 600 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <h3 style={{ fontSize: '14px', fontWeight: 600, color: TXT, marginBottom: '4px', lineHeight: 1.3 }}>{item.product.name}</h3>
+                <p style={{ fontSize: '13px', color: GOLD, fontWeight: 700 }}>
                   {formatPrice(item.product.price)} × {item.quantity}
                 </p>
               </div>
               
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                 <button
                   onClick={() => updateQty(item.product.id, item.quantity - 1)}
                   style={{
-                    width: '32px',
-                    height: '32px',
-                    border: '1px solid #333',
-                    background: '#1A1A1A',
-                    color: '#CCC',
+                    width: '30px',
+                    height: '30px',
+                    border: `1px solid ${BORDER}`,
+                    background: 'white',
+                    color: TXT,
                     borderRadius: '6px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    fontSize: '16px',
+                    lineHeight: 1
                   }}
                 >
                   −
                 </button>
                 
-                <span style={{ color: '#FAFAFA', fontWeight: 600, minWidth: '20px', textAlign: 'center' }}>
+                <span style={{ color: TXT, fontWeight: 700, minWidth: '20px', textAlign: 'center', fontSize: '14px' }}>
                   {item.quantity}
                 </span>
                 
                 <button
                   onClick={() => updateQty(item.product.id, item.quantity + 1)}
                   style={{
-                    width: '32px',
-                    height: '32px',
-                    border: '1px solid #333',
-                    background: '#1A1A1A',
-                    color: '#CCC',
+                    width: '30px',
+                    height: '30px',
+                    border: `1px solid ${BORDER}`,
+                    background: 'white',
+                    color: TXT,
                     borderRadius: '6px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    fontSize: '16px',
+                    lineHeight: 1
                   }}
                 >
                   +
@@ -134,13 +132,14 @@ export default function CartStep({ onNext }: CartStepProps) {
                 <button
                   onClick={() => removeItem(item.product.id)}
                   style={{
-                    marginLeft: '8px',
-                    padding: '8px',
+                    marginLeft: '4px',
+                    padding: '6px',
                     background: 'transparent',
                     border: 'none',
-                    color: '#EF4444',
+                    color: '#B45309',
                     cursor: 'pointer',
-                    fontSize: '16px'
+                    fontSize: '15px',
+                    opacity: 0.7
                   }}
                 >
                   🗑️
@@ -149,68 +148,26 @@ export default function CartStep({ onNext }: CartStepProps) {
             </div>
           ))}
         </div>
-      </div>
-      
-      <div className="cs-sidebar">
-        <div style={{
-          background: '#0A0A0A',
-          padding: '20px',
-          borderRadius: '12px',
-          border: '1px solid #222',
-          position: 'sticky',
-          top: '24px'
-        }}>
-          <h3 style={{ fontSize: '16px', color: '#FAFAFA', marginBottom: '16px' }}>Résumé de commande</h3>
-          
-          <div style={{ borderBottom: '1px solid #222', paddingBottom: '16px', marginBottom: '16px' }}>
-            {items.map(item => (
-              <div key={item.product.id} style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                marginBottom: '8px',
-                fontSize: '14px'
-              }}>
-                <span style={{ color: '#CCC' }}>
-                  {item.product.name} ×{item.quantity}
-                </span>
-                <span style={{ color: '#FAFAFA' }}>
-                  {formatPrice(item.product.price * item.quantity)}
-                </span>
-              </div>
-            ))}
-          </div>
-          
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            fontSize: '18px',
-            fontWeight: 700,
-            color: '#D4A24E',
-            marginBottom: '20px'
-          }}>
-            <span>Total</span>
-            <span>{formatPrice(totalPrice)}</span>
-          </div>
-          
-          <button
-            onClick={onNext}
-            style={{
-              width: '100%',
-              padding: '14px',
-              background: '#D4A24E',
-              color: '#000',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '16px',
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
-          >
-            Continuer →
-          </button>
-        </div>
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <button
+          onClick={onNext}
+          style={{
+            marginTop: '4px',
+            padding: '10px 24px',
+            background: GOLD,
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '13px',
+            fontWeight: 600,
+            cursor: 'pointer',
+            letterSpacing: '0.03em'
+          }}
+        >
+          Continuer →
+        </button>
       </div>
     </div>
-    </>
   );
 }
