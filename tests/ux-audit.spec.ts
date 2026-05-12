@@ -12,7 +12,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 // ── Configuration ─────────────────────────────────────────────
-const BASE = 'http://localhost:3000';
+const BASE = process.env.BASE_URL || 'http://localhost:3000';
 
 const VIEWPORTS = {
   mobile:  { width: 390,  height: 844,  label: 'mobile'  },

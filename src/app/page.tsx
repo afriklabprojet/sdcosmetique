@@ -7,7 +7,6 @@ import CategoryHighlight from '@/components/home/CategoryHighlight';
 export const revalidate = 300;
 // Sections below-fold : code-splitting JS pour réduire le bundle initial (score Lighthouse "unused JS")
 const SkinToneSection  = dynamic(() => import('@/components/home/SkinToneSection'),  { ssr: true });
-const TrustBar         = dynamic(() => import('@/components/home/TrustBar'),          { ssr: true });
 const Testimonials     = dynamic(() => import('@/components/home/Testimonials'),      { ssr: true });
 const TrendingProducts = dynamic(() => import('@/components/home/TrendingProducts'),  { ssr: true });
 const PaymentBand      = dynamic(() => import('@/components/home/PaymentBand'),       { ssr: true });
@@ -45,7 +44,6 @@ export default async function HomePage() {
       <Suspense fallback={<TrendingProductsSkeleton count={10} />}>
         <BestsellersSection />
       </Suspense>
-      <TrustBar items={siteConfig.trust_items} />
       <Testimonials rows={testimonials} />
       <PaymentBand />
     </>

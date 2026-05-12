@@ -63,7 +63,7 @@ export default function Footer({ logoUrl, siteName }: Readonly<{ logoUrl?: strin
   };
 
   return (
-    <footer style={{ background: '#3D1400', color: '#fff', padding: '48px 24px 24px' }}>
+    <footer style={{ background: '#8f5922', color: '#fff', padding: '48px 24px 24px' }}>
       <style>{`
         .footer-grid {
           grid-template-columns: 1.3fr 1fr 1fr 1fr 1.5fr;
@@ -206,7 +206,7 @@ export default function Footer({ logoUrl, siteName }: Readonly<{ logoUrl?: strin
         paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.1)',
         textAlign: 'center',
         fontFamily: 'var(--font-inter), Inter, sans-serif',
-        fontSize: '0.75rem', color: '#A88E68',
+        fontSize: '0.75rem', color: '#ffffff',
       }}>
         © {new Date().getFullYear()} SD COSMETIQUE. Tous droits réservés.
       </div>

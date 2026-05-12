@@ -1,7 +1,7 @@
 # 🔍 RAPPORT D'AUDIT UX/UI — SD Cosmétique
 > Audit automatisé par Playwright + Axe-core  
-> Date : 11 mai 2026  
-> URL auditée : http://localhost:3000  
+> Date : 12 mai 2026  
+> URL auditée : https://sdcosmetique.ci  
 > Pages analysées : 7 | Viewports : 4 (mobile, tablet, desktop, wide)
 
 ---
@@ -11,22 +11,21 @@
 | Dimension | Score | Niveau |
 |-----------|-------|--------|
 | **UX** | 8/10 | 🟢 Bon |
-| **UI** | 3/10 | 🔴 Critique |
-| **Accessibilité** | 6/10 | 🟡 Passable |
-| **Responsive** | 4/10 | 🔴 Critique |
-| **Performance visuelle** | 9/10 | 🟢 Bon |
+| **UI** | 8.1/10 | 🟢 Bon |
+| **Accessibilité** | 7/10 | 🟡 Passable |
+| **Responsive** | 9.5/10 | 🟢 Bon |
+| **Performance visuelle** | 7/10 | 🟡 Passable |
 | **Cohérence design** | 9.5/10 | 🟢 Bon |
 
-**Score moyen : 6.6/10**
+**Score moyen : 8.2/10**
 
 ---
 
 ## 🚨 PROBLÈMES CRITIQUES
 
-- ❌ **[select-name]** Ensure select element has an accessible name *(1 élément(s))*
+- ❌ **[meta-refresh]** Ensure <meta http-equiv="refresh"> is not used for delayed refresh *(1 élément(s))*
 
-### ⚠️ Violations sérieuses (1)
-- **[color-contrast]** Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds *(11 nœud(s))*
+
 
 ---
 
@@ -38,31 +37,16 @@
 - **Recommandation :** Migrer vers des classes CSS / design tokens (CSS variables). Cible : < 20 éléments inline  
 - **Priorité :** 🔴 HAUTE
 
-### 2. Contraste — 10 potentiels problèmes détectés
-- **"SD CosmetiqueBeauté Africaine de Prestig"** → ratio 1.21:1 (requis 4.5:1 — WCAG AA)
-- **"SD Cosmetique"** → ratio 1.21:1 (requis 3:1 — WCAG AA Large)
-- **"ACCUEIL"** → ratio 1.11:1 (requis 4.5:1 — WCAG AA)
-- **"VISAGE"** → ratio 1.11:1 (requis 4.5:1 — WCAG AA)
-- **"CORPS"** → ratio 1.11:1 (requis 4.5:1 — WCAG AA)
+### 2. Contraste — 3 potentiels problèmes détectés
+- **"Checking your browser before accessingsd"** → ratio 1.21:1 (requis 3:1 — WCAG AA Large)
+- **"sdcosmetique.ci"** → ratio 1.21:1 (requis 3:1 — WCAG AA Large)
+- **"Please wait for up to 5 seconds..."** → ratio 3.66:1 (requis 4.5:1 — WCAG AA)
 
 ### 3. Cibles tactiles insuffisantes (mobile)
-**15 éléments interactifs < 44px détectés :**
-- `<a>` "Facebook" — 14×14px
-- `<a>` "Instagram" — 14×14px
-- `<a>` "TikTok" — 14×14px
-- `<a>` "ACCUEIL" — 61×26px
-- `<a>` "VISAGE" — 52×26px
-- `<a>` "CORPS" — 48×26px
-- `<a>` "GAMMES" — 63×26px
-- `<a>` "KITS" — 33×26px
+✅ Toutes les cibles sont ≥ 44px.
 
 ### 4. Overflow horizontal
-**10 éléments débordent :**
-- `DIV.fixed` → +448px
-- `DIV.flex` → +448px
-- `DIV` → +116px
-- `H2.text-lg` → +116px
-- `P.text-xs` → +116px
+✅ Aucun débordement horizontal détecté.
 
 ---
 
@@ -83,8 +67,8 @@
 - Images Next.js optimisées (`_next/image`)
 
 ### Points d'attention
-- ⚠️ **15 éléments tactiles < 44px** — risque de taux de tap manqués élevé
-- ❌ **Overflow horizontal** détecté sur 10 éléments
+- ✅ Cibles tactiles conformes
+- ✅ Pas de défilement horizontal non voulu
 - Vérifier la taille du texte min. **16px** sur tous les inputs (évite le zoom auto iOS)
 - Le panier/navbar mobile doit être testée après chaque refacto layout
 
@@ -120,9 +104,9 @@
 
 | Métrique | Valeur | Cible | Statut |
 |---------|--------|-------|--------|
-| FCP moyen | 268ms | < 1800ms | ✅ |
-| TTFB moyen | 128ms | < 200ms | ✅ |
-| Load complet | 939ms | < 4000ms | ✅ |
+| FCP moyen | 1412ms | < 1800ms | ✅ |
+| TTFB moyen | 139ms | < 200ms | ✅ |
+| Load complet | 1919ms | < 4000ms | ✅ |
 
 ### Recommandations performance
 - Vérifier que `<Image>` Next.js est utilisé sur **toutes** les images produit (pas de balises `<img>` nues)
@@ -134,13 +118,12 @@
 ## ♿ ACCESSIBILITÉ WCAG 2.1
 
 ### Résumé par page
-| 🔴 `/boutique` | 4 violations | 1 critiques | 1 sérieuses |
+| 🔴 `/produit/savon-visage-orange` | 3 violations | 1 critiques | 0 sérieuses |
 
 ### Violations les plus fréquentes
-- `color-contrast` — 11 occurrence(s)
-- `region` — 4 occurrence(s)
-- `heading-order` — 1 occurrence(s)
-- `select-name` — 1 occurrence(s)
+- `landmark-one-main` — 1 occurrence(s)
+- `meta-refresh` — 1 occurrence(s)
+- `region` — 1 occurrence(s)
 
 ---
 
@@ -233,5 +216,5 @@ Tous les screenshots sont dans : `tests/audit-screenshots/`
 
 ---
 
-*Rapport généré automatiquement le 11 mai 2026 par Playwright Audit*  
+*Rapport généré automatiquement le 12 mai 2026 par Playwright Audit*  
 *Stack : Playwright 1.59 + @axe-core/playwright + Analyse DOM custom*

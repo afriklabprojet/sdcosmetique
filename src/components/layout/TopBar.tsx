@@ -18,7 +18,7 @@ export default function TopBar({
   return (
     <div
       style={{
-        background: '#5A2B0C',
+        background: '#8f5922',
         color: '#F4E8D8',
         fontFamily: 'var(--font-inter), Inter, sans-serif',
         fontSize: '0.78rem',

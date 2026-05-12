@@ -64,9 +64,55 @@ scp -P $PORT server.js $SERVER:$REMOTE_PATH/server.js
 echo "📋 Copie .env.production..."
 scp -P $PORT .env.production $SERVER:$REMOTE_PATH/.env.production
 
-# 6. Tuer les anciens processus — LiteSpeed en relancera automatiquement de nouveaux
+# 6. Vider le fetch-cache (unstable_cache) pour éviter les SyntaxError si rsync a tronqué des fichiers
+#    Le cache sera re-peuplé à la première requête (60s revalidate)
+echo "🗑️  Vidage fetch-cache (prévention corruption JSON)..."
+ssh -p $PORT $SERVER "rm -rf ~/domains/sdcosmetique.ci/nodejs/.next/cache/fetch-cache ~/domains/sdcosmetique.ci/nodejs/.next/cache/images 2>/dev/null; true" 2>/dev/null || true
+
+# 6b. Tuer les anciens processus — LiteSpeed en relancera automatiquement de nouveaux
 echo "♻️  Restart Node.js (kill + LiteSpeed auto-restart)..."
 ssh -p $PORT $SERVER "pkill -9 -f 'next-server' 2>/dev/null; pkill -9 -f 'server\.js' 2>/dev/null; pkill -f 'lsnode' 2>/dev/null; true" 2>/dev/null || true
+
+# 6b. 2ème rsync static APRÈS restart — écrase ce que le CI Hostinger aurait pu déployer
+#     Le CI tourne en parallèle et peut overwrite nos fichiers pendant le sleep
+#     Cette passe finale garantit que nos fichiers locaux gagnent
+echo "🔁 Rsync final .next/static/ (override CI)..."
+rsync -az --checksum --delete \
+  -e "ssh -p $PORT" \
+  .next/static/ \
+  $SERVER:$REMOTE_PATH/.next/static/
+
+# 6c. Rsync standalone une 2ème fois pour aligner build-manifest avec les static
+echo "🔁 Rsync final standalone (build-manifest)..."
+rsync -az --checksum --delete \
+  --exclude='.next/cache' \
+  --exclude='.next/static' \
+  -e "ssh -p $PORT" \
+  .next/standalone/ \
+  $SERVER:$REMOTE_PATH/
+
+# 6d. Garantir que le preload-timestamp.js garde le bloc de chargement des env JEKO
+#     (protection contre tout écrasement accidentel par le CI Hostinger)
+echo "🔐 Vérification preload env vars (JEKO)..."
+ssh -p $PORT $SERVER 'PRELOAD="/home/u799662826/domains/sdcosmetique.ci/public_html/.builds/config/preload-timestamp.js"; if ! grep -q "JEKO_API_KEY" "$PRELOAD" 2>/dev/null; then cat >> "$PRELOAD" << '"'"'ENVBLOCK'"'"'
+// Load missing env vars from .env file
+(function() {
+  const fs = require("fs");
+  const envPath = "/home/u799662826/domains/sdcosmetique.ci/public_html/.builds/config/.env";
+  try {
+    const lines = fs.readFileSync(envPath, "utf8").split("\n");
+    for (const line of lines) {
+      const m = line.match(/^([A-Z0-9_]+)=(.*)$/);
+      if (m && !process.env[m[1]]) { process.env[m[1]] = m[2].replace(/^'"'"'|'"'"'$/g, "").replace(/^"|"$/g, ""); }
+    }
+  } catch(e) {}
+})();
+ENVBLOCK
+echo "✅ Preload env block re-ajouté"; else echo "✅ Preload env block OK (déjà présent)"; fi'
+
+# 6d. Restart final après les overrides
+echo "♻️  Restart final..."
+ssh -p $PORT $SERVER "pkill -9 -f 'next-server' 2>/dev/null; pkill -9 -f 'server\.js' 2>/dev/null; true" 2>/dev/null || true
 
 # 7. Vérifier que le site répond
 echo "🔍 Vérification du site (attente démarrage ~15s)..."

@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import styles from '../static.module.css';
-import TrustBar from '@/components/home/TrustBar';
 import { getSiteConfig } from '@/lib/site-config.server';
 
 export const metadata = {
@@ -30,9 +29,6 @@ export default async function MentionsLegalesPage() {
           {legal.updatedAt ? <p className={styles.meta}>Dernière mise à jour · {legal.updatedAt}</p> : null}
         </div>
       </section>
-
-      {/* Ajout de la TrustBar */}
-      <TrustBar />
 
       {legal.bodyHtml?.trim() ? (
         <article className={styles.content}><div dangerouslySetInnerHTML={{ __html: legal.bodyHtml }} /></article>

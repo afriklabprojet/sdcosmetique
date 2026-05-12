@@ -90,7 +90,7 @@ export default function PaymentBand() {
   }, []);
 
   return (
-    <section style={{ background: '#3D1A06', padding: '28px 24px' }}>
+    <section style={{ background: '#8f5922', padding: '28px 24px' }}>
       <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
         {/* Titre */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '20px' }}>
