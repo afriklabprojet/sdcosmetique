@@ -324,9 +324,11 @@ function ProductInfo({ product, category, effectivePrice, adding, onAddToCart }:
             >
               {product.name}
             </p>
-            <p style={{ fontSize: '0.75rem', color: 'var(--warm-grey)', marginBottom: 8 }}>
-              {category?.label ?? 'Soin'} · {product.inStock ? 'En stock' : 'Indisponible'}
-            </p>
+            {!product.inStock && (
+              <p style={{ fontSize: '0.75rem', color: 'var(--warm-grey)', marginBottom: 8 }}>
+                Indisponible
+              </p>
+            )}
 
             {/* Étoiles + avis */}
             <div style={{ marginBottom: 10 }}>
