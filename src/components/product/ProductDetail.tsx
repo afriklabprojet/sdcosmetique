@@ -9,7 +9,6 @@ import { Product, Review, CATEGORIES, SKIN_TONES, SkinTone } from '@/types';
 import type { ProductTrustItem, PaymentBadge, ProductToneImages } from '@/lib/site-config';
 import ProductCard from '@/components/ui/ProductCard';
 import StarRating from '@/components/ui/StarRating';
-import Button    from '@/components/ui/Button';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 
@@ -202,16 +201,52 @@ function PurchaseCard({ product, selectedTone, setSelectedTone, qty, setQty, pay
         </div>
       </div>
 
-      {/* Bouton Ajouter au panier */}
-      <Button variant="primary" fullWidth onClick={handleAddToCart} disabled={adding}
-        style={{ marginBottom: 10, opacity: adding ? 0.8 : 1, transition: 'opacity .2s', cursor: adding ? 'wait' : 'pointer' }}>
-        {adding ? '✓ Ajouté !' : 'Ajouter au panier'}
-      </Button>
+      {/* Bouton Ajouter au panier — minimaliste */}
+      <button
+        onClick={handleAddToCart}
+        disabled={adding}
+        style={{
+          width: '100%',
+          height: 48,
+          marginBottom: 10,
+          background: adding ? TXT : 'transparent',
+          color: adding ? '#fff' : TXT,
+          border: `1px solid ${TXT}`,
+          fontSize: 11,
+          fontWeight: 600,
+          letterSpacing: '0.18em',
+          textTransform: 'uppercase',
+          cursor: adding ? 'wait' : 'pointer',
+          transition: 'background 0.25s ease, color 0.25s ease',
+        }}
+        onMouseEnter={(e) => { if (!adding) { e.currentTarget.style.background = TXT; e.currentTarget.style.color = '#fff'; } }}
+        onMouseLeave={(e) => { if (!adding) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = TXT; } }}
+      >
+        {adding ? '✓ Ajouté' : 'Ajouter au panier'}
+      </button>
 
-      {/* Bouton Acheter maintenant */}
-      <Button variant="outline" fullWidth onClick={handleBuyNow} style={{ marginBottom: 18 }}>
+      {/* Bouton Acheter maintenant — minimaliste */}
+      <button
+        onClick={handleBuyNow}
+        style={{
+          width: '100%',
+          height: 48,
+          marginBottom: 18,
+          background: TXT,
+          color: '#fff',
+          border: `1px solid ${TXT}`,
+          fontSize: 11,
+          fontWeight: 600,
+          letterSpacing: '0.18em',
+          textTransform: 'uppercase',
+          cursor: 'pointer',
+          transition: 'opacity 0.25s ease',
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.85'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
+      >
         Acheter maintenant
-      </Button>
+      </button>
 
       {/* Badges paiement */}
       {payments.length > 0 && (
@@ -673,15 +708,16 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
             aria-label="Ajouter au panier"
             style={{
               flexShrink: 0, minWidth: 152, height: 44,
-              background: adding ? GOLD : DARK, color: 'white',
-              border: 'none', borderRadius: 4,
-              fontSize: 12, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase',
+              background: TXT, color: '#fff',
+              border: `1px solid ${TXT}`, borderRadius: 0,
+              fontSize: 11, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase',
               cursor: adding ? 'wait' : 'pointer',
-              transition: 'background 0.2s',
+              transition: 'opacity 0.25s ease',
+              opacity: adding ? 0.85 : 1,
               padding: '0 16px',
             }}
           >
-            {adding ? '✓ Ajouté !' : 'Ajouter au panier'}
+            {adding ? '✓ Ajouté' : 'Ajouter au panier'}
           </button>
         </div>
       )}

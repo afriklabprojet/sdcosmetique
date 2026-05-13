@@ -214,19 +214,6 @@ function ProductMedia({
               )}
             </div>
 
-            {/* Gradient sombre pour lisibilité du quick-add */}
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                background: 'linear-gradient(to top, rgba(26,10,0,0.62) 0%, transparent 48%)',
-                opacity: interactiveHover ? 1 : 0,
-                transition: 'opacity 0.4s ease',
-                zIndex: 1,
-                pointerEvents: 'none',
-              }}
-            />
-
             {/* Badges overlay — promo + badge produit */}
             <div
               style={{
@@ -264,64 +251,6 @@ function ProductMedia({
             </div>
           </div>
         </Link>
-
-        {/* ── Quick-add panel — slide up depuis le bas ── */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            padding: '10px 12px',
-            zIndex: 2,
-            transform: quickAddTransform,
-            transition: 'transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94)',
-          }}
-        >
-          <button
-            onClick={onAddToCart}
-            disabled={!product.inStock}
-            style={{
-              width: '100%',
-              height: 34,
-              background: adding ? 'rgba(26,26,26,0.95)' : 'rgba(255,255,255,0.96)',
-              color: adding ? '#fff' : 'var(--gold-dark)',
-              border: 'none',
-              borderRadius: 6,
-              fontSize: '0.62rem',
-              fontWeight: 700,
-              letterSpacing: '0.10em',
-              textTransform: 'uppercase',
-              cursor: product.inStock ? 'pointer' : 'not-allowed',
-              opacity: product.inStock ? 1 : 0.6,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              transition: 'background 0.25s ease, color 0.25s ease',
-              backdropFilter: 'blur(4px)',
-            }}
-            aria-label="Ajouter au panier"
-          >
-            {adding ? (
-              <>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                Ajouté !
-              </>
-            ) : (
-              <>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                  <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-                  <line x1="3" y1="6" x2="21" y2="6" />
-                  <path d="M16 10a4 4 0 01-8 0" />
-                </svg>
-                Ajouter au panier
-              </>
-            )}
-          </button>
-        </div>
 
         {/* ── Bouton wishlist — toujours visible ── */}
         <button
@@ -431,29 +360,40 @@ function ProductInfo({ product, category, effectivePrice, adding, onAddToCart }:
             </div>
           </Link>
 
-          {/* Panier fallback desktop/mobile */}
+          {/* Bouton + minimaliste façon Massimo Dutti */}
           <button
             onClick={onAddToCart}
             disabled={!product.inStock}
             style={{
-              width: 44,
-              height: 44,
-              borderRadius: 8,
-              border: 'none',
-              background: adding ? 'var(--charcoal)' : 'var(--gold-dark)',
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              border: `1px solid ${adding ? 'var(--charcoal)' : 'rgba(0,0,0,0.18)'}`,
+              background: adding ? 'var(--charcoal)' : 'transparent',
+              color: adding ? '#fff' : 'var(--charcoal)',
               cursor: product.inStock ? 'pointer' : 'not-allowed',
-              opacity: product.inStock ? 1 : 0.45,
+              opacity: product.inStock ? 1 : 0.4,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              transform: adding ? 'scale(0.9)' : 'scale(1)',
-              transition: 'background 0.25s ease, transform 0.2s cubic-bezier(0.34,1.56,0.64,1)',
+              transform: adding ? 'scale(0.92) rotate(90deg)' : 'scale(1) rotate(0deg)',
+              transition: 'background 0.25s ease, border-color 0.25s ease, transform 0.3s cubic-bezier(0.34,1.56,0.64,1)',
               flexShrink: 0,
               marginTop: 2,
+              padding: 0,
             }}
-            aria-label="Ajouter au panier"
+            aria-label={adding ? 'Ajouté au panier' : 'Ajouter au panier'}
           >
-            <CartIcon added={adding} />
+            {adding ? (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            )}
           </button>
         </div>
       </div>
