@@ -682,9 +682,8 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
 
       {/* ── Sticky CTA mobile (s'affiche quand la PurchaseCard sort du viewport) ── */}
       {showSticky && (
-        <div
+        <section
           className="lg:hidden"
-          role="region"
           aria-label="Acheter rapidement"
           style={{
             position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100,
@@ -719,7 +718,7 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
           >
             {adding ? '✓ Ajouté' : 'Ajouter au panier'}
           </button>
-        </div>
+        </section>
       )}
 
     </div>
