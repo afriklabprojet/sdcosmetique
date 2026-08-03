@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Outillage agent (hooks/statusline Claude Code, CommonJS) — hors périmètre applicatif
+    ".claude/**",
     // Dev/util scripts (CommonJS — require() intentionnel)
     // [SEC-L4] server.js gère le service-role/le socket LiteSpeed — on le
     // linte désormais ; seuls les scripts de dev/CI restent ignorés.

@@ -37,20 +37,25 @@ const NO_SKIN_FILTER_CATEGORIES = new Set<Category>(['minceur', 'kit-levre']);
 export default function CategoryClient({ initialProducts, slug }: Readonly<Props>) {
   const [skinToneFilter, setSkinToneFilter] = useState<SkinTone | null>(null);
   const [sortBy, setSortBy] = useState('popular');
-  const [heroConfig, setHeroConfig] = useState<CategoryHeroConfig | null>(null);
+  const configKey = `hero_${slug.replace(/-/g, '_')}`;
+  // Le défaut local est dérivé au rendu : évite un flash vide sans passer par un effet.
+  const defaultHero = useMemo(() => {
+    const defVal = DEFAULT_SITE_CONFIG[configKey as keyof typeof DEFAULT_SITE_CONFIG];
+    return defVal && typeof defVal === 'object' && 'eyebrow' in defVal
+      ? (defVal as CategoryHeroConfig)
+      : null;
+  }, [configKey]);
+  // La config distante est mémorisée avec sa clé : un changement de slug
+  // repasse automatiquement sur le défaut sans reset via setState.
+  const [remoteHero, setRemoteHero] = useState<{ key: string; config: CategoryHeroConfig } | null>(null);
+  const heroConfig = remoteHero?.key === configKey ? remoteHero.config : defaultHero;
 
   useEffect(() => {
-    const configKey = `hero_${slug.replace(/-/g, '_')}`;
-    // Pré-charger le défaut local pour éviter un flash vide
-    const defVal = DEFAULT_SITE_CONFIG[configKey as keyof typeof DEFAULT_SITE_CONFIG];
-    if (defVal && typeof defVal === 'object' && 'eyebrow' in defVal) {
-      setHeroConfig(defVal as CategoryHeroConfig);
-    }
     fetch(`/api/config/${configKey}`)
       .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.value?.eyebrow) setHeroConfig(d.value as CategoryHeroConfig); })
+      .then(d => { if (d?.value?.eyebrow) setRemoteHero({ key: configKey, config: d.value as CategoryHeroConfig }); })
       .catch(() => {});
-  }, [slug]);
+  }, [configKey]);
   const showSkinToneFilter = !NO_SKIN_FILTER_CATEGORIES.has(slug);
 
   const category = CATEGORIES.find(c => c.id === slug);

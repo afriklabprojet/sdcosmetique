@@ -61,7 +61,7 @@ interface WaResponse {
  */
 export function normalizePhone(raw: string): string {
   // Supprimer tout sauf les chiffres
-  let digits = raw.replaceAll(/\D/g, '');
+  const digits = raw.replaceAll(/\D/g, '');
 
   // Déjà en E.164 avec indicatif +225 Côte d'Ivoire
   if (digits.startsWith('225') && digits.length >= 12) return digits;

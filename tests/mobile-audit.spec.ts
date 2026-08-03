@@ -17,7 +17,8 @@
  * ═══════════════════════════════════════════════════════════════════
  */
 
-import { test, expect, Page, BrowserContext } from '@playwright/test';
+import { test, Page, BrowserContext } from '@playwright/test';
+import { createRequire } from 'node:module';
 import AxeBuilder from '@axe-core/playwright';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -26,6 +27,7 @@ import * as path from 'path';
 const BASE = 'http://localhost:3000';
 const SHOT_DIR = path.join(process.cwd(), 'tests', 'mobile-audit-screenshots');
 const REPORT_PATH = path.join(process.cwd(), 'tests', 'RAPPORT-MOBILE-AUDIT.md');
+const playwrightVersion: string = createRequire(import.meta.url)('@playwright/test/package.json').version;
 
 function ensureDir(d: string) {
   if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
@@ -980,7 +982,7 @@ test.afterAll(async () => {
 > **Date :** ${now}
 > **Auditeur :** QA Mobile Senior × Expert UX Mobile × Testeur Frontend
 > **Scope :** ${Object.keys(DEVICES).length} appareils simulés × ${Object.keys(ROUTES).length} pages
-> **Outils :** Playwright ${require('../node_modules/@playwright/test/package.json').version} · Axe-core · CDP Throttling · Émulation tactile
+> **Outils :** Playwright ${playwrightVersion} · Axe-core · CDP Throttling · Émulation tactile
 
 ---
 

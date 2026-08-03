@@ -359,7 +359,7 @@ function ProductEditModal({
             ))}
           </div>
           <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '10px' }}>
-            <span style={{ fontSize: '11px', color: TEXT2 }}>Badges personnalisés <span style={{ color: TEXT3 }}>(séparés par virgule, ex: "Bestseller, -22%")</span></span>
+            <span style={{ fontSize: '11px', color: TEXT2 }}>Badges personnalisés <span style={{ color: TEXT3 }}>(séparés par virgule, ex: &quot;Bestseller, -22%&quot;)</span></span>
             <input
               type="text"
               value={(productModal.badges ?? []).join(', ')}
@@ -3201,7 +3201,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                 {/* ── Image de fond — Carte Parrainage ── */}
                 <div style={sectionCard}>
                   <p style={sectionTitle}>● Image de fond — Carte Parrainage</p>
-                  <p style={sectionSubtitle}>Photo en arrière-plan de la carte "Parrainez et gagnez" sur la page Espace Client.</p>
+                  <p style={sectionSubtitle}>Photo en arrière-plan de la carte &quot;Parrainez et gagnez&quot; sur la page Espace Client.</p>
                   <ImageUpload
                     value={br.parrainageHeroBg ?? '/hero/generated-skincare-hero-2.jpg'}
                     onChange={(url) => update({ parrainageHeroBg: url })}

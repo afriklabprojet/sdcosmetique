@@ -36,6 +36,8 @@ const DEFAULT_ROUTINES: QuizItem[] = [
 ];
 
 const STEPS: QuizStep[] = ['welcome', 'q1', 'q2', 'q3', 'result'];
+// Référence stable : évite de recréer un tableau vide à chaque rendu.
+const EMPTY_RECOMMENDATIONS: Product[] = [];
 
 export default function QuizPage() {
   const [step, setStep] = useState<QuizStep>('welcome');
@@ -43,7 +45,12 @@ export default function QuizPage() {
   const [concerns, setConcerns] = useState<QuizItem[]>(DEFAULT_CONCERNS);
   const [routines, setRoutines] = useState<QuizItem[]>(DEFAULT_ROUTINES);
   const [hero, setHero] = useState<QuizHeroConfig>(DEFAULT_SITE_CONFIG.hero_quiz);
-  const [recommendations, setRecommendations] = useState<Product[]>([]);
+  // Les recommandations sont mémorisées avec la teinte qui les a produites :
+  // hors de l'étape "result" (ou sur un autre teint) on retombe sur [] au rendu,
+  // sans avoir à les réinitialiser via setState dans un effet.
+  const [reco, setReco] = useState<{ skinTone: string; items: Product[] } | null>(null);
+  const recoSkinTone = step === 'result' ? answers.skinTone : null;
+  const recommendations = recoSkinTone && reco?.skinTone === recoSkinTone ? reco.items : EMPTY_RECOMMENDATIONS;
 
   useEffect(() => {
     fetchActiveConcerns().then(data => { if (data.length) setConcerns(data); }).catch(() => {});
@@ -56,16 +63,13 @@ export default function QuizPage() {
 
   // Fetch recommandations via API quand on arrive sur "result"
   useEffect(() => {
-    if (step !== 'result' || !answers.skinTone) {
-      setRecommendations([]);
-      return;
-    }
-    const params = new URLSearchParams({ skinTone: answers.skinTone, limit: '4' });
+    if (!recoSkinTone) return;
+    const params = new URLSearchParams({ skinTone: recoSkinTone, limit: '4' });
     fetch(`/api/products?${params}`)
       .then(r => r.ok ? r.json() : [])
-      .then((data: Product[]) => setRecommendations(data.slice(0, 4)))
-      .catch(() => setRecommendations([]));
-  }, [step, answers.skinTone]);
+      .then((data: Product[]) => setReco({ skinTone: recoSkinTone, items: data.slice(0, 4) }))
+      .catch(() => setReco({ skinTone: recoSkinTone, items: [] }));
+  }, [recoSkinTone]);
 
   useEffect(() => {
     if (step !== 'result') return;
