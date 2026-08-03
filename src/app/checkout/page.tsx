@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, lazy, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { PaymentMethod } from '@/types';
 import { saveOrder, generateOrderNumber, type OrderDraft } from '@/lib/orders';
@@ -25,6 +26,7 @@ const STEP_ORDER: CheckoutStep[] = ['cart', 'delivery', 'payment', 'confirmation
 
 
 export default function CheckoutPage() {
+  const router = useRouter();
   const { items, totalPrice, clearCart } = useCart();
   const [step, setStep] = useState<CheckoutStep>('cart');
   const [delivery, setDelivery] = useState<DeliveryInfo>({
@@ -127,20 +129,15 @@ export default function CheckoutPage() {
       return;
     }
 
-    // 1.b — Sauvegarder localement pour affichage sur /confirmation (lecture client uniquement)
-    saveOrder(orderData);
-
-    // 1.c — Email de confirmation (fire & forget, no-op si Resend non configuré)
-    fetch('/api/orders/notify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(orderData),
-    }).catch(() => {});
+    // NB : l'email de confirmation est envoyé côté serveur uniquement — par le
+    // webhook Jeko une fois le paiement confirmé (mobile money), ou par
+    // /api/orders/create pour le paiement à la livraison.
 
     // 2. Mobile money → Jeko Africa (redirect hosted checkout)
     if (isMobile) {
+      let res: Response;
       try {
-        const res = await fetch('/api/jeko-pay/checkout', {
+        res = await fetch('/api/jeko-pay/checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -150,24 +147,43 @@ export default function CheckoutPage() {
             payerPhone:    mobileNumber.trim() || undefined,
           }),
         });
-        const data = await res.json();
-        if (!res.ok || !data?.redirectUrl) {
-          alert('Le paiement n\'a pas pu être initié. Veuillez réessayer.');
-          setProcessing(false);
-          return;
-        }
-        clearCart();
-        // Redirection vers le checkout hébergé Jeko
-        globalThis.window.location.href = data.redirectUrl as string;
-        return;
       } catch {
+        // Seul cas où le fetch lui-même a échoué → vraie panne réseau
         alert('Erreur réseau lors de l\'initialisation du paiement.');
         setProcessing(false);
         return;
       }
+
+      // Ne jamais faire `res.json()` directement : un body vide ou non-JSON
+      // ferait throw et serait à tort présenté comme une erreur réseau.
+      const rawBody = await res.text().catch(() => '');
+      let data: { redirectUrl?: string } | null = null;
+      try {
+        data = rawBody ? (JSON.parse(rawBody) as { redirectUrl?: string }) : null;
+      } catch {
+        data = null;
+      }
+
+      if (!res.ok || !data?.redirectUrl) {
+        console.error('[checkout] Échec init paiement', { status: res.status, body: rawBody.slice(0, 500) });
+        alert('Le paiement n\'a pas pu être initié. Veuillez réessayer.');
+        setProcessing(false);
+        return;
+      }
+
+      // Le paiement est réellement initié → on peut persister et vider le panier
+      saveOrder(orderData);
+      clearCart();
+      // Redirection vers le checkout hébergé Jeko
+      globalThis.window.location.href = data.redirectUrl;
+      return;
     }
 
+    // Paiement à la livraison : la commande est confirmée dès sa création
+    saveOrder(orderData);
+    clearCart();
     setProcessing(false);
+    router.push('/confirmation');
   };
 
 

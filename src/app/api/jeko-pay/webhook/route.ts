@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyJekoSignature, type JekoWebhookPayload } from '@/lib/jeko-pay/webhook';
 import { createServiceClient } from '@/utils/supabase/service';
+import { sendOrderConfirmationByNumber } from '@/lib/order-notifications';
 
 export const runtime = 'nodejs';
 // Désactive tout cache pour les webhooks
@@ -43,7 +44,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const supabase = createServiceClient();
-    const { error } = await supabase
+    const { data: updated, error } = await supabase
       .from('orders')
       .update({
         payment_status:          isSuccess ? 'paid' : 'failed',
@@ -57,7 +58,8 @@ export async function POST(req: NextRequest) {
       })
       .eq('order_number', reference)
       // Ne pas écraser un paiement déjà confirmé
-      .neq('payment_status', 'paid');
+      .neq('payment_status', 'paid')
+      .select('order_number');
 
     if (error) {
       // [LOG-01] Logguer l'erreur DB pour débogage — Jeko retentera automatiquement
@@ -65,6 +67,13 @@ export async function POST(req: NextRequest) {
       console.error('[jeko-webhook] Erreur DB update ordre', reference, error);
       // 5xx → Jeko retentera
       return NextResponse.json({ error: 'db_error' }, { status: 500 });
+    }
+
+    // Email de confirmation : uniquement si CE webhook est celui qui a fait
+    // passer la commande à `paid`. Un retry Jeko ne matche plus aucune ligne
+    // (à cause du .neq('payment_status','paid')) → pas de second envoi.
+    if (isSuccess && updated && updated.length > 0) {
+      await sendOrderConfirmationByNumber(reference);
     }
   } catch (e) {
     // [LOG-01] Catch inattendu : logguer pour diagnostiquer

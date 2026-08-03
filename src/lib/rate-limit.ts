@@ -90,15 +90,24 @@ export async function rateLimit(
   }
 
   const windowSeconds = Math.ceil(windowMs / 1000);
-  const limiter = getLimiter(limit, windowSeconds);
-  const { success, remaining, reset } = await limiter.limit(key);
 
-  return {
-    ok: success,
-    limit,
-    remaining,
-    resetAt: reset, // Upstash retourne le timestamp en ms
-  };
+  try {
+    const limiter = getLimiter(limit, windowSeconds);
+    const { success, remaining, reset } = await limiter.limit(key);
+
+    return {
+      ok: success,
+      limit,
+      remaining,
+      resetAt: reset, // Upstash retourne le timestamp en ms
+    };
+  } catch (e) {
+    // Upstash injoignable (DNS, timeout, token invalide, quota) : ne JAMAIS laisser
+    // le rejet s'échapper — sinon la route renvoie un 500 sans body ni content-type
+    // et le client interprète l'échec de `res.json()` comme une « erreur réseau ».
+    console.error('[rate-limit] Upstash indisponible, fallback mémoire:', e instanceof Error ? e.message : e);
+    return memRateLimit(key, limit, windowMs);
+  }
 }
 
 /** Extrait l'IP du client depuis les headers standards (proxy-aware). */

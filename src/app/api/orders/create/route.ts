@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createServiceClient } from '@/utils/supabase/service';
 import { db } from '@/lib/db';
 import type { OrderDraft } from '@/lib/orders';
+import { sendOrderConfirmationByNumber } from '@/lib/order-notifications';
 
 export const runtime = 'nodejs';
 
@@ -94,6 +95,13 @@ export async function POST(req: NextRequest) {
         message: itemsError.message,
       });
     }
+  }
+
+  // Email de confirmation : uniquement pour les commandes sans paiement à capturer
+  // (paiement à la livraison). Pour le mobile money, c'est le webhook Jeko qui
+  // déclenche l'email, une fois le paiement réellement confirmé.
+  if (order.status !== 'pending_payment') {
+    await sendOrderConfirmationByNumber(orderNumber);
   }
 
   return NextResponse.json({ ok: true, orderNumber });

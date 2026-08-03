@@ -56,6 +56,20 @@ function resolveProvider(method: string): JekoPayProvider | null {
  * Initie un paiement Jeko Africa et renvoie l'URL de redirection.
  */
 export async function POST(req: NextRequest) {
+  try {
+    return await handleCheckout(req);
+  } catch (e) {
+    // Filet de sécurité : la route doit TOUJOURS répondre avec un body JSON,
+    // jamais un 500 vide (que le client ne peut pas parser → « erreur réseau »).
+    console.error('[jeko-pay] Erreur non gérée:', e instanceof Error ? e.message : e);
+    return NextResponse.json(
+      { error: 'internal_error', message: e instanceof Error ? e.message : 'unknown' },
+      { status: 500 },
+    );
+  }
+}
+
+async function handleCheckout(req: NextRequest) {
   // 10 tentatives de paiement / 10 min par IP
   const rl = await rateLimit(`checkout:${getIp(req)}`, 10, 10 * 60 * 1000);
   if (!rl.ok) {
