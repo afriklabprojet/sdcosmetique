@@ -1,70 +1,90 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# ==============================================================================
+# Graft (Local Graph Cache)
+# ==============================================================================
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+graft/
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+# ==============================================================================
+# Dependencies & Package Managers
+# ==============================================================================
+node_modules/
+/npm-debug.log*
+/yarn-debug.log*
+/yarn-error.log*
+/pnpm-debug.log*
+/bun-debug.log*
 
-# testing
-/coverage
+# ==============================================================================
+# Next.js Build & Outputs
+# ==============================================================================
+.next/
+out/
+build/
 
-# next.js
-/.next/
-/out/
+# ==============================================================================
+# Environments & Secrets
+# ==============================================================================
+# Ignore all local environment files where API keys and secrets reside
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
 
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
+# If using cloud platforms like Vercel
 .vercel
 
-# typescript
+# ==============================================================================
+# Supabase CLI / Local Development Caches
+# ==============================================================================
+supabase/.temp/
+supabase/.branches/
+
+# ==============================================================================
+# Testing & Playwright Outputs
+# ==============================================================================
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+coverage/
+.nyc_output/
+
+# ==============================================================================
+# Build Caches & Tooling Caches
+# ==============================================================================
+.turbo/
+.eslintcache
 *.tsbuildinfo
-next-env.d.ts
 
-# Fichiers de test temporaires
-test-*.js
-test-*.sh
-*test-screenshot.png
-tests-results*.txt
-validate-*.js
-test-results/
-playwright-report/
-*.spec.js.map
+# ==============================================================================
+# IDEs & System Files
+# ==============================================================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
 
-# Fichiers de configuration privés
-AGENTS.md
-CLAUDE.md
-DESIGN.md
+# Windows
+Thumbs.db
+ehthumbs.db
 
-# Maquettes HTML admin (design prototyping)
-public/admin-*.html
-public/admin-cards-modern.html
-public/admin-dark-premium.html
-public/admin-dashboard-senior.html
-public/admin-glassmorphism.html
-public/admin-minimal-clean.html
+# Editors
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
-# Scripts de dev / debug racine
-resend-status.js
-setup-resend.js
-fix-auth-error.sh
-open-admin-examples.sh
+# ==============================================================================
+# Local AI Assistant / CLI Caches
+# ==============================================================================
+# Ignore local agent configuration & cache directories if they contain machine-specific settings
+.claude/
+.gemini/
+trash/
