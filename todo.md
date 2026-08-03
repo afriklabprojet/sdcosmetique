@@ -1,5 +1,6 @@
-- [ ] apply the audit fixes
+- [-] apply the audit fixes
 - [ ] runnig affordance skill dry run
 - [ ] push the paiment fix on vercel
 - [ ] audit the style in a new branch
 - [ ] use enum for hardcoded string accross the whole code
+- [ ] move the cart data to localstorage

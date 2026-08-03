@@ -110,13 +110,28 @@ export async function rateLimit(
   }
 }
 
-/** Extrait l'IP du client depuis les headers standards (proxy-aware). */
+/**
+ * Extrait l'IP du client depuis les headers standards (proxy-aware).
+ *
+ * [SEC-H4] Le site est derrière LiteSpeed (voir server.js) : ce proxy est le
+ * seul point d'entrée et écrase X-Real-IP à chaque requête, donc on peut lui
+ * faire confiance. On NE prend PAS le premier maillon de X-Forwarded-For :
+ * un attaquant qui parle directement à Node (ou passe par un proxy qui ajoute
+ * bêtement son en-tête sans écraser l'existant) peut y injecter n'importe
+ * quelle valeur, ce qui rendrait tous les rate limiters contournables.
+ */
 export function getIp(req: Request): string {
-  return (
-    (req.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() ||
-    req.headers.get('x-real-ip') ||
-    'unknown'
-  );
+  const realIp = req.headers.get('x-real-ip');
+  if (realIp) return realIp.trim();
+
+  // Fallback : le maillon le plus à droite est le plus proche de nous (LiteSpeed).
+  const xff = req.headers.get('x-forwarded-for');
+  if (xff) {
+    const parts = xff.split(',').map(p => p.trim()).filter(Boolean);
+    if (parts.length) return parts[parts.length - 1];
+  }
+
+  return 'unknown';
 }
 
 /** Headers HTTP standard pour les réponses 429. */

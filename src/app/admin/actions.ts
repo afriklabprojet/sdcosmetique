@@ -81,6 +81,7 @@ export async function addProduct(product: Product): Promise<void> {
 
   if (error) throw new Error(error.message);
 
+  revalidateTag('products', 'default');
   revalidatePath('/boutique');
   revalidatePath('/');
 }
@@ -97,6 +98,7 @@ export async function updateProduct(
   const { error } = await supabase.from('products').update(d).eq('id', id);
   if (error) throw new Error(error.message);
 
+  revalidateTag('products', 'default');
   revalidatePath('/boutique');
   revalidatePath('/');
   revalidatePath(`/produit/${updates.slug ?? id}`);
@@ -145,6 +147,7 @@ export async function deleteProduct(id: string): Promise<void> {
   const { error } = await supabase.from('products').delete().eq('id', id);
   if (error) throw new Error(error.message);
 
+  revalidateTag('products', 'default');
   revalidatePath('/boutique');
   revalidatePath('/');
 }

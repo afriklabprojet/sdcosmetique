@@ -20,6 +20,10 @@ export interface OrderDraft {
   };
   paymentMethod: string;
   status: 'pending_payment' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  /** Utilisé côté serveur pour recalculer les frais de port — jamais pour les frais eux-mêmes. */
+  shippingOptionId?: string;
+  /** Utilisé côté serveur pour recalculer la remise — jamais pour le montant de remise lui-même. */
+  promoCode?: string;
 }
 
 // ─── Storage keys ─────────────────────────────────────────────────────────────

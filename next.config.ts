@@ -1,11 +1,28 @@
 import type { NextConfig } from "next";
 
+// [SEC-L6] En prod, un fallback silencieux vers un domaine de preview
+// pointerait les URLs canoniques, les OG images et les redirects Jeko vers
+// ce domaine si la variable est absente en déploiement.
+if (process.env.NODE_ENV === 'production' && !process.env.NEXT_PUBLIC_SITE_URL) {
+  throw new Error('NEXT_PUBLIC_SITE_URL est requise en production (next.config.ts)');
+}
+
 const nextConfig: NextConfig = {
   output: 'standalone',
 
   // ── Turbopack : forcer la racine de workspace pour éviter le panic dev-mode ─
   turbopack: {
     root: __dirname,
+  },
+
+  // Le MCP Playwright écrit ses snapshots/logs dans .playwright-mcp/ à la
+  // racine du repo — sans ce filtre, chaque snapshot déclenche un rebuild.
+  webpack: (config) => {
+    config.watchOptions = {
+      ...config.watchOptions,
+      ignored: ['**/node_modules/**', '**/.playwright-mcp/**'],
+    };
+    return config;
   },
 
   // ── Réduction bundle ───────────────────────────────────────────────────────
@@ -31,7 +48,7 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
-    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://floralwhite-fish-697630.hostingersite.com',
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000',
     NEXT_PUBLIC_SITE_NAME: process.env.NEXT_PUBLIC_SITE_NAME ?? 'SD Cosmétique',
   },
 

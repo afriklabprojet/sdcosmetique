@@ -44,6 +44,30 @@ export async function POST(req: NextRequest) {
 
   try {
     const supabase = createServiceClient();
+
+    // [SEC] Vérifier que le montant reçu correspond bien au total de la commande
+    // avant de la marquer payée — sinon un webhook falsifié (ou un montant
+    // partiel) pourrait valider une commande pour moins que son prix réel.
+    const { data: orderRow, error: orderErr } = await supabase
+      .from('orders')
+      .select('total, payment_status')
+      .eq('order_number', reference)
+      .single();
+
+    if (orderErr || !orderRow) {
+      console.error('[jeko-webhook] Commande introuvable:', reference);
+      return NextResponse.json({ received: true, skipped: 'order_not_found' }, { status: 200 });
+    }
+
+    const expectedCents = Math.round(Number(orderRow.total) * 100);
+    const receivedCents = payload.amount?.amount ?? 0;
+
+    if (isSuccess && receivedCents !== expectedCents) {
+      console.error('[jeko-webhook] Montant incohérent', { reference, expectedCents, receivedCents });
+      // Ne PAS marquer comme payée — logguer et acquitter (200) pour éviter les retries Jeko.
+      return NextResponse.json({ received: true, error: 'amount_mismatch' }, { status: 200 });
+    }
+
     const { data: updated, error } = await supabase
       .from('orders')
       .update({

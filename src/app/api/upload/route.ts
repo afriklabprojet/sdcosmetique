@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/utils/supabase/service';
 import { requireAdmin } from '@/lib/admin-auth';
+import { rateLimit, getIp, rateLimitHeaders } from '@/lib/rate-limit';
 
 // Map MIME → extension (source unique de vérité, empêche le spoofing d'extension)
 const ALLOWED_MIME: Record<string, string> = {
@@ -32,6 +33,11 @@ export async function POST(req: NextRequest) {
   const admin = await requireAdmin();
   if (!admin) {
     return NextResponse.json({ error: 'Accès non autorisé.' }, { status: 401 });
+  }
+
+  const rl = await rateLimit(`upload:${getIp(req)}`, 30, 10 * 60 * 1000);
+  if (!rl.ok) {
+    return NextResponse.json({ error: 'rate_limit_exceeded' }, { status: 429, headers: rateLimitHeaders(rl) });
   }
 
   try {

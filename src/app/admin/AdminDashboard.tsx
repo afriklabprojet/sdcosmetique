@@ -1143,14 +1143,11 @@ export default function AdminPage() { // NOSONAR typescript:S3776
     }
     // Email d'expédition (fire & forget)
     if (status === 'shipped') {
-      const order = orders.find(o => o.orderNumber === orderNumber);
-      if (order) {
-        fetch('/api/orders/notify-shipped', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ order: { ...order, status } }),
-        }).catch(() => {});
-      }
+      fetch('/api/orders/notify-shipped', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderNumber }),
+      }).catch(() => {});
     }
   };
 
@@ -3457,7 +3454,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                           {imgUrl && (
                             <div style={{ background: '#1A1410', borderRadius: '8px', padding: '6px', border: `1px solid ${GOLD_D3}`, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '80px', height: '44px', overflow: 'hidden' }}>
                               {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={imgUrl} alt={m.label} style={{ maxHeight: '36px', maxWidth: '72px', objectFit: 'contain' }} />
+                              <img src={imgUrl} alt={m.label} width={72} height={36} style={{ maxHeight: '36px', maxWidth: '72px', objectFit: 'contain' }} />
                             </div>
                           )}
                           <div style={{ minWidth: '160px' }}>
@@ -3495,7 +3492,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                         ? (
                           <div key={id} style={{ background: 'rgba(255,255,255,0.08)', borderRadius: '8px', padding: '6px 12px', display: 'flex', alignItems: 'center', height: '44px' }}>
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={img} alt={m.label} style={{ maxHeight: '32px', maxWidth: '80px', objectFit: 'contain' }} />
+                            <img src={img} alt={m.label} width={80} height={32} style={{ maxHeight: '32px', maxWidth: '80px', objectFit: 'contain' }} />
                           </div>
                         )
                         : <span key={id} style={{ background: m.color, color: '#fff', padding: '6px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 700 }}>{m.emoji} {m.label}</span>;

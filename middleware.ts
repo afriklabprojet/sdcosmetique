@@ -64,20 +64,20 @@ export async function middleware(request: NextRequest) {
 
     // Route protégée sans session valide
     if (isProtectedRoute && !session) {
-      console.log('🔒 Redirection vers login: route protégée sans auth');
+      console.debug('🔒 Redirection vers login: route protégée sans auth');
       return NextResponse.redirect(new URL('/connexion', request.url));
     }
 
     // Route admin : exiger une session valide
     // Le contrôle ADMIN_EMAILS est fait côté serveur dans requireAdmin() (Node.js, .env.production)
     if (isAdminRoute && !session?.user) {
-      console.log('🚫 Accès admin refusé: pas de session');
+      console.debug('🚫 Accès admin refusé: pas de session');
       return NextResponse.redirect(new URL('/admin/login', request.url));
     }
 
     // Utilisateur connecté essayant d'accéder aux pages d'auth publiques (pas admin/login)
     if (isAuthRoute && session) {
-      console.log('👤 Redirection: déjà connecté');
+      console.debug('👤 Redirection: déjà connecté');
       return NextResponse.redirect(new URL('/compte', request.url));
     }
 

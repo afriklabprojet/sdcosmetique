@@ -48,6 +48,7 @@ supabase/.branches/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+/.playwright-mcp/
 coverage/
 .nyc_output/
 

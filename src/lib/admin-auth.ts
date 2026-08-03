@@ -39,7 +39,7 @@ export async function requireAdmin() {
       return null;
     }
     if (!adminEmails.has(user.email.toLowerCase())) {
-      console.warn(`[requireAdmin] Email non autorisé: ${user.email}`);
+      console.debug('[requireAdmin] Email non autorisé');
       return null;
     }
     return user;

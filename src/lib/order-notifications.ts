@@ -8,8 +8,8 @@
  */
 
 import { createServiceClient } from '@/utils/supabase/service';
-import { sendOrderConfirmation } from '@/lib/emails';
-import { sendWaOrderConfirmation } from '@/lib/whatsapp';
+import { sendOrderConfirmation, sendOrderShipped } from '@/lib/emails';
+import { sendWaOrderConfirmation, sendWaOrderShipped } from '@/lib/whatsapp';
 import type { OrderDraft } from '@/lib/orders';
 import type { CartItem } from '@/types';
 
@@ -36,6 +36,51 @@ function toCartItems(rows: OrderItemRow[]): CartItem[] {
   }));
 }
 
+/** Recharge une commande depuis Supabase et la reconstruit en `OrderDraft`. */
+async function loadOrderByNumber(orderNumber: string): Promise<OrderDraft | null> {
+  const supabase = createServiceClient();
+
+  const { data: row, error } = await supabase
+    .from('orders')
+    .select('id, order_number, created_at, subtotal, shipping_cost, total, payment_method, status, delivery_first_name, delivery_last_name, delivery_email, delivery_phone, delivery_address, delivery_city, delivery_country')
+    .eq('order_number', orderNumber)
+    .single();
+
+  if (error || !row) {
+    console.error('[order-notifications] Commande introuvable', orderNumber, error?.message);
+    return null;
+  }
+
+  const { data: itemRows, error: itemsError } = await supabase
+    .from('order_items')
+    .select('product_id, product_slug, name, price, quantity, image_url')
+    .eq('order_id', row.id);
+
+  if (itemsError) {
+    console.error('[order-notifications] Échec lecture order_items', orderNumber, itemsError.message);
+  }
+
+  return {
+    orderNumber:  row.order_number,
+    date:         row.created_at ?? new Date().toISOString(),
+    items:        toCartItems((itemRows ?? []) as OrderItemRow[]),
+    subtotal:     row.subtotal ?? 0,
+    shippingCost: row.shipping_cost ?? 0,
+    total:        row.total ?? 0,
+    delivery: {
+      firstName: row.delivery_first_name ?? '',
+      lastName:  row.delivery_last_name ?? '',
+      email:     row.delivery_email ?? '',
+      phone:     row.delivery_phone ?? '',
+      address:   row.delivery_address ?? '',
+      city:      row.delivery_city ?? '',
+      country:   row.delivery_country ?? '',
+    },
+    paymentMethod: row.payment_method ?? '',
+    status:        'confirmed',
+  };
+}
+
 /**
  * Envoie l'email (+ WhatsApp) de confirmation pour `orderNumber`.
  * Ne throw jamais : les erreurs sont loggées et avalées, pour ne pas faire
@@ -43,47 +88,8 @@ function toCartItems(rows: OrderItemRow[]): CartItem[] {
  */
 export async function sendOrderConfirmationByNumber(orderNumber: string): Promise<void> {
   try {
-    const supabase = createServiceClient();
-
-    const { data: row, error } = await supabase
-      .from('orders')
-      .select('id, order_number, created_at, subtotal, shipping_cost, total, payment_method, status, delivery_first_name, delivery_last_name, delivery_email, delivery_phone, delivery_address, delivery_city, delivery_country')
-      .eq('order_number', orderNumber)
-      .single();
-
-    if (error || !row) {
-      console.error('[order-notifications] Commande introuvable', orderNumber, error?.message);
-      return;
-    }
-
-    const { data: itemRows, error: itemsError } = await supabase
-      .from('order_items')
-      .select('product_id, product_slug, name, price, quantity, image_url')
-      .eq('order_id', row.id);
-
-    if (itemsError) {
-      console.error('[order-notifications] Échec lecture order_items', orderNumber, itemsError.message);
-    }
-
-    const order: OrderDraft = {
-      orderNumber:  row.order_number,
-      date:         row.created_at ?? new Date().toISOString(),
-      items:        toCartItems((itemRows ?? []) as OrderItemRow[]),
-      subtotal:     row.subtotal ?? 0,
-      shippingCost: row.shipping_cost ?? 0,
-      total:        row.total ?? 0,
-      delivery: {
-        firstName: row.delivery_first_name ?? '',
-        lastName:  row.delivery_last_name ?? '',
-        email:     row.delivery_email ?? '',
-        phone:     row.delivery_phone ?? '',
-        address:   row.delivery_address ?? '',
-        city:      row.delivery_city ?? '',
-        country:   row.delivery_country ?? '',
-      },
-      paymentMethod: row.payment_method ?? '',
-      status:        'confirmed',
-    };
+    const order = await loadOrderByNumber(orderNumber);
+    if (!order) return;
 
     if (!order.delivery.email) {
       console.error('[order-notifications] Aucun email pour la commande', orderNumber);
@@ -97,6 +103,35 @@ export async function sendOrderConfirmationByNumber(orderNumber: string): Promis
     if (order.delivery.phone) {
       await sendWaOrderConfirmation(order).catch(err =>
         console.error('[order-notifications] sendWaOrderConfirmation error', orderNumber, err),
+      );
+    }
+  } catch (e) {
+    console.error('[order-notifications] Erreur inattendue', orderNumber, e);
+  }
+}
+
+/**
+ * Envoie l'email (+ WhatsApp) d'expédition pour `orderNumber`.
+ * Recharge la commande (et son adresse email) depuis la DB — jamais du body
+ * client, qui pourrait sinon pointer vers une adresse arbitraire.
+ */
+export async function sendOrderShippedByNumber(orderNumber: string, trackingUrl?: string): Promise<void> {
+  try {
+    const order = await loadOrderByNumber(orderNumber);
+    if (!order) return;
+
+    if (!order.delivery.email) {
+      console.error('[order-notifications] Aucun email pour la commande', orderNumber);
+      return;
+    }
+
+    await sendOrderShipped(order, trackingUrl).catch(err =>
+      console.error('[order-notifications] sendOrderShipped error', orderNumber, err),
+    );
+
+    if (order.delivery.phone) {
+      await sendWaOrderShipped(order, trackingUrl).catch(err =>
+        console.error('[order-notifications] sendWaOrderShipped error', orderNumber, err),
       );
     }
   } catch (e) {

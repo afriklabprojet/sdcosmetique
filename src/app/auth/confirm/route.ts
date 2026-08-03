@@ -7,7 +7,11 @@ export async function GET(request: NextRequest) {
 
   const token_hash = searchParams.get('token_hash');
   const type = searchParams.get('type') as 'signup' | 'recovery' | 'invite' | 'magiclink' | null;
-  const next = searchParams.get('next') ?? '/compte';
+  const rawNext = searchParams.get('next') ?? '/compte';
+  // [SEC-H5] N'accepter qu'un chemin relatif unique (ex: "/compte") — pas de
+  // protocole ni de double slash, sinon "?next=@evil.com" ou "?next=//evil.com"
+  // produit une redirection hors du domaine.
+  const next = /^\/(?!\/)/.test(rawNext) ? rawNext : '/compte';
 
   // Cas d'erreur renvoyé directement par Supabase (lien expiré, etc.)
   const error_code = searchParams.get('error_code');

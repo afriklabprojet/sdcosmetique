@@ -5,7 +5,7 @@
  * Utilise Framer Motion pour l'entrée + pulsation.
  */
 
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 
 interface PromoBadgeProps {
   /** Pourcentage de remise à afficher (ex: 20 → "-20%") */
@@ -27,12 +27,13 @@ export function PromoBadge({
   className,
 }: PromoBadgeProps) {
   const isSm = size === 'sm';
+  const prefersReducedMotion = useReducedMotion();
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.6 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.6 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ type: 'spring', stiffness: 380, damping: 20 }}
+      transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 380, damping: 20 }}
       className={className}
       style={{
         display: 'inline-flex',

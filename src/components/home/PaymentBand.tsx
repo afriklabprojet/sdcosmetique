@@ -113,7 +113,7 @@ export default function PaymentBand() {
               return (
                 <div key={id} style={{ background: 'rgba(255,255,255,0.08)', borderRadius: '10px', padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '100px', height: '52px' }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={imgUrl} alt={LABELS[id] ?? id} style={{ maxHeight: '36px', maxWidth: '120px', objectFit: 'contain' }} />
+                  <img src={imgUrl} alt={LABELS[id] ?? id} width={120} height={36} style={{ maxHeight: '36px', maxWidth: '120px', objectFit: 'contain' }} />
                 </div>
               );
             }

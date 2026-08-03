@@ -29,7 +29,7 @@ export async function handleAuthError(error: unknown) {
       
       // Optionnel : rediriger vers login
       if (globalThis.window !== undefined) {
-        globalThis.location.href = '/auth/login';
+        globalThis.location.href = '/connexion';
       }
       
     } catch {

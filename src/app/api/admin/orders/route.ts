@@ -102,7 +102,8 @@ export async function GET() {
     .order('created_at', { ascending: false });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('[admin/orders GET] db error:', error.message);
+    return NextResponse.json({ error: 'db_error' }, { status: 500 });
   }
 
   const orders = ((data ?? []) as OrderRow[]).map(rowToOrder);
@@ -130,7 +131,8 @@ export async function PATCH(req: NextRequest) {
     .eq('order_number', orderNumber);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('[admin/orders PATCH] db error:', error.message);
+    return NextResponse.json({ error: 'db_error' }, { status: 500 });
   }
 
   return NextResponse.json({ success: true });

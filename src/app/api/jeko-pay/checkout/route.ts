@@ -6,12 +6,12 @@ import {
   type JekoPayProvider,
 } from '@/lib/jeko-pay/client';
 import { rateLimit, getIp, rateLimitHeaders } from '@/lib/rate-limit';
+import { createServiceClient } from '@/utils/supabase/service';
 
 export const runtime = 'nodejs';
 
 interface CheckoutBody {
   orderNumber: string;        // notre référence interne (ex: "SDC-2024-0001")
-  amountXof: number;          // montant en XOF (entier)
   paymentMethod: string;      // 'wave' | 'orange_money' | 'mtn_momo' | 'moov_money' | provider direct
   payerPhone?: string;
   forceProviderDirect?: boolean;
@@ -62,8 +62,11 @@ export async function POST(req: NextRequest) {
     // Filet de sécurité : la route doit TOUJOURS répondre avec un body JSON,
     // jamais un 500 vide (que le client ne peut pas parser → « erreur réseau »).
     console.error('[jeko-pay] Erreur non gérée:', e instanceof Error ? e.message : e);
+    // [SEC-M3] Ne jamais renvoyer le texte de l'exception au client (peut
+    // contenir des détails internes) — le champ `message` reste présent
+    // (générique) pour que le body JSON soit toujours parseable côté client.
     return NextResponse.json(
-      { error: 'internal_error', message: e instanceof Error ? e.message : 'unknown' },
+      { error: 'internal_error', message: 'unknown' },
       { status: 500 },
     );
   }
@@ -86,7 +89,7 @@ async function handleCheckout(req: NextRequest) {
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
   }
 
-  if (!body.orderNumber || !body.amountXof || body.amountXof <= 0 || !body.paymentMethod) {
+  if (!body.orderNumber || !body.paymentMethod) {
     return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
   }
 
@@ -98,12 +101,33 @@ async function handleCheckout(req: NextRequest) {
     );
   }
 
+  // [SEC] Le montant à facturer vient TOUJOURS de la commande en DB (calculée
+  // par /api/orders/create côté serveur), jamais du body client.
+  const supabase = createServiceClient();
+  const { data: ord, error: ordErr } = await supabase
+    .from('orders')
+    .select('total, payment_status')
+    .eq('order_number', body.orderNumber)
+    .single();
+
+  if (ordErr || !ord) {
+    return NextResponse.json({ error: 'order_not_found' }, { status: 400 });
+  }
+  if (ord.payment_status === 'paid') {
+    return NextResponse.json({ error: 'already_paid' }, { status: 400 });
+  }
+
+  const amountXof = Number(ord.total);
+  if (!amountXof || amountXof <= 0) {
+    return NextResponse.json({ error: 'invalid_order_total' }, { status: 400 });
+  }
+
   const base = siteUrl();
   const ref = encodeURIComponent(body.orderNumber);
 
   try {
     const payment = await createRedirectPayment({
-      amountCents:         body.amountXof * 100,
+      amountCents:         amountXof * 100,
       reference:           body.orderNumber,
       paymentMethod:       provider,
       successUrl:          `${base}/confirmation?ref=${ref}&status=success`,
@@ -126,7 +150,7 @@ async function handleCheckout(req: NextRequest) {
         jekoId: e.body?.id,
         jekoExtras: e.body?.extras,
         provider,
-        amountXof: body.amountXof,
+        amountXof,
         orderNumber: body.orderNumber,
       });
       return NextResponse.json(
@@ -136,6 +160,6 @@ async function handleCheckout(req: NextRequest) {
     }
     
     console.error('[jeko-pay] Erreur interne:', e instanceof Error ? e.message : e);
-    return NextResponse.json({ error: 'internal_error', message: e instanceof Error ? e.message : 'unknown' }, { status: 500 });
+    return NextResponse.json({ error: 'internal_error', message: 'unknown' }, { status: 500 });
   }
 }

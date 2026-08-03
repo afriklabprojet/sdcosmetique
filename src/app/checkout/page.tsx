@@ -114,6 +114,8 @@ export default function CheckoutPage() {
       subtotal: totalPrice, shippingCost, total, delivery, paymentMethod,
       // Mobile money → en attente de confirmation Jeko ; COD → confirmé d'office
       status: (isMobile ? 'pending_payment' : 'confirmed') as OrderDraft['status'],
+      shippingOptionId: selectedShipping?.id,
+      promoCode: appliedPromo?.code.code,
     };
 
         // 1. Création de la commande côté serveur — unique source de vérité [ARCH-01/02]
@@ -142,7 +144,6 @@ export default function CheckoutPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             orderNumber:   num,
-            amountXof:     total,
             paymentMethod,                 // 'orange_money' | 'wave' | 'mtn_momo' | 'moov_money' | 'djamo'
             payerPhone:    mobileNumber.trim() || undefined,
           }),
