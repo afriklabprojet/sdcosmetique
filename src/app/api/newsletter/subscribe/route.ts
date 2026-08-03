@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { rateLimit, getIp, rateLimitHeaders } from '@/lib/rate-limit';
+import { db } from '@/shared/supabase/request.client';
+import { rateLimit, getIp, rateLimitHeaders } from '@/shared/http/rate-limit.guard';
 
 export const runtime = 'nodejs';
 

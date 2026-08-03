@@ -15,7 +15,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath, revalidateTag } from 'next/cache';
-import { rateLimit, getIp, rateLimitHeaders } from '@/lib/rate-limit';
+import { rateLimit, getIp, rateLimitHeaders } from '@/shared/http/rate-limit.guard';
 
 export const runtime = 'nodejs';
 

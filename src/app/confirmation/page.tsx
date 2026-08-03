@@ -4,9 +4,9 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { getLastOrder, formatOrderDate, OrderDraft } from '@/lib/orders';
-import { formatPrice } from '@/lib/products';
-import { DEFAULT_SITE_CONFIG } from '@/lib/site-config';
+import { getLastOrder, formatOrderDate, OrderDraft } from '@/features/orders/order.store';
+import { formatPrice } from '@/features/catalog/product.query';
+import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
 
 // ── Coordonnées de contact (centralisées dans le config) ──────────────────────
 const CONTACT_PHONE = DEFAULT_SITE_CONFIG.legal_contact.contactPhone ?? '';   // '+225 07 49 49 49 49'

@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { rateLimit, getIp, rateLimitHeaders } from '@/lib/rate-limit';
+import { rateLimit, getIp, rateLimitHeaders } from '@/shared/http/rate-limit.guard';
 
 export const runtime = 'nodejs';
 

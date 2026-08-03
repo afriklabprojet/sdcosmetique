@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import { fetchProducts } from '@/lib/products-server';
-import BoutiqueClient from './BoutiqueClient';
+import { fetchProducts } from '@/features/catalog/product.repository';
+import BoutiqueClient from '@/features/catalog/views/boutique.view';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sdcosmetique.ci';
 

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { createServiceClient } from '@/utils/supabase/service';
-import { requireAdmin } from '@/lib/admin-auth';
-import { rateLimit, getIp, rateLimitHeaders } from '@/lib/rate-limit';
+import { createServiceClient } from '@/shared/supabase/service.client';
+import { requireAdmin } from '@/shared/auth/admin.guard';
+import { rateLimit, getIp, rateLimitHeaders } from '@/shared/http/rate-limit.guard';
 
 export const runtime = 'nodejs';
 

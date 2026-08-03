@@ -1,4 +1,4 @@
-import ProductCardSkeleton from '@/components/ui/ProductCardSkeleton';
+import ProductCardSkeleton from '@/features/catalog/cards/product-card-skeleton';
 
 export default function BoutiqueLoading() {
   return (

@@ -2,8 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { useWishlist } from '@/context/WishlistContext';
-import ProductCard from '@/components/ui/ProductCard';
+import { useWishlist } from '@/features/wishlist/wishlist.store';
+import ProductCard from '@/features/catalog/cards/product.card';
 
 export default function WishlistPage() {
   const { items } = useWishlist();

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sendContactMessage } from '@/lib/emails';
-import { rateLimit, getIp, rateLimitHeaders } from '@/lib/rate-limit';
+import { sendContactMessage } from '@/shared/notifications/email.service';
+import { rateLimit, getIp, rateLimitHeaders } from '@/shared/http/rate-limit.guard';
 
 export async function POST(req: NextRequest) {
   // 5 messages / 10 min par IP

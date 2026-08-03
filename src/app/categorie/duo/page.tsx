@@ -3,13 +3,13 @@
 import { useMemo, useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { PRODUCTS, fetchProductsForClient } from '@/lib/products';
-import { CATEGORIES, SkinTone } from '@/types';
-import ProductCard from '@/components/ui/ProductCard';
-import SkinToneSelector from '@/components/ui/SkinToneSelector';
+import { PRODUCTS, fetchProductsForClient } from '@/features/catalog/product.query';
+import { CATEGORIES, SkinTone } from '@/shared/types/domain.type';
+import ProductCard from '@/features/catalog/cards/product.card';
+import SkinToneSelector from '@/features/catalog/selects/skin-tone.select';
 import styles from './duo.module.css';
-import { DEFAULT_SITE_CONFIG } from '@/lib/site-config';
-import type { DuoHeroConfig } from '@/lib/site-config';
+import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
+import type { DuoHeroConfig } from '@/features/site-config/site-config.type';
 
 
 const SORT_OPTIONS = [

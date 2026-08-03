@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPaymentRequest, JekoPayError } from '@/lib/jeko-pay/client';
-import { rateLimit, getIp, rateLimitHeaders } from '@/lib/rate-limit';
+import { getPaymentRequest, JekoPayError } from '@/features/payment/jeko-pay.client';
+import { rateLimit, getIp, rateLimitHeaders } from '@/shared/http/rate-limit.guard';
 
 export const runtime = 'nodejs';
 

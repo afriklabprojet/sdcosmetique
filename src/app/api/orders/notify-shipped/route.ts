@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { requireAdmin } from '@/lib/admin-auth';
-import { sendOrderShippedByNumber } from '@/lib/order-notifications';
-import { rateLimit, getIp, rateLimitHeaders } from '@/lib/rate-limit';
+import { requireAdmin } from '@/shared/auth/admin.guard';
+import { sendOrderShippedByNumber } from '@/features/orders/order-notification.service';
+import { rateLimit, getIp, rateLimitHeaders } from '@/shared/http/rate-limit.guard';
 
 export const runtime = 'nodejs';
 

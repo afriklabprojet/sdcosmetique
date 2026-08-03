@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyJekoSignature, type JekoWebhookPayload } from '@/lib/jeko-pay/webhook';
-import { createServiceClient } from '@/utils/supabase/service';
-import { sendOrderConfirmationByNumber } from '@/lib/order-notifications';
+import { verifyJekoSignature, type JekoWebhookPayload } from '@/features/payment/jeko-pay-webhook.validator';
+import { createServiceClient } from '@/shared/supabase/service.client';
+import { sendOrderConfirmationByNumber } from '@/features/orders/order-notification.service';
 
 export const runtime = 'nodejs';
 // Désactive tout cache pour les webhooks

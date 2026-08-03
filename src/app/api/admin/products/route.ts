@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath, revalidateTag } from 'next/cache';
-import { requireAdmin } from '@/lib/admin-auth';
-import { createServiceClient } from '@/utils/supabase/service';
-import { rowToProduct } from '@/lib/mappers';
-import type { Product } from '@/types';
+import { requireAdmin } from '@/shared/auth/admin.guard';
+import { createServiceClient } from '@/shared/supabase/service.client';
+import { rowToProduct } from '@/features/catalog/catalog.mapper';
+import type { Product } from '@/shared/types/domain.type';
 
 export async function GET() {
   try {

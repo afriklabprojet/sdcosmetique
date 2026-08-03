@@ -2,17 +2,19 @@
 
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
-import { useCart } from '@/context/CartContext';
-import { PaymentMethod } from '@/types';
-import { saveOrder, generateOrderNumber, type OrderDraft } from '@/lib/orders';
-import { DEFAULT_SITE_CONFIG, fetchSiteConfigSection, ShippingOption, ShippingConfig, PromoCode, applyPromoCode } from '@/lib/site-config';
-import { CheckoutStep, DeliveryInfo, GOLD, BORDER, TXT, TXT2, TXT3 } from '@/components/checkout/shared';
+import { useCart } from '@/features/cart/cart.store';
+import { PaymentMethod } from '@/shared/types/domain.type';
+import { saveOrder, generateOrderNumber, type OrderDraft } from '@/features/orders/order.store';
+import type { ShippingOption, ShippingConfig, PromoCode } from '@/features/site-config/site-config.type';
+import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
+import { fetchSiteConfigSection, applyPromoCode } from '@/features/site-config/site-config.util';
+import { CheckoutStep, DeliveryInfo, GOLD, BORDER, TXT, TXT2, TXT3 } from '@/features/checkout/checkout.type';
 
 // Composants extraits (lazy)
-import CartStep from '@/components/checkout/CartStep';
-const Sidebar      = lazy(() => import('@/components/checkout/Sidebar'));
-const DeliveryStep = lazy(() => import('@/components/checkout/DeliveryStep'));
-const PaymentStep  = lazy(() => import('@/components/checkout/PaymentStep'));
+import CartStep from '@/features/checkout/steps/cart.step';
+const Sidebar      = lazy(() => import('@/features/checkout/sidebars/checkout.sidebar'));
+const DeliveryStep = lazy(() => import('@/features/checkout/steps/delivery.step'));
+const PaymentStep  = lazy(() => import('@/features/checkout/steps/payment.step'));
 
 // ── Stepper config ────────────────────────────────────────────────────────────
 const STEPS = [

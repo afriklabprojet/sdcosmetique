@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { createClient } from '@/utils/supabase/client';
-import { fetchSiteConfigSection } from '@/lib/config/utilities';
+import { createClient } from '@/shared/supabase/browser.client';
+import { fetchSiteConfigSection } from '@/features/site-config/site-config.util';
 import styles from './admin-login.module.css';
 
 // ─── Whitelist emails autorisés (vérification UI seulement — la vraie vérif est côté serveur via middleware) ───

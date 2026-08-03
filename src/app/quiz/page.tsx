@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { SkinTone, SKIN_TONES, Product } from '@/types';
-import { fetchActiveConcerns, fetchActiveRoutines } from '@/lib/quiz-db';
-import ProductCard from '@/components/ui/ProductCard';
+import { SkinTone, SKIN_TONES, Product } from '@/shared/types/domain.type';
+import { fetchActiveConcerns, fetchActiveRoutines } from '@/features/quiz/quiz.repository';
+import ProductCard from '@/features/catalog/cards/product.card';
 import styles from './quiz.module.css';
-import { DEFAULT_SITE_CONFIG } from '@/lib/site-config';
-import type { QuizHeroConfig } from '@/lib/site-config';
+import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
+import type { QuizHeroConfig } from '@/features/site-config/site-config.type';
 
 
 type QuizStep = 'welcome' | 'q1' | 'q2' | 'q3' | 'result';

@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
-import { createClient } from '@/utils/supabase/client';
+import { createClient } from '@/shared/supabase/browser.client';
 import styles from '../auth.module.css';
 
 export default function MotDePasseOubliePage() {

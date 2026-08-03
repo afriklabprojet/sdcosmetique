@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { useState, useMemo, useEffect } from 'react';
 import styles from '../(static)/static.module.css';
-import TestimonialForm from '@/components/home/TestimonialForm';
-import { createClient } from '@/utils/supabase/client';
+import TestimonialForm from '@/features/testimonials/testimonial.form';
+import { createClient } from '@/shared/supabase/browser.client';
 
 type Review = {
   id: string;

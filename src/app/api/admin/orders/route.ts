@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdmin } from '@/lib/admin-auth';
-import { createServiceClient } from '@/utils/supabase/service';
-import type { OrderDraft } from '@/lib/orders';
+import { requireAdmin } from '@/shared/auth/admin.guard';
+import { createServiceClient } from '@/shared/supabase/service.client';
+import type { OrderDraft } from '@/features/orders/order.store';
 
 type OrderStatus = OrderDraft['status'];
 

@@ -1,0 +1,1350 @@
+{
+  "scope": "src",
+  "generated_by": "survey",
+  "families": [
+    "ecmascript"
+  ],
+  "uncovered_extensions": [
+    {
+      "ext": ".css",
+      "count": 12,
+      "note": "Aucun rulebook de famille ne couvre .css. 12 fichiers (dont 9 CSS Modules colocalises). Hors perimetre de toutes les vagues tant qu'une famille n'est pas declaree dans families.md."
+    },
+    {
+      "ext": ".ico",
+      "count": 1,
+      "note": "Asset binaire (src/app/favicon.ico). Hors perimetre."
+    }
+  ],
+  "untouchable_zones": [
+    {
+      "path": "src/app/**/{page,layout,route,loading,not-found,icon,manifest,robots,sitemap,opengraph-image}.{ts,tsx}",
+      "reason": "Noms de fichiers imposes par le routeur Next.js App Router. La convention <entity>.<role>.<ext> ne peut pas s'y appliquer : renommer casse la resolution de routes. 63 fichiers concernes.",
+      "affects_wave": "slice"
+    },
+    {
+      "path": "src/proxy.ts",
+      "reason": "Point d'entree conventionnel (voir middleware.ts a la racine). Nom impose.",
+      "affects_wave": "slice"
+    }
+  ],
+  "observations": [
+    {
+      "id": "OBS-001",
+      "topic": "co-change",
+      "note": "L'historique ne compte que 3 commits (ff87897, 2bae03e, 10d082d) dont un 'first commit' massif. L'analyse de co-changement sur 200 commits demandee par la vague 0 n'est pas realisable : aucun signal statistique exploitable. Les candidats de slices ci-dessous sont deduits du graphe d'imports et de la duplication structurelle, pas de l'historique."
+    },
+    {
+      "id": "OBS-002",
+      "topic": "cycles",
+      "note": "Aucun cycle de dependance entre repertoires. Le graphe est acyclique : app -> components -> {lib, context, hooks, types, utils} -> {types}. Une seule inversion de couche detectee (voir F-096)."
+    },
+    {
+      "id": "OBS-003",
+      "topic": "hygiene-types",
+      "note": "Zero occurrence de `any` / `any[]` / `as any` dans tout le scope (les 2 hits de src/app/manifest.ts sont des valeurs string du manifeste web, pas le type TS). La regle domain 'bannir any' est deja satisfaite."
+    },
+    {
+      "id": "OBS-004",
+      "topic": "agent-nouns",
+      "note": "Aucune classe ni struct agent noun (*Manager, *Service, *Handler, *Engine, *Broadcaster, *Sender) dans le scope. Le code est fonctionnel, pas objet. La vague affordance aura un perimetre etroit : elle porte surtout sur des modules mal proprietaires (F-085 a F-091) et un fichier *Utils (F-084)."
+    },
+    {
+      "id": "OBS-005",
+      "topic": "volumetrie",
+      "note": "24087 lignes TS/TSX sur 158 fichiers. Deux fichiers concentrent 25% du total : AdminDashboard.tsx (4506 l) et compte/page.tsx (1508 l)."
+    }
+  ],
+  "findings": [
+    {
+      "id": "F-001",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/account/AccountDashboard.tsx",
+      "note": "PascalCase sans role separe par un point",
+      "status": "closed",
+      "resolved_path": "src/features/account/account.view.tsx",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-002",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/account/AccountNav.tsx",
+      "note": "PascalCase sans role separe par un point",
+      "status": "closed",
+      "resolved_path": "src/features/account/account.menu.tsx",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-003",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/account/OrdersSection.tsx",
+      "note": "PascalCase sans role separe par un point ; 'Section' n'est pas un role reconnu",
+      "status": "closed",
+      "resolved_path": "src/features/account/order.list.tsx",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-004",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/account/ProfileSection.tsx",
+      "note": "PascalCase sans role separe par un point ; 'Section' n'est pas un role reconnu",
+      "status": "closed",
+      "resolved_path": "src/features/account/profile.form.tsx",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-005",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/admin/GlobalPromoCard.tsx",
+      "note": "role 'card' present mais non separe par un point ; dossier de categorie 'cards/' absent",
+      "status": "closed",
+      "resolved_path": "src/features/admin/cards/global-promo.card.tsx",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-006",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/admin/NewsletterCard.tsx",
+      "note": "role 'card' present mais non separe par un point ; dossier de categorie 'cards/' absent",
+      "status": "closed",
+      "resolved_path": "src/features/admin/cards/newsletter.card.tsx",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-007",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/admin/Pagination.tsx",
+      "note": "PascalCase sans role ; role reconnu non determine",
+      "status": "closed",
+      "resolved_path": "src/features/admin/pagination.tsx",
+      "resolution": "Aucun role de la liste ecmascript ne correspond : nom nu en kebab-case, conformement a la regle 'ne pas inventer de role'."
+    },
+    {
+      "id": "F-008",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/admin/QuizAnalyticsCard.tsx",
+      "note": "role 'card' present mais non separe par un point",
+      "status": "closed",
+      "resolved_path": "src/features/admin/cards/quiz-analytics.card.tsx",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-009",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/admin/StatusBadge.tsx",
+      "note": "role 'badge' present mais non separe par un point",
+      "status": "closed",
+      "resolved_path": "src/features/admin/badges/status.badge.tsx",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-010",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/categorie/CategoryClient.tsx",
+      "note": "suffixe 'Client' n'est pas un role reconnu ; dossier 'categorie' en francais alors que le symbole est en anglais",
+      "status": "closed",
+      "resolved_path": "src/features/catalog/views/category.view.tsx",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-011",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/checkout/CartStep.tsx",
+      "note": "role 'step' present mais non separe par un point",
+      "status": "closed",
+      "resolved_path": "src/features/checkout/steps/cart.step.tsx",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-012",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/checkout/CheckoutStepper.tsx",
+      "note": "'Stepper' n'est pas un role reconnu",
+      "status": "closed",
+      "resolved_path": "src/features/checkout/checkout-stepper.tsx",
+      "resolution": "Aucun role de la liste ecmascript ne correspond : nom nu en kebab-case, conformement a la regle 'ne pas inventer de role'."
+    },
+    {
+      "id": "F-013",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/checkout/DeliveryStep.tsx",
+      "note": "role 'step' present mais non separe par un point",
+      "status": "closed",
+      "resolved_path": "src/features/checkout/steps/delivery.step.tsx",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-014",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/checkout/PaymentLogos.tsx",
+      "note": "PascalCase sans role reconnu",
+      "status": "closed",
+      "resolved_path": "src/features/checkout/payment-logos.tsx",
+      "resolution": "Aucun role de la liste ecmascript ne correspond : nom nu en kebab-case, conformement a la regle 'ne pas inventer de role'."
+    },
+    {
+      "id": "F-015",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/checkout/PaymentStep.tsx",
+      "note": "role 'step' present mais non separe par un point",
+      "status": "closed",
+      "resolved_path": "src/features/checkout/steps/payment.step.tsx",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-016",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/checkout/shared.ts",
+      "note": "'shared' n'est ni une entite ni un role ; nom fourre-tout",
+      "status": "closed",
+      "resolved_path": "src/features/checkout/checkout.type.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-017",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/checkout/Sidebar.tsx",
+      "note": "role 'sidebar' present mais entite absente ; ambigu avec layout/LegalSidebar.tsx",
+      "status": "closed",
+      "resolved_path": "src/features/checkout/sidebars/checkout.sidebar.tsx",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-018",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/home/CategoryHighlight.tsx",
+      "note": "PascalCase sans role reconnu",
+      "status": "closed",
+      "resolved_path": "src/features/home/category-highlight.tsx",
+      "resolution": "Aucun role de la liste ecmascript ne correspond : nom nu en kebab-case, conformement a la regle 'ne pas inventer de role'."
+    },
+    {
+      "id": "F-019",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/home/CTABanner.tsx",
+      "note": "PascalCase sans role reconnu ; 'banner' absent de la liste des roles",
+      "status": "closed",
+      "resolved_path": "src/features/home/cta-banner.tsx",
+      "resolution": "Aucun role de la liste ecmascript ne correspond : nom nu en kebab-case, conformement a la regle 'ne pas inventer de role'."
+    },
+    {
+      "id": "F-020",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/home/HeroBanner.tsx",
+      "note": "PascalCase sans role reconnu",
+      "status": "closed",
+      "resolved_path": "src/features/home/hero-banner.tsx",
+      "resolution": "Aucun role de la liste ecmascript ne correspond : nom nu en kebab-case, conformement a la regle 'ne pas inventer de role'."
+    },
+    {
+      "id": "F-021",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/home/PaymentBand.tsx",
+      "note": "PascalCase sans role reconnu",
+      "status": "closed",
+      "resolved_path": "src/features/home/payment-band.tsx",
+      "resolution": "Aucun role de la liste ecmascript ne correspond : nom nu en kebab-case, conformement a la regle 'ne pas inventer de role'."
+    },
+    {
+      "id": "F-022",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/home/SkinToneSection.tsx",
+      "note": "PascalCase sans role reconnu",
+      "status": "closed",
+      "resolved_path": "src/features/home/skin-tone-section.tsx",
+      "resolution": "Aucun role de la liste ecmascript ne correspond : nom nu en kebab-case, conformement a la regle 'ne pas inventer de role'."
+    },
+    {
+      "id": "F-023",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/home/TestimonialForm.tsx",
+      "note": "role 'form' present mais non separe par un point",
+      "status": "closed",
+      "resolved_path": "src/features/testimonials/testimonial.form.tsx",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-024",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/home/Testimonials.tsx",
+      "note": "PascalCase pluriel sans role ; role 'list' probable non declare",
+      "status": "closed",
+      "resolved_path": "src/features/testimonials/testimonials.tsx",
+      "resolution": "Aucun role de la liste ecmascript ne correspond : nom nu en kebab-case, conformement a la regle 'ne pas inventer de role'."
+    },
+    {
+      "id": "F-025",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/home/TrendingProducts.tsx",
+      "note": "PascalCase sans role reconnu",
+      "status": "closed",
+      "resolved_path": "src/features/home/trending-products.tsx",
+      "resolution": "Aucun role de la liste ecmascript ne correspond : nom nu en kebab-case, conformement a la regle 'ne pas inventer de role'."
+    },
+    {
+      "id": "F-026",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/layout/CartDrawer.tsx",
+      "note": "role 'drawer' present mais non separe par un point",
+      "status": "closed",
+      "resolved_path": "src/features/cart/drawers/cart.drawer.tsx",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-027",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/layout/ClientOnlyOverlays.tsx",
+      "note": "nom decrivant une contrainte de rendu, ni entite ni role",
+      "status": "closed",
+      "resolved_path": "src/shared/layout/client-only-overlays.tsx",
+      "resolution": "Aucun role de la liste ecmascript ne correspond : nom nu en kebab-case, conformement a la regle 'ne pas inventer de role'."
+    },
+    {
+      "id": "F-028",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/layout/Footer.tsx",
+      "note": "PascalCase sans role reconnu",
+      "status": "closed",
+      "resolved_path": "src/shared/layout/footer.tsx",
+      "resolution": "Aucun role de la liste ecmascript ne correspond : nom nu en kebab-case, conformement a la regle 'ne pas inventer de role'."
+    },
+    {
+      "id": "F-029",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/layout/LegalSidebar.tsx",
+      "note": "role 'sidebar' present mais non separe par un point",
+      "status": "closed",
+      "resolved_path": "src/shared/layout/legal.sidebar.tsx",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-030",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/layout/Navbar.tsx",
+      "note": "PascalCase sans role reconnu",
+      "status": "closed",
+      "resolved_path": "src/shared/layout/navbar.tsx",
+      "resolution": "Aucun role de la liste ecmascript ne correspond : nom nu en kebab-case, conformement a la regle 'ne pas inventer de role'."
+    },
+    {
+      "id": "F-031",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/layout/TopBar.tsx",
+      "note": "PascalCase sans role reconnu",
+      "status": "closed",
+      "resolved_path": "src/shared/layout/top-bar.tsx",
+      "resolution": "Aucun role de la liste ecmascript ne correspond : nom nu en kebab-case, conformement a la regle 'ne pas inventer de role'."
+    },
+    {
+      "id": "F-032",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/marketing/PromoBanner.tsx",
+      "note": "PascalCase sans role reconnu",
+      "status": "closed",
+      "resolved_path": "src/features/promo/promo-banner.tsx",
+      "resolution": "Aucun role de la liste ecmascript ne correspond : nom nu en kebab-case, conformement a la regle 'ne pas inventer de role'."
+    },
+    {
+      "id": "F-033",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/marketing/TrackingScripts.tsx",
+      "note": "PascalCase pluriel sans role reconnu",
+      "status": "closed",
+      "resolved_path": "src/features/marketing/tracking-scripts.tsx",
+      "resolution": "Aucun role de la liste ecmascript ne correspond : nom nu en kebab-case, conformement a la regle 'ne pas inventer de role'."
+    },
+    {
+      "id": "F-034",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/marketing/WelcomePopup.tsx",
+      "note": "'Popup' n'est pas un role reconnu ; 'modal' ou 'dialog' le sont",
+      "status": "closed",
+      "resolved_path": "src/features/marketing/welcome.modal.tsx",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-035",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/product/ProductDetail.tsx",
+      "note": "'Detail' n'est pas un role reconnu ; entite 'product' redondante avec le dossier",
+      "status": "closed",
+      "resolved_path": "src/features/catalog/views/product.view.tsx",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-036",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/product/ProductGallery.tsx",
+      "note": "'Gallery' n'est pas un role reconnu",
+      "status": "closed",
+      "resolved_path": "src/features/catalog/product-gallery.tsx",
+      "resolution": "Aucun role de la liste ecmascript ne correspond : nom nu en kebab-case, conformement a la regle 'ne pas inventer de role'."
+    },
+    {
+      "id": "F-037",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/ui/Button.tsx",
+      "note": "role 'button' seul, entite absente",
+      "status": "closed",
+      "resolved_path": "src/shared/ui/app.button.tsx",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-038",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/ui/ImageUpload.tsx",
+      "note": "PascalCase sans role reconnu",
+      "status": "closed",
+      "resolved_path": "src/shared/ui/image.input.tsx",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-039",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/ui/ProductCard.tsx",
+      "note": "role 'card' present mais non separe par un point ; dossier 'cards/' absent",
+      "status": "closed",
+      "resolved_path": "src/features/catalog/cards/product.card.tsx",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-040",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/ui/ProductCardSkeleton.tsx",
+      "note": "double role empile (card + skeleton) sans point de separation",
+      "status": "closed",
+      "resolved_path": "src/features/catalog/cards/product-card-skeleton.tsx",
+      "resolution": "Aucun role de la liste ecmascript ne correspond : nom nu en kebab-case, conformement a la regle 'ne pas inventer de role'."
+    },
+    {
+      "id": "F-041",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/ui/PromoBadge.tsx",
+      "note": "role 'badge' present mais non separe par un point",
+      "status": "closed",
+      "resolved_path": "src/features/promo/badges/promo.badge.tsx",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-042",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/ui/SkinToneSelector.tsx",
+      "note": "'Selector' n'est pas un role reconnu ; 'select' l'est",
+      "status": "closed",
+      "resolved_path": "src/features/catalog/selects/skin-tone.select.tsx",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-043",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/components/ui/StarRating.tsx",
+      "note": "PascalCase sans role reconnu",
+      "status": "closed",
+      "resolved_path": "src/features/catalog/star-rating.tsx",
+      "resolution": "Aucun role de la liste ecmascript ne correspond : nom nu en kebab-case, conformement a la regle 'ne pas inventer de role'."
+    },
+    {
+      "id": "F-044",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/context/CartContext.tsx",
+      "note": "'Context' n'est pas un role reconnu ; 'store' l'est",
+      "status": "closed",
+      "resolved_path": "src/features/cart/cart.store.tsx",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-045",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/context/PromoContext.tsx",
+      "note": "'Context' n'est pas un role reconnu ; 'store' l'est",
+      "status": "closed",
+      "resolved_path": "src/features/promo/promo.store.tsx",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-046",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/context/WishlistContext.tsx",
+      "note": "'Context' n'est pas un role reconnu ; 'store' l'est",
+      "status": "closed",
+      "resolved_path": "src/features/wishlist/wishlist.store.tsx",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-047",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/hooks/useReveal.ts",
+      "note": "role 'hook' absent du nom de fichier ; prefixe 'use' porte le role au lieu du suffixe",
+      "status": "closed",
+      "resolved_path": "src/shared/hooks/reveal.hook.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-048",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/lib/admin-auth.ts",
+      "note": "tiret au lieu du point ; 'auth' n'est pas un role reconnu",
+      "status": "closed",
+      "resolved_path": "src/shared/auth/admin.guard.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-049",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/lib/categories-db.ts",
+      "note": "tiret au lieu du point ; 'db' n'est pas un role reconnu, 'repository' l'est",
+      "status": "closed",
+      "resolved_path": "src/features/catalog/category.repository.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-050",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/lib/categories-server.ts",
+      "note": "tiret au lieu du point ; 'server' n'est pas un role, c'est une contrainte d'execution",
+      "status": "closed",
+      "resolved_path": "src/features/catalog/category.query.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-051",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/lib/config/defaults.ts",
+      "note": "'defaults' n'est ni entite ni role ; 'constant' est le role reconnu",
+      "status": "closed",
+      "resolved_path": "src/features/site-config/site-config.constant.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-052",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/lib/config/types.ts",
+      "note": "role 'type' present mais entite absente",
+      "status": "closed",
+      "resolved_path": "src/features/site-config/site-config.type.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-053",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/lib/config/utilities.ts",
+      "note": "'utilities' n'est pas le role reconnu ('util') et l'entite est absente ; fourre-tout, voir F-088",
+      "status": "closed",
+      "resolved_path": "src/features/site-config/site-config.util.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-054",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/lib/db.ts",
+      "note": "nom nu sans entite ; 'db' n'est pas un role reconnu",
+      "status": "closed",
+      "resolved_path": "src/shared/supabase/request.client.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-055",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/lib/emails.ts",
+      "note": "pluriel sans role ; 'client' ou 'service' non declare",
+      "status": "closed",
+      "resolved_path": "src/shared/notifications/email.service.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-056",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/lib/jeko-admin.ts",
+      "note": "tiret au lieu du point ; 'admin' n'est pas un role reconnu",
+      "status": "closed",
+      "resolved_path": "src/features/loyalty/jeko-admin.repository.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-057",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/lib/jeko-pay/client.ts",
+      "note": "role 'client' present mais entite absente",
+      "status": "closed",
+      "resolved_path": "src/features/payment/jeko-pay.client.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-058",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/lib/jeko-pay/webhook.ts",
+      "note": "'webhook' n'est pas un role reconnu ; entite absente",
+      "status": "closed",
+      "resolved_path": "src/features/payment/jeko-pay-webhook.validator.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-059",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/lib/jeko.ts",
+      "note": "nom nu sans role ; coexiste avec jeko-admin.ts et jeko-pay/ sans frontiere claire",
+      "status": "closed",
+      "resolved_path": "src/features/loyalty/jeko.repository.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-060",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/lib/mappers.ts",
+      "note": "role 'mapper' au pluriel et sans entite",
+      "status": "closed",
+      "resolved_path": "src/features/catalog/catalog.mapper.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-061",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/lib/order-notifications.ts",
+      "note": "tiret au lieu du point ; 'notifications' n'est pas un role reconnu",
+      "status": "closed",
+      "resolved_path": "src/features/orders/order-notification.service.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-062",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/lib/orders-db.ts",
+      "note": "tiret au lieu du point ; 'db' n'est pas un role reconnu",
+      "status": "closed",
+      "resolved_path": "src/features/orders/order.repository.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-063",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/lib/orders.ts",
+      "note": "pluriel sans role ; contenu mixte (type + persistance localStorage), voir F-089",
+      "status": "closed",
+      "resolved_path": "src/features/orders/order.store.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-064",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/lib/products-server.ts",
+      "note": "tiret au lieu du point ; 'server' est une contrainte d'execution, pas un role",
+      "status": "closed",
+      "resolved_path": "src/features/catalog/product.repository.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-065",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/lib/products.ts",
+      "note": "pluriel sans role ; contenu mixte (fetch + donnees en dur + selecteurs), voir F-090",
+      "status": "closed",
+      "resolved_path": "src/features/catalog/product.query.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-066",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/lib/promo.ts",
+      "note": "nom nu sans role",
+      "status": "closed",
+      "resolved_path": "src/features/promo/promo.util.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-067",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/lib/quiz-db.ts",
+      "note": "tiret au lieu du point ; 'db' n'est pas un role reconnu",
+      "status": "closed",
+      "resolved_path": "src/features/quiz/quiz.repository.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-068",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/lib/rate-limit.ts",
+      "note": "tiret ; entite composee acceptable en kebab-case mais role absent",
+      "status": "closed",
+      "resolved_path": "src/shared/http/rate-limit.guard.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-069",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/lib/site-config.server.ts",
+      "note": "point present mais 'server' n'est pas un role reconnu ; c'est une contrainte d'execution deguisee en role",
+      "status": "closed",
+      "resolved_path": "src/features/site-config/site-config.query.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-070",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/lib/site-config.ts",
+      "note": "role absent ; le fichier est un barrel, voir F-078",
+      "status": "closed",
+      "resolved_path": "(supprime - barrel)",
+      "resolution": "Barrel supprime (regle : aucun fichier de reexport pur)."
+    },
+    {
+      "id": "F-071",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/lib/testimonials-db.ts",
+      "note": "tiret au lieu du point ; 'db' n'est pas un role reconnu",
+      "status": "closed",
+      "resolved_path": "src/features/testimonials/testimonial.repository.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-072",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/lib/testimonials-server.ts",
+      "note": "tiret au lieu du point ; 'server' est une contrainte d'execution",
+      "status": "closed",
+      "resolved_path": "src/features/testimonials/testimonial.query.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-073",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/lib/whatsapp.ts",
+      "note": "nom nu sans role",
+      "status": "closed",
+      "resolved_path": "src/shared/notifications/whatsapp.service.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-074",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/utils/supabase/auth-helpers.ts",
+      "note": "tiret au lieu du point ; 'helpers' n'est pas un role reconnu, voir aussi F-084",
+      "status": "closed",
+      "resolved_path": "src/shared/supabase/auth-error.guard.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-075",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/utils/supabase/client.ts",
+      "note": "role 'client' present mais entite absente (portee par le dossier)",
+      "status": "closed",
+      "resolved_path": "src/shared/supabase/browser.client.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-076",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/utils/supabase/middleware.ts",
+      "note": "'middleware' n'est pas un role reconnu ; ambigu avec le middleware.ts racine qu'il ne remplace pas",
+      "status": "closed",
+      "resolved_path": "src/shared/supabase/session.guard.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-077",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "naming",
+      "path": "src/utils/supabase/service.ts",
+      "note": "'service' comme nom de fichier ; agent noun, voir F-085",
+      "status": "closed",
+      "resolved_path": "src/shared/supabase/service.client.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-078",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "barrel",
+      "path": "src/lib/site-config.ts",
+      "note": "22 lignes de pur reexport vers ./config/*. Barrel interdit. Il est pourtant l'unique consommateur de isFreeShippingEligible, validatePromoCode et fetchFullSiteConfig, ce qui masque leur mort reelle (voir F-104 a F-106).",
+      "status": "closed",
+      "resolved_path": "(supprime - barrel)",
+      "resolution": "Barrel supprime (regle : aucun fichier de reexport pur)."
+    },
+    {
+      "id": "F-079",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "barrel",
+      "path": "src/lib/config/index.ts",
+      "note": "16 lignes de `export * from` (types, defaults, utilities) plus un bloc de reexport de compatibilite redondant avec les etoiles qui le precedent. Barrel interdit ET zero consommateur dans tout le scope.",
+      "status": "closed",
+      "resolved_path": "(supprime - barrel)",
+      "resolution": "Barrel supprime (regle : aucun fichier de reexport pur)."
+    },
+    {
+      "id": "F-080",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "barrel",
+      "path": "src/types/index.ts",
+      "note": "index.ts sous src/types/. 30 fichiers l'importent via `@/types`, mais il contient des valeurs (SKIN_TONES) et pas seulement des types : ce n'est pas un barrel pur, l'arbitrage barrel/module appartient a la vague slice.",
+      "status": "closed",
+      "resolved_path": "src/shared/types/domain.type.ts",
+      "resolution": "Renomme <entity>.<role>.<ext> et place dans sa slice verticale."
+    },
+    {
+      "id": "F-081",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "duplication",
+      "path": "src/app/categorie/{body,duo,face,gammes,kits}/page.tsx",
+      "note": "5 pages quasi identiques (195 a 215 lignes chacune). Le diff body/face ne porte que sur 42 lignes, dont l'essentiel est le slug de categorie, la cle de config hero et le nom du module CSS. src/app/categorie/[slug]/page.tsx existe deja en parallele. Environ 1000 lignes pour une seule forme.",
+      "status": "deferred",
+      "deferred_to": "split",
+      "justification": "Les 5 pages categorie/ sont dans src/app/ : leurs noms sont imposes par le routeur et la deduplication exige de toucher a la logique, gele en vague 1."
+    },
+    {
+      "id": "F-082",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "duplication",
+      "path": "src/app/compte/page.tsx",
+      "note": "1508 lignes qui n'importent aucun des 4 composants de src/components/account/. Ces composants (AccountDashboard, AccountNav, OrdersSection, ProfileSection, 590 lignes cumulees) sont une extraction abandonnee : la page reimplemente leur contenu inline.",
+      "status": "deferred",
+      "deferred_to": "split",
+      "justification": "Deduplication de compte/page.tsx contre les composants account : exige de modifier la logique, hors perimetre de slice."
+    },
+    {
+      "id": "F-083",
+      "wave": "slice",
+      "family": "ecmascript",
+      "kind": "structure",
+      "path": "src/components/checkout/",
+      "note": "CheckoutStepper.tsx et PaymentLogos.tsx ne sont references par aucun fichier, alors que checkout/page.tsx importe CartStep, DeliveryStep, PaymentStep et Sidebar du meme dossier. Slice partiellement morte.",
+      "status": "deferred",
+      "deferred_to": "drift",
+      "justification": "Slice partiellement morte : les fichiers ont ete places dans features/checkout ; la suppression appartient a drift."
+    },
+    {
+      "id": "F-084",
+      "wave": "affordance",
+      "family": "ecmascript",
+      "kind": "agent-noun",
+      "path": "src/components/admin/OrderUtils.ts",
+      "note": "Fichier *Utils porteur de logique (exportOrdersCSV). Le comportement 'exporter en CSV' n'appartient ni a un fichier Utils ni au dossier components : il opere sur OrderDraft.",
+      "status": "open"
+    },
+    {
+      "id": "F-085",
+      "wave": "affordance",
+      "family": "ecmascript",
+      "kind": "agent-noun",
+      "path": "src/utils/supabase/service.ts",
+      "note": "Module nomme 'service' exposant createServiceClient. Agent noun ; le module ne detient aucun etat entre appels.",
+      "status": "open"
+    },
+    {
+      "id": "F-086",
+      "wave": "affordance",
+      "family": "ecmascript",
+      "kind": "agent-noun",
+      "path": "src/utils/supabase/auth-helpers.ts",
+      "note": "Module 'helpers' porteur de logique de traitement des erreurs d'authentification. Zero consommateur (voir F-101), mais la regle affordance s'applique s'il survit a la purge.",
+      "status": "open"
+    },
+    {
+      "id": "F-087",
+      "wave": "affordance",
+      "family": "ecmascript",
+      "kind": "ownership",
+      "path": "src/lib/orders-db.ts:204-305",
+      "note": "Le module 'orders' porte 6 fonctions qui ne concernent pas les commandes : updateProductInDB, addProductToDB, deleteProductFromDB, fetchProductsFromDB, fetchAllReviewsFromDB, deleteReviewFromDB, approveReviewInDB. Le corps de ces methodes mute Product et Review, pas Order.",
+      "status": "open"
+    },
+    {
+      "id": "F-088",
+      "wave": "affordance",
+      "family": "ecmascript",
+      "kind": "ownership",
+      "path": "src/lib/config/utilities.ts",
+      "note": "8 exports sans etat regroupes dans un module fourre-tout melangeant trois responsabilites : acces config (fetch/save section), logique promo (applyPromoCode, validatePromoCode) et calcul livraison (calculateShippingCost, isFreeShippingEligible). Aucune ne detient d'etat : candidat namespace, pas entite.",
+      "status": "open"
+    },
+    {
+      "id": "F-089",
+      "wave": "affordance",
+      "family": "ecmascript",
+      "kind": "ownership",
+      "path": "src/lib/orders.ts",
+      "note": "Melange la definition d'OrderDraft, la persistance localStorage (saveOrder, getOrders, getLastOrder, updateOrderStatus) et du formatage de presentation (formatOrderDate). Le stockage detient de l'etat entre appels, le formatage non.",
+      "status": "open"
+    },
+    {
+      "id": "F-090",
+      "wave": "affordance",
+      "family": "ecmascript",
+      "kind": "ownership",
+      "path": "src/lib/products.ts",
+      "note": "Melange fetch reseau (fetchProductsForClient, fetchProductBySlugForClient), un catalogue en dur de 114 lignes (PRODUCTS) et 7 selecteurs purs. Trois proprietaires distincts dans un seul module.",
+      "status": "open"
+    },
+    {
+      "id": "F-091",
+      "wave": "affordance",
+      "family": "ecmascript",
+      "kind": "ownership",
+      "path": "src/lib/products-server.ts",
+      "note": "Importe PRODUCTS depuis ./products et s'en sert comme fallback dans 5 fonctions sur 6. La donnee en dur est detenue par un module, la strategie de repli par un autre : le comportement est separe de l'etat qu'il consulte.",
+      "status": "open"
+    },
+    {
+      "id": "F-092",
+      "wave": "domain",
+      "family": "ecmascript",
+      "kind": "anonymous-shape",
+      "path": "src/lib/{jeko.ts:151,jeko-admin.ts:98,jeko-admin.ts:130,emails.ts:35,emails.ts:164,emails.ts:202}",
+      "note": "La forme de retour `Promise<{ ok: boolean; error?: string }>` (parfois + id) est repetee 6 fois dans 3 modules sans interface nommee.",
+      "status": "open"
+    },
+    {
+      "id": "F-093",
+      "wave": "domain",
+      "family": "ecmascript",
+      "kind": "anonymous-shape",
+      "path": "src/lib/config/utilities.ts:42,164",
+      "note": "`Promise<{ success: boolean; error?: string }>` et `{ isValid: boolean; code?: PromoCode; error?: string }` : deux variantes anonymes du meme concat 'resultat d'operation' deja exprime ailleurs avec la cle `ok` (F-092). Le vocabulaire du succes est incoherent : ok / success / isValid.",
+      "status": "open"
+    },
+    {
+      "id": "F-094",
+      "wave": "domain",
+      "family": "ecmascript",
+      "kind": "anonymous-shape",
+      "path": "src/lib/{testimonials-db.ts:17,categories-db.ts:49}",
+      "note": "`Promise<{ error?: string }>` sans interface nommee, troisieme variante du resultat d'operation.",
+      "status": "open"
+    },
+    {
+      "id": "F-095",
+      "wave": "domain",
+      "family": "ecmascript",
+      "kind": "duplication",
+      "path": "src/lib/products.ts:183 + src/lib/config/utilities.ts:183",
+      "note": "Deux formateurs de prix concurrents : formatPrice (XOF, 0 decimale) et formatConfigPrice (EUR, 2 decimales). Deux devises differentes pour un meme site. formatConfigPrice n'a aucun consommateur (voir F-103).",
+      "status": "open"
+    },
+    {
+      "id": "F-096",
+      "wave": "domain",
+      "family": "ecmascript",
+      "kind": "layering",
+      "path": "src/components/admin/GlobalPromoCard.tsx:5",
+      "note": "Un composant importe une server action depuis '@/app/admin/actions'. Seule inversion de couche du scope : components depend de app.",
+      "status": "open"
+    },
+    {
+      "id": "F-097",
+      "wave": "domain",
+      "family": "ecmascript",
+      "kind": "name-collision",
+      "path": "src/lib/categories-server.ts:4 + src/lib/categories-db.ts:18",
+      "note": "Deux fonctions exportees nommees `fetchActiveCategories` avec la meme signature dans deux modules voisins. Le nom ne distingue pas les deux formes.",
+      "status": "open"
+    },
+    {
+      "id": "F-098",
+      "wave": "domain",
+      "family": "ecmascript",
+      "kind": "shape",
+      "path": "src/components/checkout/shared.ts:15-22",
+      "note": "6 constantes de couleur nues (GOLD, BORDER, BG_ROW, TXT, TXT2, TXT3) plus un style inline exporte. Valeurs correlees voyageant ensemble sans nom de domaine ; TXT/TXT2/TXT3 est une numerotation, pas un vocabulaire.",
+      "status": "open"
+    },
+    {
+      "id": "F-099",
+      "wave": "boundary",
+      "family": "ecmascript",
+      "kind": "props",
+      "path": "src/components/checkout/{Sidebar.tsx:18,21,23 , PaymentStep.tsx:32,34,37 , DeliveryStep.tsx:10,11,15}",
+      "note": "9 props `setX` traversant la frontiere, dont setStep repete dans 3 composants et un React.Dispatch<SetStateAction> expose brut (DeliveryStep.tsx:10). L'etat d'interaction du tunnel vit entierement dans checkout/page.tsx.",
+      "status": "open"
+    },
+    {
+      "id": "F-100",
+      "wave": "boundary",
+      "family": "ecmascript",
+      "kind": "props",
+      "path": "src/components/product/ProductDetail.tsx:150,152",
+      "note": "Props setSelectedTone et setQty : etat de presentation pur (teinte selectionnee, quantite affichee) detenu par le parent au lieu du composant.",
+      "status": "open"
+    },
+    {
+      "id": "F-101",
+      "wave": "boundary",
+      "family": "ecmascript",
+      "kind": "props",
+      "path": "src/app/admin/AdminDashboard.tsx:64,535,536",
+      "note": "setProductModal (React.Dispatch brut), setProductSearch, setProductPage : etat de presentation (modale ouverte, recherche, pagination) pousse en props a travers la frontiere.",
+      "status": "open"
+    },
+    {
+      "id": "F-102",
+      "wave": "boundary",
+      "family": "ecmascript",
+      "kind": "state-density",
+      "path": "src/app/admin/AdminDashboard.tsx",
+      "note": "55 appels a useState dans un seul composant. Aucun hook local d'interaction extrait.",
+      "status": "open"
+    },
+    {
+      "id": "F-103",
+      "wave": "boundary",
+      "family": "ecmascript",
+      "kind": "state-density",
+      "path": "src/app/compte/page.tsx",
+      "note": "25 appels a useState dans une page qui melange etat metier (commandes, profil, wishlist) et etat de presentation (onglet actif, modales).",
+      "status": "open"
+    },
+    {
+      "id": "F-104",
+      "wave": "drift",
+      "family": "ecmascript",
+      "kind": "dead-code",
+      "path": "src/components/account/{AccountDashboard,AccountNav,OrdersSection,ProfileSection}.tsx",
+      "note": "Zero reference dans tout le scope, y compris par imports dynamiques. 590 lignes. Voir F-082 pour la cause.",
+      "status": "open"
+    },
+    {
+      "id": "F-105",
+      "wave": "drift",
+      "family": "ecmascript",
+      "kind": "dead-code",
+      "path": "src/components/{ui/Button.tsx,admin/OrderUtils.ts,admin/NewsletterCard.tsx,checkout/CheckoutStepper.tsx,checkout/PaymentLogos.tsx,home/CTABanner.tsx,product/ProductGallery.tsx}",
+      "note": "7 modules sans aucune reference dans le scope.",
+      "status": "open"
+    },
+    {
+      "id": "F-106",
+      "wave": "drift",
+      "family": "ecmascript",
+      "kind": "dead-code",
+      "path": "src/utils/supabase/auth-helpers.ts",
+      "note": "Module sans aucun consommateur.",
+      "status": "open"
+    },
+    {
+      "id": "F-107",
+      "wave": "drift",
+      "family": "ecmascript",
+      "kind": "dead-export",
+      "path": "src/lib/products.ts:165-179",
+      "note": "5 selecteurs exportes sans consommateur : getProductsByCategory, getProductsBySkinTone, getProductBySlug, getBestsellers, getNewProducts. Seul getRelatedProducts (l.180) est utilise.",
+      "status": "open"
+    },
+    {
+      "id": "F-108",
+      "wave": "drift",
+      "family": "ecmascript",
+      "kind": "dead-export",
+      "path": "src/lib/config/utilities.ts:183",
+      "note": "formatConfigPrice n'a aucun consommateur, meme via barrel.",
+      "status": "open"
+    },
+    {
+      "id": "F-109",
+      "wave": "drift",
+      "family": "ecmascript",
+      "kind": "dead-export",
+      "path": "src/lib/config/utilities.ts:{68,161,212}",
+      "note": "fetchFullSiteConfig, validatePromoCode et isFreeShippingEligible ne sont references que par les deux barrels site-config.ts et config/index.ts, eux-memes sans consommateur reel. Morts une fois les barrels retires.",
+      "status": "open"
+    },
+    {
+      "id": "F-110",
+      "wave": "split",
+      "family": "ecmascript",
+      "kind": "size",
+      "path": "src/app/admin/AdminDashboard.tsx",
+      "note": "4506 lignes, soit 19% du scope dans un fichier. 55 useState. Le fichier declare ses propres sous-composants et interfaces de props internes (l.64, l.535).",
+      "status": "open"
+    },
+    {
+      "id": "F-111",
+      "wave": "split",
+      "family": "ecmascript",
+      "kind": "size",
+      "path": "src/app/compte/page.tsx",
+      "note": "1508 lignes. Voir F-082 : des composants extraits existent deja et ne sont pas utilises.",
+      "status": "open"
+    },
+    {
+      "id": "F-112",
+      "wave": "split",
+      "family": "ecmascript",
+      "kind": "size",
+      "path": "src/components/product/ProductDetail.tsx",
+      "note": "726 lignes, avec 3 sous-composants declares inline (BenefitIcon l.52, PayBadge l.67).",
+      "status": "open"
+    },
+    {
+      "id": "F-113",
+      "wave": "split",
+      "family": "ecmascript",
+      "kind": "size",
+      "path": "src/components/layout/Navbar.tsx",
+      "note": "505 lignes ; porte aussi la recherche produits (importe PRODUCTS et fetchProductsForClient).",
+      "status": "open"
+    },
+    {
+      "id": "F-114",
+      "wave": "split",
+      "family": "ecmascript",
+      "kind": "size",
+      "path": "src/app/confirmation/page.tsx",
+      "note": "431 lignes.",
+      "status": "open"
+    },
+    {
+      "id": "F-115",
+      "wave": "split",
+      "family": "ecmascript",
+      "kind": "size",
+      "path": "src/components/ui/ProductCard.tsx",
+      "note": "403 lignes pour une carte, avec sous-composants inline (CartIcon l.5, StarIcon l.22) et un commentaire l.46 signalant une extraction faite pour reduire la complexite cognitive.",
+      "status": "open"
+    },
+    {
+      "id": "F-116",
+      "wave": "split",
+      "family": "ecmascript",
+      "kind": "size",
+      "path": "src/app/quiz/page.tsx",
+      "note": "393 lignes.",
+      "status": "open"
+    },
+    {
+      "id": "F-117",
+      "wave": "split",
+      "family": "ecmascript",
+      "kind": "size",
+      "path": "src/lib/orders-db.ts",
+      "note": "312 lignes couvrant 3 domaines (orders, products, reviews). Voir F-087.",
+      "status": "open"
+    },
+    {
+      "id": "F-118",
+      "wave": "lexicon",
+      "family": "ecmascript",
+      "kind": "language-mix",
+      "path": "src/app/categorie/, src/components/categorie/",
+      "note": "Dossiers en francais ('categorie', 'teint', 'boutique', 'compte', 'avis', 'produit') coexistant avec des identifiants en anglais (CategoryClient, CategoryPage, fetchActiveCategories). Les routes francaises sont contraintes par les URLs publiques ; les identifiants ne le sont pas.",
+      "status": "open"
+    },
+    {
+      "id": "F-119",
+      "wave": "lexicon",
+      "family": "ecmascript",
+      "kind": "suffix-noise",
+      "path": "src/lib/*-db.ts",
+      "note": "Suffixes de fonction *FromDB, *ToDB, *InDB (saveOrderToDB, fetchAllOrdersFromDB, updateOrderStatusInDB, updateProductInDB, addProductToDB, deleteProductFromDB, fetchProductsFromDB, fetchAllReviewsFromDB, deleteReviewFromDB, approveReviewInDB, addCategoryToDB, updateCategoryInDB, deleteCategoryFromDB, approveTestimonialInDB, deleteTestimonialFromDB). Le mecanisme de stockage est encode dans chaque nom alors qu'il est deja porte par le module.",
+      "status": "open"
+    },
+    {
+      "id": "F-120",
+      "wave": "lexicon",
+      "family": "ecmascript",
+      "kind": "suffix-noise",
+      "path": "src/lib/products.ts:12,38",
+      "note": "fetchProductsForClient et fetchProductBySlugForClient : le suffixe ForClient encode la contrainte d'execution dans le nom, en miroir du suffixe -server des fichiers.",
+      "status": "open"
+    },
+    {
+      "id": "F-121",
+      "wave": "lexicon",
+      "family": "ecmascript",
+      "kind": "numbered-names",
+      "path": "src/components/checkout/shared.ts:19-21",
+      "note": "TXT, TXT2, TXT3 : numerotation en guise de nom.",
+      "status": "open"
+    },
+    {
+      "id": "F-122",
+      "wave": "lexicon",
+      "family": "ecmascript",
+      "kind": "inconsistent-vocabulary",
+      "path": "src/lib/",
+      "note": "Le succes d'une operation s'appelle tour a tour `ok` (jeko, jeko-admin, emails), `success` (config/utilities:42) et `isValid` (config/utilities:164). Voir F-092 a F-094.",
+      "status": "open"
+    }
+  ],
+  "waves_done": [
+    "survey",
+    "slice"
+  ],
+  "slice_report": {
+    "structure": "src/app (routeur, gele) + src/features/<domaine> + src/shared",
+    "removed_dirs": [
+      "src/lib",
+      "src/components",
+      "src/context",
+      "src/hooks",
+      "src/utils",
+      "src/types"
+    ],
+    "barrels_removed": [
+      "src/lib/site-config.ts",
+      "src/lib/config/index.ts"
+    ],
+    "gates": {
+      "typecheck_src": "0 erreur",
+      "build": "Compiled successfully",
+      "lint": "35 problemes / 16 erreurs, identique au baseline HEAD",
+      "e2e": "non concluant dans cet environnement : navigateurs Playwright absents et cle Supabase invalide. 15 echecs sur HEAD contre 11 apres slice, aucun 'Module not found'."
+    },
+    "css_note": "2 CSS Modules (HeroBanner, LegalSidebar) deplaces sans renommage pour preserver la reference relative de leur composant. Extension sans rulebook."
+  }
+}

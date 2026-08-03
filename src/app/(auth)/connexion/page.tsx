@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { createClient } from '@/utils/supabase/client';
+import { createClient } from '@/shared/supabase/browser.client';
 import styles from '../auth.module.css';
 
 function ConnexionContent() {

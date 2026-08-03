@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { updateSession } from "@/utils/supabase/middleware";
+import { updateSession } from "@/shared/supabase/session.guard";
 
 // Routes publiques qui n'ont jamais besoin d'auth → bypass complet (réduit latence + chaîne de redirections)
 // Note : /confirmation intentionnellement absente — la session Supabase doit s'initialiser (redirect mobile money)

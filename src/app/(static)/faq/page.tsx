@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import styles from '../static.module.css';
-import { fetchSiteConfigSection, DEFAULT_SITE_CONFIG } from '@/lib/site-config';
-import type { FaqCategory } from '@/lib/site-config';
+import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
+import { fetchSiteConfigSection } from '@/features/site-config/site-config.util';
+import type { FaqCategory } from '@/features/site-config/site-config.type';
 
 export default function FAQPage() {
   const [open, setOpen] = useState<string | null>('cat0-q0');

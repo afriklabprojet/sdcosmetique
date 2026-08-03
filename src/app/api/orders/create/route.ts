@@ -1,11 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { createServiceClient } from '@/utils/supabase/service';
-import { db } from '@/lib/db';
-import type { OrderDraft } from '@/lib/orders';
-import { sendOrderConfirmationByNumber } from '@/lib/order-notifications';
-import { calculateShippingCost, applyPromoCode } from '@/lib/config/utilities';
-import { DEFAULT_SITE_CONFIG } from '@/lib/config/defaults';
-import { rateLimit, getIp, rateLimitHeaders } from '@/lib/rate-limit';
+import { createServiceClient } from '@/shared/supabase/service.client';
+import { db } from '@/shared/supabase/request.client';
+import type { OrderDraft } from '@/features/orders/order.store';
+import { sendOrderConfirmationByNumber } from '@/features/orders/order-notification.service';
+import { calculateShippingCost, applyPromoCode } from '@/features/site-config/site-config.util';
+import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
+import { rateLimit, getIp, rateLimitHeaders } from '@/shared/http/rate-limit.guard';
 
 export const runtime = 'nodejs';
 

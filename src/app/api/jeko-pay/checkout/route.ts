@@ -4,9 +4,9 @@ import {
   PAYMENT_METHOD_TO_JEKO,
   JekoPayError,
   type JekoPayProvider,
-} from '@/lib/jeko-pay/client';
-import { rateLimit, getIp, rateLimitHeaders } from '@/lib/rate-limit';
-import { createServiceClient } from '@/utils/supabase/service';
+} from '@/features/payment/jeko-pay.client';
+import { rateLimit, getIp, rateLimitHeaders } from '@/shared/http/rate-limit.guard';
+import { createServiceClient } from '@/shared/supabase/service.client';
 
 export const runtime = 'nodejs';
 

@@ -1,10 +1,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { fetchProducts } from '@/lib/products-server';
-import { getSiteConfig } from '@/lib/site-config.server';
-import { SKIN_TONES, type SkinTone } from '@/types';
-import ProductCard from '@/components/ui/ProductCard';
+import { fetchProducts } from '@/features/catalog/product.repository';
+import { getSiteConfig } from '@/features/site-config/site-config.query';
+import { SKIN_TONES, type SkinTone } from '@/shared/types/domain.type';
+import ProductCard from '@/features/catalog/cards/product.card';
 import styles from '../../(static)/static.module.css';
 
 // Revalide à chaque requête pour que les images admin soient toujours à jour

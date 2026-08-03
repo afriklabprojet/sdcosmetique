@@ -3,7 +3,9 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import styles from '../static.module.css';
-import { fetchSiteConfigSection, DEFAULT_SITE_CONFIG, type LegalPage } from '@/lib/site-config';
+import type { LegalPage } from '@/features/site-config/site-config.type';
+import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
+import { fetchSiteConfigSection } from '@/features/site-config/site-config.util';
 
 const SUBJECTS = [
   'Question sur une commande',

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import styles from '../static.module.css';
-import { getSiteConfig } from '@/lib/site-config.server';
+import { getSiteConfig } from '@/features/site-config/site-config.query';
 
 export const metadata = {
   title: 'Politique de confidentialité — SD Cosmétique',

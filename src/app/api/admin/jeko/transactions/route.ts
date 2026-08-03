@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceClient } from '@/utils/supabase/service';
-import { requireAdmin } from '@/lib/admin-auth';
+import { createServiceClient } from '@/shared/supabase/service.client';
+import { requireAdmin } from '@/shared/auth/admin.guard';
 
 export async function GET(req: NextRequest) {
   const user = await requireAdmin();

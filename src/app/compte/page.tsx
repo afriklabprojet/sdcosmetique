@@ -5,19 +5,19 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
-import { createClient } from '@/utils/supabase/client';
-import { getOrders, formatOrderDate, OrderDraft } from '@/lib/orders';
-import { fetchUserOrdersFromDB } from '@/lib/orders-db';
-import { formatPrice } from '@/lib/products';
-import { useWishlist } from '@/context/WishlistContext';
+import { createClient } from '@/shared/supabase/browser.client';
+import { getOrders, formatOrderDate, OrderDraft } from '@/features/orders/order.store';
+import { fetchUserOrdersFromDB } from '@/features/orders/order.repository';
+import { formatPrice } from '@/features/catalog/product.query';
+import { useWishlist } from '@/features/wishlist/wishlist.store';
 import {
   getJekoHistory, redeemJekoPoints, getJekoTierFromList,
   fetchJekoConfig, formatJekoDate, reasonLabel,
   JEKO_REWARDS, JEKO_TIERS,
   type JekoTransaction, type JekoReward, type JekoConfig,
-} from '@/lib/jeko';
-import { DEFAULT_SITE_CONFIG } from '@/lib/config/defaults';
-import { fetchSiteConfigSection } from '@/lib/config/utilities';
+} from '@/features/loyalty/jeko.repository';
+import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
+import { fetchSiteConfigSection } from '@/features/site-config/site-config.util';
 
 function jekoNextLabel(currentLabel: string, tiers: typeof JEKO_TIERS): string {
   const idx = tiers.findIndex(t => t.label === currentLabel);

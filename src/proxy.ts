@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { updateSession } from "@/utils/supabase/middleware";
+import { updateSession } from "@/shared/supabase/session.guard";
 import { createServerClient } from "@supabase/ssr";
 
 const ADMIN_EMAILS: readonly string[] = (process.env.ADMIN_EMAILS ?? '')
