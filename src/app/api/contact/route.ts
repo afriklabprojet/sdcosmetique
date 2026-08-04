@@ -4,7 +4,7 @@ import { rateLimit, getIp, rateLimitHeaders } from '@/shared/http/rate-limit.gua
 
 export async function POST(req: NextRequest) {
   // 5 messages / 10 min par IP
-  const rl = await rateLimit(`contact:${getIp(req)}`, 5, 10 * 60 * 1000);
+  const rl = await rateLimit(`contact:${getIp(req)}`, { limit: 5, windowMs: 10 * 60 * 1000 });
   if (!rl.ok) {
     return NextResponse.json(
       { error: 'rate_limit_exceeded' },

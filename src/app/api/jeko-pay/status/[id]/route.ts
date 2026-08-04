@@ -14,7 +14,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   // Limite l'énumération des identifiants de paiement.
-  const rl = await rateLimit(`jeko-status:${getIp(req)}`, 30, 10 * 60 * 1000);
+  const rl = await rateLimit(`jeko-status:${getIp(req)}`, { limit: 30, windowMs: 10 * 60 * 1000 });
   if (!rl.ok) {
     return NextResponse.json({ error: 'rate_limit_exceeded' }, { status: 429, headers: rateLimitHeaders(rl) });
   }

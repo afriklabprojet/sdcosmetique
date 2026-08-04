@@ -292,3 +292,23 @@ export type SiteConfig = {
   payment_methods_active?: string[];
   global_promo: GlobalPromoConfig;
 };
+// ─── Resultats du domaine promo ──────────────────────────────────────────────
+
+/**
+ * Verdict de validation d'un code promo, sans calcul de remise.
+ * Le vocabulaire `isValid` decrit une validation, pas un succes d'operation :
+ * il reste distinct de OperationResult a dessein.
+ */
+export interface PromoValidation {
+  isValid: boolean;
+  code?: PromoCode;
+  error?: string;
+}
+
+/** Application d'un code promo a un total de commande : verdict + montants. */
+export interface PromoApplication {
+  isValid: boolean;
+  discount: number;
+  finalTotal: number;
+  error?: string;
+}

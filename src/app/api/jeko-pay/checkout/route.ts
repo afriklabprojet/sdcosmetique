@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
 
 async function handleCheckout(req: NextRequest) {
   // 10 tentatives de paiement / 10 min par IP
-  const rl = await rateLimit(`checkout:${getIp(req)}`, 10, 10 * 60 * 1000);
+  const rl = await rateLimit(`checkout:${getIp(req)}`, { limit: 10, windowMs: 10 * 60 * 1000 });
   if (!rl.ok) {
     return NextResponse.json(
       { error: 'rate_limit_exceeded' },

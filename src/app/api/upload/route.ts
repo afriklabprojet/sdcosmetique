@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Accès non autorisé.' }, { status: 401 });
   }
 
-  const rl = await rateLimit(`upload:${getIp(req)}`, 30, 10 * 60 * 1000);
+  const rl = await rateLimit(`upload:${getIp(req)}`, { limit: 30, windowMs: 10 * 60 * 1000 });
   if (!rl.ok) {
     return NextResponse.json({ error: 'rate_limit_exceeded' }, { status: 429, headers: rateLimitHeaders(rl) });
   }

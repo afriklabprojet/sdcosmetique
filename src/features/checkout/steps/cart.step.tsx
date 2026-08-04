@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '@/features/cart/cart.store';
 import { formatPrice } from '@/features/catalog/product.query';
-import { GOLD, BORDER, TXT, TXT2 } from '@/features/checkout/checkout.type';
+import { CHECKOUT_PALETTE } from '@/features/checkout/checkout.constant';
 
 interface CartStepProps {
   readonly onNext: () => void;
@@ -21,17 +21,17 @@ export default function CartStep({ onNext }: CartStepProps) {
         padding: '48px 24px',
         background: 'white',
         borderRadius: '12px',
-        border: `1px solid ${BORDER}`
+        border: `1px solid ${CHECKOUT_PALETTE.border}`
       }}>
         <div style={{ fontSize: '64px', marginBottom: '16px' }}>🛍️</div>
-        <h2 style={{ fontSize: '20px', color: TXT, marginBottom: '8px' }}>Votre panier est vide</h2>
-        <p style={{ color: TXT2, marginBottom: '24px' }}>Découvrez nos produits et ajoutez-les à votre panier.</p>
+        <h2 style={{ fontSize: '20px', color: CHECKOUT_PALETTE.text, marginBottom: '8px' }}>Votre panier est vide</h2>
+        <p style={{ color: CHECKOUT_PALETTE.textMuted, marginBottom: '24px' }}>Découvrez nos produits et ajoutez-les à votre panier.</p>
         <Link
           href="/boutique"
           style={{
             display: 'inline-block',
             padding: '12px 24px',
-            background: GOLD,
+            background: CHECKOUT_PALETTE.accent,
             color: 'white',
             textDecoration: 'none',
             borderRadius: '8px',
@@ -46,7 +46,7 @@ export default function CartStep({ onNext }: CartStepProps) {
   
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-      <h2 style={{ fontSize: '18px', fontWeight: 700, color: TXT, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '4px' }}>Vérification du panier</h2>
+      <h2 style={{ fontSize: '18px', fontWeight: 700, color: CHECKOUT_PALETTE.text, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '4px' }}>Vérification du panier</h2>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {items.map(item => (
@@ -56,7 +56,7 @@ export default function CartStep({ onNext }: CartStepProps) {
               padding: '14px 16px',
               background: 'white',
               borderRadius: '10px',
-              border: `1px solid ${BORDER}`,
+              border: `1px solid ${CHECKOUT_PALETTE.border}`,
               alignItems: 'center'
             }}>
               <div style={{
@@ -66,7 +66,7 @@ export default function CartStep({ onNext }: CartStepProps) {
                 overflow: 'hidden',
                 background: '#F5EDE5',
                 flexShrink: 0,
-                border: `1px solid ${BORDER}`
+                border: `1px solid ${CHECKOUT_PALETTE.border}`
               }}>
                 <Image
                   src={item.product.images?.[0] || '/placeholder.jpg'}
@@ -78,8 +78,8 @@ export default function CartStep({ onNext }: CartStepProps) {
               </div>
               
               <div style={{ flex: 1, minWidth: 0 }}>
-                <h3 style={{ fontSize: '14px', fontWeight: 600, color: TXT, marginBottom: '4px', lineHeight: 1.3 }}>{item.product.name}</h3>
-                <p style={{ fontSize: '13px', color: GOLD, fontWeight: 700 }}>
+                <h3 style={{ fontSize: '14px', fontWeight: 600, color: CHECKOUT_PALETTE.text, marginBottom: '4px', lineHeight: 1.3 }}>{item.product.name}</h3>
+                <p style={{ fontSize: '13px', color: CHECKOUT_PALETTE.accent, fontWeight: 700 }}>
                   {formatPrice(item.product.price)} × {item.quantity}
                 </p>
               </div>
@@ -90,9 +90,9 @@ export default function CartStep({ onNext }: CartStepProps) {
                   style={{
                     width: '30px',
                     height: '30px',
-                    border: `1px solid ${BORDER}`,
+                    border: `1px solid ${CHECKOUT_PALETTE.border}`,
                     background: 'white',
-                    color: TXT,
+                    color: CHECKOUT_PALETTE.text,
                     borderRadius: '6px',
                     display: 'flex',
                     alignItems: 'center',
@@ -105,7 +105,7 @@ export default function CartStep({ onNext }: CartStepProps) {
                   −
                 </button>
                 
-                <span style={{ color: TXT, fontWeight: 700, minWidth: '20px', textAlign: 'center', fontSize: '14px' }}>
+                <span style={{ color: CHECKOUT_PALETTE.text, fontWeight: 700, minWidth: '20px', textAlign: 'center', fontSize: '14px' }}>
                   {item.quantity}
                 </span>
                 
@@ -114,9 +114,9 @@ export default function CartStep({ onNext }: CartStepProps) {
                   style={{
                     width: '30px',
                     height: '30px',
-                    border: `1px solid ${BORDER}`,
+                    border: `1px solid ${CHECKOUT_PALETTE.border}`,
                     background: 'white',
-                    color: TXT,
+                    color: CHECKOUT_PALETTE.text,
                     borderRadius: '6px',
                     display: 'flex',
                     alignItems: 'center',
@@ -155,7 +155,7 @@ export default function CartStep({ onNext }: CartStepProps) {
           style={{
             marginTop: '4px',
             padding: '10px 24px',
-            background: GOLD,
+            background: CHECKOUT_PALETTE.accent,
             color: 'white',
             border: 'none',
             borderRadius: '8px',

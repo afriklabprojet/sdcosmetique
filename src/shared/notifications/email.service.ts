@@ -11,6 +11,7 @@
 
 import { formatPrice } from '@/features/catalog/product.query';
 import type { OrderDraft } from '@/features/orders/order.store';
+import type { OperationResult, CreationResult } from '@/shared/types/operation-result.type';
 
 const RESEND_ENDPOINT = 'https://api.resend.com/emails';
 
@@ -32,7 +33,7 @@ async function sendViaResend(payload: {
   html: string;
   text?: string;
   reply_to?: string;
-}): Promise<{ ok: boolean; id?: string; error?: string }> {
+}): Promise<CreationResult> {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM_EMAIL;
   if (!apiKey || !from) {
@@ -161,7 +162,7 @@ export async function sendContactMessage(args: {
   email: string;
   sujet: string;
   message: string;
-}): Promise<{ ok: boolean; error?: string }> {
+}): Promise<OperationResult> {
   const { nom, email, sujet, message } = args;
   const adminEmail = process.env.RESEND_FROM_EMAIL?.match(/<(.+)>/)?.[1]
     ?? process.env.RESEND_FROM_EMAIL
@@ -199,7 +200,7 @@ export async function sendJekoPointsNotification(args: {
   points: number;
   newBalance: number;
   message?: string;
-}): Promise<{ ok: boolean; error?: string }> {
+}): Promise<OperationResult> {
   const { to, firstName, points, newBalance, message } = args;
   const siteUrl = process.env.SITE_URL ?? '';
   const sign = points >= 0 ? '+' : '';

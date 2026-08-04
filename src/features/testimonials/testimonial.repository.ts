@@ -1,4 +1,5 @@
 import { createClient } from '@/shared/supabase/browser.client';
+import type { WriteResult } from '@/shared/types/operation-result.type';
 
 export interface TestimonialRow {
   id: string;
@@ -14,7 +15,7 @@ export async function submitTestimonial(data: {
   name: string;
   text: string;
   avatar_url?: string;
-}): Promise<{ error?: string }> {
+}): Promise<WriteResult> {
   try {
     const supabase = createClient();
     const { error } = await supabase.from('testimonials').insert({

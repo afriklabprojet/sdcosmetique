@@ -7,7 +7,7 @@ export const runtime = 'nodejs';
 
 export async function POST(request: Request) {
   // 10 soumissions / 10 min par IP
-  const rl = await rateLimit(`quiz:${getIp(request)}`, 10, 10 * 60 * 1000);
+  const rl = await rateLimit(`quiz:${getIp(request)}`, { limit: 10, windowMs: 10 * 60 * 1000 });
   if (!rl.ok) {
     return NextResponse.json(
       { error: 'rate_limit_exceeded' },

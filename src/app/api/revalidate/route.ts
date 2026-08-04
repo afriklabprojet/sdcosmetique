@@ -22,7 +22,7 @@ export const runtime = 'nodejs';
 export async function POST(req: NextRequest) {
   // Empêche le brute-force du secret (comparaison non constant-time ci-dessous
   // couplée à un budget de tentatives serré).
-  const rl = await rateLimit(`revalidate:${getIp(req)}`, 10, 10 * 60 * 1000);
+  const rl = await rateLimit(`revalidate:${getIp(req)}`, { limit: 10, windowMs: 10 * 60 * 1000 });
   if (!rl.ok) {
     return NextResponse.json({ error: 'rate_limit_exceeded' }, { status: 429, headers: rateLimitHeaders(rl) });
   }

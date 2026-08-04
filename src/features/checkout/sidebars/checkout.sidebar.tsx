@@ -6,7 +6,8 @@ import { useCart } from '@/features/cart/cart.store';
 import { formatPrice } from '@/features/catalog/product.query';
 import { SKIN_TONES } from '@/shared/types/domain.type';
 import type { PromoCode } from '@/features/site-config/site-config.type';
-import { type CheckoutStep, GOLD, BORDER, TXT, TXT2, TXT3 } from '@/features/checkout/checkout.type';
+import { type CheckoutStep } from '@/features/checkout/checkout.type';
+import { CHECKOUT_PALETTE } from '@/features/checkout/checkout.constant';
 
 interface SidebarProps {
   readonly items: ReturnType<typeof useCart>['items'];
@@ -29,11 +30,11 @@ export default function Sidebar({ items, totalPrice, shippingCost, discount, tot
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {/* Order summary card */}
-      <div style={{ background: 'white', border: `1px solid ${BORDER}`, borderRadius: '8px', overflow: 'hidden' }}>
-        <div style={{ padding: '16px 20px', borderBottom: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: TXT }}>Résumé de la commande</span>
+      <div style={{ background: 'white', border: `1px solid ${CHECKOUT_PALETTE.border}`, borderRadius: '8px', overflow: 'hidden' }}>
+        <div style={{ padding: '16px 20px', borderBottom: `1px solid ${CHECKOUT_PALETTE.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: CHECKOUT_PALETTE.text }}>Résumé de la commande</span>
           {step !== 'cart' && (
-            <button type="button" onClick={() => setStep('cart')} style={{ fontSize: '12px', color: GOLD, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>
+            <button type="button" onClick={() => setStep('cart')} style={{ fontSize: '12px', color: CHECKOUT_PALETTE.accent, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>
               Modifier le panier
             </button>
           )}
@@ -46,15 +47,15 @@ export default function Sidebar({ items, totalPrice, shippingCost, discount, tot
               : null;
             return (
               <div key={item.product.id} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: '60px', height: '60px', borderRadius: '6px', overflow: 'hidden', flexShrink: 0, background: '#F5EDE5', border: `1px solid ${BORDER}` }}>
+                <div style={{ width: '60px', height: '60px', borderRadius: '6px', overflow: 'hidden', flexShrink: 0, background: '#F5EDE5', border: `1px solid ${CHECKOUT_PALETTE.border}` }}>
                   <Image src={item.product.images[0] ?? '/placeholder.png'} alt={item.product.name} width={60} height={60} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: '13px', fontWeight: 600, color: TXT, marginBottom: '3px', lineHeight: 1.3 }}>{item.product.name}</p>
-                  {tone && <p style={{ fontSize: '11px', color: TXT2, lineHeight: 1.3 }}>Teint {tone}</p>}
-                  <p style={{ fontSize: '11px', color: TXT2 }}>Quantité : {item.quantity}</p>
+                  <p style={{ fontSize: '13px', fontWeight: 600, color: CHECKOUT_PALETTE.text, marginBottom: '3px', lineHeight: 1.3 }}>{item.product.name}</p>
+                  {tone && <p style={{ fontSize: '11px', color: CHECKOUT_PALETTE.textMuted, lineHeight: 1.3 }}>Teint {tone}</p>}
+                  <p style={{ fontSize: '11px', color: CHECKOUT_PALETTE.textMuted }}>Quantité : {item.quantity}</p>
                 </div>
-                <span style={{ fontSize: '13px', fontWeight: 600, color: TXT, flexShrink: 0 }}>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: CHECKOUT_PALETTE.text, flexShrink: 0 }}>
                   {formatPrice(item.product.price * item.quantity)}
                 </span>
               </div>
@@ -62,8 +63,8 @@ export default function Sidebar({ items, totalPrice, shippingCost, discount, tot
           })}
         </div>
         {/* Totals */}
-        <div style={{ padding: '14px 20px', borderTop: `1px solid ${BORDER}`, display: 'flex', flexDirection: 'column', gap: '9px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: TXT2 }}>
+        <div style={{ padding: '14px 20px', borderTop: `1px solid ${CHECKOUT_PALETTE.border}`, display: 'flex', flexDirection: 'column', gap: '9px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: CHECKOUT_PALETTE.textMuted }}>
             <span>Sous-total</span><span>{formatPrice(totalPrice)}</span>
           </div>
           {appliedPromo && (
@@ -72,30 +73,30 @@ export default function Sidebar({ items, totalPrice, shippingCost, discount, tot
               <span>−{formatPrice(discount)}</span>
             </div>
           )}
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: TXT2 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: CHECKOUT_PALETTE.textMuted }}>
             <span>Livraison</span>
-            <span style={{ color: shippingCost === 0 ? '#16A34A' : TXT }}>
+            <span style={{ color: shippingCost === 0 ? '#16A34A' : CHECKOUT_PALETTE.text }}>
               {shippingCost === 0 ? 'Gratuite' : formatPrice(shippingCost)}
             </span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '10px', borderTop: `1px solid ${BORDER}`, marginTop: '2px' }}>
-            <span style={{ fontSize: '15px', fontWeight: 700, color: TXT, fontFamily: 'var(--font-heading)' }}>TOTAL</span>
-            <span style={{ fontSize: '16px', fontWeight: 800, color: TXT, fontFamily: 'var(--font-heading)' }}>{formatPrice(total)}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '10px', borderTop: `1px solid ${CHECKOUT_PALETTE.border}`, marginTop: '2px' }}>
+            <span style={{ fontSize: '15px', fontWeight: 700, color: CHECKOUT_PALETTE.text, fontFamily: 'var(--font-heading)' }}>TOTAL</span>
+            <span style={{ fontSize: '16px', fontWeight: 800, color: CHECKOUT_PALETTE.text, fontFamily: 'var(--font-heading)' }}>{formatPrice(total)}</span>
           </div>
         </div>
       </div>
 
       {/* Code promo */}
-      <div style={{ background: 'white', border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '14px 20px' }}>
-        <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: TXT, marginBottom: '10px' }}>Code promo</p>
+      <div style={{ background: 'white', border: `1px solid ${CHECKOUT_PALETTE.border}`, borderRadius: '8px', padding: '14px 20px' }}>
+        <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: CHECKOUT_PALETTE.text, marginBottom: '10px' }}>Code promo</p>
         {appliedPromo ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
             <div style={{ fontSize: '12px' }}>
               <span style={{ color: '#16A34A', fontWeight: 700 }}>✓ {appliedPromo.code.code}</span>
-              <span style={{ color: TXT2, marginLeft: '6px' }}>−{formatPrice(appliedPromo.discount)}</span>
+              <span style={{ color: CHECKOUT_PALETTE.textMuted, marginLeft: '6px' }}>−{formatPrice(appliedPromo.discount)}</span>
             </div>
             <button type="button" onClick={removePromo}
-              style={{ fontSize: '11px', color: TXT2, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+              style={{ fontSize: '11px', color: CHECKOUT_PALETTE.textMuted, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
               Retirer
             </button>
           </div>
@@ -106,9 +107,9 @@ export default function Sidebar({ items, totalPrice, shippingCost, discount, tot
                 onChange={e => { setPromoInput(e.target.value); setPromoError(null); }}
                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleApplyPromo(); } }}
                 placeholder="Entrez votre code"
-                style={{ flex: 1, fontSize: '12px', padding: '8px 10px', border: `1px solid ${BORDER}`, borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em', outline: 'none' }} />
+                style={{ flex: 1, fontSize: '12px', padding: '8px 10px', border: `1px solid ${CHECKOUT_PALETTE.border}`, borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em', outline: 'none' }} />
               <button type="button" onClick={handleApplyPromo}
-                style={{ fontSize: '11px', fontWeight: 700, padding: '0 14px', background: GOLD, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', letterSpacing: '0.05em' }}>
+                style={{ fontSize: '11px', fontWeight: 700, padding: '0 14px', background: CHECKOUT_PALETTE.accent, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', letterSpacing: '0.05em' }}>
                 Appliquer
               </button>
             </div>
@@ -118,8 +119,8 @@ export default function Sidebar({ items, totalPrice, shippingCost, discount, tot
       </div>
 
       {/* Engagements */}
-      <div style={{ background: 'white', border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '16px 20px' }}>
-        <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: TXT, marginBottom: '14px' }}>Nos Engagements</p>
+      <div style={{ background: 'white', border: `1px solid ${CHECKOUT_PALETTE.border}`, borderRadius: '8px', padding: '16px 20px' }}>
+        <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: CHECKOUT_PALETTE.text, marginBottom: '14px' }}>Nos Engagements</p>
         <div className="checkout-form-2col" style={{ gap: '14px' }}>
           {[
             { icon: '🛡️', l: 'Paiement',      s: '100% sécurisé' },
@@ -129,8 +130,8 @@ export default function Sidebar({ items, totalPrice, shippingCost, discount, tot
           ].map(e => (
             <div key={e.l} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '4px' }}>
               <span style={{ fontSize: '22px' }}>{e.icon}</span>
-              <p style={{ fontSize: '11px', fontWeight: 700, color: TXT, lineHeight: 1.3 }}>{e.l}</p>
-              <p style={{ fontSize: '10px', color: TXT3, lineHeight: 1.3 }}>{e.s}</p>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: CHECKOUT_PALETTE.text, lineHeight: 1.3 }}>{e.l}</p>
+              <p style={{ fontSize: '10px', color: CHECKOUT_PALETTE.textSubtle, lineHeight: 1.3 }}>{e.s}</p>
             </div>
           ))}
         </div>

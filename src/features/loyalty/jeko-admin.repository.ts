@@ -1,5 +1,6 @@
 'use client';
 
+import type { OperationResult } from '@/shared/types/operation-result.type';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface JekoSettings {
@@ -95,8 +96,8 @@ export async function getJekoRewardsConfig(): Promise<JekoRewardConfig[]> {
 export async function saveJekoConfig(
   key: 'settings' | 'tiers' | 'rewards',
   value: unknown,
-): Promise<{ ok: boolean; error?: string }> {
-  const data = await apiFetch<{ ok: boolean; error?: string }>('/api/admin/jeko/config', {
+): Promise<OperationResult> {
+  const data = await apiFetch<OperationResult>('/api/admin/jeko/config', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ key, value }),
@@ -123,15 +124,24 @@ export async function getAllJekoTransactions(userId?: string): Promise<JekoTrans
 
 // ─── Ajustement manuel ────────────────────────────────────────────────────────
 
-export async function manualJekoAdjustment(
-  userId: string,
-  points: number,
-  label: string,
-): Promise<{ ok: boolean; error?: string }> {
-  const data = await apiFetch<{ ok: boolean; error?: string }>('/api/admin/jeko/adjust', {
+/**
+ * Ecriture manuelle au credit ou au debit du solde d'un membre.
+ * Les trois valeurs decrivent un seul geste et ne circulent jamais separement.
+ */
+export interface JekoAdjustment {
+  /** Membre dont le solde est ajuste. */
+  userId: string;
+  /** Points ajoutes (positif) ou retires (negatif). */
+  points: number;
+  /** Motif affiche au membre dans son historique. */
+  label: string;
+}
+
+export async function manualJekoAdjustment(adjustment: JekoAdjustment): Promise<OperationResult> {
+  const data = await apiFetch<OperationResult>('/api/admin/jeko/adjust', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId, points, label }),
+    body: JSON.stringify(adjustment),
   });
   return data ?? { ok: false, error: 'Erreur réseau' };
 }

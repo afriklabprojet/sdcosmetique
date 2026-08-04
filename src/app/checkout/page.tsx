@@ -8,7 +8,8 @@ import { saveOrder, generateOrderNumber, type OrderDraft } from '@/features/orde
 import type { ShippingOption, ShippingConfig, PromoCode } from '@/features/site-config/site-config.type';
 import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
 import { fetchSiteConfigSection, applyPromoCode } from '@/features/site-config/site-config.util';
-import { CheckoutStep, DeliveryInfo, GOLD, BORDER, TXT, TXT2, TXT3 } from '@/features/checkout/checkout.type';
+import { CheckoutStep, DeliveryInfo } from '@/features/checkout/checkout.type';
+import { CHECKOUT_PALETTE } from '@/features/checkout/checkout.constant';
 
 // Composants extraits (lazy)
 import CartStep from '@/features/checkout/steps/cart.step';
@@ -194,9 +195,9 @@ export default function CheckoutPage() {
     <div style={{ background: '#F8F4EF', minHeight: '100vh' }}>
 
       {/* ── Stepper header ── */}
-      <div style={{ background: 'white', borderBottom: `1px solid ${BORDER}`, padding: '24px 16px' }}>
+      <div style={{ background: 'white', borderBottom: `1px solid ${CHECKOUT_PALETTE.border}`, padding: '24px 16px' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <p style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: TXT, textAlign: 'center', marginBottom: '24px' }}>
+          <p style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: CHECKOUT_PALETTE.text, textAlign: 'center', marginBottom: '24px' }}>
             Procédure de paiement
           </p>
           <div className="checkout-stepper-row" style={{ display: 'flex', alignItems: 'flex-start', width: '100%' }}>
@@ -205,18 +206,18 @@ export default function CheckoutPage() {
               const isActive = step === s.key;
               const isDone = stepIdx > idx;
               let labelColor: string;
-              if (isActive) { labelColor = GOLD; } else if (isDone) { labelColor = TXT; } else { labelColor = TXT3; }
+              if (isActive) { labelColor = CHECKOUT_PALETTE.accent; } else if (isDone) { labelColor = CHECKOUT_PALETTE.text; } else { labelColor = CHECKOUT_PALETTE.textSubtle; }
               return (
                 <React.Fragment key={s.key}>
                   <div className="checkout-stepper-step" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', flex: 1, minWidth: 0 }}>
-                    <div className="checkout-stepper-circle" style={{ width: '36px', height: '36px', borderRadius: '50%', background: isActive || isDone ? GOLD : '#EDE5DC', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}>
-                      <span style={{ fontSize: '13px', fontWeight: 700, color: isActive || isDone ? 'white' : TXT3 }}>{i + 1}</span>
+                    <div className="checkout-stepper-circle" style={{ width: '36px', height: '36px', borderRadius: '50%', background: isActive || isDone ? CHECKOUT_PALETTE.accent : '#EDE5DC', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 700, color: isActive || isDone ? 'white' : CHECKOUT_PALETTE.textSubtle }}>{i + 1}</span>
                     </div>
                     <span className="checkout-stepper-label" style={{ fontSize: '12px', fontWeight: isActive ? 700 : 500, color: labelColor, textAlign: 'center', lineHeight: 1.2 }}>{s.label}</span>
-                    <span className="checkout-stepper-sub" style={{ fontSize: '10px', color: TXT3, textAlign: 'center', lineHeight: 1.2 }}>{s.sub}</span>
+                    <span className="checkout-stepper-sub" style={{ fontSize: '10px', color: CHECKOUT_PALETTE.textSubtle, textAlign: 'center', lineHeight: 1.2 }}>{s.sub}</span>
                   </div>
                   {i < STEPS.length - 1 && (
-                    <div className="checkout-stepper-connector" style={{ height: '2px', flexBasis: '52px', maxWidth: '52px', background: stepIdx > i ? GOLD : '#EDE5DC', marginTop: '17px', flexShrink: 1, transition: 'background 0.3s' }} />
+                    <div className="checkout-stepper-connector" style={{ height: '2px', flexBasis: '52px', maxWidth: '52px', background: stepIdx > i ? CHECKOUT_PALETTE.accent : '#EDE5DC', marginTop: '17px', flexShrink: 1, transition: 'background 0.3s' }} />
                   )}
                 </React.Fragment>
               );
@@ -249,18 +250,18 @@ export default function CheckoutPage() {
         </div>
 
         {/* ── Trust bar ── */}
-        <div style={{ marginTop: '24px', background: 'white', border: `1px solid ${BORDER}`, borderRadius: '8px' }}>
+        <div style={{ marginTop: '24px', background: 'white', border: `1px solid ${CHECKOUT_PALETTE.border}`, borderRadius: '8px' }}>
           <div className="grid grid-cols-1 sm:grid-cols-3">
             {[
               { icon: '🎧', title: "Besoin d'aide ?",     sub: 'Notre service client est disponible 7j/7' },
               { icon: '🔒', title: 'Paiement sécurisé',   sub: 'Toutes vos transactions sont 100% sécurisées' },
               { icon: '🚚', title: 'Livraison rapide',     sub: "Partout en Côte d'Ivoire et à l'international" },
             ].map((t, i) => (
-              <div key={t.title} className={`flex items-start gap-3 p-5${i > 0 ? ' sm:border-l' : ''}`} style={{ borderColor: BORDER }}>
+              <div key={t.title} className={`flex items-start gap-3 p-5${i > 0 ? ' sm:border-l' : ''}`} style={{ borderColor: CHECKOUT_PALETTE.border }}>
                 <span style={{ fontSize: '26px', flexShrink: 0 }}>{t.icon}</span>
                 <div>
-                  <p style={{ fontSize: '13px', fontWeight: 700, color: TXT, marginBottom: '3px' }}>{t.title}</p>
-                  <p style={{ fontSize: '12px', color: TXT2, lineHeight: 1.4 }}>{t.sub}</p>
+                  <p style={{ fontSize: '13px', fontWeight: 700, color: CHECKOUT_PALETTE.text, marginBottom: '3px' }}>{t.title}</p>
+                  <p style={{ fontSize: '12px', color: CHECKOUT_PALETTE.textMuted, lineHeight: 1.4 }}>{t.sub}</p>
                 </div>
               </div>
             ))}

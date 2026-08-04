@@ -8,6 +8,7 @@
  *  - Un trigger BEFORE INSERT valide que le solde ne devient pas négatif
  */
 import { createClient } from '@/shared/supabase/browser.client';
+import type { OperationResult } from '@/shared/types/operation-result.type';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -148,7 +149,7 @@ export async function getJekoHistory(userId: string): Promise<JekoTransaction[]>
 export async function redeemJekoPoints(
   userId: string,
   reward: JekoReward,
-): Promise<{ ok: boolean; error?: string }> {
+): Promise<OperationResult> {
   const supabase = createClient();
   const { error } = await supabase.from('jeko_transactions').insert({
     user_id:     userId,

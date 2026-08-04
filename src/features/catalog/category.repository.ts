@@ -1,4 +1,5 @@
 import { createClient } from '@/shared/supabase/browser.client';
+import type { WriteResult } from '@/shared/types/operation-result.type';
 
 export interface CategoryRow {
   id: string;
@@ -46,7 +47,7 @@ export async function fetchAllCategoriesAdmin(): Promise<CategoryRow[]> {
 }
 
 // ─── Créer une catégorie ──────────────────────────────────────────────────────
-export async function addCategoryToDB(cat: Omit<CategoryRow, 'id' | 'created_at'>): Promise<{ error?: string }> {
+export async function addCategoryToDB(cat: Omit<CategoryRow, 'id' | 'created_at'>): Promise<WriteResult> {
   try {
     const supabase = createClient();
     const { error } = await supabase.from('categories').insert(cat);

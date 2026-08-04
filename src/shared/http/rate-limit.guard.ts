@@ -44,16 +44,23 @@ function getLimiter(limit: number, windowSeconds: number): Ratelimit {
   return limiters.get(key)!;
 }
 
+/**
+ * Quota d'une route : un plafond et la fenêtre sur laquelle il s'applique.
+ * Les deux valeurs n'ont aucun sens l'une sans l'autre.
+ */
+export interface RateLimitPolicy {
+  /** Nombre max de requêtes dans la fenêtre. */
+  limit: number;
+  /** Fenêtre glissante, en millisecondes. */
+  windowMs: number;
+}
+
 // ─── Fallback en mémoire (dev / CI) ──────────────────────────────────────────
 
 type WindowEntry = { count: number; resetAt: number };
 const memStore = new Map<string, WindowEntry>();
 
-function memRateLimit(
-  key: string,
-  limit: number,
-  windowMs: number,
-): RateLimitResult {
+function memRateLimit(key: string, { limit, windowMs }: RateLimitPolicy): RateLimitResult {
   const now = Date.now();
 
   if (memStore.size > 10_000) {
@@ -76,17 +83,14 @@ function memRateLimit(
 // ─── API publique ─────────────────────────────────────────────────────────────
 
 /**
- * @param key        Clé unique : ex. `contact:192.168.1.1`
- * @param limit      Nombre max de requêtes dans la fenêtre
- * @param windowMs   Fenêtre glissante en millisecondes
+ * @param key     Clé unique : ex. `contact:192.168.1.1`
+ * @param policy  Quota applique a cette clé.
  */
-export async function rateLimit(
-  key: string,
-  limit: number,
-  windowMs: number,
-): Promise<RateLimitResult> {
+export async function rateLimit(key: string, policy: RateLimitPolicy): Promise<RateLimitResult> {
+  const { limit, windowMs } = policy;
+
   if (!hasUpstash) {
-    return memRateLimit(key, limit, windowMs);
+    return memRateLimit(key, policy);
   }
 
   const windowSeconds = Math.ceil(windowMs / 1000);
@@ -106,7 +110,7 @@ export async function rateLimit(
     // le rejet s'échapper — sinon la route renvoie un 500 sans body ni content-type
     // et le client interprète l'échec de `res.json()` comme une « erreur réseau ».
     console.error('[rate-limit] Upstash indisponible, fallback mémoire:', e instanceof Error ? e.message : e);
-    return memRateLimit(key, limit, windowMs);
+    return memRateLimit(key, policy);
   }
 }
 

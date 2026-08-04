@@ -11,6 +11,7 @@ import { Product, Category, SkinTone, Review } from '@/shared/types/domain.type'
 import { fetchAllReviewsFromDB, deleteReviewFromDB, approveReviewInDB } from '@/features/orders/order.repository';
 
 import { deleteProduct, saveSiteConfigSection } from '@/features/admin/admin-actions';
+import type { AdminTabStatus } from '@/features/admin/admin.type';
 import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
 import type { SiteConfig, PromoCode, ShippingOption, MarketingConfig, PromoBanner, WelcomePopup, UpsellRule, BrandingConfig } from '@/features/site-config/site-config.type';
 import ImageUpload from '@/shared/ui/image.input';
@@ -962,7 +963,7 @@ const getSaveButtonText = (saved: boolean, saving: boolean) => {
 };
 
 // Fonctions utilitaires pour les couleurs des statuts
-const getTabColor = (isActive: boolean, status: string, GOLD: string) => {
+const getTabColor = (isActive: boolean, status: AdminTabStatus) => {
   if (isActive) return GOLD;
   if (status === 'premium') return '#E5B366';
   if (status === 'important') return '#10B981';
@@ -1391,7 +1392,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
     const memberId = jekoAdjModal.member.id;
     const shouldNotify = jekoAdjModal.notify;
     const labelMsg = jekoAdjModal.label;
-    const res = await manualJekoAdjustment(memberId, pts, labelMsg);
+    const res = await manualJekoAdjustment({ userId: memberId, points: pts, label: labelMsg });
     setJekoAdjSaving(false);
     if (res.ok) {
       setJekoAdjMsg({ ok: true, text: `${pts > 0 ? '+' : ''}${pts} pts appliqués ✓` });
@@ -1660,7 +1661,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               { id: 'commandes',    label: 'Commandes',        icon: '◫', status: ordersInProgress > 0 ? 'alert' : 'normal' },
               { id: 'produits',     label: 'Produits',         icon: '◇', status: 'normal' },
               { id: 'avis',         label: 'Avis',             icon: '★', status: reviews.some(r => !r.verified) ? 'warning' : 'normal' },
-            ] as { id: Tab; label: string; icon: string; status: string }[]).map(item => {
+            ] as { id: Tab; label: string; icon: string; status: AdminTabStatus }[]).map(item => {
               const isActive = tab === item.id;
               const bgColor = isActive ? 'linear-gradient(90deg, rgba(212,162,90,0.18) 0%, rgba(212,162,90,0.08) 100%)' : 'transparent';
               const borderColor = isActive ? GOLD : 'transparent';
@@ -1688,7 +1689,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               { id: 'quiz',        label: 'Quiz Teint',     desc: 'Diagnostic type de peau',      icon: '🎯', status: 'normal' },
               { id: 'faq',         label: 'FAQ',            desc: 'Questions / Réponses',         icon: '❔', status: 'normal' },
               { id: 'legal',       label: 'Pages légales',  desc: 'CGV, Confidentialité, Contact', icon: '📄', status: 'normal' },
-            ] as { id: Tab; label: string; desc: string; icon: string; status: string }[]).map(item => {
+            ] as { id: Tab; label: string; desc: string; icon: string; status: AdminTabStatus }[]).map(item => {
               const isActive = tab === item.id;
               const bgColor = isActive ? 'linear-gradient(90deg, rgba(212,162,90,0.18) 0%, rgba(212,162,90,0.08) 100%)' : 'transparent';
               const borderColor = isActive ? GOLD : 'transparent';
@@ -1709,7 +1710,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               { id: 'clients',    label: 'Clients',    desc: 'Base de données clients',       icon: '👤', status: 'normal' },
               { id: 'jeko',       label: 'Fidélité',   desc: 'Points SDZ, paliers, cadeaux', icon: '✦',  status: 'premium' },
               { id: 'newsletter', label: 'Newsletter', desc: 'Abonnés & campagnes email',     icon: '✉',  status: 'normal' },
-            ] as { id: Tab; label: string; desc: string; icon: string; status: string }[]).map(item => {
+            ] as { id: Tab; label: string; desc: string; icon: string; status: AdminTabStatus }[]).map(item => {
               const isActive = tab === item.id;
               let bgColor = isActive ? 'linear-gradient(90deg, rgba(212,162,90,0.18) 0%, rgba(212,162,90,0.08) 100%)' : 'transparent';
               if (item.status === 'premium' && !isActive) bgColor = 'linear-gradient(90deg, rgba(212,162,90,0.08) 0%, rgba(212,162,90,0.04) 100%)';
@@ -1717,7 +1718,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               return (
                 <button key={item.id} onClick={() => { setTab(item.id); setSidebarOpen(false); }}
                   style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '11px', padding: '9px 14px', borderRadius: '10px', textAlign: 'left', cursor: 'pointer', border: 'none', marginBottom: '3px', transition: 'all .2s ease', background: bgColor, color: isActive ? '#F7EFE5' : '#C4A574', borderLeft: `3px solid ${borderColor}`, boxShadow: isActive ? '0 2px 8px rgba(212,162,90,0.15)' : 'none' }}>
-                  <span style={{ fontSize: '16px', opacity: isActive ? 1 : 0.75, color: getTabColor(isActive, item.status, GOLD), flexShrink: 0 }}>{item.icon}</span>
+                  <span style={{ fontSize: '16px', opacity: isActive ? 1 : 0.75, color: getTabColor(isActive, item.status), flexShrink: 0 }}>{item.icon}</span>
                   <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1px' }}>
                     <span style={{ fontSize: '12px', fontWeight: isActive ? 700 : 600, lineHeight: 1.3 }}>{item.label}</span>
                     <span style={{ fontSize: '10px', color: isActive ? 'rgba(247,239,229,0.55)' : '#6B5A3E', fontWeight: 400, lineHeight: 1.3 }}>{item.desc}</span>
@@ -1736,7 +1737,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               { id: 'livraison', label: 'Livraison',   desc: 'Zones, frais, délais',       icon: '🚚', status: 'normal' },
               { id: 'branding',  label: 'Branding',    desc: 'Couleurs, logo, police',     icon: '🎨', status: 'normal' },
               { id: 'paiement',  label: 'Paiement',   desc: 'Moyens de paiement visibles', icon: '💳', status: 'normal' },
-            ] as { id: Tab; label: string; desc: string; icon: string; status: string }[]).map(item => {
+            ] as { id: Tab; label: string; desc: string; icon: string; status: AdminTabStatus }[]).map(item => {
               const isActive = tab === item.id;
               let bgColor = isActive ? 'linear-gradient(90deg, rgba(212,162,90,0.18) 0%, rgba(212,162,90,0.08) 100%)' : 'transparent';
               if (item.status === 'important' && !isActive) bgColor = 'linear-gradient(90deg, rgba(16,185,129,0.08) 0%, rgba(16,185,129,0.04) 100%)';
@@ -1744,7 +1745,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               return (
                 <button key={item.id} onClick={() => { setTab(item.id); setSidebarOpen(false); }}
                   style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '11px', padding: '9px 14px', borderRadius: '10px', textAlign: 'left', cursor: 'pointer', border: 'none', marginBottom: '3px', transition: 'all .2s ease', background: bgColor, color: isActive ? '#F7EFE5' : '#C4A574', borderLeft: `3px solid ${borderColor}`, boxShadow: isActive ? '0 2px 8px rgba(212,162,90,0.15)' : 'none' }}>
-                  <span style={{ fontSize: '16px', opacity: isActive ? 1 : 0.75, color: getTabColor(isActive, item.status, GOLD), flexShrink: 0 }}>{item.icon}</span>
+                  <span style={{ fontSize: '16px', opacity: isActive ? 1 : 0.75, color: getTabColor(isActive, item.status), flexShrink: 0 }}>{item.icon}</span>
                   <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1px' }}>
                     <span style={{ fontSize: '12px', fontWeight: isActive ? 700 : 600, lineHeight: 1.3 }}>{item.label}</span>
                     <span style={{ fontSize: '10px', color: isActive ? 'rgba(247,239,229,0.55)' : '#6B5A3E', fontWeight: 400, lineHeight: 1.3 }}>{item.desc}</span>

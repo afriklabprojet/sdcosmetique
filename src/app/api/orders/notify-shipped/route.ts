@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
-  const rl = await rateLimit(`notify-shipped:${getIp(req)}`, 20, 60 * 60 * 1000);
+  const rl = await rateLimit(`notify-shipped:${getIp(req)}`, { limit: 20, windowMs: 60 * 60 * 1000 });
   if (!rl.ok) {
     return NextResponse.json({ error: 'rate_limit_exceeded' }, { status: 429, headers: rateLimitHeaders(rl) });
   }

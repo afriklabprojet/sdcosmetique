@@ -24,7 +24,7 @@ export const runtime = 'nodejs';
  * qu'un attaquant peut modifier avant envoi (ex: total: 1).
  */
 export async function POST(req: NextRequest) {
-  const rl = await rateLimit(`order-create:${getIp(req)}`, 5, 10 * 60 * 1000);
+  const rl = await rateLimit(`order-create:${getIp(req)}`, { limit: 5, windowMs: 10 * 60 * 1000 });
   if (!rl.ok) {
     return NextResponse.json({ error: 'rate_limit_exceeded' }, { status: 429, headers: rateLimitHeaders(rl) });
   }

@@ -1048,7 +1048,8 @@
       "kind": "anonymous-shape",
       "path": "src/lib/{jeko.ts:151,jeko-admin.ts:98,jeko-admin.ts:130,emails.ts:35,emails.ts:164,emails.ts:202}",
       "note": "La forme de retour `Promise<{ ok: boolean; error?: string }>` (parfois + id) est repetee 6 fois dans 3 modules sans interface nommee.",
-      "status": "open"
+      "status": "closed",
+      "resolution": "Forme nommee : WriteResult / OperationResult / CreationResult dans src/shared/types/operation-result.type.ts. Les 6 sites migres. Cles inchangees : plusieurs traversent une frontiere JSON /api/**."
     },
     {
       "id": "F-093",
@@ -1057,7 +1058,8 @@
       "kind": "anonymous-shape",
       "path": "src/lib/config/utilities.ts:42,164",
       "note": "`Promise<{ success: boolean; error?: string }>` et `{ isValid: boolean; code?: PromoCode; error?: string }` : deux variantes anonymes du meme concat 'resultat d'operation' deja exprime ailleurs avec la cle `ok` (F-092). Le vocabulaire du succes est incoherent : ok / success / isValid.",
-      "status": "open"
+      "status": "closed",
+      "resolution": "saveSiteConfigSection (util) retourne OperationResult ; sa cle `success` est devenue `ok` (aucun consommateur, renommage sans risque). validatePromoCode -> PromoValidation, applyPromoCode -> PromoApplication, tous deux dans site-config.type.ts. `isValid` conserve : une validation n'est pas un succes d'operation."
     },
     {
       "id": "F-094",
@@ -1066,7 +1068,8 @@
       "kind": "anonymous-shape",
       "path": "src/lib/{testimonials-db.ts:17,categories-db.ts:49}",
       "note": "`Promise<{ error?: string }>` sans interface nommee, troisieme variante du resultat d'operation.",
-      "status": "open"
+      "status": "closed",
+      "resolution": "Les deux `Promise<{ error?: string }>` retournent WriteResult."
     },
     {
       "id": "F-095",
@@ -1075,7 +1078,8 @@
       "kind": "duplication",
       "path": "src/lib/products.ts:183 + src/lib/config/utilities.ts:183",
       "note": "Deux formateurs de prix concurrents : formatPrice (XOF, 0 decimale) et formatConfigPrice (EUR, 2 decimales). Deux devises differentes pour un meme site. formatConfigPrice n'a aucun consommateur (voir F-103).",
-      "status": "open"
+      "status": "deferred",
+      "resolution": "Reporte a `drift`. formatConfigPrice (EUR) n a toujours aucun consommateur : la resolution est une suppression, hors perimetre de `domain` qui ne supprime pas. formatPrice (XOF) reste le seul formateur vivant."
     },
     {
       "id": "F-096",
@@ -1084,7 +1088,8 @@
       "kind": "layering",
       "path": "src/components/admin/GlobalPromoCard.tsx:5",
       "note": "Un composant importe une server action depuis '@/app/admin/actions'. Seule inversion de couche du scope : components depend de app.",
-      "status": "open"
+      "status": "closed",
+      "resolution": "Resolu par la vague `slice` : le composant importe desormais @/features/admin/admin-actions. Verifie : aucun import depuis @/app/ dans src/features ni src/shared."
     },
     {
       "id": "F-097",
@@ -1093,7 +1098,8 @@
       "kind": "name-collision",
       "path": "src/lib/categories-server.ts:4 + src/lib/categories-db.ts:18",
       "note": "Deux fonctions exportees nommees `fetchActiveCategories` avec la meme signature dans deux modules voisins. Le nom ne distingue pas les deux formes.",
-      "status": "open"
+      "status": "deferred",
+      "resolution": "Reporte a `lexicon`. Collision de noms entre category.query.ts et category.repository.ts : c'est un renommage d'identifiant, gele en vague 2."
     },
     {
       "id": "F-098",
@@ -1102,7 +1108,8 @@
       "kind": "shape",
       "path": "src/components/checkout/shared.ts:15-22",
       "note": "6 constantes de couleur nues (GOLD, BORDER, BG_ROW, TXT, TXT2, TXT3) plus un style inline exporte. Valeurs correlees voyageant ensemble sans nom de domaine ; TXT/TXT2/TXT3 est une numerotation, pas un vocabulaire.",
-      "status": "open"
+      "status": "closed",
+      "resolution": "CHECKOUT_PALETTE + interface CheckoutPalette dans src/features/checkout/checkout.constant.ts. La numerotation TXT/TXT2/TXT3 est remplacee par le role (text / textMuted / textSubtle) sur les 5 fichiers consommateurs. inputSt -> CHECKOUT_INPUT_STYLE."
     },
     {
       "id": "F-099",
@@ -1323,7 +1330,8 @@
   ],
   "waves_done": [
     "survey",
-    "slice"
+    "slice",
+    "domain"
   ],
   "slice_report": {
     "structure": "src/app (routeur, gele) + src/features/<domaine> + src/shared",
@@ -1346,5 +1354,30 @@
       "e2e": "non concluant dans cet environnement : navigateurs Playwright absents et cle Supabase invalide. 15 echecs sur HEAD contre 11 apres slice, aucun 'Module not found'."
     },
     "css_note": "2 CSS Modules (HeroBanner, LegalSidebar) deplaces sans renommage pour preserver la reference relative de leur composant. Extension sans rulebook."
+  },
+  "domain_report": {
+    "closed": 5,
+    "deferred": 2,
+    "types_created": [
+      "src/shared/types/operation-result.type.ts : WriteResult, OperationResult, CreationResult",
+      "src/features/site-config/site-config.type.ts : PromoValidation, PromoApplication",
+      "src/features/checkout/checkout.constant.ts : CheckoutPalette, CHECKOUT_PALETTE, CHECKOUT_INPUT_STYLE",
+      "src/shared/http/rate-limit.guard.ts : RateLimitPolicy",
+      "src/features/loyalty/jeko-admin.repository.ts : JekoAdjustment",
+      "src/features/admin/admin.type.ts : AdminTabStatus"
+    ],
+    "found_outside_ledger": [
+      "rateLimit(key, limit, windowMs) : triplet de primitives non consigne en vague 0. limit+windowMs extraits en RateLimitPolicy, 10 sites d appel migres.",
+      "manualJekoAdjustment(userId, points, label) : triplet extrait en JekoAdjustment.",
+      "getTabColor(isActive, status, GOLD) : GOLD etait un parametre redondant (constante du meme module) ; supprime. `status` etait un ensemble ferme de 6 chaines -> AdminTabStatus."
+    ],
+    "gates": {
+      "anonymous_return_shapes": "0 dans le scope",
+      "primitive_triples_in_signature": "0 dans le scope",
+      "typecheck": "0 erreur",
+      "build": "Compiled successfully",
+      "lint": "18 problemes / 0 erreur, identique au baseline verifie par git stash",
+      "tests": "non modifies ; suite e2e toujours non executable dans cet environnement"
+    }
   }
 }

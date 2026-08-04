@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { type PaymentMethod } from '@/shared/types/domain.type';
-import { type CheckoutStep, GOLD, BORDER, BG_ROW, TXT, TXT2, TXT3, inputSt } from '@/features/checkout/checkout.type';
+import { type CheckoutStep } from '@/features/checkout/checkout.type';
+import { CHECKOUT_PALETTE, CHECKOUT_INPUT_STYLE } from '@/features/checkout/checkout.constant';
 
 const MOBILE_METHODS: { id: PaymentMethod; label: string; desc: string; logo: React.ReactNode; badge?: string }[] = [
   {
@@ -44,13 +45,13 @@ export default function PaymentStep({ paymentMethod, setPaymentMethod, mobileNum
   const visibleMobile = MOBILE_METHODS.filter(m => activeMethods.includes(m.id));
   const showCashOnDelivery = activeMethods.includes('cash_on_delivery');
   return (
-    <div style={{ background: 'white', border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '24px' }}>
-      <h2 style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: TXT, marginBottom: '20px' }}>Mode de paiement</h2>
+    <div style={{ background: 'white', border: `1px solid ${CHECKOUT_PALETTE.border}`, borderRadius: '8px', padding: '24px' }}>
+      <h2 style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: CHECKOUT_PALETTE.text, marginBottom: '20px' }}>Mode de paiement</h2>
       <form onSubmit={handlePlaceOrder} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         {/* Mobile money methods */}
         {visibleMobile.length > 0 && (
         <div>
-          <p style={{ fontSize: '11px', fontWeight: 600, color: TXT2, marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Paiement Mobile</p>
+          <p style={{ fontSize: '11px', fontWeight: 600, color: CHECKOUT_PALETTE.textMuted, marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Paiement Mobile</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {visibleMobile.map(m => {
               const isSelected = paymentMethod === m.id;
@@ -58,13 +59,13 @@ export default function PaymentStep({ paymentMethod, setPaymentMethod, mobileNum
                 <div key={m.id} role="radio" aria-checked={isSelected} tabIndex={0}
                   onClick={() => setPaymentMethod(m.id)}
                   onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setPaymentMethod(m.id); } }}
-                  style={{ padding: '12px 14px', border: `1.5px solid ${isSelected ? GOLD : BORDER}`, borderRadius: '6px', cursor: 'pointer', background: isSelected ? BG_ROW : 'white', display: 'flex', alignItems: 'center', gap: '12px', transition: 'border-color .15s' }}>
+                  style={{ padding: '12px 14px', border: `1.5px solid ${isSelected ? CHECKOUT_PALETTE.accent : CHECKOUT_PALETTE.border}`, borderRadius: '6px', cursor: 'pointer', background: isSelected ? CHECKOUT_PALETTE.rowBackground : 'white', display: 'flex', alignItems: 'center', gap: '12px', transition: 'border-color .15s' }}>
                   {m.logo}
                   <div style={{ flex: 1 }}>
-                    <p style={{ fontSize: '13px', fontWeight: 600, color: TXT }}>{m.label}</p>
-                    <p style={{ fontSize: '11px', color: TXT2 }}>{m.desc}</p>
+                    <p style={{ fontSize: '13px', fontWeight: 600, color: CHECKOUT_PALETTE.text }}>{m.label}</p>
+                    <p style={{ fontSize: '11px', color: CHECKOUT_PALETTE.textMuted }}>{m.desc}</p>
                   </div>
-                  {m.badge && <span className="checkout-payment-badge" style={{ fontSize: '10px', fontWeight: 700, padding: '2px 8px', background: GOLD, color: 'white', borderRadius: '99px', letterSpacing: '0.05em' }}>{m.badge}</span>}
+                  {m.badge && <span className="checkout-payment-badge" style={{ fontSize: '10px', fontWeight: 700, padding: '2px 8px', background: CHECKOUT_PALETTE.accent, color: 'white', borderRadius: '99px', letterSpacing: '0.05em' }}>{m.badge}</span>}
                 </div>
               );
             })}
@@ -75,8 +76,8 @@ export default function PaymentStep({ paymentMethod, setPaymentMethod, mobileNum
         {/* Phone number (shown when mobile payment selected) */}
         {showMobileInput && (
           <div className="checkout-phone-panel">
-            <label htmlFor="pay-mobile-number" style={{ fontSize: '11px', fontWeight: 600, color: TXT2, display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Numéro de téléphone *</label>
-            <input id="pay-mobile-number" required value={mobileNumber} onChange={e => setMobileNumber(e.target.value)} placeholder="+225 00 00 00 00 00" style={inputSt} />
+            <label htmlFor="pay-mobile-number" style={{ fontSize: '11px', fontWeight: 600, color: CHECKOUT_PALETTE.textMuted, display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Numéro de téléphone *</label>
+            <input id="pay-mobile-number" required value={mobileNumber} onChange={e => setMobileNumber(e.target.value)} placeholder="+225 00 00 00 00 00" style={CHECKOUT_INPUT_STYLE} />
           </div>
         )}
 
@@ -85,28 +86,28 @@ export default function PaymentStep({ paymentMethod, setPaymentMethod, mobileNum
         <div role="radio" aria-checked={paymentMethod === 'cash_on_delivery'} tabIndex={0}
           onClick={() => setPaymentMethod('cash_on_delivery')}
           onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setPaymentMethod('cash_on_delivery'); } }}
-          style={{ padding: '12px 14px', border: `1.5px solid ${paymentMethod === 'cash_on_delivery' ? GOLD : BORDER}`, borderRadius: '6px', cursor: 'pointer', background: paymentMethod === 'cash_on_delivery' ? BG_ROW : 'white', display: 'flex', alignItems: 'center', gap: '12px', transition: 'border-color .15s' }}>
+          style={{ padding: '12px 14px', border: `1.5px solid ${paymentMethod === 'cash_on_delivery' ? CHECKOUT_PALETTE.accent : CHECKOUT_PALETTE.border}`, borderRadius: '6px', cursor: 'pointer', background: paymentMethod === 'cash_on_delivery' ? CHECKOUT_PALETTE.rowBackground : 'white', display: 'flex', alignItems: 'center', gap: '12px', transition: 'border-color .15s' }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: '50%', background: '#10B981', color: '#fff', fontSize: '18px', flexShrink: 0 }}>💵</span>
           <div>
-            <p style={{ fontSize: '13px', fontWeight: 600, color: TXT }}>Paiement à la livraison</p>
-            <p style={{ fontSize: '11px', color: TXT2 }}>Payez en espèces à la réception</p>
+            <p style={{ fontSize: '13px', fontWeight: 600, color: CHECKOUT_PALETTE.text }}>Paiement à la livraison</p>
+            <p style={{ fontSize: '11px', color: CHECKOUT_PALETTE.textMuted }}>Payez en espèces à la réception</p>
           </div>
         </div>
         )}
 
         <div style={{ display: 'flex', gap: '10px', marginTop: '8px', justifyContent: 'space-between' }}>
           <button type="button" onClick={() => setStep('delivery')}
-            style={{ fontSize: '12px', color: TXT2, background: 'none', border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '10px 18px', cursor: 'pointer' }}>
+            style={{ fontSize: '12px', color: CHECKOUT_PALETTE.textMuted, background: 'none', border: `1px solid ${CHECKOUT_PALETTE.border}`, borderRadius: '4px', padding: '10px 18px', cursor: 'pointer' }}>
             ← Retour
           </button>
           <button type="submit" disabled={processing}
-            style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.05em', padding: '12px 28px', background: processing ? '#ccc' : GOLD, color: 'white', border: 'none', borderRadius: '4px', cursor: processing ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.05em', padding: '12px 28px', background: processing ? '#ccc' : CHECKOUT_PALETTE.accent, color: 'white', border: 'none', borderRadius: '4px', cursor: processing ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
             {processing && <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', borderRadius: '50%', animation: 'spin 0.6s linear infinite', display: 'inline-block' }} />}
             {processing ? 'Traitement…' : 'Confirmer la commande →'}
           </button>
         </div>
       </form>
-      {isMobile && <p style={{ fontSize: '10px', color: TXT3, textAlign: 'center', marginTop: '12px' }}>Vos données sont protégées par un chiffrement SSL.</p>}
+      {isMobile && <p style={{ fontSize: '10px', color: CHECKOUT_PALETTE.textSubtle, textAlign: 'center', marginTop: '12px' }}>Vos données sont protégées par un chiffrement SSL.</p>}
     </div>
   );
 }

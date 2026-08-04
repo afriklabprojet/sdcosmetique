@@ -3,7 +3,8 @@
  */
 
 import { createClient } from '@/shared/supabase/browser.client';
-import type { SiteConfig, PromoCode } from '@/features/site-config/site-config.type';
+import type { SiteConfig, PromoCode, PromoValidation, PromoApplication } from '@/features/site-config/site-config.type';
+import type { OperationResult } from '@/shared/types/operation-result.type';
 import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
 
 // ─── Gestion des configurations ──────────────────────────────────────────────
@@ -39,7 +40,7 @@ export async function fetchSiteConfigSection<K extends keyof SiteConfig>(
 export async function saveSiteConfigSection<K extends keyof SiteConfig>(
   section: K,
   value: SiteConfig[K]
-): Promise<{ success: boolean; error?: string }> {
+): Promise<OperationResult> {
   try {
     const supabase = createClient();
     
@@ -52,13 +53,13 @@ export async function saveSiteConfigSection<K extends keyof SiteConfig>(
       });
 
     if (error) {
-      return { success: false, error: error.message };
+      return { ok: false, error: error.message };
     }
 
-    return { success: true };
+    return { ok: true };
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Unknown error';
-    return { success: false, error: msg };
+    return { ok: false, error: msg };
   }
 }
 
@@ -100,12 +101,7 @@ export function applyPromoCode(
   orderTotal: number,
   promoCode: string,
   promoCodes: PromoCode[]
-): {
-  isValid: boolean;
-  discount: number;
-  finalTotal: number;
-  error?: string;
-} {
+): PromoApplication {
   const code = promoCodes.find(p => p.code.toUpperCase() === promoCode.toUpperCase());
   
   if (!code) {
@@ -161,7 +157,7 @@ export function applyPromoCode(
 export function validatePromoCode(
   promoCode: string,
   promoCodes: PromoCode[]
-): { isValid: boolean; code?: PromoCode; error?: string } {
+): PromoValidation {
   const code = promoCodes.find(p => p.code.toUpperCase() === promoCode.toUpperCase());
   
   if (!code) {
