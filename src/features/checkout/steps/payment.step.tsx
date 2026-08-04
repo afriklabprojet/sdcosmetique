@@ -1,8 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { type PaymentMethod } from '@/shared/types/domain.type';
-import { type CheckoutStep } from '@/features/checkout/checkout.type';
 import { CHECKOUT_PALETTE, CHECKOUT_INPUT_STYLE } from '@/features/checkout/checkout.constant';
 
 const MOBILE_METHODS: { id: PaymentMethod; label: string; desc: string; logo: React.ReactNode; badge?: string }[] = [
@@ -30,24 +29,34 @@ const MOBILE_METHODS: { id: PaymentMethod; label: string; desc: string; logo: Re
 
 interface PaymentStepProps {
   readonly paymentMethod: PaymentMethod;
-  readonly setPaymentMethod: (m: PaymentMethod) => void;
-  readonly mobileNumber: string;
-  readonly setMobileNumber: (n: string) => void;
-  readonly handlePlaceOrder: (e: React.SyntheticEvent) => Promise<void>;
+  readonly onSelectMethod: (m: PaymentMethod) => void;
+  readonly onPlaceOrder: (mobileNumber: string) => Promise<void>;
   readonly processing: boolean;
-  readonly setStep: (s: CheckoutStep) => void;
-  readonly isMobile: boolean;
+  readonly onBack: () => void;
   readonly activeMethods?: string[];
 }
 
-export default function PaymentStep({ paymentMethod, setPaymentMethod, mobileNumber, setMobileNumber, handlePlaceOrder, processing, setStep, isMobile, activeMethods = ['orange_money', 'wave', 'mtn_momo', 'moov_money', 'djamo', 'cash_on_delivery'] }: PaymentStepProps) {
+/*
+ * Le numero de payeur est une saisie : il n'existe que le temps du formulaire,
+ * et le tunnel ne le recoit qu'au moment de la commande. Le mode de paiement
+ * reste dehors : il decide du statut de la commande et du parcours qui suit.
+ * `isMobile` etait passe en prop alors que l'etape le rededuisait deja ligne a
+ * ligne du meme `paymentMethod` — la prop disparait, le calcul reste.
+ */
+export default function PaymentStep({ paymentMethod, onSelectMethod, onPlaceOrder, processing, onBack, activeMethods = ['orange_money', 'wave', 'mtn_momo', 'moov_money', 'djamo', 'cash_on_delivery'] }: PaymentStepProps) {
+  const [mobileNumber, setMobileNumber] = useState('');
   const showMobileInput = ['orange_money', 'wave', 'mtn_momo', 'moov_money', 'djamo'].includes(paymentMethod);
+
+  const handleSubmit = async (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    await onPlaceOrder(mobileNumber);
+  };
   const visibleMobile = MOBILE_METHODS.filter(m => activeMethods.includes(m.id));
   const showCashOnDelivery = activeMethods.includes('cash_on_delivery');
   return (
     <div style={{ background: 'white', border: `1px solid ${CHECKOUT_PALETTE.border}`, borderRadius: '8px', padding: '24px' }}>
       <h2 style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: CHECKOUT_PALETTE.text, marginBottom: '20px' }}>Mode de paiement</h2>
-      <form onSubmit={handlePlaceOrder} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         {/* Mobile money methods */}
         {visibleMobile.length > 0 && (
         <div>
@@ -57,8 +66,8 @@ export default function PaymentStep({ paymentMethod, setPaymentMethod, mobileNum
               const isSelected = paymentMethod === m.id;
               return (
                 <div key={m.id} role="radio" aria-checked={isSelected} tabIndex={0}
-                  onClick={() => setPaymentMethod(m.id)}
-                  onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setPaymentMethod(m.id); } }}
+                  onClick={() => onSelectMethod(m.id)}
+                  onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); onSelectMethod(m.id); } }}
                   style={{ padding: '12px 14px', border: `1.5px solid ${isSelected ? CHECKOUT_PALETTE.accent : CHECKOUT_PALETTE.border}`, borderRadius: '6px', cursor: 'pointer', background: isSelected ? CHECKOUT_PALETTE.rowBackground : 'white', display: 'flex', alignItems: 'center', gap: '12px', transition: 'border-color .15s' }}>
                   {m.logo}
                   <div style={{ flex: 1 }}>
@@ -84,8 +93,8 @@ export default function PaymentStep({ paymentMethod, setPaymentMethod, mobileNum
         {/* Cash on delivery — visible uniquement si activé en admin */}
         {showCashOnDelivery && (
         <div role="radio" aria-checked={paymentMethod === 'cash_on_delivery'} tabIndex={0}
-          onClick={() => setPaymentMethod('cash_on_delivery')}
-          onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setPaymentMethod('cash_on_delivery'); } }}
+          onClick={() => onSelectMethod('cash_on_delivery')}
+          onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); onSelectMethod('cash_on_delivery'); } }}
           style={{ padding: '12px 14px', border: `1.5px solid ${paymentMethod === 'cash_on_delivery' ? CHECKOUT_PALETTE.accent : CHECKOUT_PALETTE.border}`, borderRadius: '6px', cursor: 'pointer', background: paymentMethod === 'cash_on_delivery' ? CHECKOUT_PALETTE.rowBackground : 'white', display: 'flex', alignItems: 'center', gap: '12px', transition: 'border-color .15s' }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: '50%', background: '#10B981', color: '#fff', fontSize: '18px', flexShrink: 0 }}>💵</span>
           <div>
@@ -96,7 +105,7 @@ export default function PaymentStep({ paymentMethod, setPaymentMethod, mobileNum
         )}
 
         <div style={{ display: 'flex', gap: '10px', marginTop: '8px', justifyContent: 'space-between' }}>
-          <button type="button" onClick={() => setStep('delivery')}
+          <button type="button" onClick={onBack}
             style={{ fontSize: '12px', color: CHECKOUT_PALETTE.textMuted, background: 'none', border: `1px solid ${CHECKOUT_PALETTE.border}`, borderRadius: '4px', padding: '10px 18px', cursor: 'pointer' }}>
             ← Retour
           </button>
@@ -107,7 +116,7 @@ export default function PaymentStep({ paymentMethod, setPaymentMethod, mobileNum
           </button>
         </div>
       </form>
-      {isMobile && <p style={{ fontSize: '10px', color: CHECKOUT_PALETTE.textSubtle, textAlign: 'center', marginTop: '12px' }}>Vos données sont protégées par un chiffrement SSL.</p>}
+      {showMobileInput && <p style={{ fontSize: '10px', color: CHECKOUT_PALETTE.textSubtle, textAlign: 'center', marginTop: '12px' }}>Vos données sont protégées par un chiffrement SSL.</p>}
     </div>
   );
 }

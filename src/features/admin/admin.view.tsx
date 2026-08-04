@@ -61,9 +61,10 @@ async function patchAdminOrderStatus(orderNumber: string, status: OrderDraft['st
 }
 
 type ProductEditModalProps = {
-  productModal: ProductModalState | null;
-  setProductModal: React.Dispatch<React.SetStateAction<ProductModalState | null>>;
-  onSave: () => void;
+  /** Produit ouvert a l'edition. Le brouillon qui en decoule vit dans la modale. */
+  initialProduct: ProductModalState;
+  onSave: (draft: ProductModalState) => void;
+  onClose: () => void;
   inputStyle: React.CSSProperties;
   SURFACE: string;
   TEXT: string;
@@ -80,11 +81,20 @@ type ProductEditModalProps = {
   saveError?: string | null;
 };
 
+/*
+ * La modale recevait le `Dispatch` du parent et ecrivait directement dans son
+ * etat a chaque frappe. Le brouillon en cours d'edition est pourtant de la
+ * presentation : il n'existe que tant que la modale est ouverte, et l'admin
+ * n'a besoin que du produit finalement enregistre. Le parent decide encore
+ * quel produit ouvrir — c'est son affaire ; la saisie, non.
+ */
 function ProductEditModal({ 
-  productModal, setProductModal, onSave, inputStyle,
+  initialProduct, onSave, onClose, inputStyle,
   SURFACE, TEXT, TEXT2, TEXT3, BORDER, BG, GOLD2, SURFACE2, BTN_BG, S_ERR_BG, S_ERR_T,
   isSaving, saveError
 }: Readonly<ProductEditModalProps>) {
+  const [productModal, setProductModal] = useState<ProductModalState | null>(initialProduct);
+
   if (!productModal) return null;
 
   // Fonction utilitaire pour gérer les teintes compatibles
@@ -107,8 +117,8 @@ function ProductEditModal({
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex' }}>
       <button 
-        onClick={() => setProductModal(null)} 
-        onKeyDown={(e) => { if (e.key === 'Escape') setProductModal(null); }}
+        onClick={() => onClose()} 
+        onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
         style={{ 
           flex: 1, 
           background: 'rgba(0,0,0,0.7)', 
@@ -121,7 +131,7 @@ function ProductEditModal({
       <div style={{ width: '460px', background: SURFACE, borderLeft: `1px solid `, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <h2 style={{ color: TEXT, fontSize: '15px', fontWeight: 700 }}>{productModal._isNew ? '+ Nouveau produit' : 'Modifier le produit'}</h2>
-          <button onClick={() => setProductModal(null)} style={{ color: TEXT3, fontSize: '18px', lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+          <button onClick={() => onClose()} style={{ color: TEXT3, fontSize: '18px', lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
         </div>
         <div>
           <label htmlFor="product-name" style={{ fontSize: '11px', color: TEXT2, display: 'block', marginBottom: '4px' }}>Nom *</label>
@@ -380,10 +390,10 @@ function ProductEditModal({
           </div>
         )}
         <div style={{ display: 'flex', gap: '8px', paddingTop: '12px', borderTop: `1px solid ${BTN_BG}` }}>
-          <button onClick={onSave} disabled={isSaving || !productModal.name?.trim() || !productModal.slug?.trim() || !productModal.category || productModal.images?.filter((u: string) => u?.trim()).length === 0} style={{ flex: 1, padding: '10px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, background: GOLD2, color: BG, cursor: isSaving ? 'wait' : 'pointer', border: 'none', opacity: isSaving || !productModal.name?.trim() || !productModal.slug?.trim() || !productModal.category || productModal.images?.filter((u: string) => u?.trim()).length === 0 ? 0.4 : 1 }}>
+          <button onClick={() => onSave(productModal)} disabled={isSaving || !productModal.name?.trim() || !productModal.slug?.trim() || !productModal.category || productModal.images?.filter((u: string) => u?.trim()).length === 0} style={{ flex: 1, padding: '10px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, background: GOLD2, color: BG, cursor: isSaving ? 'wait' : 'pointer', border: 'none', opacity: isSaving || !productModal.name?.trim() || !productModal.slug?.trim() || !productModal.category || productModal.images?.filter((u: string) => u?.trim()).length === 0 ? 0.4 : 1 }}>
             {btnLabel}
           </button>
-          <button onClick={() => setProductModal(null)} disabled={isSaving} style={{ padding: '10px 16px', borderRadius: '6px', fontSize: '13px', background: SURFACE2, color: TEXT2, cursor: isSaving ? 'not-allowed' : 'pointer', border: 'none' }}>Annuler</button>
+          <button onClick={() => onClose()} disabled={isSaving} style={{ padding: '10px 16px', borderRadius: '6px', fontSize: '13px', background: SURFACE2, color: TEXT2, cursor: isSaving ? 'not-allowed' : 'pointer', border: 'none' }}>Annuler</button>
         </div>
       </div>
     </div>
@@ -530,30 +540,38 @@ function filterProductsData(products: EditableProduct[], searchTerm: string, cat
 
 // ─── OrdersTab Component ─────────────────────────────────────────────
 interface ProductsTabProps {
-  filteredProducts: Product[];
   editableProducts: Product[];
-  productSearch: string;
-  setProductSearch: (search: string) => void;
-  setProductPage: (page: number) => void;
-  productCatFilter: string;
-  setProductCatFilter: (filter: string) => void;
   openNewModal: () => void;
-  pagedProducts: Product[];
-  productPageCount: number;
-  productPage: number;
   openEditModal: (product: Product) => void;
-  setConfirmDelete: (id: string | null) => void;
+  onRequestDelete: (id: string) => void;
   card: React.CSSProperties;
   inputStyle: React.CSSProperties;
   thStyle: React.CSSProperties;
   tdStyle: React.CSSProperties;
 }
 
+/*
+ * Recherche, filtre de categorie et page courante ne quittaient l'onglet que
+ * pour revenir aussitot sous forme de listes derivees : le parent detenait six
+ * valeurs qu'il ne lisait jamais lui-meme. Elles sont de l'etat de
+ * presentation — ce qui est filtre et affiche ici ne regarde pas le reste de
+ * l'admin — et vivent donc dans l'onglet, avec le calcul qu'elles nourrissent.
+ */
 const ProductsTab: React.FC<ProductsTabProps> = ({
-  filteredProducts, editableProducts, productSearch, setProductSearch, setProductPage,
-  productCatFilter, setProductCatFilter, openNewModal, pagedProducts, productPageCount,
-  productPage, openEditModal, setConfirmDelete, card, inputStyle, thStyle, tdStyle
-}) => (
+  editableProducts, openNewModal, openEditModal, onRequestDelete, card, inputStyle, thStyle, tdStyle
+}) => {
+  const [productSearch, setProductSearch] = useState('');
+  const [productCatFilter, setProductCatFilter] = useState('');
+  const [productPage, setProductPage] = useState(1);
+
+  const filteredProducts = useMemo(
+    () => filterProductsData(editableProducts, productSearch, productCatFilter),
+    [editableProducts, productSearch, productCatFilter],
+  );
+  const productPageCount = Math.max(1, Math.ceil(filteredProducts.length / PER_PAGE));
+  const pagedProducts = paginateData(filteredProducts, productPage, PER_PAGE).pagedData;
+
+  return (
   <div className="space-y-4">
     <div className="flex items-center justify-between gap-4 flex-wrap">
       <h1 className="text-lg font-bold" style={{ color: TEXT }}>
@@ -643,7 +661,7 @@ const ProductsTab: React.FC<ProductsTabProps> = ({
                           className="text-xs px-2 py-1 rounded border transition-all hover:opacity-80"
                           style={{ borderColor: BORDER2, color: GOLD, textDecoration: 'none' }}>↗</a>
                         <button onClick={() => openEditModal(p)} className="text-xs px-2 py-1 rounded border transition-all hover:opacity-80" style={{ borderColor: BORDER2, color: TEXT2 }}>Éditer</button>
-                        <button onClick={() => setConfirmDelete(p.id)} className="text-xs px-2 py-1 rounded transition-all hover:opacity-80" style={{ background: S_ERR_BG, color: S_ERR_T }}>✕</button>
+                        <button onClick={() => onRequestDelete(p.id)} className="text-xs px-2 py-1 rounded transition-all hover:opacity-80" style={{ background: S_ERR_BG, color: S_ERR_T }}>✕</button>
                       </div>
                     </td>
                   </tr>
@@ -656,30 +674,33 @@ const ProductsTab: React.FC<ProductsTabProps> = ({
       )}
     </div>
   </div>
-);
+  );
+};
 
 interface OrdersTabProps {
-  filteredOrders: OrderDraft[];
-  orderPage: number;
-  orderPageSize: number;
-  orderSearchTerm: string;
-  orderStatusFilter: string;
-  orderPageCount: number;
-  pagedOrders: OrderDraft[];
-  setOrderPage: (page: number) => void;
-  setOrderSearchTerm: (term: string) => void;
-  setOrderStatusFilter: (status: string) => void;
-  setOrderDetail: (order: OrderDraft | null) => void;
+  orders: OrderDraft[];
+  onOpenDetail: (order: OrderDraft) => void;
   handleStatusChange: (orderNumber: string, status: OrderStatus) => void;
   thStyle: React.CSSProperties;
   tdStyle: React.CSSProperties;
 }
 
+/* Meme lecture que ProductsTab : recherche, statut filtre et page ne sortaient
+ * de l'onglet que pour y revenir sous forme de liste paginee. */
 function OrdersTab({ 
-  filteredOrders, orderPage, orderSearchTerm, orderStatusFilter,
-  orderPageCount, pagedOrders, setOrderPage, setOrderSearchTerm, setOrderStatusFilter,
-  setOrderDetail, handleStatusChange, thStyle, tdStyle 
+  orders, onOpenDetail, handleStatusChange, thStyle, tdStyle 
 }: Readonly<OrdersTabProps>) {
+  const [orderSearchTerm, setOrderSearchTerm] = useState('');
+  const [orderStatusFilter, setOrderStatusFilter] = useState('');
+  const [orderPage, setOrderPage] = useState(1);
+
+  const filteredOrders = useMemo(
+    () => filterOrdersData(orders, orderSearchTerm, orderStatusFilter),
+    [orders, orderSearchTerm, orderStatusFilter],
+  );
+  const orderPageCount = Math.max(1, Math.ceil(filteredOrders.length / PER_PAGE));
+  const pagedOrders = paginateData(filteredOrders, orderPage, PER_PAGE).pagedData;
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -763,7 +784,7 @@ function OrdersTab({
                       </select>
                     </td>
                     <td style={tdStyle}>
-                      <button onClick={() => setOrderDetail(o)}
+                      <button onClick={() => onOpenDetail(o)}
                         className="text-xs px-2 py-1 rounded border transition-all hover:opacity-80"
                         style={{ borderColor: GOLD, color: GOLD, whiteSpace: 'nowrap' }}>
                         Détail
@@ -793,8 +814,8 @@ interface DashboardTabProps {
   recentOrders: OrderDraft[];
   last7Days: { label: string; value: number }[];
   maxDay: number;
-  setTab: (tab: Tab) => void;
-  setOrderDetail: (order: OrderDraft | null) => void;
+  onNavigate: (tab: Tab) => void;
+  onOpenDetail: (order: OrderDraft) => void;
   thStyle: React.CSSProperties;
   tdStyle: React.CSSProperties;
 }
@@ -802,7 +823,7 @@ interface DashboardTabProps {
 function DashboardTab({ 
   orders, editableProducts, reviews, totalRevenue, revenueThisMonth, 
   ordersInProgress, recentOrders, last7Days, maxDay, 
-  setTab, setOrderDetail, thStyle, tdStyle 
+  onNavigate, onOpenDetail, thStyle, tdStyle 
 }: Readonly<DashboardTabProps>) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -812,7 +833,7 @@ function DashboardTab({
           <h1 style={{ fontSize: '20px', fontWeight: 700, color: TITLE, letterSpacing: '-0.02em' }}>Tableau de bord</h1>
           <p style={{ fontSize: '12px', color: TEXT3, marginTop: '2px' }}>{new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
         </div>
-        <button onClick={() => setTab('commandes')} style={{ fontSize: '11px', padding: '7px 14px', borderRadius: '8px', border: `1px solid ${BORDER2}`, background: SURFACE2, color: TEXT2, cursor: 'pointer' }}>Toutes les commandes →</button>
+        <button onClick={() => onNavigate('commandes')} style={{ fontSize: '11px', padding: '7px 14px', borderRadius: '8px', border: `1px solid ${BORDER2}`, background: SURFACE2, color: TEXT2, cursor: 'pointer' }}>Toutes les commandes →</button>
       </div>
 
       {/* KPI grid */}
@@ -902,7 +923,7 @@ function DashboardTab({
       <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '12px', overflow: 'hidden' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: `1px solid ${BORDER}` }}>
           <h2 style={{ fontSize: '13px', fontWeight: 600, color: TITLE }}>Dernières commandes</h2>
-          <button onClick={() => setTab('commandes')} style={{ fontSize: '11px', color: GOLD, background: 'none', border: 'none', cursor: 'pointer' }}>Voir tout →</button>
+          <button onClick={() => onNavigate('commandes')} style={{ fontSize: '11px', color: GOLD, background: 'none', border: 'none', cursor: 'pointer' }}>Voir tout →</button>
         </div>
         {recentOrders.length === 0 ? (
           <p style={{ textAlign: 'center', padding: '32px', fontSize: '12px', color: TEXT3 }}>Aucune commande enregistrée.</p>
@@ -917,7 +938,7 @@ function DashboardTab({
                   <tr key={o.orderNumber} style={{ cursor: 'pointer', transition: 'background 0.15s' }}
                     onMouseEnter={e => (e.currentTarget.style.background = SURFACE2)}
                     onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                    onClick={() => setOrderDetail(o)}>
+                    onClick={() => onOpenDetail(o)}>
                     <td style={tdStyle}><span style={{ color: GOLD, fontWeight: 600 }}>{o.orderNumber}</span></td>
                     <td style={tdStyle}>{formatOrderDate(o.date)}</td>
                     <td style={{ ...tdStyle, fontWeight: 500 }}>{o.delivery.firstName} {o.delivery.lastName}</td>
@@ -932,23 +953,6 @@ function DashboardTab({
       </div>
     </div>
   );
-}
-
-// ─── Composants extraits pour réduire la complexité ───────────────────────────
-interface DashboardTabProps {
-  orders: OrderDraft[];
-  editableProducts: EditableProduct[];
-  reviews: ReviewRow[];
-  totalRevenue: number;
-  revenueThisMonth: number;
-  ordersInProgress: number;
-  recentOrders: OrderDraft[];
-  last7Days: { label: string; value: number }[];
-  maxDay: number;
-  setTab: (tab: Tab) => void;
-  setOrderDetail: (order: OrderDraft | null) => void;
-  thStyle: React.CSSProperties;
-  tdStyle: React.CSSProperties;
 }
 
 // ─── Composants utilitaires (module-level) ──────────────────────────────────
@@ -1032,14 +1036,8 @@ export default function AdminPage() { // NOSONAR typescript:S3776
   const [userEmail, setUserEmail] = useState('');
 
   // search
-  const [orderSearch, setOrderSearch] = useState('');
-  const [orderStatusFilter, setOrderStatusFilter] = useState('');
-  const [productSearch, setProductSearch] = useState('');
-  const [productCatFilter, setProductCatFilter] = useState('');
 
   // pagination
-  const [orderPage, setOrderPage] = useState(1);
-  const [productPage, setProductPage] = useState(1);
 
   // inline product editing
   const [editableProducts, setEditableProducts] = useState<EditableProduct[]>([]);
@@ -1159,11 +1157,11 @@ export default function AdminPage() { // NOSONAR typescript:S3776
     price: 0, images: [''], skinTones: [], benefits: [], rating: 0, reviewCount: 0,
     shortDescription: '', description: '', usage: '', inStock: true, stockQty: 0, lowStockThreshold: 5, isNew: false, isBestseller: false,
   });
-  const saveModal = async () => {
-    if (!productModal?.name?.trim() || !productModal?.slug?.trim() || !productModal?.category) return;
-    const validImages = productModal.images?.filter((u: string) => u?.trim()) ?? [];
+  const saveModal = async (draft: ProductModalState) => {
+    if (!draft?.name?.trim() || !draft?.slug?.trim() || !draft?.category) return;
+    const validImages = draft.images?.filter((u: string) => u?.trim()) ?? [];
     if (validImages.length === 0) return;
-    const { _isNew, ...rest } = productModal;
+    const { _isNew, ...rest } = draft;
     const p: Product = {
       id: rest.id ?? `p${Date.now()}`,
       name: rest.name!.trim(),
@@ -1284,16 +1282,6 @@ export default function AdminPage() { // NOSONAR typescript:S3776
     }));
 
   // ── filtered & paginated data ──
-  const filteredOrders = useMemo(() => 
-    filterOrdersData(orders, orderSearch, orderStatusFilter),
-    [orders, orderSearch, orderStatusFilter]
-  );
-
-  const filteredProducts = useMemo(() => 
-    filterProductsData(editableProducts, productSearch, productCatFilter),
-    [editableProducts, productSearch, productCatFilter]
-  );
-
   const filteredReviews = useMemo(() => {
     const q = reviewSearch.toLowerCase();
     return reviews.filter(r => !q || r.author.toLowerCase().includes(q) || r.comment.toLowerCase().includes(q));
@@ -1320,12 +1308,8 @@ export default function AdminPage() { // NOSONAR typescript:S3776
     return clientList.filter(c => !q || c.email.toLowerCase().includes(q) || c.name.toLowerCase().includes(q));
   }, [clientList, clientSearch]);
 
-  const orderPageCount   = Math.max(1, Math.ceil(filteredOrders.length  / PER_PAGE));
-  const productPageCount = Math.max(1, Math.ceil(filteredProducts.length / PER_PAGE));
   const reviewPageCount  = Math.max(1, Math.ceil(filteredReviews.length  / PER_PAGE));
   const clientPageCount  = Math.max(1, Math.ceil(filteredClients.length  / PER_PAGE));
-  const pagedOrders   = paginateData(filteredOrders, orderPage, PER_PAGE).pagedData;
-  const pagedProducts = paginateData(filteredProducts, productPage, PER_PAGE).pagedData;
   const pagedReviews  = paginateData(filteredReviews, reviewPage, PER_PAGE).pagedData;
   const pagedClients  = paginateData(filteredClients, clientPage, PER_PAGE).pagedData;
 
@@ -1799,8 +1783,8 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               recentOrders={recentOrders}
               last7Days={last7Days}
               maxDay={maxDay}
-              setTab={setTab}
-              setOrderDetail={setOrderDetail}
+              onNavigate={setTab}
+              onOpenDetail={setOrderDetail}
               thStyle={thStyle}
               tdStyle={tdStyle}
             />
@@ -1809,17 +1793,8 @@ export default function AdminPage() { // NOSONAR typescript:S3776
           {/* ─── COMMANDES TAB ─── */}
           {tab === 'commandes' && (
             <OrdersTab
-              filteredOrders={filteredOrders}
-              orderPage={orderPage}
-              orderPageSize={PER_PAGE}
-              orderSearchTerm={orderSearch}
-              orderStatusFilter={orderStatusFilter}
-              orderPageCount={orderPageCount}
-              pagedOrders={pagedOrders}
-              setOrderPage={setOrderPage}
-              setOrderSearchTerm={setOrderSearch}
-              setOrderStatusFilter={setOrderStatusFilter}
-              setOrderDetail={setOrderDetail}
+              orders={orders}
+              onOpenDetail={setOrderDetail}
               handleStatusChange={handleStatusChange}
               thStyle={thStyle}
               tdStyle={tdStyle}
@@ -1829,19 +1804,10 @@ export default function AdminPage() { // NOSONAR typescript:S3776
           {/* ─── PRODUITS TAB ─── */}
           {tab === 'produits' && (
             <ProductsTab
-              filteredProducts={filteredProducts}
               editableProducts={editableProducts}
-              productSearch={productSearch}
-              setProductSearch={setProductSearch}
-              setProductPage={setProductPage}
-              productCatFilter={productCatFilter}
-              setProductCatFilter={setProductCatFilter}
               openNewModal={openNewModal}
-              pagedProducts={pagedProducts}
-              productPageCount={productPageCount}
-              productPage={productPage}
               openEditModal={openEditModal}
-              setConfirmDelete={setConfirmDelete}
+              onRequestDelete={setConfirmDelete}
               card={card}
               inputStyle={inputStyle}
               thStyle={thStyle}
@@ -4329,10 +4295,11 @@ export default function AdminPage() { // NOSONAR typescript:S3776
       )}
 
       {/* ─── PRODUCT MODAL ─── */}
-      <ProductEditModal
-        productModal={productModal}
-        setProductModal={setProductModal}
+      {productModal && <ProductEditModal
+        key={productModal.id}
+        initialProduct={productModal}
         onSave={saveModal}
+        onClose={() => setProductModal(null)}
         inputStyle={inputStyle}
         SURFACE={SURFACE}
         TEXT={TEXT}
@@ -4347,7 +4314,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
         S_ERR_T={S_ERR_T}
         isSaving={isSaving}
         saveError={saveError}
-      />
+      />}
 
       {/* ─── JEKO ADJUST MODAL ─── */}
       {jekoAdjModal && (

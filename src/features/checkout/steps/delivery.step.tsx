@@ -1,28 +1,42 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { formatPrice } from '@/features/catalog/product.query';
 import type { ShippingOption } from '@/features/site-config/site-config.type';
-import { type CheckoutStep, type DeliveryInfo } from '@/features/checkout/checkout.type';
+import { type DeliveryInfo } from '@/features/checkout/checkout.type';
 import { CHECKOUT_PALETTE, CHECKOUT_INPUT_STYLE } from '@/features/checkout/checkout.constant';
 
 interface DeliveryStepProps {
-  readonly delivery: DeliveryInfo;
-  readonly setDelivery: React.Dispatch<React.SetStateAction<DeliveryInfo>>;
-  readonly setStep: (s: CheckoutStep) => void;
-  readonly handleDeliverySubmit: (e: React.SyntheticEvent) => void;
+  /** Valeur deja validee, si l'acheteur revient sur cette etape. */
+  readonly initialDelivery: DeliveryInfo;
+  readonly onSubmit: (delivery: DeliveryInfo) => void;
+  readonly onBack: () => void;
   readonly shippingOptions: ShippingOption[];
   readonly selectedShipping: ShippingOption | null;
-  readonly setSelectedShipping: (opt: ShippingOption) => void;
+  readonly onSelectShipping: (opt: ShippingOption) => void;
 }
 
-export default function DeliveryStep({ delivery, setDelivery, setStep, handleDeliverySubmit, shippingOptions, selectedShipping, setSelectedShipping }: DeliveryStepProps) {
+/*
+ * La saisie en cours est de l'etat de presentation : elle n'a de sens que tant
+ * que le formulaire est ouvert. Elle vit donc ici, et l'etape ne remonte au
+ * tunnel que le fait metier — l'adresse validee, au moment de la soumission.
+ * Le mode de livraison, lui, change le total affiche dans le recapitulatif :
+ * c'est un fait metier, il reste detenu par le parent.
+ */
+export default function DeliveryStep({ initialDelivery, onSubmit, onBack, shippingOptions, selectedShipping, onSelectShipping }: DeliveryStepProps) {
+  const [delivery, setDelivery] = useState<DeliveryInfo>(initialDelivery);
+
+  const handleSubmit = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    onSubmit(delivery);
+  };
+
   return (
     <div style={{ background: 'white', border: `1px solid ${CHECKOUT_PALETTE.border}`, borderRadius: '8px', padding: '24px' }}>
       <h2 style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: CHECKOUT_PALETTE.text, marginBottom: '24px' }}>
         Informations de livraison
       </h2>
-      <form onSubmit={handleDeliverySubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div className="checkout-form-2col">
           <div>
             <label htmlFor="del-firstName" style={{ fontSize: '11px', fontWeight: 600, color: CHECKOUT_PALETTE.textMuted, display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Prénom *</label>
@@ -66,8 +80,8 @@ export default function DeliveryStep({ delivery, setDelivery, setStep, handleDel
                 const isSelected = selectedShipping?.id === opt.id;
                 return (
                   <div key={opt.id} role="radio" aria-checked={isSelected} tabIndex={0}
-                    onClick={() => setSelectedShipping(opt)}
-                    onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setSelectedShipping(opt); } }}
+                    onClick={() => onSelectShipping(opt)}
+                    onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); onSelectShipping(opt); } }}
                     style={{ padding: '12px 14px', border: `1.5px solid ${isSelected ? CHECKOUT_PALETTE.accent : CHECKOUT_PALETTE.border}`, borderRadius: '6px', cursor: 'pointer', background: isSelected ? '#FDFAF7' : 'white', transition: 'border-color .15s', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <span style={{ width: 16, height: 16, borderRadius: '50%', border: `2px solid ${isSelected ? CHECKOUT_PALETTE.accent : '#ccc'}`, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -90,7 +104,7 @@ export default function DeliveryStep({ delivery, setDelivery, setStep, handleDel
         )}
 
         <div style={{ display: 'flex', gap: '10px', marginTop: '8px', justifyContent: 'space-between' }}>
-          <button type="button" onClick={() => setStep('cart')}
+          <button type="button" onClick={onBack}
             style={{ fontSize: '12px', color: CHECKOUT_PALETTE.textMuted, background: 'none', border: `1px solid ${CHECKOUT_PALETTE.border}`, borderRadius: '4px', padding: '10px 18px', cursor: 'pointer' }}>
             ← Retour
           </button>

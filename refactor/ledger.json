@@ -1126,7 +1126,8 @@
       "kind": "props",
       "path": "src/components/checkout/{Sidebar.tsx:18,21,23 , PaymentStep.tsx:32,34,37 , DeliveryStep.tsx:10,11,15}",
       "note": "9 props `setX` traversant la frontiere, dont setStep repete dans 3 composants et un React.Dispatch<SetStateAction> expose brut (DeliveryStep.tsx:10). L'etat d'interaction du tunnel vit entierement dans checkout/page.tsx.",
-      "status": "open"
+      "status": "closed",
+      "resolution": "Les 9 props setter du tunnel ont disparu. La saisie d'adresse et le numero de payeur sont de la presentation : ils vivent desormais dans leur etape, qui ne remonte au tunnel que le fait metier au moment de la soumission (onSubmit(delivery), onPlaceOrder(mobileNumber)). Le code promo en cours de frappe est interne au recapitulatif ; l'erreur reste dehors, car le tunnel la produit aussi quand une promo posee devient invalide apres un changement de panier. Mode de livraison et mode de paiement restent dehors : ils changent le total et le statut de la commande. setStep est remplace par onBack / onEditCart / onNext. La prop isMobile disparait : PaymentStep la rededuisait deja du meme paymentMethod."
     },
     {
       "id": "F-100",
@@ -1135,7 +1136,8 @@
       "kind": "props",
       "path": "src/components/product/ProductDetail.tsx:150,152",
       "note": "Props setSelectedTone et setQty : etat de presentation pur (teinte selectionnee, quantite affichee) detenu par le parent au lieu du composant.",
-      "status": "open"
+      "status": "closed",
+      "resolution": "Teinte et quantite ne pouvaient pas descendre : PurchaseCard est rendue deux fois (desktop et mobile) et l'en-tete de la fiche lit la teinte. L'etat reste donc chez son seul proprietaire possible ; les props cessent d'etre des setters (onSelectTone, onChangeQty) et le bornage de la quantite remonte avec l'etat qu'il protege. Verifie au navigateur : les deux instances restent synchronisees et le plancher a 1 tient."
     },
     {
       "id": "F-101",
@@ -1144,7 +1146,8 @@
       "kind": "props",
       "path": "src/app/admin/AdminDashboard.tsx:64,535,536",
       "note": "setProductModal (React.Dispatch brut), setProductSearch, setProductPage : etat de presentation (modale ouverte, recherche, pagination) pousse en props a travers la frontiere.",
-      "status": "open"
+      "status": "closed",
+      "resolution": "ProductsTab passe de 17 a 8 props et OrdersTab de 15 a 5 : recherche, filtre et pagination ne sortaient de l'onglet que pour y revenir sous forme de liste derivee, le parent detenant six valeurs qu'il ne lisait jamais. ProductEditModal ne recoit plus le Dispatch du parent : le brouillon est interne, le parent decide seulement quel produit ouvrir (initialProduct + key) et recoit le produit enregistre. setOrderDetail et setTab deviennent onOpenDetail et onNavigate. Effet de bord constate : DashboardTabProps etait declaree deux fois a l'identique (fusion d'interfaces silencieuse) — une seule subsiste."
     },
     {
       "id": "F-102",
@@ -1153,7 +1156,8 @@
       "kind": "state-density",
       "path": "src/app/admin/AdminDashboard.tsx",
       "note": "55 appels a useState dans un seul composant. Aucun hook local d'interaction extrait.",
-      "status": "open"
+      "status": "partial",
+      "resolution": "AdminPage passe de 55 a 48 useState, et perd 6 valeurs derivees. Le reste ne peut pas etre internalise : il n'y a plus de frontiere ou le pousser tant que le fichier n'est pas decoupe. Suite dans split (F-110)."
     },
     {
       "id": "F-103",
@@ -1162,7 +1166,8 @@
       "kind": "state-density",
       "path": "src/app/compte/page.tsx",
       "note": "25 appels a useState dans une page qui melange etat metier (commandes, profil, wishlist) et etat de presentation (onglet actif, modales).",
-      "status": "open"
+      "status": "deferred",
+      "resolution": "Reporte a split. src/app/compte/page.tsx n'a aucune frontiere de composant : 25 useState dans une seule fonction, tout le JSX en ligne, seuls des composants d'icone au niveau module. Il n'y a aucune surface de props a compresser — l'internalisation suppose l'extraction, qui est le travail de split (F-111, et F-082 : des composants d'affichage du compte existent deja sans etre utilises)."
     },
     {
       "id": "F-104",
@@ -1340,7 +1345,8 @@
     "survey",
     "slice",
     "domain",
-    "affordance"
+    "affordance",
+    "boundary"
   ],
   "slice_report": {
     "structure": "src/app (routeur, gele) + src/features/<domaine> + src/shared",
@@ -1414,6 +1420,40 @@
       "typecheck_src": "0 erreur",
       "lint": "18 problemes / 0 erreur (baseline inchangee)",
       "tests_modified": "aucun"
+    }
+  },
+  "boundary_report": {
+    "scope": "src",
+    "setter_props_remaining": "Zero prop setter dans tout le scope (verifie par recherche sur `set[A-Z]` en position de prop).",
+    "props_compressed": {
+      "DeliveryStep": "7 -> 6, dont 3 setters supprimes",
+      "PaymentStep": "9 -> 6",
+      "Sidebar (checkout)": "14 -> 12, 4 setters supprimes",
+      "PurchaseCard": "12 -> 12, 2 setters devenus affordances",
+      "ProductsTab": "17 -> 8",
+      "OrdersTab": "15 -> 5",
+      "ProductEditModal": "Dispatch brut supprime, brouillon internalise"
+    },
+    "state_internalised": [
+      "saisie d'adresse (DeliveryStep)",
+      "numero de payeur (PaymentStep)",
+      "code promo en cours de frappe (Sidebar)",
+      "recherche / filtre / page produits (ProductsTab)",
+      "recherche / statut / page commandes (OrdersTab)",
+      "brouillon de produit (ProductEditModal)"
+    ],
+    "deferred": {
+      "split": [
+        "F-103",
+        "F-102 (reliquat)",
+        "Sidebar checkout et PurchaseCard gardent 4 callbacks : deux concerns dans un composant"
+      ]
+    },
+    "gate": {
+      "typecheck_src": "0 erreur",
+      "lint": "18 problemes / 0 erreur (baseline inchangee)",
+      "tests_modified": "aucun",
+      "runtime": "Tunnel parcouru au navigateur : promo invalide (champ vide apres application, message affiche), etape livraison remplie et soumise, retour arriere restituant l'adresse validee, quantite bornee a 1 et synchronisee entre les deux cartes produit. 0 erreur console hors le 404 pre-existant sur /api/config/payment_methods_active."
     }
   }
 }

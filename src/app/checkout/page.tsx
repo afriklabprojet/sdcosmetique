@@ -38,14 +38,12 @@ export default function CheckoutPage() {
     address: '', city: '', country: "Côte d'Ivoire",
   });
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('orange_money');
-  const [mobileNumber, setMobileNumber] = useState('');
   const [processing, setProcessing] = useState(false);
   const [shippingCfg, setShippingCfg] = useState<ShippingConfig>(DEFAULT_SITE_CONFIG.shipping);
   const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(
     DEFAULT_SITE_CONFIG.shipping.options.find(o => o.active) ?? null
   );
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
-  const [promoInput, setPromoInput] = useState('');
   const [appliedPromo, setAppliedPromo] = useState<{ code: PromoCode; discount: number } | null>(null);
   const [promoError, setPromoError] = useState<string | null>(null);
   const [activeMethods, setActiveMethods] = useState<string[]>(['orange_money', 'wave', 'mtn_momo', 'moov_money', 'djamo', 'cash_on_delivery']);
@@ -79,13 +77,12 @@ export default function CheckoutPage() {
     }
   }, [totalPrice, promoCodes, appliedPromo]);
 
-  const handleApplyPromo = () => {
+  const applyPromo = (typedCode: string) => {
     setPromoError(null);
-    const r = applyPromoCode(totalPrice, promoInput, promoCodes);
+    const r = applyPromoCode(totalPrice, typedCode, promoCodes);
     if (r.isValid) {
-      const codeObj = promoCodes.find(p => p.code.toUpperCase() === promoInput.toUpperCase());
+      const codeObj = promoCodes.find(p => p.code.toUpperCase() === typedCode.toUpperCase());
       if (codeObj) setAppliedPromo({ code: codeObj, discount: r.discount });
-      setPromoInput('');
     } else {
       setAppliedPromo(null);
       setPromoError(r.error ?? 'Code invalide');
@@ -106,10 +103,9 @@ export default function CheckoutPage() {
   const stepIdx = STEP_ORDER.indexOf(step);
   const isMobile = ['orange_money', 'wave', 'mtn_momo', 'moov_money', 'djamo'].includes(paymentMethod);
 
-  const handleDeliverySubmit = (e: React.SyntheticEvent) => { e.preventDefault(); setStep('payment'); };
+  const handleDeliverySubmit = (info: DeliveryInfo) => { setDelivery(info); setStep('payment'); };
 
-  const handlePlaceOrder = async (e: React.SyntheticEvent) => {
-    e.preventDefault();
+  const handlePlaceOrder = async (mobileNumber: string) => {
     setProcessing(true);
 
     const num = generateOrderNumber();
@@ -235,8 +231,8 @@ export default function CheckoutPage() {
           <div className="lg:col-span-2">
             <Suspense fallback={null}>
               {step === 'cart'     && <CartStep onNext={() => setStep('delivery')} />}
-              {step === 'delivery' && <DeliveryStep delivery={delivery} setDelivery={setDelivery} setStep={setStep} handleDeliverySubmit={handleDeliverySubmit} shippingOptions={shippingCfg.options ?? []} selectedShipping={selectedShipping} setSelectedShipping={setSelectedShipping} />}
-              {step === 'payment'  && <PaymentStep paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} mobileNumber={mobileNumber} setMobileNumber={setMobileNumber} handlePlaceOrder={handlePlaceOrder} processing={processing} setStep={setStep} isMobile={isMobile} activeMethods={activeMethods} />}
+              {step === 'delivery' && <DeliveryStep initialDelivery={delivery} onSubmit={handleDeliverySubmit} onBack={() => setStep('cart')} shippingOptions={shippingCfg.options ?? []} selectedShipping={selectedShipping} onSelectShipping={setSelectedShipping} />}
+              {step === 'payment'  && <PaymentStep paymentMethod={paymentMethod} onSelectMethod={setPaymentMethod} onPlaceOrder={handlePlaceOrder} processing={processing} onBack={() => setStep('delivery')} activeMethods={activeMethods} />}
             </Suspense>
           </div>
 
@@ -244,7 +240,7 @@ export default function CheckoutPage() {
           <div className="lg:col-span-1">
             <div className="lg:sticky" style={{ top: '24px' }}>
               <Suspense fallback={null}>
-                <Sidebar items={items} totalPrice={totalPrice} shippingCost={shippingCost} discount={discount} total={total} step={step} setStep={setStep} appliedPromo={appliedPromo} promoInput={promoInput} setPromoInput={setPromoInput} promoError={promoError} setPromoError={setPromoError} handleApplyPromo={handleApplyPromo} removePromo={removePromo} />
+                <Sidebar items={items} totalPrice={totalPrice} shippingCost={shippingCost} discount={discount} total={total} step={step} onEditCart={() => setStep('cart')} appliedPromo={appliedPromo} promoError={promoError} onApplyPromo={applyPromo} onDismissPromoError={() => setPromoError(null)} onRemovePromo={removePromo} />
               </Suspense>
             </div>
           </div>

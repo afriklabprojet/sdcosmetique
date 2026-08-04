@@ -147,9 +147,9 @@ function TonePicker({ skinTones, selectedTone, onSelect, size = 40, customToneIm
 interface PurchaseCardProps {
   readonly product: import('@/shared/types/domain.type').Product;
   readonly selectedTone: string;
-  readonly setSelectedTone: (t: import('@/shared/types/domain.type').SkinTone) => void;
+  readonly onSelectTone: (t: import('@/shared/types/domain.type').SkinTone) => void;
   readonly qty: number;
-  readonly setQty: (q: number) => void;
+  readonly onChangeQty: (q: number) => void;
   readonly payments: import('@/features/site-config/site-config.type').PaymentBadge[];
   readonly handleAddToCart: () => void;
   readonly handleBuyNow: () => void;
@@ -157,7 +157,14 @@ interface PurchaseCardProps {
   readonly discount: number | null;
   readonly customToneImages?: Record<string, string>;
 }
-function PurchaseCard({ product, selectedTone, setSelectedTone, qty, setQty, payments, handleAddToCart, handleBuyNow, adding, discount, customToneImages }: PurchaseCardProps) {
+/*
+ * Teinte et quantite ne descendent pas dans cette carte : elle est rendue deux
+ * fois (desktop et mobile) et les deux instances doivent afficher le meme
+ * choix, que l'en-tete de la fiche lit egalement. L'etat reste donc chez son
+ * seul proprietaire possible ; ce sont les props qui cessent d'etre des setters
+ * pour devenir des affordances, et le bornage de la quantite remonte avec elle.
+ */
+function PurchaseCard({ product, selectedTone, onSelectTone, qty, onChangeQty, payments, handleAddToCart, handleBuyNow, adding, discount, customToneImages }: PurchaseCardProps) {
   return (
     <div style={{ background: 'white', border: `1px solid ${BORDER}`, borderRadius: 8, padding: '20px 18px' }}>
 
@@ -185,7 +192,7 @@ function PurchaseCard({ product, selectedTone, setSelectedTone, qty, setQty, pay
           <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: TXT, marginBottom: 12 }}>
             Votre teint
           </p>
-          <TonePicker skinTones={product.skinTones} selectedTone={selectedTone} onSelect={t => setSelectedTone(t as import('@/shared/types/domain.type').SkinTone)} customToneImages={customToneImages} />
+          <TonePicker skinTones={product.skinTones} selectedTone={selectedTone} onSelect={t => onSelectTone(t as import('@/shared/types/domain.type').SkinTone)} customToneImages={customToneImages} />
         </div>
       )}
 
@@ -193,10 +200,10 @@ function PurchaseCard({ product, selectedTone, setSelectedTone, qty, setQty, pay
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
         <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: TXT, margin: 0 }}>Qté</p>
         <div style={{ display: 'flex', alignItems: 'center', border: `1px solid ${BORDER}`, borderRadius: 4, overflow: 'hidden' }}>
-          <button onClick={() => setQty(Math.max(1, qty - 1))} aria-label="Diminuer la quantité"
+          <button onClick={() => onChangeQty(qty - 1)} aria-label="Diminuer la quantité"
             style={{ width: 44, height: 44, background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: TXT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
           <span style={{ minWidth: 28, textAlign: 'center', fontSize: 14, fontWeight: 600, color: TXT }}>{qty}</span>
-          <button onClick={() => setQty(qty + 1)} aria-label="Augmenter la quantité"
+          <button onClick={() => onChangeQty(qty + 1)} aria-label="Augmenter la quantité"
             style={{ width: 44, height: 44, background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: TXT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
         </div>
       </div>
@@ -283,6 +290,7 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
   const [mainImg,      setMainImg]      = useState(0);
   const [qty,          setQty]          = useState(1);
   const [selectedTone, setSelectedTone] = useState<SkinTone>(product.skinTones[0] ?? 'noir');
+  const changeQty = (q: number) => setQty(Math.max(1, q));
   const [activeTab,    setActiveTab]    = useState<'description' | 'usage' | 'ingredients' | 'reviews'>('description');
   const [adding,       setAdding]       = useState(false);
 
@@ -431,9 +439,9 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
             <PurchaseCard
               product={product}
               selectedTone={selectedTone}
-              setSelectedTone={setSelectedTone}
+              onSelectTone={setSelectedTone}
               qty={qty}
-              setQty={setQty}
+              onChangeQty={changeQty}
               payments={payments}
               handleAddToCart={handleAddToCart}
               handleBuyNow={handleBuyNow}
@@ -528,9 +536,9 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
             <PurchaseCard
               product={product}
               selectedTone={selectedTone}
-              setSelectedTone={setSelectedTone}
+              onSelectTone={setSelectedTone}
               qty={qty}
-              setQty={setQty}
+              onChangeQty={changeQty}
               payments={payments}
               handleAddToCart={handleAddToCart}
               handleBuyNow={handleBuyNow}
