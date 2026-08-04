@@ -3,7 +3,12 @@
  * Aucune dépendance React — utilisable côté serveur et client.
  */
 
-import type { GlobalPromoConfig } from '@/features/site-config/site-config.type';
+import type {
+  GlobalPromoConfig,
+  PromoApplication,
+  PromoCode,
+  PromoValidation,
+} from '@/features/site-config/site-config.type';
 import type { Product } from '@/shared/types/domain.type';
 
 // ─── Helpers date ─────────────────────────────────────────────────────────────
@@ -84,4 +89,90 @@ export function computeEffectivePrice(
     savings: Math.round((referencePrice - salePrice) * 100) / 100,
     hasDiscount: true,
   };
+}
+
+// ─── Codes promo ──────────────────────────────────────────────────────────────
+
+/*
+ * Ces deux fonctions vivaient dans `site-config.util.ts`, aux cotes de l'acces
+ * Supabase a la configuration. Elles ne lisent pourtant aucune configuration :
+ * elles ne connaissent que la liste de `PromoCode` qu'on leur passe et un
+ * total. Leur sujet est la promotion, pas la configuration du site.
+ */
+
+/**
+ * Applique un code promo et calcule la remise
+ */
+export function applyPromoCode(
+  orderTotal: number,
+  promoCode: string,
+  promoCodes: PromoCode[]
+): PromoApplication {
+  const code = promoCodes.find(p => p.code.toUpperCase() === promoCode.toUpperCase());
+
+  if (!code) {
+    return {
+      isValid: false,
+      discount: 0,
+      finalTotal: orderTotal,
+      error: 'Code promo invalide'
+    };
+  }
+
+  // Vérifier l'expiration
+  if (code.expiresAt && new Date(code.expiresAt) < new Date()) {
+    return {
+      isValid: false,
+      discount: 0,
+      finalTotal: orderTotal,
+      error: 'Code promo expiré'
+    };
+  }
+
+  // Vérifier le montant minimum
+  if (code.minSubtotal && orderTotal < code.minSubtotal) {
+    return {
+      isValid: false,
+      discount: 0,
+      finalTotal: orderTotal,
+      error: `Commande minimum de ${code.minSubtotal}€ requise`
+    };
+  }
+
+  // Calculer la remise
+  let discount = 0;
+  if (code.type === 'percent') {
+    discount = (orderTotal * code.value) / 100;
+  } else if (code.type === 'fixed') {
+    discount = code.value;
+  }
+
+  discount = Math.min(discount, orderTotal);
+  const finalTotal = Math.max(0, orderTotal - discount);
+
+  return {
+    isValid: true,
+    discount,
+    finalTotal
+  };
+}
+
+/**
+ * Valide un code promo sans l'appliquer
+ */
+export function validatePromoCode(
+  promoCode: string,
+  promoCodes: PromoCode[]
+): PromoValidation {
+  const code = promoCodes.find(p => p.code.toUpperCase() === promoCode.toUpperCase());
+
+  if (!code) {
+    return { isValid: false, error: 'Code promo invalide' };
+  }
+
+  if (code.expiresAt && new Date(code.expiresAt) < new Date()) {
+    return { isValid: false, error: 'Code promo expiré' };
+  }
+
+  return { isValid: true, code };
 }

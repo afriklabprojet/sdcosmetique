@@ -3,7 +3,8 @@ import { createServiceClient } from '@/shared/supabase/service.client';
 import { db } from '@/shared/supabase/request.client';
 import type { OrderDraft } from '@/features/orders/order.store';
 import { sendOrderConfirmationByNumber } from '@/features/orders/order-notification.service';
-import { calculateShippingCost, applyPromoCode } from '@/features/site-config/site-config.util';
+import { calculateShippingCost } from '@/features/site-config/site-config.util';
+import { applyPromoCode } from '@/features/promo/promo.util';
 import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
 import { rateLimit, getIp, rateLimitHeaders } from '@/shared/http/rate-limit.guard';
 

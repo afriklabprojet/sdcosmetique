@@ -11,7 +11,14 @@
 import { unstable_cache } from 'next/cache';
 import { createServiceClient } from '@/shared/supabase/service.client';
 import { Product, Category, Review } from '@/shared/types/domain.type';
-import { PRODUCTS, getRelatedProducts } from '@/features/catalog/product.query';
+import {
+  PRODUCTS,
+  getBestsellers,
+  getProductById,
+  getProductBySlug,
+  getProductsByCategory,
+  getRelatedProducts,
+} from '@/features/catalog/product.query';
 import { rowToProduct, rowToReview } from '@/features/catalog/catalog.mapper';
 
 // ─── Fetch all products ───────────────────────────────────────────────────────
@@ -43,10 +50,10 @@ export const fetchProductBySlug = unstable_cache(
         .select('*')
         .eq('slug', slug)
         .single();
-      if (error || !data) return PRODUCTS.find(p => p.slug === slug) ?? null;
+      if (error || !data) return getProductBySlug(slug) ?? null;
       return rowToProduct(data);
     } catch {
-      return PRODUCTS.find(p => p.slug === slug) ?? null;
+      return getProductBySlug(slug) ?? null;
     }
   },
   ['products-by-slug'],
@@ -63,10 +70,10 @@ export const fetchProductsByCategory = unstable_cache(
         .select('*')
         .eq('category', category)
         .order('is_bestseller', { ascending: false });
-      if (error || !data?.length) return PRODUCTS.filter(p => p.category === category);
+      if (error || !data?.length) return getProductsByCategory(category as Category);
       return data.map(rowToProduct);
     } catch {
-      return PRODUCTS.filter(p => p.category === category);
+      return getProductsByCategory(category as Category);
     }
   },
   ['products-by-category'],
@@ -83,10 +90,10 @@ export const fetchBestsellerProducts = unstable_cache(
         .select('*')
         .eq('is_bestseller', true)
         .limit(limit);
-      if (error || !data?.length) return PRODUCTS.filter(p => p.isBestseller).slice(0, limit);
+      if (error || !data?.length) return getBestsellers().slice(0, limit);
       return data.map(rowToProduct);
     } catch {
-      return PRODUCTS.filter(p => p.isBestseller).slice(0, limit);
+      return getBestsellers().slice(0, limit);
     }
   },
   ['products-bestsellers'],
@@ -105,12 +112,12 @@ export const fetchRelatedProducts = unstable_cache(
         .neq('id', productId)
         .limit(limit);
       if (error || !data?.length) {
-        const p = PRODUCTS.find(x => x.id === productId);
+        const p = getProductById(productId);
         return p ? getRelatedProducts(p, limit) : [];
       }
       return data.map(rowToProduct);
     } catch {
-      const p = PRODUCTS.find(x => x.id === productId);
+      const p = getProductById(productId);
       return p ? getRelatedProducts(p, limit) : [];
     }
   },

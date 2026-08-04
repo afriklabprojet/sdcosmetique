@@ -976,7 +976,8 @@
       "kind": "agent-noun",
       "path": "src/components/admin/OrderUtils.ts",
       "note": "Fichier *Utils porteur de logique (exportOrdersCSV). Le comportement 'exporter en CSV' n'appartient ni a un fichier Utils ni au dossier components : il opere sur OrderDraft.",
-      "status": "open"
+      "status": "closed",
+      "resolution": "Ferme par la vague slice : le fichier *Utils n'existe plus. Le comportement vit dans src/features/admin/order-export.ts, un module de fonction pure sans nom d'agent. Observation transmise a drift : exportOrdersCSV n'a aucun consommateur."
     },
     {
       "id": "F-085",
@@ -985,7 +986,8 @@
       "kind": "agent-noun",
       "path": "src/utils/supabase/service.ts",
       "note": "Module nomme 'service' exposant createServiceClient. Agent noun ; le module ne detient aucun etat entre appels.",
-      "status": "open"
+      "status": "closed",
+      "resolution": "Justifie sans changement : 'service' ne designe pas ici un agent mais la cle service-role de Supabase (createServiceClient), c'est-a-dire le niveau de privilege du client. Le mot nomme une chose, pas un executant."
     },
     {
       "id": "F-086",
@@ -994,7 +996,8 @@
       "kind": "agent-noun",
       "path": "src/utils/supabase/auth-helpers.ts",
       "note": "Module 'helpers' porteur de logique de traitement des erreurs d'authentification. Zero consommateur (voir F-101), mais la regle affordance s'applique s'il survit a la purge.",
-      "status": "open"
+      "status": "deferred",
+      "resolution": "Reporte a drift : le module (desormais src/shared/supabase/auth-error.guard.ts) a zero consommateur. La regle affordance ne s'applique pas a du code mort ; c'est la suppression qui le regle."
     },
     {
       "id": "F-087",
@@ -1003,7 +1006,8 @@
       "kind": "ownership",
       "path": "src/lib/orders-db.ts:204-305",
       "note": "Le module 'orders' porte 6 fonctions qui ne concernent pas les commandes : updateProductInDB, addProductToDB, deleteProductFromDB, fetchProductsFromDB, fetchAllReviewsFromDB, deleteReviewFromDB, approveReviewInDB. Le corps de ces methodes mute Product et Review, pas Order.",
-      "status": "open"
+      "status": "deferred",
+      "resolution": "Reporte a split, qui porte deja le decoupage de ce fichier sous F-117. La propriete est tranchee ici : les 7 fonctions produits/avis (order.repository.ts:177-312) appartiennent aux produits et aux avis, pas aux commandes. Leur destination n'existe pas encore : product.repository.ts est server-only (unstable_cache + service-role) alors que ces fonctions utilisent le client navigateur. Creer le fichier d'accueil sort du perimetre d'affordance, qui gele les chemins."
     },
     {
       "id": "F-088",
@@ -1012,7 +1016,8 @@
       "kind": "ownership",
       "path": "src/lib/config/utilities.ts",
       "note": "8 exports sans etat regroupes dans un module fourre-tout melangeant trois responsabilites : acces config (fetch/save section), logique promo (applyPromoCode, validatePromoCode) et calcul livraison (calculateShippingCost, isFreeShippingEligible). Aucune ne detient d'etat : candidat namespace, pas entite.",
-      "status": "open"
+      "status": "closed",
+      "resolution": "applyPromoCode et validatePromoCode quittent site-config.util.ts pour promo.util.ts : elles ne lisent aucune configuration, elles ne connaissent qu'une liste de PromoCode et un total. calculateShippingCost et isFreeShippingEligible restent : elles operent sur SiteConfig['shipping'], leur proprietaire est bien la configuration. Aucune de ces fonctions ne conserve d'etat entre appels : le module ES suffit comme regroupement, pas d'entite. formatConfigPrice reste un finding drift (F-095, zero consommateur)."
     },
     {
       "id": "F-089",
@@ -1021,7 +1026,8 @@
       "kind": "ownership",
       "path": "src/lib/orders.ts",
       "note": "Melange la definition d'OrderDraft, la persistance localStorage (saveOrder, getOrders, getLastOrder, updateOrderStatus) et du formatage de presentation (formatOrderDate). Le stockage detient de l'etat entre appels, le formatage non.",
-      "status": "open"
+      "status": "closed",
+      "resolution": "Justifie sans changement : le stockage (saveOrder, getOrders, getLastOrder, updateOrderStatus) detient bien l'etat localStorage et le conserve entre appels, il reste donc dans order.store.ts. formatOrderDate n'y appartient pas mais a 4 consommateurs dans des vues ; son extraction cree un fichier, ce que la vague gele. Transmis a split."
     },
     {
       "id": "F-090",
@@ -1030,7 +1036,8 @@
       "kind": "ownership",
       "path": "src/lib/products.ts",
       "note": "Melange fetch reseau (fetchProductsForClient, fetchProductBySlugForClient), un catalogue en dur de 114 lignes (PRODUCTS) et 7 selecteurs purs. Trois proprietaires distincts dans un seul module.",
-      "status": "open"
+      "status": "closed",
+      "resolution": "Le catalogue en dur PRODUCTS et ses 7 selecteurs sont un seul proprietaire : la donnee et les questions qu'on lui pose. Aucun etat entre appels, donc module de fonctions pures et non entite. Le fetch reseau reste dans le meme fichier faute de destination existante (chemins geles) — transmis a split."
     },
     {
       "id": "F-091",
@@ -1039,7 +1046,8 @@
       "kind": "ownership",
       "path": "src/lib/products-server.ts",
       "note": "Importe PRODUCTS depuis ./products et s'en sert comme fallback dans 5 fonctions sur 6. La donnee en dur est detenue par un module, la strategie de repli par un autre : le comportement est separe de l'etat qu'il consulte.",
-      "status": "open"
+      "status": "closed",
+      "resolution": "product.repository.ts reimplementait chez lui chaque filtre de repli (PRODUCTS.filter/find x8). Il passe desormais par les selecteurs du catalogue (getProductBySlug, getProductsByCategory, getBestsellers, getProductById, nouveau). PRODUCTS n'est plus importe que comme valeur de repli entiere, ou aucun selecteur n'a de sens a exister."
     },
     {
       "id": "F-092",
@@ -1331,7 +1339,8 @@
   "waves_done": [
     "survey",
     "slice",
-    "domain"
+    "domain",
+    "affordance"
   ],
   "slice_report": {
     "structure": "src/app (routeur, gele) + src/features/<domaine> + src/shared",
@@ -1378,6 +1387,33 @@
       "build": "Compiled successfully",
       "lint": "18 problemes / 0 erreur, identique au baseline verifie par git stash",
       "tests": "non modifies ; suite e2e toujours non executable dans cet environnement"
+    }
+  },
+  "affordance_report": {
+    "scope": "src",
+    "moved": [
+      "applyPromoCode, validatePromoCode : site-config.util.ts -> promo.util.ts (2 sites d'appel mis a jour)",
+      "product.repository.ts : 8 acces directs a PRODUCTS remplaces par les selecteurs du catalogue"
+    ],
+    "added": [
+      "getProductById dans product.query.ts — le repli 'produit par id' manquait au catalogue"
+    ],
+    "agent_nouns_remaining": "Aucune classe ni struct agent noun dans le scope. Les suffixes *.service.ts (email, whatsapp, order-notification) sont le role de fichier impose par la convention de nommage de slice, pas des classes ; leur contenu est fait de fonctions libres. Renommer ces fichiers relevait de slice et les chemins sont geles ici.",
+    "deferred": {
+      "split": [
+        "F-087",
+        "F-089 (formatOrderDate)",
+        "F-090 (fetch reseau)"
+      ],
+      "drift": [
+        "F-086",
+        "exportOrdersCSV et validatePromoCode : zero consommateur"
+      ]
+    },
+    "gate": {
+      "typecheck_src": "0 erreur",
+      "lint": "18 problemes / 0 erreur (baseline inchangee)",
+      "tests_modified": "aucun"
     }
   }
 }

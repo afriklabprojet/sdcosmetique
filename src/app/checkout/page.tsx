@@ -7,7 +7,8 @@ import { PaymentMethod } from '@/shared/types/domain.type';
 import { saveOrder, generateOrderNumber, type OrderDraft } from '@/features/orders/order.store';
 import type { ShippingOption, ShippingConfig, PromoCode } from '@/features/site-config/site-config.type';
 import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
-import { fetchSiteConfigSection, applyPromoCode } from '@/features/site-config/site-config.util';
+import { fetchSiteConfigSection } from '@/features/site-config/site-config.util';
+import { applyPromoCode } from '@/features/promo/promo.util';
 import { CheckoutStep, DeliveryInfo } from '@/features/checkout/checkout.type';
 import { CHECKOUT_PALETTE } from '@/features/checkout/checkout.constant';
 

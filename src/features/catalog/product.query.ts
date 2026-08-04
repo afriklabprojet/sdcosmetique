@@ -48,6 +48,15 @@ export async function fetchProductBySlugForClient(slug: string): Promise<Product
 }
 
 // ─── Fallback mock products data ─────────────────────────────────────────────
+
+/*
+ * Ce catalogue en dur et les selecteurs qui le suivent forment un seul
+ * proprietaire : la donnee et les questions qu'on lui pose. Les modules qui
+ * s'en servent comme repli (`product.repository.ts`) interrogeaient le tableau
+ * directement, reimplementant chaque filtre chez eux ; ils passent desormais
+ * par les selecteurs ci-dessous. Aucun etat n'est conserve entre deux appels :
+ * un module de fonctions pures suffit, pas une entite.
+ */
 export const PRODUCTS: Product[] = [
   {
     id: '1',
@@ -170,6 +179,9 @@ export const getProductsBySkinTone = (skinTone: SkinTone) =>
 
 export const getProductBySlug = (slug: string) =>
   PRODUCTS.find(p => p.slug === slug);
+
+export const getProductById = (id: string) =>
+  PRODUCTS.find(p => p.id === id);
 
 export const getBestsellers = () =>
   PRODUCTS.filter(p => p.isBestseller);

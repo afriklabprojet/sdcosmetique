@@ -3,7 +3,7 @@
  */
 
 import { createClient } from '@/shared/supabase/browser.client';
-import type { SiteConfig, PromoCode, PromoValidation, PromoApplication } from '@/features/site-config/site-config.type';
+import type { SiteConfig } from '@/features/site-config/site-config.type';
 import type { OperationResult } from '@/shared/types/operation-result.type';
 import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
 
@@ -92,84 +92,11 @@ export async function fetchFullSiteConfig(): Promise<SiteConfig> {
   }
 }
 
-// ─── Gestion des codes promo ─────────────────────────────────────────────────
-
-/**
- * Applique un code promo et calcule la remise
+/*
+ * `applyPromoCode` et `validatePromoCode` vivaient ici. Elles ne lisent aucune
+ * configuration : leur sujet est la promotion. Elles sont desormais portees par
+ * `@/features/promo/promo.util`.
  */
-export function applyPromoCode(
-  orderTotal: number,
-  promoCode: string,
-  promoCodes: PromoCode[]
-): PromoApplication {
-  const code = promoCodes.find(p => p.code.toUpperCase() === promoCode.toUpperCase());
-  
-  if (!code) {
-    return {
-      isValid: false,
-      discount: 0,
-      finalTotal: orderTotal,
-      error: 'Code promo invalide'
-    };
-  }
-
-  // Vérifier l'expiration
-  if (code.expiresAt && new Date(code.expiresAt) < new Date()) {
-    return {
-      isValid: false,
-      discount: 0,
-      finalTotal: orderTotal,
-      error: 'Code promo expiré'
-    };
-  }
-
-  // Vérifier le montant minimum
-  if (code.minSubtotal && orderTotal < code.minSubtotal) {
-    return {
-      isValid: false,
-      discount: 0,
-      finalTotal: orderTotal,
-      error: `Commande minimum de ${code.minSubtotal}€ requise`
-    };
-  }
-
-  // Calculer la remise
-  let discount = 0;
-  if (code.type === 'percent') {
-    discount = (orderTotal * code.value) / 100;
-  } else if (code.type === 'fixed') {
-    discount = code.value;
-  }
-
-  discount = Math.min(discount, orderTotal);
-  const finalTotal = Math.max(0, orderTotal - discount);
-
-  return {
-    isValid: true,
-    discount,
-    finalTotal
-  };
-}
-
-/**
- * Valide un code promo sans l'appliquer
- */
-export function validatePromoCode(
-  promoCode: string,
-  promoCodes: PromoCode[]
-): PromoValidation {
-  const code = promoCodes.find(p => p.code.toUpperCase() === promoCode.toUpperCase());
-  
-  if (!code) {
-    return { isValid: false, error: 'Code promo invalide' };
-  }
-
-  if (code.expiresAt && new Date(code.expiresAt) < new Date()) {
-    return { isValid: false, error: 'Code promo expiré' };
-  }
-
-  return { isValid: true, code };
-}
 
 // ─── Helpers de formatage ─────────────────────────────────────────────────────
 
