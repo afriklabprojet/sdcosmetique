@@ -32,8 +32,8 @@ function buildProductPayload(updates: Partial<Omit<Product, 'id'>>): Record<stri
   set('benefits',          updates.benefits);
   set('usage',             updates.usage);
   set('in_stock',          updates.inStock);
-  set('is_new',            updates.isNew);
-  set('is_bestseller',     updates.isBestseller);
+  set('is_new',            updates.newArrival);
+  set('is_bestseller',     updates.bestseller);
 
   if ('originalPrice' in updates)     d.original_price = updates.originalPrice ?? null;
   if ('ingredients' in updates)       d.ingredients = updates.ingredients ?? null;
@@ -43,7 +43,7 @@ function buildProductPayload(updates: Partial<Omit<Product, 'id'>>): Record<stri
   return d;
 }
 
-export async function updateProductInDB(id: string, updates: Partial<Omit<Product, 'id'>>): Promise<void> {
+export async function updateProduct(id: string, updates: Partial<Omit<Product, 'id'>>): Promise<void> {
   try {
     const supabase = createClient();
     await supabase.from('products').update(buildProductPayload(updates)).eq('id', id);
@@ -53,7 +53,7 @@ export async function updateProductInDB(id: string, updates: Partial<Omit<Produc
 }
 
 // ─── Ajouter un produit ───────────────────────────────────────────────────────
-export async function addProductToDB(product: Product): Promise<void> {
+export async function addProduct(product: Product): Promise<void> {
   try {
     const supabase = createClient();
     await supabase.from('products').insert({
@@ -76,8 +76,8 @@ export async function addProductToDB(product: Product): Promise<void> {
       in_stock: product.inStock,
       stock_qty: product.stockQty ?? null,
       low_stock_threshold: product.lowStockThreshold ?? null,
-      is_new: product.isNew ?? false,
-      is_bestseller: product.isBestseller ?? false,
+      is_new: product.newArrival ?? false,
+      is_bestseller: product.bestseller ?? false,
     });
   } catch (e) {
     console.error('orders-db:', e);
@@ -85,7 +85,7 @@ export async function addProductToDB(product: Product): Promise<void> {
 }
 
 // ─── Supprimer un produit ─────────────────────────────────────────────────────
-export async function deleteProductFromDB(id: string): Promise<void> {
+export async function deleteProduct(id: string): Promise<void> {
   try {
     const supabase = createClient();
     await supabase.from('products').delete().eq('id', id);
@@ -95,7 +95,7 @@ export async function deleteProductFromDB(id: string): Promise<void> {
 }
 
 // ─── Fetch tous les produits (admin, client-side) ─────────────────────────────
-export async function fetchProductsFromDB() {
+export async function fetchProducts() {
   try {
     const supabase = createClient();
     const { data, error } = await supabase

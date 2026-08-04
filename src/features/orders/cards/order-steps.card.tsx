@@ -6,7 +6,7 @@
  * c'est un rappel du parcours, identique pour tout le monde.
  */
 
-import { BORDER, DARK, TXT, TXT2 } from '@/features/orders/confirmation.constant';
+import { BORDER, DARK, TEXT, TEXT_MUTED } from '@/features/orders/confirmation.constant';
 import { NEXT_STEPS } from '@/features/orders/assets/order-step-icons';
 
 export default function OrderStepsCard() {
@@ -49,12 +49,12 @@ export default function OrderStepsCard() {
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       marginBottom: '8px',
                     }}>
-                      <span style={{ fontSize: '10px', fontWeight: 800, color: s.active ? 'white' : TXT2 }}>{s.id}</span>
+                      <span style={{ fontSize: '10px', fontWeight: 800, color: s.active ? 'white' : TEXT_MUTED }}>{s.id}</span>
                     </div>
-                    <p style={{ fontSize: '13px', fontWeight: 700, color: s.active ? DARK : TXT, textAlign: 'center', marginBottom: '5px', lineHeight: 1.3 }}>
+                    <p style={{ fontSize: '13px', fontWeight: 700, color: s.active ? DARK : TEXT, textAlign: 'center', marginBottom: '5px', lineHeight: 1.3 }}>
                       {s.label}
                     </p>
-                    <p style={{ fontSize: '11px', color: TXT2, textAlign: 'center', lineHeight: 1.5 }}>{s.desc}</p>
+                    <p style={{ fontSize: '11px', color: TEXT_MUTED, textAlign: 'center', lineHeight: 1.5 }}>{s.desc}</p>
                   </div>
                 ))}
               </div>

@@ -84,7 +84,7 @@ export default function BrandingTab({ siteContent, setSiteContent, saveConfigSec
               { key: 'linkedinUrl',  label: 'LinkedIn',  icon: '💼', placeholder: 'https://linkedin.com/company/sdcosmetique', brand: '#0A66C2' },
             ];
 
-            const isValidUrl = (v: string) => {
+            const validUrl = (v: string) => {
               if (!v) return false;
               try { new URL(v); return true; } catch { return false; }
             };
@@ -129,7 +129,7 @@ export default function BrandingTab({ siteContent, setSiteContent, saveConfigSec
                       <span style={labelStyle}>Logo principal <span style={{ color: TEXT3, fontWeight: 400 }}>(SVG ou PNG transparent recommandé, ratio horizontal)</span></span>
                       <ImageUpload
                         value={br.logoUrl}
-                        onChange={(url) => update({ logoUrl: url })}
+                        selectImage={(url) => update({ logoUrl: url })}
                         folder="branding"
                         label="Logo"
                         previewSize={120}
@@ -139,7 +139,7 @@ export default function BrandingTab({ siteContent, setSiteContent, saveConfigSec
                       <span style={labelStyle}>Favicon <span style={{ color: TEXT3, fontWeight: 400 }}>(carré, 512×512 px idéal)</span></span>
                       <ImageUpload
                         value={br.faviconUrl}
-                        onChange={(url) => update({ faviconUrl: url })}
+                        selectImage={(url) => update({ faviconUrl: url })}
                         folder="branding"
                         label="Favicon"
                         previewSize={100}
@@ -168,7 +168,7 @@ export default function BrandingTab({ siteContent, setSiteContent, saveConfigSec
                   <p style={sectionSubtitle}>Photo affichée sur la moitié gauche de l&apos;écran de connexion administrateur.</p>
                   <ImageUpload
                     value={br.adminLoginBg ?? '/hero/generated-skincare-hero-2.jpg'}
-                    onChange={(url) => update({ adminLoginBg: url })}
+                    selectImage={(url) => update({ adminLoginBg: url })}
                     folder="branding"
                     label="Fond connexion admin"
                     previewSize={160}
@@ -181,7 +181,7 @@ export default function BrandingTab({ siteContent, setSiteContent, saveConfigSec
                   <p style={sectionSubtitle}>Photo affichée en arrière-plan de la page Espace Client (/compte).</p>
                   <ImageUpload
                     value={br.compteHeroBg ?? '/hero/generated-skincare-hero.jpg'}
-                    onChange={(url) => update({ compteHeroBg: url })}
+                    selectImage={(url) => update({ compteHeroBg: url })}
                     folder="branding"
                     label="Fond espace client"
                     previewSize={160}
@@ -194,7 +194,7 @@ export default function BrandingTab({ siteContent, setSiteContent, saveConfigSec
                   <p style={sectionSubtitle}>Photo en arrière-plan de la carte &quot;Parrainez et gagnez&quot; sur la page Espace Client.</p>
                   <ImageUpload
                     value={br.parrainageHeroBg ?? '/hero/generated-skincare-hero-2.jpg'}
-                    onChange={(url) => update({ parrainageHeroBg: url })}
+                    selectImage={(url) => update({ parrainageHeroBg: url })}
                     folder="branding"
                     label="Fond parrainage"
                     previewSize={160}
@@ -334,7 +334,7 @@ export default function BrandingTab({ siteContent, setSiteContent, saveConfigSec
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {socials.map(({ key, label, icon, placeholder, brand }) => {
                       const v = br[key] ?? '';
-                      const valid = isValidUrl(v);
+                      const valid = validUrl(v);
                       return (
                         <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: BG, border: `1px solid ${BORDER}`, borderRadius: '10px', padding: '10px 12px' }}>
                           <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: `${brand}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', flexShrink: 0, border: `1px solid ${brand}33` }}>{icon}</div>

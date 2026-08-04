@@ -47,7 +47,7 @@ export async function fetchAllCategoriesAdmin(): Promise<CategoryRow[]> {
 }
 
 // ─── Créer une catégorie ──────────────────────────────────────────────────────
-export async function addCategoryToDB(cat: Omit<CategoryRow, 'id' | 'created_at'>): Promise<WriteResult> {
+export async function addCategory(cat: Omit<CategoryRow, 'id' | 'created_at'>): Promise<WriteResult> {
   try {
     const supabase = createClient();
     const { error } = await supabase.from('categories').insert(cat);
@@ -59,7 +59,7 @@ export async function addCategoryToDB(cat: Omit<CategoryRow, 'id' | 'created_at'
 }
 
 // ─── Mettre à jour une catégorie ─────────────────────────────────────────────
-export async function updateCategoryInDB(id: string, updates: Partial<Omit<CategoryRow, 'id' | 'created_at'>>): Promise<void> {
+export async function updateCategory(id: string, updates: Partial<Omit<CategoryRow, 'id' | 'created_at'>>): Promise<void> {
   try {
     const supabase = createClient();
     const { error } = await supabase.from('categories').update(updates).eq('id', id);
@@ -70,7 +70,7 @@ export async function updateCategoryInDB(id: string, updates: Partial<Omit<Categ
 }
 
 // ─── Supprimer une catégorie ─────────────────────────────────────────────
-export async function deleteCategoryFromDB(id: string): Promise<void> {
+export async function deleteCategory(id: string): Promise<void> {
   try {
     const supabase = createClient();
     const { error } = await supabase.from('categories').delete().eq('id', id);

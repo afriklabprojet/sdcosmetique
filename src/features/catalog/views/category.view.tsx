@@ -70,9 +70,9 @@ export default function CategoryClient({ initialProducts, slug }: Readonly<Props
     switch (sortBy) {
       case 'price_asc':  return [...list].sort((a, b) => a.price - b.price);
       case 'price_desc': return [...list].sort((a, b) => b.price - a.price);
-      case 'newest':     return [...list].sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
+      case 'newest':     return [...list].sort((a, b) => (b.newArrival ? 1 : 0) - (a.newArrival ? 1 : 0));
       case 'rating':     return [...list].sort((a, b) => b.rating - a.rating);
-      default:           return [...list].sort((a, b) => (b.isBestseller ? 1 : 0) - (a.isBestseller ? 1 : 0));
+      default:           return [...list].sort((a, b) => (b.bestseller ? 1 : 0) - (a.bestseller ? 1 : 0));
     }
   }, [initialProducts, skinToneFilter, sortBy]);
 
@@ -152,16 +152,16 @@ export default function CategoryClient({ initialProducts, slug }: Readonly<Props
 
         <nav className="flex gap-2 overflow-x-auto pb-2 mb-8" aria-label="Toutes les catégories">
           {CATEGORIES.map(item => {
-            const isActive = item.id === slug;
+            const active = item.id === slug;
             return (
               <Link
                 key={item.id}
                 href={`/categorie/${item.id}`}
                 className="px-4 py-2 text-xs font-medium tracking-widest uppercase border whitespace-nowrap transition-all"
                 style={{
-                  borderColor: isActive ? 'var(--gold)' : 'var(--grey-200)',
-                  background: isActive ? 'var(--gold)' : 'white',
-                  color: isActive ? 'white' : 'var(--grey-700)',
+                  borderColor: active ? 'var(--gold)' : 'var(--grey-200)',
+                  background: active ? 'var(--gold)' : 'white',
+                  color: active ? 'white' : 'var(--grey-700)',
                 }}
               >
                 {item.label}
@@ -174,7 +174,7 @@ export default function CategoryClient({ initialProducts, slug }: Readonly<Props
         <div className="flex flex-col lg:flex-row gap-6 mb-8">
           <div className="flex-1">
             {showSkinToneFilter && (
-              <SkinToneSelector selected={skinToneFilter} onChange={setSkinToneFilter} />
+              <SkinToneSelector selected={skinToneFilter} selectTone={setSkinToneFilter} />
             )}
           </div>
           <div className="flex items-center gap-4 shrink-0">

@@ -46,7 +46,7 @@ export async function fetchAllTestimonialsAdmin(): Promise<TestimonialRow[]> {
 }
 
 // ─── Approuver / retirer un témoignage ───────────────────────────────────────
-export async function approveTestimonialInDB(id: string, approved: boolean): Promise<void> {
+export async function approveTestimonial(id: string, approved: boolean): Promise<void> {
   try {
     const supabase = createClient();
     const { error } = await supabase
@@ -60,7 +60,7 @@ export async function approveTestimonialInDB(id: string, approved: boolean): Pro
 }
 
 // ─── Supprimer un témoignage ─────────────────────────────────────────────────
-export async function deleteTestimonialFromDB(id: string): Promise<void> {
+export async function deleteTestimonial(id: string): Promise<void> {
   try {
     const supabase = createClient();
     const { error } = await supabase.from('testimonials').delete().eq('id', id);

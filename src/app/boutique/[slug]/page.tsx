@@ -8,7 +8,7 @@ const CATEGORY_ALIASES: Record<string, string> = {
   duo: 'duo',
 };
 
-export default async function BoutiqueCategoryAliasPage({
+export default async function ShopCategoryAliasPage({
   params,
 }: {
   params: Promise<{ slug: string }>;

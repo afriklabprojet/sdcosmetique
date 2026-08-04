@@ -9,10 +9,10 @@ interface ProfileSectionProps {
 }
 
 interface ProfileForm {
-  prenom: string;
-  nom: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  telephone: string;
+  phone: string;
   currentPwd: string;
   newPwd: string;
   confirmPwd: string;
@@ -20,10 +20,10 @@ interface ProfileForm {
 
 export default function ProfileSection({ user }: ProfileSectionProps) {
   const [profileForm, setProfileForm] = useState<ProfileForm>({
-    prenom: user?.user_metadata?.first_name || '',
-    nom: user?.user_metadata?.last_name || '',
+    firstName: user?.user_metadata?.first_name || '',
+    lastName: user?.user_metadata?.last_name || '',
     email: user?.email || '',
-    telephone: user?.user_metadata?.phone || '',
+    phone: user?.user_metadata?.phone || '',
     currentPwd: '',
     newPwd: '',
     confirmPwd: ''
@@ -32,7 +32,7 @@ export default function ProfileSection({ user }: ProfileSectionProps) {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
   
-  const handleSaveProfile = async () => {
+  const saveProfile = async () => {
     setSaving(true);
     setMessage(null);
     
@@ -42,9 +42,9 @@ export default function ProfileSection({ user }: ProfileSectionProps) {
       // Mise à jour des métadonnées utilisateur
       const { error: updateError } = await supabase.auth.updateUser({
         data: {
-          first_name: profileForm.prenom,
-          last_name: profileForm.nom,
-          phone: profileForm.telephone
+          first_name: profileForm.firstName,
+          last_name: profileForm.lastName,
+          phone: profileForm.phone
         }
       });
       
@@ -107,14 +107,14 @@ export default function ProfileSection({ user }: ProfileSectionProps) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
           <InputField
             label="Prénom"
-            value={profileForm.prenom}
-            onChange={v => setProfileForm(prev => ({ ...prev, prenom: v }))}
+            value={profileForm.firstName}
+            changeValue={v => setProfileForm(prev => ({ ...prev, firstName: v }))}
             placeholder="Votre prénom"
           />
           <InputField
             label="Nom"
-            value={profileForm.nom}
-            onChange={v => setProfileForm(prev => ({ ...prev, nom: v }))}
+            value={profileForm.lastName}
+            changeValue={v => setProfileForm(prev => ({ ...prev, lastName: v }))}
             placeholder="Votre nom"
           />
         </div>
@@ -124,7 +124,7 @@ export default function ProfileSection({ user }: ProfileSectionProps) {
             label="Email"
             type="email"
             value={profileForm.email}
-            onChange={v => setProfileForm(prev => ({ ...prev, email: v }))}
+            changeValue={v => setProfileForm(prev => ({ ...prev, email: v }))}
             placeholder="votre@email.com"
           />
         </div>
@@ -132,8 +132,8 @@ export default function ProfileSection({ user }: ProfileSectionProps) {
         <div style={{ marginBottom: '24px' }}>
           <InputField
             label="Téléphone"
-            value={profileForm.telephone}
-            onChange={v => setProfileForm(prev => ({ ...prev, telephone: v }))}
+            value={profileForm.phone}
+            changeValue={v => setProfileForm(prev => ({ ...prev, phone: v }))}
             placeholder="+225 XX XX XX XX XX"
           />
         </div>
@@ -146,7 +146,7 @@ export default function ProfileSection({ user }: ProfileSectionProps) {
               label="Nouveau mot de passe"
               type="password"
               value={profileForm.newPwd}
-              onChange={v => setProfileForm(prev => ({ ...prev, newPwd: v }))}
+              changeValue={v => setProfileForm(prev => ({ ...prev, newPwd: v }))}
               placeholder="Nouveau mot de passe"
             />
           </div>
@@ -156,14 +156,14 @@ export default function ProfileSection({ user }: ProfileSectionProps) {
               label="Confirmer le mot de passe"
               type="password"
               value={profileForm.confirmPwd}
-              onChange={v => setProfileForm(prev => ({ ...prev, confirmPwd: v }))}
+              changeValue={v => setProfileForm(prev => ({ ...prev, confirmPwd: v }))}
               placeholder="Confirmer le mot de passe"
             />
           </div>
         </div>
         
         <button
-          onClick={handleSaveProfile}
+          onClick={saveProfile}
           disabled={saving}
           style={{
             width: '100%',
@@ -188,13 +188,13 @@ function InputField({
   label, 
   type = 'text', 
   value, 
-  onChange, 
+  changeValue, 
   placeholder 
 }: {
   readonly label: string;
   readonly type?: string;
   readonly value: string;
-  readonly onChange: (value: string) => void;
+  readonly changeValue: (value: string) => void;
   readonly placeholder?: string;
 }) {
   return (
@@ -205,7 +205,7 @@ function InputField({
       <input
         type={type}
         value={value}
-        onChange={e => onChange(e.target.value)}
+        onChange={e => changeValue(e.target.value)}
         placeholder={placeholder}
         style={{
           width: '100%',

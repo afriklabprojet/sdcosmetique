@@ -15,10 +15,10 @@ interface ResultStepProps {
   readonly concernLabel: string;
   readonly routineLabel: string;
   readonly recommendations: Product[];
-  readonly onRestart: () => void;
+  readonly restart: () => void;
 }
 
-export default function ResultStep({ skinToneLabel, concernLabel, routineLabel, recommendations, onRestart }: ResultStepProps) {
+export default function ResultStep({ skinToneLabel, concernLabel, routineLabel, recommendations, restart }: ResultStepProps) {
   return (
           <section className={styles.result}>
             <header className={styles.resultHeader}>
@@ -67,7 +67,7 @@ export default function ResultStep({ skinToneLabel, concernLabel, routineLabel, 
             )}
 
             <div className={styles.resultActions}>
-              <button type="button" className={styles.btnGhost} onClick={onRestart}>
+              <button type="button" className={styles.btnGhost} onClick={restart}>
                 Refaire le diagnostic
               </button>
               <Link href="/categorie/gammes" className={styles.btnPrimary}>

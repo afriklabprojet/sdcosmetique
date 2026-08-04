@@ -24,7 +24,7 @@ function ConnexionContent() {
     }
   }, [searchParams]);
 
-  const handleSubmit = async (e: React.SyntheticEvent) => {
+  const submitForm = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -100,7 +100,7 @@ function ConnexionContent() {
             </p>
           </header>
 
-          <form className={styles.fields} onSubmit={handleSubmit}>
+          <form className={styles.fields} onSubmit={submitForm}>
             <div className={styles.field}>
               <label htmlFor="email" className={styles.label}>Adresse e-mail</label>
               <input

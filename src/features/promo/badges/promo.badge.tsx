@@ -26,7 +26,7 @@ export function PromoBadge({
   size = 'sm',
   className,
 }: PromoBadgeProps) {
-  const isSm = size === 'sm';
+  const small = size === 'sm';
   const prefersReducedMotion = useReducedMotion();
 
   return (
@@ -41,9 +41,9 @@ export function PromoBadge({
         justifyContent: 'center',
         backgroundColor: color,
         color: '#fff',
-        borderRadius: isSm ? 4 : 6,
-        padding: isSm ? '2px 6px' : '3px 9px',
-        fontSize: isSm ? '0.62rem' : '0.75rem',
+        borderRadius: small ? 4 : 6,
+        padding: small ? '2px 6px' : '3px 9px',
+        fontSize: small ? '0.62rem' : '0.75rem',
         fontWeight: 800,
         letterSpacing: '0.04em',
         lineHeight: 1,

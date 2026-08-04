@@ -16,7 +16,7 @@ import type { Product } from '@/shared/types/domain.type';
 /**
  * Vérifie si la promotion est actuellement active (dates + flag enabled).
  */
-export function isPromoActive(promo: GlobalPromoConfig | null | undefined): boolean {
+export function promoActive(promo: GlobalPromoConfig | null | undefined): boolean {
   if (!promo?.enabled) return false;
   const now = Date.now();
   if (promo.startAt && new Date(promo.startAt).getTime() > now) return false;
@@ -59,7 +59,7 @@ export function computeEffectivePrice(
     : 0;
 
   // Remise globale
-  const globalActive = isPromoActive(promo);
+  const globalActive = promoActive(promo);
   const globalPct = globalActive ? Math.min(Math.max(promo?.discountPercentage ?? 0, 0), 99) : 0;
 
   // On choisit la meilleure remise
@@ -112,7 +112,7 @@ export function applyPromoCode(
 
   if (!code) {
     return {
-      isValid: false,
+      valid: false,
       discount: 0,
       finalTotal: orderTotal,
       error: 'Code promo invalide'
@@ -122,7 +122,7 @@ export function applyPromoCode(
   // Vérifier l'expiration
   if (code.expiresAt && new Date(code.expiresAt) < new Date()) {
     return {
-      isValid: false,
+      valid: false,
       discount: 0,
       finalTotal: orderTotal,
       error: 'Code promo expiré'
@@ -132,7 +132,7 @@ export function applyPromoCode(
   // Vérifier le montant minimum
   if (code.minSubtotal && orderTotal < code.minSubtotal) {
     return {
-      isValid: false,
+      valid: false,
       discount: 0,
       finalTotal: orderTotal,
       error: `Commande minimum de ${code.minSubtotal}€ requise`
@@ -151,7 +151,7 @@ export function applyPromoCode(
   const finalTotal = Math.max(0, orderTotal - discount);
 
   return {
-    isValid: true,
+    valid: true,
     discount,
     finalTotal
   };
@@ -167,12 +167,12 @@ export function validatePromoCode(
   const code = promoCodes.find(p => p.code.toUpperCase() === promoCode.toUpperCase());
 
   if (!code) {
-    return { isValid: false, error: 'Code promo invalide' };
+    return { valid: false, error: 'Code promo invalide' };
   }
 
   if (code.expiresAt && new Date(code.expiresAt) < new Date()) {
-    return { isValid: false, error: 'Code promo expiré' };
+    return { valid: false, error: 'Code promo expiré' };
   }
 
-  return { isValid: true, code };
+  return { valid: true, code };
 }

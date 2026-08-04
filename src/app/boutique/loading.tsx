@@ -1,6 +1,6 @@
 import ProductCardSkeleton from '@/features/catalog/cards/product-card-skeleton';
 
-export default function BoutiqueLoading() {
+export default function ShopLoading() {
   return (
     <main style={{ maxWidth: 1280, margin: '0 auto', padding: '80px 24px 120px' }}>
       {/* Titre factice */}

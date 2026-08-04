@@ -8,15 +8,15 @@
  */
 
 import type { Product } from '@/shared/types/domain.type';
-import { BORDER, GOLD, TXT } from '@/features/catalog/product-detail.constant';
+import { BORDER, GOLD, TEXT } from '@/features/catalog/product-detail.constant';
 
 interface StickyPurchaseProps {
   readonly product: Product;
   readonly adding: boolean;
-  readonly onAddToCart: () => void;
+  readonly addToCart: () => void;
 }
 
-export default function StickyPurchase({ product, adding, onAddToCart }: StickyPurchaseProps) {
+export default function StickyPurchase({ product, adding, addToCart }: StickyPurchaseProps) {
   return (
         <section
           className="lg:hidden"
@@ -30,7 +30,7 @@ export default function StickyPurchase({ product, adding, onAddToCart }: StickyP
           }}
         >
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontSize: 12, fontWeight: 700, color: TXT, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: TEXT, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {product.name}
             </p>
             <p style={{ fontSize: 14, fontWeight: 800, color: GOLD, margin: 0 }}>
@@ -38,13 +38,13 @@ export default function StickyPurchase({ product, adding, onAddToCart }: StickyP
             </p>
           </div>
           <button
-            onClick={onAddToCart}
+            onClick={addToCart}
             disabled={adding}
             aria-label="Ajouter au panier"
             style={{
               flexShrink: 0, minWidth: 152, height: 44,
-              background: TXT, color: '#fff',
-              border: `1px solid ${TXT}`, borderRadius: 0,
+              background: TEXT, color: '#fff',
+              border: `1px solid ${TEXT}`, borderRadius: 0,
               fontSize: 11, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase',
               cursor: adding ? 'wait' : 'pointer',
               transition: 'opacity 0.25s ease',

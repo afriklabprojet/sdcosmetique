@@ -17,7 +17,7 @@ export const runtime = 'nodejs';
  * Body : OrderDraft
  * Réponse : { ok: true, orderNumber }
  *
- * [ARCH-01/02] Remplace le double-save client (saveOrder + saveOrderToDB).
+ * [ARCH-01/02] Remplace le double-save client (cacheOrder + saveOrder).
  * La DB est désormais la seule source de vérité à la création.
  *
  * [SEC] Sous-total, frais de port et remise sont recalculés côté serveur à
@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
       .from('site_config').select('value').eq('key', 'promo_codes').maybeSingle();
     const promoCodes = (promoRow?.value as typeof DEFAULT_SITE_CONFIG['promo_codes']) ?? [];
     const applied = applyPromoCode(computedSubtotal, order.promoCode, promoCodes);
-    if (applied.isValid) computedDiscount = applied.discount;
+    if (applied.valid) computedDiscount = applied.discount;
   }
 
   const computedTotal = Math.max(0, computedSubtotal + computedShipping - computedDiscount);

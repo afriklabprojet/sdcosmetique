@@ -75,8 +75,8 @@ export async function addProduct(product: Product): Promise<void> {
     in_stock: product.inStock,
     stock_qty: product.stockQty ?? null,
     low_stock_threshold: product.lowStockThreshold ?? null,
-    is_new: product.isNew ?? false,
-    is_bestseller: product.isBestseller ?? false,
+    is_new: product.newArrival ?? false,
+    is_bestseller: product.bestseller ?? false,
   }, { onConflict: 'id' });
 
   if (error) throw new Error(error.message);
@@ -119,8 +119,8 @@ function buildUpdatePayload(u: Partial<Omit<Product, 'id'>>): Record<string, unk
     ['benefits', 'benefits'],
     ['usage', 'usage'],
     ['inStock', 'in_stock'],
-    ['isNew', 'is_new'],
-    ['isBestseller', 'is_bestseller'],
+    ['newArrival', 'is_new'],
+    ['bestseller', 'is_bestseller'],
   ];
   for (const [jsKey, dbKey] of map) {
     if (jsKey in u) {

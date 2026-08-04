@@ -39,7 +39,7 @@ export default function LegalTab({ siteContent, setSiteContent, saveConfigSectio
                       const lp = siteContent[key];
                       const update = (patch: Partial<typeof lp>) => setSiteContent({ ...siteContent, [key]: { ...siteContent[key], ...patch } } as SiteConfig);
                       const save = () => saveConfigSection(key, lp);
-                      const handleLpField = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                      const editLandingField = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
                         update({ [e.currentTarget.dataset.k as string]: e.currentTarget.value } as Partial<typeof lp>);
                       return (
                         <details key={key} style={{ border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '10px 12px', background: SURFACE2 }}>
@@ -54,7 +54,7 @@ export default function LegalTab({ siteContent, setSiteContent, saveConfigSectio
                             {(['eyebrow', 'title', 'lead', 'updatedAt'] as const).map(k => (
                               <div key={k} style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                                 <span style={{ fontSize: '10px', color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{k}</span>
-                                <input value={lp[k] ?? ''} data-k={k} onChange={handleLpField}
+                                <input value={lp[k] ?? ''} data-k={k} onChange={editLandingField}
                                   style={{ background: SURFACE, color: TEXT, border: `1px solid ${BORDER2}`, borderRadius: '4px', padding: '7px 10px', fontSize: '12px' }} />
                               </div>
                             ))}
@@ -76,7 +76,7 @@ export default function LegalTab({ siteContent, setSiteContent, saveConfigSectio
                                 ] as const).map(({ k, label }) => (
                                   <div key={k} style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                                     <span style={{ fontSize: '10px', color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</span>
-                                    <input value={(lp as Record<string, string>)[k] ?? ''} data-k={k} onChange={handleLpField}
+                                    <input value={(lp as Record<string, string>)[k] ?? ''} data-k={k} onChange={editLandingField}
                                       style={{ background: SURFACE, color: TEXT, border: `1px solid ${BORDER2}`, borderRadius: '4px', padding: '7px 10px', fontSize: '12px' }} />
                                   </div>
                                 ))}
@@ -90,7 +90,7 @@ export default function LegalTab({ siteContent, setSiteContent, saveConfigSectio
                                 ] as const).map(({ k, label }) => (
                                   <div key={k} style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                                     <span style={{ fontSize: '10px', color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</span>
-                                    <input value={(lp as Record<string, string>)[k] ?? ''} data-k={k} onChange={handleLpField}
+                                    <input value={(lp as Record<string, string>)[k] ?? ''} data-k={k} onChange={editLandingField}
                                       style={{ background: SURFACE, color: TEXT, border: `1px solid ${BORDER2}`, borderRadius: '4px', padding: '7px 10px', fontSize: '12px' }} />
                                   </div>
                                 ))}
@@ -103,7 +103,7 @@ export default function LegalTab({ siteContent, setSiteContent, saveConfigSectio
                                 ] as const).map(({ k, label }) => (
                                   <div key={k} style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                                     <span style={{ fontSize: '10px', color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</span>
-                                    <input value={(lp as Record<string, string>)[k] ?? ''} data-k={k} onChange={handleLpField}
+                                    <input value={(lp as Record<string, string>)[k] ?? ''} data-k={k} onChange={editLandingField}
                                       style={{ background: SURFACE, color: TEXT, border: `1px solid ${BORDER2}`, borderRadius: '4px', padding: '7px 10px', fontSize: '12px' }} />
                                   </div>
                                 ))}

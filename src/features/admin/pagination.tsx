@@ -3,16 +3,16 @@
 interface PaginationProps {
   page: number;
   total: number;
-  onChange: (n: number) => void;
+  goToPage: (n: number) => void;
 }
 
-export default function Pagination({ page, total, onChange }: PaginationProps) {
+export default function Pagination({ page, total, goToPage }: PaginationProps) {
   if (total <= 1) return null;
   
   return (
     <div style={{ display: 'flex', gap: '4px', alignItems: 'center', justifyContent: 'center', marginTop: '16px' }}>
       <button
-        onClick={() => onChange(Math.max(1, page - 1))}
+        onClick={() => goToPage(Math.max(1, page - 1))}
         disabled={page === 1}
         style={{
           padding: '6px 12px',
@@ -32,7 +32,7 @@ export default function Pagination({ page, total, onChange }: PaginationProps) {
       </span>
       
       <button
-        onClick={() => onChange(Math.min(total, page + 1))}
+        onClick={() => goToPage(Math.min(total, page + 1))}
         disabled={page === total}
         style={{
           padding: '6px 12px',

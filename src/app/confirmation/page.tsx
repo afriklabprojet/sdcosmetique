@@ -10,7 +10,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getLastOrder, formatOrderDate, OrderDraft } from '@/features/orders/order.store';
-import { BG, BORDER, DARK, TXT3 } from '@/features/orders/confirmation.constant';
+import { BG, BORDER, DARK, TEXT_BODY } from '@/features/orders/confirmation.constant';
 import OrderConfirmedCard from '@/features/orders/cards/order-confirmed.card';
 import OrderStepsCard from '@/features/orders/cards/order-steps.card';
 import OrderSummaryCard from '@/features/orders/cards/order-summary.card';
@@ -83,7 +83,7 @@ export default function ConfirmationPage() {
               <p style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: DARK, marginBottom: '6px' }}>
                 Partagez votre expérience
               </p>
-              <p style={{ fontSize: '12px', color: TXT3, marginBottom: '16px', lineHeight: 1.5 }}>
+              <p style={{ fontSize: '12px', color: TEXT_BODY, marginBottom: '16px', lineHeight: 1.5 }}>
                 Donnez votre avis et gagnez des points fidélité&nbsp;!
               </p>
               <Link href="/avis">

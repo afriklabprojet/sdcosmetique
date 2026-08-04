@@ -8,7 +8,7 @@
  * les icones avant leur declaration ; elle n'a de sens que pour ce menu.
  */
 
-import { getJekoTierFromList, type JekoConfig } from '@/features/loyalty/jeko.repository';
+import { resolveJekoTier, type JekoConfig } from '@/features/loyalty/jeko.repository';
 import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
 import type { NavItem } from '@/features/account/account.constant';
 import {
@@ -30,23 +30,23 @@ const NAV_ITEMS: { id: NavItem; label: string; icon: React.ReactNode; badge?: st
 ];
 
 interface AccountSidebarProps {
-  readonly isMobile: boolean;
+  readonly mobile: boolean;
   readonly active: NavItem;
-  readonly onNavigate: (tab: NavItem) => void;
+  readonly navigate: (tab: NavItem) => void;
   readonly initial: string;
   readonly displayName: string;
   readonly displayEmail: string;
   readonly userPoints: number;
   readonly jekoConfig: JekoConfig;
-  readonly onLogout: () => void;
+  readonly logout: () => void;
 }
 
 export default function AccountSidebar({
-  isMobile, active, onNavigate, initial, displayName, displayEmail,
-  userPoints, jekoConfig, onLogout,
+  mobile, active, navigate, initial, displayName, displayEmail,
+  userPoints, jekoConfig, logout,
 }: AccountSidebarProps) {
   return (
-          <aside style={{ width: isMobile ? '100%' : 240, flexShrink: 0 }}>
+          <aside style={{ width: mobile ? '100%' : 240, flexShrink: 0 }}>
             <div style={{ background: '#fff', borderRadius: 20, border: '1px solid #EDE8E0', overflow: 'hidden', boxShadow: '0 2px 12px rgba(61,20,0,.05)' }}>
 
               {/* Avatar + nom */}
@@ -65,9 +65,9 @@ export default function AccountSidebar({
                     <p style={{ fontSize: 10, color: '#9A8A7A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayEmail}</p>
                     <span style={{
                       display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4,
-                      background: getJekoTierFromList(userPoints, jekoConfig.tiers).bg, borderRadius: 99, padding: '2px 8px',
-                      fontSize: 10, fontWeight: 700, color: getJekoTierFromList(userPoints, jekoConfig.tiers).textColor,
-                    }}>{getJekoTierFromList(userPoints, jekoConfig.tiers).emoji}{' '}Membre {getJekoTierFromList(userPoints, jekoConfig.tiers).label}</span>
+                      background: resolveJekoTier(userPoints, jekoConfig.tiers).bg, borderRadius: 99, padding: '2px 8px',
+                      fontSize: 10, fontWeight: 700, color: resolveJekoTier(userPoints, jekoConfig.tiers).textColor,
+                    }}>{resolveJekoTier(userPoints, jekoConfig.tiers).emoji}{' '}Membre {resolveJekoTier(userPoints, jekoConfig.tiers).label}</span>
                   </div>
                 </div>
               </div>
@@ -75,36 +75,36 @@ export default function AccountSidebar({
               {/* Nav */}
               <nav style={{ padding: '8px' }}>
                 {NAV_ITEMS.map(item => {
-                  const isActive = active === item.id;
+                  const current = active === item.id;
                   return (
                     <button
                       key={item.id}
-                      onClick={() => onNavigate(item.id)}
+                      onClick={() => navigate(item.id)}
                       style={{
                         width: '100%', display: 'flex', alignItems: 'center', gap: 10,
                         padding: '9px 12px', textAlign: 'left', border: 'none', cursor: 'pointer',
-                        background: isActive ? '#3D1400' : 'transparent',
-                        color: isActive ? '#fff' : '#4A3828',
-                        fontSize: 13, fontWeight: isActive ? 600 : 400,
+                        background: current ? '#3D1400' : 'transparent',
+                        color: current ? '#fff' : '#4A3828',
+                        fontSize: 13, fontWeight: current ? 600 : 400,
                         borderRadius: 10,
                         transition: 'all .15s',
                         marginBottom: 2,
                       }}
                     >
-                      <span style={{ opacity: isActive ? 1 : 0.55, display: 'flex', flexShrink: 0 }}>{item.icon}</span>
+                      <span style={{ opacity: current ? 1 : 0.55, display: 'flex', flexShrink: 0 }}>{item.icon}</span>
                       <span style={{ flex: 1 }}>{item.label}</span>
                       {item.badge && (
                         <span style={{
                           fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 99,
-                          background: isActive ? 'rgba(255,255,255,.2)' : '#FFF3E0',
-                          color: isActive ? '#FFD89B' : '#92400E',
+                          background: current ? 'rgba(255,255,255,.2)' : '#FFF3E0',
+                          color: current ? '#FFD89B' : '#92400E',
                         }}>{item.badge}</span>
                       )}
                       {item.id === 'points' && (
                         <span style={{
                           fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 99,
-                          background: isActive ? 'rgba(255,255,255,.2)' : '#FFF3E0',
-                          color: isActive ? '#FFD89B' : '#92400E',
+                          background: current ? 'rgba(255,255,255,.2)' : '#FFF3E0',
+                          color: current ? '#FFD89B' : '#92400E',
                         }}>{userPoints} pts</span>
                       )}
                     </button>
@@ -118,7 +118,7 @@ export default function AccountSidebar({
               {/* Déconnexion */}
               <div style={{ padding: '8px' }}>
                 <button
-                  onClick={onLogout}
+                  onClick={logout}
                   style={{
                     width: '100%', display: 'flex', alignItems: 'center', gap: 10,
                     padding: '9px 12px', border: 'none', cursor: 'pointer',

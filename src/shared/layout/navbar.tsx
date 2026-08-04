@@ -15,7 +15,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { NAV, isNavItemActive } from '@/shared/layout/navigation.constant';
+import { NAV, navItemActive } from '@/shared/layout/navigation.constant';
 import NavActions from '@/shared/layout/nav-actions.toolbar';
 import MobileNavDrawer from '@/shared/layout/mobile-nav.drawer';
 import ProductSearch from '@/features/catalog/product-search.widget';
@@ -127,15 +127,15 @@ export default function Navbar({ logoUrl, logoCaption, siteName }: Readonly<{ lo
           }}
         >
           {NAV.map((it) => {
-            const isActive = isNavItemActive(it.href, pathname);
+            const active = navItemActive(it.href, pathname);
             return (
               <Link
                 key={it.label}
                 href={it.href}
-                className={`nav-link${isActive ? ' nav-active' : ''}`}
+                className={`nav-link${active ? ' nav-active' : ''}`}
                 style={{
                   position: 'relative',
-                  color: isActive ? '#8F5922' : '#1A0E05',
+                  color: active ? '#8F5922' : '#1A0E05',
                   fontSize: '0.78rem',
                   fontWeight: 600,
                   letterSpacing: '0.08em',
@@ -148,7 +148,7 @@ export default function Navbar({ logoUrl, logoCaption, siteName }: Readonly<{ lo
                   minHeight: 44,
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.color = '#8F5922'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = isActive ? '#8F5922' : '#1A0E05'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = active ? '#8F5922' : '#1A0E05'; }}
               >
                 {it.label}
               </Link>
@@ -158,8 +158,8 @@ export default function Navbar({ logoUrl, logoCaption, siteName }: Readonly<{ lo
 
         <NavActions
           menuOpen={menuOpen}
-          onOpenSearch={() => setSearchOpen(true)}
-          onToggleMenu={() => setMenuOpen(!menuOpen)}
+          openSearch={() => setSearchOpen(true)}
+          toggleMenu={() => setMenuOpen(!menuOpen)}
         />
       </div>
 
@@ -177,9 +177,9 @@ export default function Navbar({ logoUrl, logoCaption, siteName }: Readonly<{ lo
         @keyframes searchFade { from { opacity: 0; } to { opacity: 1; } }
       `}</style>
 
-      {menuOpen && <MobileNavDrawer pathname={pathname} onClose={() => setMenuOpen(false)} />}
+      {menuOpen && <MobileNavDrawer pathname={pathname} close={() => setMenuOpen(false)} />}
 
-      {searchOpen && <ProductSearch onClose={() => setSearchOpen(false)} />}
+      {searchOpen && <ProductSearch close={() => setSearchOpen(false)} />}
     </header>
   );
 }

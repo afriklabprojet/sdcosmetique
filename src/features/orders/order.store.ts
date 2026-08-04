@@ -40,7 +40,7 @@ export function generateOrderNumber(): string {
   return `SD-${ts}${rnd}`;
 }
 
-export function saveOrder(order: OrderDraft): void {
+export function cacheOrder(order: OrderDraft): void {
   if (globalThis.window === undefined) return;
   const existing = getOrders();
   existing.unshift(order);

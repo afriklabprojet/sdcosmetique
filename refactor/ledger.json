@@ -1108,8 +1108,8 @@
       "kind": "name-collision",
       "path": "src/lib/categories-server.ts:4 + src/lib/categories-db.ts:18",
       "note": "Deux fonctions exportees nommees `fetchActiveCategories` avec la meme signature dans deux modules voisins. Le nom ne distingue pas les deux formes.",
-      "status": "deferred",
-      "resolution": "Reporte a `lexicon`. Collision de noms entre category.query.ts et category.repository.ts : c'est un renommage d'identifiant, gele en vague 2."
+      "status": "closed",
+      "resolution": "Ferme sans renommage, justifie. Les deux `fetchActiveCategories` (category.query.ts et category.repository.ts) ont un corps identique au client Supabase pres. Les distinguer par un nom reviendrait a encoder la contrainte d'execution dans l'identifiant, exactement ce que F-120 demandait d'en sortir. Le vrai defaut est la duplication : renvoye a la vague `drift`."
     },
     {
       "id": "F-098",
@@ -1312,7 +1312,8 @@
       "kind": "language-mix",
       "path": "src/app/categorie/, src/components/categorie/",
       "note": "Dossiers en francais ('categorie', 'teint', 'boutique', 'compte', 'avis', 'produit') coexistant avec des identifiants en anglais (CategoryClient, CategoryPage, fetchActiveCategories). Les routes francaises sont contraintes par les URLs publiques ; les identifiants ne le sont pas.",
-      "status": "open"
+      "status": "closed",
+      "resolution": "Identifiants de route francais passes a l'anglais : BoutiquePage/BoutiqueClient/BoutiqueLoading/BoutiqueCategoryAliasPage -> Shop*, ComptePage -> AccountPage, AvisPage -> ReviewsPage, LivraisonPage -> ShippingPage, TeintPage -> SkinTonePage, TeintHeroConfig -> SkinToneHeroConfig, TEINT_CONFIG_KEYS -> SKIN_TONE_CONFIG_KEYS. Champs francais du profil et des adresses passes a l'anglais (prenom/nom/rue/ville/code/pays/tel/telephone -> firstName/lastName/street/city/postalCode/country/phone). Les dossiers de route restent francais : ils sont l'URL publique."
     },
     {
       "id": "F-119",
@@ -1321,7 +1322,8 @@
       "kind": "suffix-noise",
       "path": "src/lib/*-db.ts",
       "note": "Suffixes de fonction *FromDB, *ToDB, *InDB (saveOrderToDB, fetchAllOrdersFromDB, updateOrderStatusInDB, updateProductInDB, addProductToDB, deleteProductFromDB, fetchProductsFromDB, fetchAllReviewsFromDB, deleteReviewFromDB, approveReviewInDB, addCategoryToDB, updateCategoryInDB, deleteCategoryFromDB, approveTestimonialInDB, deleteTestimonialFromDB). Le mecanisme de stockage est encode dans chaque nom alors qu'il est deja porte par le module.",
-      "status": "open"
+      "status": "closed",
+      "resolution": "Suffixes *FromDB / *ToDB / *InDB retires des 17 fonctions concernees : le fichier `*.repository.ts` porte deja le mecanisme. Une collision reelle est apparue : `order.store.ts` et `order.repository.ts` voulaient tous deux `saveOrder`. L'ecriture localStorage est devenue `cacheOrder`, ce qu'elle fait vraiment ; `saveOrder` reste la persistance."
     },
     {
       "id": "F-120",
@@ -1330,7 +1332,8 @@
       "kind": "suffix-noise",
       "path": "src/lib/products.ts:12,38",
       "note": "fetchProductsForClient et fetchProductBySlugForClient : le suffixe ForClient encode la contrainte d'execution dans le nom, en miroir du suffixe -server des fichiers.",
-      "status": "open"
+      "status": "closed",
+      "resolution": "Suffixe ForClient retire : fetchProducts, fetchProductBySlug. `product.repository.ts` expose les memes deux noms pour la lecture serveur ; le doublon est assume et documente dans l'en-tete de product.query.ts (aucun fichier n'importe les deux)."
     },
     {
       "id": "F-121",
@@ -1339,7 +1342,8 @@
       "kind": "numbered-names",
       "path": "src/components/checkout/shared.ts:19-21",
       "note": "TXT, TXT2, TXT3 : numerotation en guise de nom.",
-      "status": "open"
+      "status": "closed",
+      "resolution": "TXT / TXT2 / TXT3 remplaces par le role de chaque teinte : TEXT / TEXT_MUTED / TEXT_BODY, dans product-detail.constant.ts et confirmation.constant.ts. Meme vocabulaire que CheckoutPalette (text / textMuted / textSubtle), fixe en vague domain."
     },
     {
       "id": "F-122",
@@ -1348,13 +1352,15 @@
       "kind": "inconsistent-vocabulary",
       "path": "src/lib/",
       "note": "Le succes d'une operation s'appelle tour a tour `ok` (jeko, jeko-admin, emails), `success` (config/utilities:42) et `isValid` (config/utilities:164). Voir F-092 a F-094.",
-      "status": "open"
+      "status": "closed",
+      "resolution": "`isValid` -> `valid` sur PromoValidation et PromoApplication : le prefixe `is` est banni et le rulebook donne l'exemple `isRemote` -> `remote`. Le succes d'une operation s'appelle `ok` partout ailleurs. Deux `success` subsistent, justifies : la cle des reponses JSON `/api/**` (contrat reseau) et la propriete rendue par le limiteur Upstash (nom impose par la bibliotheque)."
     }
   ],
   "waves_done": [
     "affordance",
     "boundary",
     "domain",
+    "lexicon",
     "slice",
     "split",
     "survey"
@@ -1567,5 +1573,42 @@
       "features/account : 4 composants jamais importes (F-082)",
       "hero.tab.tsx prop `categories` et product-info.card.tsx prop `category` : non lues"
     ]
+  },
+  "lexicon_report": {
+    "scope": "src",
+    "families_renamed": {
+      "prefixe is*": "29 identifiants, 335 sites. isActive->active, isMobile->mobile, isBestseller->bestseller, isNew->newArrival (`new` est un mot reserve), isOpen->open, isDefault->preferred, isInWishlist->inWishlist et le predicat du store -> wishlistContains, etc.",
+      "prefixe handle*": "37 identifiants, 157 sites. Chaque nom dit desormais l action : handleAddToCart -> addProductToCart, handleAuthError -> recoverFromAuthError, handleStorage -> syncFromStorage, handleSubmit -> submitForm.",
+      "prefixe on*": "32 props. Le prefixe tombe, le verbe reste : onClose->close, onNavigate->navigate, onAddToCart->addToCart. Les props homonymes d attributs DOM (onChange, onSubmit, onSelect, onClose) ont ete traitees composant par composant, jamais globalement : ImageUpload.selectImage, Pagination.goToPage, SkinToneSelector.selectTone, AccountNav.selectItem, ProfileField.changeValue, TonePicker.pickTone, QuestionStep.selectOption, DeliveryStep.submitDelivery, ProductEditModal.saveDraft.",
+      "suffixes": "getJekoTierFromList -> resolveJekoTier (il resout un palier dans une configuration, il ne lit pas une liste), toProfileMeta -> toStoredProfile, clientList -> clients."
+    },
+    "preserved": [
+      {
+        "name": "onConflict, cookiesToSet, revalidateTag, isArray/isNaN/isFinite/isInteger, isIntersecting, gTag",
+        "reason": "Noms imposes par Supabase, Next.js, la bibliotheque standard ou le DOM. Hors perimetre : ce ne sont pas nos identifiants."
+      },
+      {
+        "name": "onChange / onSubmit / onClick sur elements DOM",
+        "reason": "Attributs React, pas des props que nous declarons."
+      },
+      {
+        "name": "cles JSON des routes /api/** (`success`), cles user_metadata Supabase (`prenom`, `nom`, `telephone`), cles site_config (`compteHeroBg`, `parrainageHeroBg`, `hero_teint_*`), champs de lignes DB (`prenom`/`nom` de jeko-admin.repository)",
+        "reason": "Contrats de donnees. Renommer l identifiant TypeScript renommerait la cle emise ou attendue et casserait des donnees deja stockees. La frontiere de traduction reste explicite (catalog.mapper.ts, toStoredProfile)."
+      },
+      {
+        "name": "optionMeta, welcomeMeta, faqList, tocList",
+        "reason": "Noms de classes CSS Modules. Aucune famille de rulebook ne couvre .css : hors perimetre de toutes les vagues."
+      },
+      {
+        "name": "triggerProductIds",
+        "reason": "Champ persiste d'UpsellRule dans site_config. Meme raison que ci-dessus."
+      }
+    ],
+    "gate": {
+      "prefixes_bannis": "zero identifiant du scope en is*/handle*/on*/callback*/trigger*/execute*/process*, hors noms imposes par une bibliotheque",
+      "suffixes_bannis": "zero, hors noms de classes CSS et champs persistes",
+      "abreviations_nouvelles": "aucune ; Qty -> Quantity au passage sur changeQuantity",
+      "typecheck_src": "0 erreur"
+    }
   }
 }

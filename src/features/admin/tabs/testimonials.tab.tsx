@@ -11,11 +11,11 @@ interface TestimonialsTabProps {
   readonly testimonials: TestimonialRow[];
   readonly testiSearch: string;
   readonly setTestiSearch: (s: string) => void;
-  readonly handleApproveTestimonial: (t: TestimonialRow) => Promise<void>;
-  readonly handleDeleteTestimonial: (t: TestimonialRow) => Promise<void>;
+  readonly approveTestimonial: (t: TestimonialRow) => Promise<void>;
+  readonly deleteTestimonial: (t: TestimonialRow) => Promise<void>;
 }
 
-export default function TestimonialsTab({ testimonials, testiSearch, setTestiSearch, handleApproveTestimonial, handleDeleteTestimonial }: TestimonialsTabProps) {
+export default function TestimonialsTab({ testimonials, testiSearch, setTestiSearch, approveTestimonial, deleteTestimonial }: TestimonialsTabProps) {
   return (
             <div className="space-y-4">
               <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -72,13 +72,13 @@ export default function TestimonialsTab({ testimonials, testiSearch, setTestiSea
                               <td style={tdStyle}>
                                 <div className="flex gap-1">
                                   <button
-                                    onClick={() => handleApproveTestimonial(t)}
+                                    onClick={() => approveTestimonial(t)}
                                     className="text-xs px-2 py-1 rounded border transition-all hover:opacity-80"
                                     style={{ borderColor: t.approved ? BORDER3 : S_OK_BG, color: t.approved ? TEXT2 : S_OK_T }}>
                                     {t.approved ? 'Retirer' : '✓ Approuver'}
                                   </button>
                                   <button
-                                    onClick={() => handleDeleteTestimonial(t)}
+                                    onClick={() => deleteTestimonial(t)}
                                     className="text-xs px-2 py-1 rounded transition-all hover:opacity-80"
                                     style={{ background: S_ERR_BG, color: S_ERR_T }}>✕
                                   </button>

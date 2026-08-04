@@ -22,7 +22,7 @@ interface ProductMediaProps {
   readonly badgeColor: string;
   readonly interactiveHover: boolean;
   readonly inWishlist: boolean;
-  readonly onWishlist: () => void;
+  readonly toggleWishlist: () => void;
 }
 
 export default function ProductMedia({
@@ -32,7 +32,7 @@ export default function ProductMedia({
   badgeColor,
   interactiveHover,
   inWishlist,
-  onWishlist,
+  toggleWishlist,
 }: ProductMediaProps) {
   const [imgFailed, setImgFailed] = useState(false);
   return (
@@ -117,7 +117,7 @@ export default function ProductMedia({
 
         {/* ── Bouton wishlist — toujours visible ── */}
         <button
-          onClick={onWishlist}
+          onClick={toggleWishlist}
           style={{
             position: 'absolute',
             top: 10,

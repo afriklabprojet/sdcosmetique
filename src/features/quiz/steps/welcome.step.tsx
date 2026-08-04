@@ -11,10 +11,10 @@ import styles from '@/features/quiz/quiz.module.css';
 
 interface WelcomeStepProps {
   readonly hero: QuizHeroConfig;
-  readonly onStart: () => void;
+  readonly start: () => void;
 }
 
-export default function WelcomeStep({ hero, onStart }: WelcomeStepProps) {
+export default function WelcomeStep({ hero, start }: WelcomeStepProps) {
   return (
           <section className={styles.welcome}>
             <div className={styles.welcomeText}>
@@ -43,7 +43,7 @@ export default function WelcomeStep({ hero, onStart }: WelcomeStepProps) {
               </div>
 
               <div className={styles.welcomeActions}>
-                <button type="button" className={styles.btnPrimary} onClick={onStart}>
+                <button type="button" className={styles.btnPrimary} onClick={start}>
                   Commencer
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <line x1="5" y1="12" x2="19" y2="12" />

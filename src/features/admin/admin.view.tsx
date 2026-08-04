@@ -8,14 +8,14 @@ import { createClient } from '@/shared/supabase/browser.client';
 import { formatOrderDate, updateOrderStatus, OrderDraft } from '@/features/orders/order.store';
 import { formatPrice } from '@/features/catalog/product.query';
 import { Product, Category, SkinTone, Review } from '@/shared/types/domain.type';
-import { fetchAllReviewsFromDB, deleteReviewFromDB, approveReviewInDB } from '@/features/catalog/review.repository';
+import { fetchAllReviews, deleteReview, approveReview } from '@/features/catalog/review.repository';
 
 import { deleteProduct, saveSiteConfigSection } from '@/features/admin/admin-actions';
 import type { AdminTabStatus } from '@/features/admin/admin.type';
 import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
 import type { SiteConfig } from '@/features/site-config/site-config.type';
 import ImageUpload from '@/shared/ui/image.input';
-import { fetchAllTestimonialsAdmin, approveTestimonialInDB, deleteTestimonialFromDB } from '@/features/testimonials/testimonial.repository';
+import { fetchAllTestimonialsAdmin, approveTestimonial, deleteTestimonial } from '@/features/testimonials/testimonial.repository';
 import type { TestimonialRow } from '@/features/testimonials/testimonial.repository';
 import { fetchAllCategoriesAdmin } from '@/features/catalog/category.repository';
 import type { CategoryRow } from '@/features/catalog/category.repository';
@@ -84,8 +84,8 @@ async function patchAdminOrderStatus(orderNumber: string, status: OrderDraft['st
 type ProductEditModalProps = {
   /** Produit ouvert a l'edition. Le brouillon qui en decoule vit dans la modale. */
   initialProduct: ProductModalState;
-  onSave: (draft: ProductModalState) => void;
-  onClose: () => void;
+  saveDraft: (draft: ProductModalState) => void;
+  close: () => void;
   inputStyle: React.CSSProperties;
   SURFACE: string;
   TEXT: string;
@@ -98,7 +98,7 @@ type ProductEditModalProps = {
   BTN_BG: string;
   S_ERR_BG: string;
   S_ERR_T: string;
-  isSaving?: boolean;
+  saving?: boolean;
   saveError?: string | null;
 };
 
@@ -110,22 +110,22 @@ type ProductEditModalProps = {
  * quel produit ouvrir — c'est son affaire ; la saisie, non.
  */
 function ProductEditModal({ 
-  initialProduct, onSave, onClose, inputStyle,
+  initialProduct, saveDraft, close, inputStyle,
   SURFACE, TEXT, TEXT2, TEXT3, BORDER, BG, GOLD2, SURFACE2, BTN_BG, S_ERR_BG, S_ERR_T,
-  isSaving, saveError
+  saving, saveError
 }: Readonly<ProductEditModalProps>) {
   const [productModal, setProductModal] = useState<ProductModalState | null>(initialProduct);
 
   if (!productModal) return null;
 
   // Fonction utilitaire pour gérer les teintes compatibles
-  const handleSkinToneChange = (tone: SkinTone, isChecked: boolean) => {
+  const selectSkinTone = (tone: SkinTone, checked: boolean) => {
     setProductModal((p) => {
       if (!p) return p;
       const currentTones = p.skinTones ?? [];
       return {
         ...p,
-        skinTones: isChecked 
+        skinTones: checked 
           ? [...currentTones, tone] 
           : currentTones.filter((x) => x !== tone)
       };
@@ -133,13 +133,13 @@ function ProductEditModal({
   };
 
   const saveLabel = productModal._isNew ? '+ Ajouter' : '✓ Enregistrer';
-  const btnLabel = isSaving ? '⏳ Enregistrement...' : saveLabel;
+  const btnLabel = saving ? '⏳ Enregistrement...' : saveLabel;
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex' }}>
       <button 
-        onClick={() => onClose()} 
-        onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
+        onClick={() => close()} 
+        onKeyDown={(e) => { if (e.key === 'Escape') close(); }}
         style={{ 
           flex: 1, 
           background: 'rgba(0,0,0,0.7)', 
@@ -152,7 +152,7 @@ function ProductEditModal({
       <div style={{ width: '460px', background: SURFACE, borderLeft: `1px solid `, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <h2 style={{ color: TEXT, fontSize: '15px', fontWeight: 700 }}>{productModal._isNew ? '+ Nouveau produit' : 'Modifier le produit'}</h2>
-          <button onClick={() => onClose()} style={{ color: TEXT3, fontSize: '18px', lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+          <button onClick={() => close()} style={{ color: TEXT3, fontSize: '18px', lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
         </div>
         <div>
           <label htmlFor="product-name" style={{ fontSize: '11px', color: TEXT2, display: 'block', marginBottom: '4px' }}>Nom *</label>
@@ -322,7 +322,7 @@ function ProductEditModal({
                 </div>
                 <ImageUpload
                   value={img}
-                  onChange={(url: string) => setProductModal((p) => {
+                  selectImage={(url: string) => setProductModal((p) => {
                     if (!p) return p;
                     const imgs = [...(p.images ?? [])];
                     imgs[idx] = url;
@@ -355,7 +355,7 @@ function ProductEditModal({
                 <input 
                   type="checkbox" 
                   checked={(productModal.skinTones ?? []).includes(tone)} 
-                  onChange={(e) => handleSkinToneChange(tone, e.target.checked)} 
+                  onChange={(e) => selectSkinTone(tone, e.target.checked)} 
                   style={{ accentColor: GOLD2 }} 
                 />
                 <span style={{ fontSize: '12px', color: TEXT }}>{tone}</span>
@@ -383,7 +383,7 @@ function ProductEditModal({
         <fieldset>
           <legend style={{ fontSize: '11px', color: TEXT2, marginBottom: '6px' }}>Badges</legend>
           <div style={{ display: 'flex', gap: '20px' }}>
-            {([{ key: 'inStock', label: 'En stock' }, { key: 'isNew', label: 'Nouveau' }, { key: 'isBestseller', label: 'Bestseller' }]).map(({ key, label }) => (
+            {([{ key: 'inStock', label: 'En stock' }, { key: 'newArrival', label: 'Nouveau' }, { key: 'bestseller', label: 'Bestseller' }]).map(({ key, label }) => (
               <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                 <input type="checkbox" checked={!!((productModal as Record<string, unknown>)[key])} onChange={(e) => setProductModal((p) => p ? { ...p, [key]: e.target.checked } : p)} style={{ accentColor: GOLD2 }} />
                 <span style={{ fontSize: '12px', color: TEXT }}>{label}</span>
@@ -411,10 +411,10 @@ function ProductEditModal({
           </div>
         )}
         <div style={{ display: 'flex', gap: '8px', paddingTop: '12px', borderTop: `1px solid ${BTN_BG}` }}>
-          <button onClick={() => onSave(productModal)} disabled={isSaving || !productModal.name?.trim() || !productModal.slug?.trim() || !productModal.category || productModal.images?.filter((u: string) => u?.trim()).length === 0} style={{ flex: 1, padding: '10px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, background: GOLD2, color: BG, cursor: isSaving ? 'wait' : 'pointer', border: 'none', opacity: isSaving || !productModal.name?.trim() || !productModal.slug?.trim() || !productModal.category || productModal.images?.filter((u: string) => u?.trim()).length === 0 ? 0.4 : 1 }}>
+          <button onClick={() => saveDraft(productModal)} disabled={saving || !productModal.name?.trim() || !productModal.slug?.trim() || !productModal.category || productModal.images?.filter((u: string) => u?.trim()).length === 0} style={{ flex: 1, padding: '10px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, background: GOLD2, color: BG, cursor: saving ? 'wait' : 'pointer', border: 'none', opacity: saving || !productModal.name?.trim() || !productModal.slug?.trim() || !productModal.category || productModal.images?.filter((u: string) => u?.trim()).length === 0 ? 0.4 : 1 }}>
             {btnLabel}
           </button>
-          <button onClick={() => onClose()} disabled={isSaving} style={{ padding: '10px 16px', borderRadius: '6px', fontSize: '13px', background: SURFACE2, color: TEXT2, cursor: isSaving ? 'not-allowed' : 'pointer', border: 'none' }}>Annuler</button>
+          <button onClick={() => close()} disabled={saving} style={{ padding: '10px 16px', borderRadius: '6px', fontSize: '13px', background: SURFACE2, color: TEXT2, cursor: saving ? 'not-allowed' : 'pointer', border: 'none' }}>Annuler</button>
         </div>
       </div>
     </div>
@@ -480,7 +480,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
   const [editableProducts, setEditableProducts] = useState<EditableProduct[]>([]);
   // product modal (null = closed)
   const [productModal, setProductModal] = useState<ProductModalState | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
+  const [saving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   // delete confirmation
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
@@ -536,7 +536,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
     setUserEmail(user.email ?? '');
     fetchAdminOrders().then(setOrders).catch(() => setOrders([]));
     loadEditableProducts(setEditableProducts);
-    fetchAllReviewsFromDB().then(rows => setReviews(rows as ReviewRow[]));
+    fetchAllReviews().then(rows => setReviews(rows as ReviewRow[]));
     fetchAllTestimonialsAdmin().then(setTestimonials);
     fetchAllCategoriesAdmin().then(setCategories);
     fetchAllConcernsAdmin().then(setQuizConcerns);
@@ -562,13 +562,13 @@ export default function AdminPage() { // NOSONAR typescript:S3776
     });
   }, [router, initAfterAuth]);
 
-  const handleLogout = async () => {
+  const logout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push('/');
   };
 
-  const handleStatusChange = async (orderNumber: string, status: OrderStatus) => {
+  const changeStatus = async (orderNumber: string, status: OrderStatus) => {
     const previousOrders = orders;
     updateOrderStatus(orderNumber, status);
     setOrders(prev => prev.map(o => o.orderNumber === orderNumber ? { ...o, status } : o));
@@ -592,7 +592,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
   const openNewModal = () => setProductModal({
     _isNew: true, id: `p${Date.now()}`, name: '', slug: '', category: 'face' as Category,
     price: 0, images: [''], skinTones: [], benefits: [], rating: 0, reviewCount: 0,
-    shortDescription: '', description: '', usage: '', inStock: true, stockQty: 0, lowStockThreshold: 5, isNew: false, isBestseller: false,
+    shortDescription: '', description: '', usage: '', inStock: true, stockQty: 0, lowStockThreshold: 5, newArrival: false, bestseller: false,
   });
   const saveModal = async (draft: ProductModalState) => {
     if (!draft?.name?.trim() || !draft?.slug?.trim() || !draft?.category) return;
@@ -619,14 +619,14 @@ export default function AdminPage() { // NOSONAR typescript:S3776
       inStock: rest.inStock ?? true,
       stockQty: rest.stockQty,
       lowStockThreshold: rest.lowStockThreshold,
-      isNew: rest.isNew,
-      isBestseller: rest.isBestseller,
+      newArrival: rest.newArrival,
+      bestseller: rest.bestseller,
     };
     setIsSaving(true);
     setSaveError(null);
     try {
       console.log('[admin] POST /api/admin/products payload:', {
-        id: p.id, inStock: p.inStock, badges: p.badges, isNew: p.isNew, isBestseller: p.isBestseller, stockQty: p.stockQty,
+        id: p.id, inStock: p.inStock, badges: p.badges, newArrival: p.newArrival, bestseller: p.bestseller, stockQty: p.stockQty,
       });
       const res = await fetch('/api/admin/products', {
         method: 'POST',
@@ -653,17 +653,17 @@ export default function AdminPage() { // NOSONAR typescript:S3776
       setIsSaving(false);
     }
   };
-  const handleDeleteProduct = async (id: string) => {
+  const removeProduct = async (id: string) => {
     await deleteProduct(id);
     setEditableProducts(prev => prev.filter(p => p.id !== id));
     setConfirmDelete(null);
   };
-  const handleDeleteReview = async (id: string) => {
-    await deleteReviewFromDB(id);
+  const removeReview = async (id: string) => {
+    await deleteReview(id);
     setReviews(prev => prev.filter(r => r.id !== id));
   };
-  const handleToggleReview = async (id: string, current: boolean) => {
-    await approveReviewInDB(id, !current);
+  const toggleReview = async (id: string, current: boolean) => {
+    await approveReview(id, !current);
     setReviews(prev => prev.map(r => r.id === id ? { ...r, verified: !current } : r));
   };
 
@@ -684,12 +684,12 @@ export default function AdminPage() { // NOSONAR typescript:S3776
   };
 
   // ── testimonials handlers ──
-  const handleApproveTestimonial = async (t: TestimonialRow) => {
-    await approveTestimonialInDB(t.id, !t.approved);
+  const toggleTestimonialApproval = async (t: TestimonialRow) => {
+    await approveTestimonial(t.id, !t.approved);
     setTestimonials(testimonials.map(x => x.id === t.id ? { ...x, approved: !t.approved } : x));
   };
-  const handleDeleteTestimonial = async (t: TestimonialRow) => {
-    await deleteTestimonialFromDB(t.id);
+  const removeTestimonial = async (t: TestimonialRow) => {
+    await deleteTestimonial(t.id);
     setTestimonials(testimonials.filter(x => x.id !== t.id));
   };
 
@@ -724,7 +724,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
     return reviews.filter(r => !q || r.author.toLowerCase().includes(q) || r.comment.toLowerCase().includes(q));
   }, [reviews, reviewSearch]);
 
-  const clientList = useMemo(() => {
+  const clients = useMemo(() => {
     const map = new Map<string, { email: string; name: string; orders: number; total: number; lastDate: string }>();
     orders.forEach(o => {
       const email = o.delivery.email;
@@ -742,8 +742,8 @@ export default function AdminPage() { // NOSONAR typescript:S3776
 
   const filteredClients = useMemo(() => {
     const q = clientSearch.toLowerCase();
-    return clientList.filter(c => !q || c.email.toLowerCase().includes(q) || c.name.toLowerCase().includes(q));
-  }, [clientList, clientSearch]);
+    return clients.filter(c => !q || c.email.toLowerCase().includes(q) || c.name.toLowerCase().includes(q));
+  }, [clients, clientSearch]);
 
   const reviewPageCount  = Math.max(1, Math.ceil(filteredReviews.length  / PER_PAGE));
   const clientPageCount  = Math.max(1, Math.ceil(filteredClients.length  / PER_PAGE));
@@ -805,7 +805,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
     if (res.ok) { setJekoTiersConf(updated); setJekoTierEdit(null); }
     else alert(res.error);
   };
-  const handleJekoAdjust = async () => {
+  const adjustJekoPoints = async () => {
     if (!jekoAdjModal) return;
     const pts = Number.parseInt(jekoAdjModal.pts, 10);
     if (Number.isNaN(pts) || pts === 0) { setJekoAdjMsg({ ok: false, text: 'Nombre de points invalide' }); return; }
@@ -949,7 +949,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
 
                     <ImageUpload
                       value={f.image}
-                      onChange={(url: string) => setSiteContent({ ...siteContent, hero: { ...siteContent.hero, image: url } })}
+                      selectImage={(url: string) => setSiteContent({ ...siteContent, hero: { ...siteContent.hero, image: url } })}
                       folder="hero"
                       label={hasImage ? 'Remplacer l’image' : 'Téléverser une image'}
                       previewSize={0}
@@ -973,19 +973,19 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                 <p className="text-xs font-semibold" style={{ color: TEXT2, textTransform: 'uppercase', letterSpacing: '0.08em' }}>● Contenu textuel</p>
                 {fields.map(([key, label, placeholder]) => {
                   const val = f[key] ?? '';
-                  const isLong = key === 'lead';
-                  const charLimit = isLong ? 120 : 60;
+                  const long = key === 'lead';
+                  const charLimit = long ? 120 : 60;
                   return (
                     <label key={String(key)} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                       <span className="text-xs" style={{ color: TEXT2, display: 'flex', justifyContent: 'space-between' }}>
                         <span>{label}</span>
                         {(key === 'title' || key === 'lead' || key === 'eyebrow') && (
                           <span style={{ color: val.length > charLimit ? '#F59E0B' : TEXT3, fontSize: '10px' }}>
-                            {val.length} {isLong ? '/ 120' : '/ 60'}
+                            {val.length} {long ? '/ 120' : '/ 60'}
                           </span>
                         )}
                       </span>
-                      {isLong ? (
+                      {long ? (
                         <textarea value={val} placeholder={placeholder} rows={2}
                           onChange={e => setSiteContent({ ...siteContent, hero: { ...siteContent.hero, [key]: e.target.value } })}
                           style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '8px 12px', color: TEXT, fontSize: '13px', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }} />
@@ -1058,7 +1058,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
             </span>
           )}
           <Link href="/" style={{ fontSize: '11px', color: TEXT2, padding: '6px 12px', borderRadius: '6px', background: SURFACE, border: `1px solid ${BORDER}`, textDecoration: 'none' }}>← Voir le site</Link>
-          <button onClick={handleLogout} style={{ fontSize: '11px', padding: '6px 12px', borderRadius: '6px', background: SURFACE, border: `1px solid ${BORDER}`, color: TEXT3, cursor: 'pointer' }}>Déconnexion</button>
+          <button onClick={logout} style={{ fontSize: '11px', padding: '6px 12px', borderRadius: '6px', background: SURFACE, border: `1px solid ${BORDER}`, color: TEXT3, cursor: 'pointer' }}>Déconnexion</button>
         </div>
       </header>
 
@@ -1083,13 +1083,13 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               { id: 'produits',     label: 'Produits',         icon: '◇', status: 'normal' },
               { id: 'avis',         label: 'Avis',             icon: '★', status: reviews.some(r => !r.verified) ? 'warning' : 'normal' },
             ] as { id: Tab; label: string; icon: string; status: AdminTabStatus }[]).map(item => {
-              const isActive = tab === item.id;
-              const bgColor = isActive ? 'linear-gradient(90deg, rgba(212,162,90,0.18) 0%, rgba(212,162,90,0.08) 100%)' : 'transparent';
-              const borderColor = isActive ? GOLD : 'transparent';
+              const active = tab === item.id;
+              const bgColor = active ? 'linear-gradient(90deg, rgba(212,162,90,0.18) 0%, rgba(212,162,90,0.08) 100%)' : 'transparent';
+              const borderColor = active ? GOLD : 'transparent';
               return (
                 <button key={item.id} onClick={() => { setTab(item.id); setSidebarOpen(false); }}
-                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderRadius: '10px', fontSize: '13px', textAlign: 'left', cursor: 'pointer', border: 'none', marginBottom: '4px', transition: 'all .2s ease', background: bgColor, color: isActive ? '#F7EFE5' : '#C4A574', fontWeight: isActive ? 700 : 500, borderLeft: `3px solid ${borderColor}`, boxShadow: isActive ? '0 2px 8px rgba(212,162,90,0.15)' : 'none' }}>
-                  <span style={{ fontSize: '15px', opacity: isActive ? 1 : 0.8, color: isActive ? GOLD : '#A8956B' }}>{item.icon}</span>
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderRadius: '10px', fontSize: '13px', textAlign: 'left', cursor: 'pointer', border: 'none', marginBottom: '4px', transition: 'all .2s ease', background: bgColor, color: active ? '#F7EFE5' : '#C4A574', fontWeight: active ? 700 : 500, borderLeft: `3px solid ${borderColor}`, boxShadow: active ? '0 2px 8px rgba(212,162,90,0.15)' : 'none' }}>
+                  <span style={{ fontSize: '15px', opacity: active ? 1 : 0.8, color: active ? GOLD : '#A8956B' }}>{item.icon}</span>
                   <span style={{ flex: 1 }}>{item.label}</span>
                   {item.id === 'commandes' && ordersInProgress > 0 && (
                     <span style={{ fontSize: '11px', background: 'linear-gradient(135deg, #DC2626, #B91C1C)', color: '#FEE2E2', padding: '3px 8px', borderRadius: '99px', fontWeight: 700, boxShadow: '0 2px 4px rgba(220,38,38,0.3)' }}>{ordersInProgress}</span>
@@ -1111,16 +1111,16 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               { id: 'faq',         label: 'FAQ',            desc: 'Questions / Réponses',         icon: '❔', status: 'normal' },
               { id: 'legal',       label: 'Pages légales',  desc: 'CGV, Confidentialité, Contact', icon: '📄', status: 'normal' },
             ] as { id: Tab; label: string; desc: string; icon: string; status: AdminTabStatus }[]).map(item => {
-              const isActive = tab === item.id;
-              const bgColor = isActive ? 'linear-gradient(90deg, rgba(212,162,90,0.18) 0%, rgba(212,162,90,0.08) 100%)' : 'transparent';
-              const borderColor = isActive ? GOLD : 'transparent';
+              const active = tab === item.id;
+              const bgColor = active ? 'linear-gradient(90deg, rgba(212,162,90,0.18) 0%, rgba(212,162,90,0.08) 100%)' : 'transparent';
+              const borderColor = active ? GOLD : 'transparent';
               return (
                 <button key={item.id} onClick={() => { setTab(item.id); setSidebarOpen(false); }}
-                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '11px', padding: '9px 14px', borderRadius: '10px', textAlign: 'left', cursor: 'pointer', border: 'none', marginBottom: '3px', transition: 'all .2s ease', background: bgColor, color: isActive ? '#F7EFE5' : '#C4A574', borderLeft: `3px solid ${borderColor}`, boxShadow: isActive ? '0 2px 8px rgba(212,162,90,0.15)' : 'none' }}>
-                  <span style={{ fontSize: '16px', opacity: isActive ? 1 : 0.75, color: isActive ? GOLD : '#A8956B', flexShrink: 0 }}>{item.icon}</span>
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '11px', padding: '9px 14px', borderRadius: '10px', textAlign: 'left', cursor: 'pointer', border: 'none', marginBottom: '3px', transition: 'all .2s ease', background: bgColor, color: active ? '#F7EFE5' : '#C4A574', borderLeft: `3px solid ${borderColor}`, boxShadow: active ? '0 2px 8px rgba(212,162,90,0.15)' : 'none' }}>
+                  <span style={{ fontSize: '16px', opacity: active ? 1 : 0.75, color: active ? GOLD : '#A8956B', flexShrink: 0 }}>{item.icon}</span>
                   <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: isActive ? 700 : 600, lineHeight: 1.3 }}>{item.label}</span>
-                    <span style={{ fontSize: '10px', color: isActive ? 'rgba(247,239,229,0.55)' : '#6B5A3E', fontWeight: 400, lineHeight: 1.3 }}>{item.desc}</span>
+                    <span style={{ fontSize: '12px', fontWeight: active ? 700 : 600, lineHeight: 1.3 }}>{item.label}</span>
+                    <span style={{ fontSize: '10px', color: active ? 'rgba(247,239,229,0.55)' : '#6B5A3E', fontWeight: 400, lineHeight: 1.3 }}>{item.desc}</span>
                   </span>
                 </button>
               );
@@ -1132,17 +1132,17 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               { id: 'jeko',       label: 'Fidélité',   desc: 'Points SDZ, paliers, cadeaux', icon: '✦',  status: 'premium' },
               { id: 'newsletter', label: 'Newsletter', desc: 'Abonnés & campagnes email',     icon: '✉',  status: 'normal' },
             ] as { id: Tab; label: string; desc: string; icon: string; status: AdminTabStatus }[]).map(item => {
-              const isActive = tab === item.id;
-              let bgColor = isActive ? 'linear-gradient(90deg, rgba(212,162,90,0.18) 0%, rgba(212,162,90,0.08) 100%)' : 'transparent';
-              if (item.status === 'premium' && !isActive) bgColor = 'linear-gradient(90deg, rgba(212,162,90,0.08) 0%, rgba(212,162,90,0.04) 100%)';
-              const borderColor = isActive ? GOLD : 'transparent';
+              const active = tab === item.id;
+              let bgColor = active ? 'linear-gradient(90deg, rgba(212,162,90,0.18) 0%, rgba(212,162,90,0.08) 100%)' : 'transparent';
+              if (item.status === 'premium' && !active) bgColor = 'linear-gradient(90deg, rgba(212,162,90,0.08) 0%, rgba(212,162,90,0.04) 100%)';
+              const borderColor = active ? GOLD : 'transparent';
               return (
                 <button key={item.id} onClick={() => { setTab(item.id); setSidebarOpen(false); }}
-                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '11px', padding: '9px 14px', borderRadius: '10px', textAlign: 'left', cursor: 'pointer', border: 'none', marginBottom: '3px', transition: 'all .2s ease', background: bgColor, color: isActive ? '#F7EFE5' : '#C4A574', borderLeft: `3px solid ${borderColor}`, boxShadow: isActive ? '0 2px 8px rgba(212,162,90,0.15)' : 'none' }}>
-                  <span style={{ fontSize: '16px', opacity: isActive ? 1 : 0.75, color: getTabColor(isActive, item.status), flexShrink: 0 }}>{item.icon}</span>
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '11px', padding: '9px 14px', borderRadius: '10px', textAlign: 'left', cursor: 'pointer', border: 'none', marginBottom: '3px', transition: 'all .2s ease', background: bgColor, color: active ? '#F7EFE5' : '#C4A574', borderLeft: `3px solid ${borderColor}`, boxShadow: active ? '0 2px 8px rgba(212,162,90,0.15)' : 'none' }}>
+                  <span style={{ fontSize: '16px', opacity: active ? 1 : 0.75, color: getTabColor(active, item.status), flexShrink: 0 }}>{item.icon}</span>
                   <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: isActive ? 700 : 600, lineHeight: 1.3 }}>{item.label}</span>
-                    <span style={{ fontSize: '10px', color: isActive ? 'rgba(247,239,229,0.55)' : '#6B5A3E', fontWeight: 400, lineHeight: 1.3 }}>{item.desc}</span>
+                    <span style={{ fontSize: '12px', fontWeight: active ? 700 : 600, lineHeight: 1.3 }}>{item.label}</span>
+                    <span style={{ fontSize: '10px', color: active ? 'rgba(247,239,229,0.55)' : '#6B5A3E', fontWeight: 400, lineHeight: 1.3 }}>{item.desc}</span>
                   </span>
                   {item.status === 'premium' && (
                     <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'linear-gradient(135deg, #FFD700, #FFC107)', boxShadow: '0 0 8px rgba(255,215,0,0.5)', flexShrink: 0 }} />
@@ -1159,17 +1159,17 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               { id: 'branding',  label: 'Branding',    desc: 'Couleurs, logo, police',     icon: '🎨', status: 'normal' },
               { id: 'paiement',  label: 'Paiement',   desc: 'Moyens de paiement visibles', icon: '💳', status: 'normal' },
             ] as { id: Tab; label: string; desc: string; icon: string; status: AdminTabStatus }[]).map(item => {
-              const isActive = tab === item.id;
-              let bgColor = isActive ? 'linear-gradient(90deg, rgba(212,162,90,0.18) 0%, rgba(212,162,90,0.08) 100%)' : 'transparent';
-              if (item.status === 'important' && !isActive) bgColor = 'linear-gradient(90deg, rgba(16,185,129,0.08) 0%, rgba(16,185,129,0.04) 100%)';
-              const borderColor = isActive ? GOLD : 'transparent';
+              const active = tab === item.id;
+              let bgColor = active ? 'linear-gradient(90deg, rgba(212,162,90,0.18) 0%, rgba(212,162,90,0.08) 100%)' : 'transparent';
+              if (item.status === 'important' && !active) bgColor = 'linear-gradient(90deg, rgba(16,185,129,0.08) 0%, rgba(16,185,129,0.04) 100%)';
+              const borderColor = active ? GOLD : 'transparent';
               return (
                 <button key={item.id} onClick={() => { setTab(item.id); setSidebarOpen(false); }}
-                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '11px', padding: '9px 14px', borderRadius: '10px', textAlign: 'left', cursor: 'pointer', border: 'none', marginBottom: '3px', transition: 'all .2s ease', background: bgColor, color: isActive ? '#F7EFE5' : '#C4A574', borderLeft: `3px solid ${borderColor}`, boxShadow: isActive ? '0 2px 8px rgba(212,162,90,0.15)' : 'none' }}>
-                  <span style={{ fontSize: '16px', opacity: isActive ? 1 : 0.75, color: getTabColor(isActive, item.status), flexShrink: 0 }}>{item.icon}</span>
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '11px', padding: '9px 14px', borderRadius: '10px', textAlign: 'left', cursor: 'pointer', border: 'none', marginBottom: '3px', transition: 'all .2s ease', background: bgColor, color: active ? '#F7EFE5' : '#C4A574', borderLeft: `3px solid ${borderColor}`, boxShadow: active ? '0 2px 8px rgba(212,162,90,0.15)' : 'none' }}>
+                  <span style={{ fontSize: '16px', opacity: active ? 1 : 0.75, color: getTabColor(active, item.status), flexShrink: 0 }}>{item.icon}</span>
                   <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: isActive ? 700 : 600, lineHeight: 1.3 }}>{item.label}</span>
-                    <span style={{ fontSize: '10px', color: isActive ? 'rgba(247,239,229,0.55)' : '#6B5A3E', fontWeight: 400, lineHeight: 1.3 }}>{item.desc}</span>
+                    <span style={{ fontSize: '12px', fontWeight: active ? 700 : 600, lineHeight: 1.3 }}>{item.label}</span>
+                    <span style={{ fontSize: '10px', color: active ? 'rgba(247,239,229,0.55)' : '#6B5A3E', fontWeight: 400, lineHeight: 1.3 }}>{item.desc}</span>
                   </span>
                   {item.status === 'important' && (
                     <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'linear-gradient(135deg, #10B981, #059669)', boxShadow: '0 0 8px rgba(16,185,129,0.5)', flexShrink: 0 }} />
@@ -1188,7 +1188,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <button onClick={() => router.push('/')} style={{ width: '28px', height: '28px', borderRadius: '6px', background: 'rgba(212,162,90,0.15)', border: 'none', color: GOLD, fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s' }} title="Voir le site">👁</button>
-              <button onClick={handleLogout} style={{ width: '28px', height: '28px', borderRadius: '6px', background: 'rgba(220,38,38,0.15)', border: 'none', color: '#F87171', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }} title="Déconnexion">⏻</button>
+              <button onClick={logout} style={{ width: '28px', height: '28px', borderRadius: '6px', background: 'rgba(220,38,38,0.15)', border: 'none', color: '#F87171', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }} title="Déconnexion">⏻</button>
             </div>
           </div>
         </aside>
@@ -1220,8 +1220,8 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               recentOrders={recentOrders}
               last7Days={last7Days}
               maxDay={maxDay}
-              onNavigate={setTab}
-              onOpenDetail={setOrderDetail}
+              navigate={setTab}
+              openDetail={setOrderDetail}
               thStyle={thStyle}
               tdStyle={tdStyle}
             />
@@ -1231,8 +1231,8 @@ export default function AdminPage() { // NOSONAR typescript:S3776
           {tab === 'commandes' && (
             <OrdersTab
               orders={orders}
-              onOpenDetail={setOrderDetail}
-              handleStatusChange={handleStatusChange}
+              openDetail={setOrderDetail}
+              changeStatus={changeStatus}
               thStyle={thStyle}
               tdStyle={tdStyle}
             />
@@ -1244,7 +1244,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               editableProducts={editableProducts}
               openNewModal={openNewModal}
               openEditModal={openEditModal}
-              onRequestDelete={setConfirmDelete}
+              requestDelete={setConfirmDelete}
               card={card}
               inputStyle={inputStyle}
               thStyle={thStyle}
@@ -1253,16 +1253,16 @@ export default function AdminPage() { // NOSONAR typescript:S3776
           )}
 
           {/* ─── AVIS TAB ─── */}
-          {tab === 'avis' && <ReviewsTab reviews={reviews} filteredReviews={filteredReviews} pagedReviews={pagedReviews} reviewPage={reviewPage} reviewPageCount={reviewPageCount} reviewSearch={reviewSearch} setReviewPage={setReviewPage} setReviewSearch={setReviewSearch} handleDeleteReview={handleDeleteReview} handleToggleReview={handleToggleReview} />}
+          {tab === 'avis' && <ReviewsTab reviews={reviews} filteredReviews={filteredReviews} pagedReviews={pagedReviews} reviewPage={reviewPage} reviewPageCount={reviewPageCount} reviewSearch={reviewSearch} setReviewPage={setReviewPage} setReviewSearch={setReviewSearch} deleteReview={removeReview} toggleReview={toggleReview} />}
 
           {/* ─── TÉMOIGNAGES TAB ─── */}
-          {tab === 'temoignages' && <TestimonialsTab testimonials={testimonials} testiSearch={testiSearch} setTestiSearch={setTestiSearch} handleApproveTestimonial={handleApproveTestimonial} handleDeleteTestimonial={handleDeleteTestimonial} />}
+          {tab === 'temoignages' && <TestimonialsTab testimonials={testimonials} testiSearch={testiSearch} setTestiSearch={setTestiSearch} approveTestimonial={toggleTestimonialApproval} deleteTestimonial={removeTestimonial} />}
 
           {/* ─── CATEGORIES TAB ─── */}
           {tab === 'categories' && <CategoriesTab categories={categories} catModal={catModal} catSaving={catSaving} setCatModal={setCatModal} setCatSaving={setCatSaving} setCategories={setCategories} />}
 
           {/* ─── CLIENTS TAB ─── */}
-          {tab === 'clients' && <ClientsTab clientList={clientList} filteredClients={filteredClients} pagedClients={pagedClients} clientPage={clientPage} clientPageCount={clientPageCount} clientSearch={clientSearch} setClientPage={setClientPage} setClientSearch={setClientSearch} />}
+          {tab === 'clients' && <ClientsTab clients={clients} filteredClients={filteredClients} pagedClients={pagedClients} clientPage={clientPage} clientPageCount={clientPageCount} clientSearch={clientSearch} setClientPage={setClientPage} setClientSearch={setClientSearch} />}
 
           {/* ─── QUIZ TAB ─── */}
           {tab === 'quiz' && <QuizTab quizConcerns={quizConcerns} quizRoutines={quizRoutines} quizModal={quizModal} quizSaving={quizSaving} setQuizConcerns={setQuizConcerns} setQuizRoutines={setQuizRoutines} setQuizModal={setQuizModal} setQuizSaving={setQuizSaving} />}
@@ -1365,7 +1365,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                 {STATUS_OPTIONS.map(s => (
                   <button key={s.value}
                     onClick={() => {
-                      handleStatusChange(orderDetail.orderNumber, s.value);
+                      changeStatus(orderDetail.orderNumber, s.value);
                       setOrderDetail(prev => prev ? { ...prev, status: s.value } : null);
                     }}
                     style={{ padding: '4px 12px', borderRadius: '99px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', background: orderDetail.status === s.value ? s.bg : 'transparent', color: orderDetail.status === s.value ? s.color : TEXT3, border: `1px solid ${orderDetail.status === s.value ? 'transparent' : BORDER3}` }}>
@@ -1382,8 +1382,8 @@ export default function AdminPage() { // NOSONAR typescript:S3776
       {productModal && <ProductEditModal
         key={productModal.id}
         initialProduct={productModal}
-        onSave={saveModal}
-        onClose={() => setProductModal(null)}
+        saveDraft={saveModal}
+        close={() => setProductModal(null)}
         inputStyle={inputStyle}
         SURFACE={SURFACE}
         TEXT={TEXT}
@@ -1396,7 +1396,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
         BTN_BG={BTN_BG}
         S_ERR_BG={S_ERR_BG}
         S_ERR_T={S_ERR_T}
-        isSaving={isSaving}
+        saving={saving}
         saveError={saveError}
       />}
 
@@ -1436,7 +1436,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                 style={{ padding: '8px 16px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', border: `1px solid ${BORDER}`, background: 'transparent', color: TEXT2 }}>
                 Annuler
               </button>
-              <button onClick={handleJekoAdjust} disabled={jekoAdjSaving}
+              <button onClick={adjustJekoPoints} disabled={jekoAdjSaving}
                 style={{ padding: '8px 16px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', border: 'none', background: GOLD2, color: BG, opacity: jekoAdjSaving ? 0.5 : 1 }}>
                 {jekoAdjSaving ? '…' : 'Appliquer'}
               </button>
@@ -1531,7 +1531,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
             <p style={{ color: TEXT, marginBottom: '8px', fontWeight: 600 }}>Supprimer ce produit ?</p>
             <p style={{ color: TEXT3, fontSize: '12px', marginBottom: '24px' }}>Cette action est irréversible.</p>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={() => confirmDelete && handleDeleteProduct(confirmDelete)} style={{ flex: 1, padding: '9px', borderRadius: '6px', background: S_ERR_BG, color: S_ERR_T, fontSize: '13px', fontWeight: 600, cursor: 'pointer', border: 'none' }}>Supprimer</button>
+              <button onClick={() => confirmDelete && removeProduct(confirmDelete)} style={{ flex: 1, padding: '9px', borderRadius: '6px', background: S_ERR_BG, color: S_ERR_T, fontSize: '13px', fontWeight: 600, cursor: 'pointer', border: 'none' }}>Supprimer</button>
               <button onClick={() => setConfirmDelete(null)} style={{ flex: 1, padding: '9px', borderRadius: '6px', background: SURFACE2, color: TEXT2, fontSize: '13px', cursor: 'pointer', border: 'none' }}>Annuler</button>
             </div>
           </div>

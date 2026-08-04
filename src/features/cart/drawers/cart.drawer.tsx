@@ -10,7 +10,7 @@ import { fetchSiteConfigSection } from '@/features/site-config/site-config.util'
 import type { ShippingConfig, ShippingOption } from '@/features/site-config/site-config.type';
 
 export default function CartDrawer() {
-  const { items, isOpen, closeCart, removeItem, updateQty, totalPrice, totalItems } = useCart();
+  const { items, open, closeCart, removeItem, updateQty, totalPrice, totalItems } = useCart();
   const [shippingCfg, setShippingCfg] = useState<ShippingConfig>(DEFAULT_SITE_CONFIG.shipping);
   useEffect(() => { fetchSiteConfigSection('shipping').then(setShippingCfg).catch(() => {}); }, []);
 
@@ -20,7 +20,7 @@ export default function CartDrawer() {
   return (
     <>
       {/* Backdrop */}
-      {isOpen && (
+      {open && (
         <button
           type="button"
           aria-label="Fermer le panier"
@@ -44,9 +44,9 @@ export default function CartDrawer() {
       {/* Drawer */}
       <div
         role="dialog"
-        aria-modal={isOpen || undefined}
+        aria-modal={open || undefined}
         aria-label="Panier"
-        aria-hidden={!isOpen}
+        aria-hidden={!open}
         className="flex flex-col w-full max-w-md transition-transform duration-500"
         style={{
           position: 'absolute',
@@ -54,9 +54,9 @@ export default function CartDrawer() {
           right: 0,
           height: '100%',
           background: 'white',
-          transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
+          transform: open ? 'translateX(0)' : 'translateX(100%)',
           boxShadow: 'var(--shadow-xl)',
-          pointerEvents: isOpen ? 'auto' : 'none',
+          pointerEvents: open ? 'auto' : 'none',
         }}
       >
         {/* Annonce SR live — mise à jour à chaque changement du panier */}

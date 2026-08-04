@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import type { PromoBanner } from '@/features/site-config/site-config.type';
 import type { GlobalPromoConfig } from '@/features/site-config/site-config.type';
-import { isPromoActive } from '@/features/promo/promo.util';
+import { promoActive } from '@/features/promo/promo.util';
 
 interface PromoBannerProps {
   banners: PromoBanner[];
@@ -40,7 +40,7 @@ export default function PromoBannerBar({ banners, globalPromo }: Readonly<PromoB
   );
 
   // ── Bannière promotion globale (priorité) ────────────────────────────────────
-  if (globalPromo && isPromoActive(globalPromo)) {
+  if (globalPromo && promoActive(globalPromo)) {
     return (
       <header
         role="banner"

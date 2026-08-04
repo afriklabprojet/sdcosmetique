@@ -8,7 +8,7 @@
  */
 
 import {
-  getJekoTierFromList, formatJekoDate, reasonLabel,
+  resolveJekoTier, formatJekoDate, reasonLabel,
   type JekoConfig, type JekoReward, type JekoTransaction,
 } from '@/features/loyalty/jeko.repository';
 import { getTierGradient, getTransactionIcon, jekoNextLabel } from '@/features/account/account.util';
@@ -16,7 +16,7 @@ import { getTierGradient, getTransactionIcon, jekoNextLabel } from '@/features/a
 type Message = { type: 'ok' | 'err'; text: string } | null;
 
 interface LoyaltyTabProps {
-  readonly isMobile: boolean;
+  readonly mobile: boolean;
   readonly displayEmail: string;
   readonly memberName: string;
   readonly userPoints: number;
@@ -26,14 +26,14 @@ interface LoyaltyTabProps {
   readonly setRedeemingReward: (r: JekoReward | null) => void;
   readonly redeemMsg: Message;
   readonly setRedeemMsg: (m: Message) => void;
-  readonly handleRedeemReward: () => void;
+  readonly redeemReward: () => void;
 }
 
 export default function LoyaltyTab({
-  isMobile, displayEmail, memberName, userPoints, jekoHistory, jekoConfig,
-  redeemingReward, setRedeemingReward, redeemMsg, setRedeemMsg, handleRedeemReward,
+  mobile, displayEmail, memberName, userPoints, jekoHistory, jekoConfig,
+  redeemingReward, setRedeemingReward, redeemMsg, setRedeemMsg, redeemReward,
 }: LoyaltyTabProps) {
-  const tier = getJekoTierFromList(userPoints, jekoConfig.tiers);
+  const tier = resolveJekoTier(userPoints, jekoConfig.tiers);
   const nextPts = tier.next === Infinity ? userPoints : tier.next;
   const progress = tier.next === Infinity ? 100 : Math.min(100, Math.round((userPoints / tier.next) * 100));
 
@@ -75,7 +75,7 @@ export default function LoyaltyTab({
                             Annuler
                           </button>
                           <button
-                            onClick={handleRedeemReward}
+                            onClick={redeemReward}
                             style={{ flex: 1, padding: '12px 0', background: '#3D1400', border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer' }}
                           >
                             Confirmer
@@ -218,7 +218,7 @@ export default function LoyaltyTab({
                     <p style={{ fontSize: 12, fontWeight: 800, color: '#1A1A1A', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>
                       Récompenses disponibles
                     </p>
-                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: 12 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: mobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: 12 }}>
                       {jekoConfig.rewards.filter(r => r.active !== false).map(r => {
                         const unlocked = userPoints >= r.pts;
                         return (
@@ -259,7 +259,7 @@ export default function LoyaltyTab({
                     <p style={{ fontSize: 12, fontWeight: 800, color: '#1A1A1A', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>
                       Comment gagner des Jeko ?
                     </p>
-                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: 10 }}>
                       {[
                         { icon: '🛍️', title: 'Chaque achat', desc: '10 pts pour 1 000 FCFA dépensés' },
                         { icon: '🎉', title: 'Inscription', desc: '20 pts offerts à la bienvenue' },
@@ -292,7 +292,7 @@ export default function LoyaltyTab({
                       </p>
                     ) : (
                       jekoHistory.map((tx, i) => {
-                        const isCredit = tx.points > 0;
+                        const credit = tx.points > 0;
                         return (
                           <div
                             key={tx.id}
@@ -306,7 +306,7 @@ export default function LoyaltyTab({
                               <div style={{
                                 width: 32, height: 32, borderRadius: 10, flexShrink: 0,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                background: isCredit ? '#ECFDF5' : '#FEF2F2',
+                                background: credit ? '#ECFDF5' : '#FEF2F2',
                                 fontSize: 14,
                               }}>
                                 {getTransactionIcon(tx.reason)}
@@ -322,9 +322,9 @@ export default function LoyaltyTab({
                             </div>
                             <span style={{
                               fontSize: 15, fontWeight: 800,
-                              color: isCredit ? '#059669' : '#DC2626',
+                              color: credit ? '#059669' : '#DC2626',
                             }}>
-                              {isCredit ? '+' : ''}{tx.points} pts
+                              {credit ? '+' : ''}{tx.points} pts
                             </span>
                           </div>
                         );

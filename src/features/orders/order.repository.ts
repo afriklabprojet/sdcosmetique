@@ -12,7 +12,7 @@
  */
 import { createClient } from '@/shared/supabase/browser.client';
 import type { OrderDraft } from '@/features/orders/order.store';
-import { saveOrder, getOrders } from '@/features/orders/order.store';
+import { cacheOrder, getOrders } from '@/features/orders/order.store';
 import type { Product } from '@/shared/types/domain.type';
 
 // ─── Type intermédiaire pour les rows Supabase ────────────────────────────────
@@ -72,7 +72,7 @@ function rowToOrder(row: OrderRow): OrderDraft {
         category: 'face' as const,
         skinTones: [], badges: [], rating: 0, reviewCount: 0,
         shortDescription: '', description: '', benefits: [], usage: '',
-        inStock: true, isNew: false, isBestseller: false,
+        inStock: true, newArrival: false, bestseller: false,
       } as Product,
       quantity: i.quantity,
     })),
@@ -80,9 +80,9 @@ function rowToOrder(row: OrderRow): OrderDraft {
 }
 
 // ─── Sauvegarder une commande (DB + localStorage) ─────────────────────────────
-export async function saveOrderToDB(order: OrderDraft, userId?: string | null): Promise<void> {
+export async function saveOrder(order: OrderDraft, userId?: string | null): Promise<void> {
   // Toujours sauvegarder en localStorage (fallback)
-  saveOrder(order);
+  cacheOrder(order);
   try {
     const supabase = createClient();
     const { data: inserted, error } = await supabase
@@ -133,7 +133,7 @@ export async function saveOrderToDB(order: OrderDraft, userId?: string | null): 
 }
 
 // ─── Toutes les commandes (admin) ─────────────────────────────────────────────
-export async function fetchAllOrdersFromDB(): Promise<OrderDraft[]> {
+export async function fetchAllOrders(): Promise<OrderDraft[]> {
   try {
     const supabase = createClient();
     const { data, error } = await supabase
@@ -148,7 +148,7 @@ export async function fetchAllOrdersFromDB(): Promise<OrderDraft[]> {
 }
 
 // ─── Commandes d'un utilisateur (compte) ─────────────────────────────────────
-export async function fetchUserOrdersFromDB(userId: string): Promise<OrderDraft[]> {
+export async function fetchUserOrders(userId: string): Promise<OrderDraft[]> {
   try {
     const supabase = createClient();
     const { data, error } = await supabase
@@ -164,7 +164,7 @@ export async function fetchUserOrdersFromDB(userId: string): Promise<OrderDraft[
 }
 
 // ─── Mettre à jour le statut d'une commande ───────────────────────────────────
-export async function updateOrderStatusInDB(orderNumber: string, status: OrderDraft['status']): Promise<void> {
+export async function updateOrderStatus(orderNumber: string, status: OrderDraft['status']): Promise<void> {
   try {
     const supabase = createClient();
     await supabase

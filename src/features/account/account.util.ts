@@ -40,10 +40,10 @@ export function getTransactionIcon(reason: JekoTransaction['reason']): string {
   }
 }
 
-export function toProfileMeta(form: { prenom: string; nom: string; telephone: string }): Record<string, string> {
+export function toStoredProfile(form: { firstName: string; lastName: string; phone: string }): Record<string, string> {
   return {
-    ...(form.prenom ? { prenom: form.prenom } : {}),
-    ...(form.nom ? { nom: form.nom } : {}),
-    ...(form.telephone ? { telephone: form.telephone } : {}),
+    ...(form.firstName ? { firstName: form.firstName } : {}),
+    ...(form.lastName ? { lastName: form.lastName } : {}),
+    ...(form.phone ? { phone: form.phone } : {}),
   };
 }

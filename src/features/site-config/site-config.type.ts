@@ -90,7 +90,7 @@ export type QuizHeroConfig = {
 
 // ─── Héros pages teint ────────────────────────────────────────────────────────
 
-export type TeintHeroConfig = {
+export type SkinToneHeroConfig = {
   image: string;
 };
 
@@ -271,11 +271,11 @@ export type SiteConfig = {
   hero_kits: KitsHeroConfig;
   hero_duo: DuoHeroConfig;
   hero_quiz: QuizHeroConfig;
-  hero_teint_noir: TeintHeroConfig;
-  hero_teint_marron: TeintHeroConfig;
-  hero_teint_marron_clair: TeintHeroConfig;
-  hero_teint_clair: TeintHeroConfig;
-  hero_teint_metisse: TeintHeroConfig;
+  hero_teint_noir: SkinToneHeroConfig;
+  hero_teint_marron: SkinToneHeroConfig;
+  hero_teint_marron_clair: SkinToneHeroConfig;
+  hero_teint_clair: SkinToneHeroConfig;
+  hero_teint_metisse: SkinToneHeroConfig;
   skin_tone_section_title: string;
   product_tone_images: ProductToneImages;
   shipping: ShippingConfig;
@@ -296,18 +296,18 @@ export type SiteConfig = {
 
 /**
  * Verdict de validation d'un code promo, sans calcul de remise.
- * Le vocabulaire `isValid` decrit une validation, pas un succes d'operation :
+ * Le vocabulaire `valid` decrit une validation, pas un succes d'operation :
  * il reste distinct de OperationResult a dessein.
  */
 export interface PromoValidation {
-  isValid: boolean;
+  valid: boolean;
   code?: PromoCode;
   error?: string;
 }
 
 /** Application d'un code promo a un total de commande : verdict + montants. */
 export interface PromoApplication {
-  isValid: boolean;
+  valid: boolean;
   discount: number;
   finalTotal: number;
   error?: string;

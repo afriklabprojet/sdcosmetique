@@ -57,7 +57,7 @@ function resolveProvider(method: string): JekoPayProvider | null {
  */
 export async function POST(req: NextRequest) {
   try {
-    return await handleCheckout(req);
+    return await goToCheckout(req);
   } catch (e) {
     // Filet de sécurité : la route doit TOUJOURS répondre avec un body JSON,
     // jamais un 500 vide (que le client ne peut pas parser → « erreur réseau »).
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-async function handleCheckout(req: NextRequest) {
+async function goToCheckout(req: NextRequest) {
   // 10 tentatives de paiement / 10 min par IP
   const rl = await rateLimit(`checkout:${getIp(req)}`, { limit: 10, windowMs: 10 * 60 * 1000 });
   if (!rl.ok) {

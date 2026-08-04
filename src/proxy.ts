@@ -25,12 +25,12 @@ async function proxy(request: NextRequest) {
 
     const { data: { user } } = await supabase.auth.getUser();
 
-    const isAdmin =
+    const admin =
       user?.email &&
       ADMIN_EMAILS.length > 0 &&
       ADMIN_EMAILS.includes(user.email.toLowerCase());
 
-    if (!isAdmin) {
+    if (!admin) {
       const loginUrl = request.nextUrl.clone();
       loginUrl.pathname = '/admin/login';
       return NextResponse.redirect(loginUrl);

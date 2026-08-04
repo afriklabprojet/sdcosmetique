@@ -17,11 +17,11 @@ interface ReviewsTabProps {
   readonly reviewSearch: string;
   readonly setReviewPage: (n: number) => void;
   readonly setReviewSearch: (s: string) => void;
-  readonly handleDeleteReview: (id: string) => Promise<void>;
-  readonly handleToggleReview: (id: string, current: boolean) => Promise<void>;
+  readonly deleteReview: (id: string) => Promise<void>;
+  readonly toggleReview: (id: string, current: boolean) => Promise<void>;
 }
 
-export default function ReviewsTab({ reviews, filteredReviews, pagedReviews, reviewPage, reviewPageCount, reviewSearch, setReviewPage, setReviewSearch, handleDeleteReview, handleToggleReview }: ReviewsTabProps) {
+export default function ReviewsTab({ reviews, filteredReviews, pagedReviews, reviewPage, reviewPageCount, reviewSearch, setReviewPage, setReviewSearch, deleteReview, toggleReview }: ReviewsTabProps) {
   return (
             <div className="space-y-4">
               <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -64,12 +64,12 @@ export default function ReviewsTab({ reviews, filteredReviews, pagedReviews, rev
                               </td>
                               <td style={tdStyle}>
                                 <div className="flex gap-1">
-                                  <button onClick={() => handleToggleReview(r.id, r.verified)}
+                                  <button onClick={() => toggleReview(r.id, r.verified)}
                                     className="text-xs px-2 py-1 rounded border transition-all hover:opacity-80"
                                     style={{ borderColor: r.verified ? BORDER3 : S_OK_BG, color: r.verified ? TEXT2 : S_OK_T }}>
                                     {r.verified ? 'Retirer' : '✓ Approuver'}
                                   </button>
-                                  <button onClick={() => handleDeleteReview(r.id)} className="text-xs px-2 py-1 rounded transition-all hover:opacity-80" style={{ background: S_ERR_BG, color: S_ERR_T }}>✕</button>
+                                  <button onClick={() => deleteReview(r.id)} className="text-xs px-2 py-1 rounded transition-all hover:opacity-80" style={{ background: S_ERR_BG, color: S_ERR_T }}>✕</button>
                                 </div>
                               </td>
                             </tr>
@@ -77,7 +77,7 @@ export default function ReviewsTab({ reviews, filteredReviews, pagedReviews, rev
                         </tbody>
                       </table>
                     </div>
-                    {reviewPageCount > 1 && <Pagination page={reviewPage} total={reviewPageCount} onChange={setReviewPage} />}
+                    {reviewPageCount > 1 && <Pagination page={reviewPage} total={reviewPageCount} goToPage={setReviewPage} />}
                   </>
                 )}
               </div>

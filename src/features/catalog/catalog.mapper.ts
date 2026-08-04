@@ -25,8 +25,8 @@ export function rowToProduct(row: Record<string, unknown>): Product {
     inStock: Boolean(row.in_stock),
     stockQty: row.stock_qty == null ? undefined : Number(row.stock_qty),
     lowStockThreshold: row.low_stock_threshold == null ? undefined : Number(row.low_stock_threshold),
-    isNew: Boolean(row.is_new),
-    isBestseller: Boolean(row.is_bestseller),
+    newArrival: Boolean(row.is_new),
+    bestseller: Boolean(row.is_bestseller),
     resultsTitle: row.results_title == null ? undefined : (row.results_title as string),
     resultsSubtitle: row.results_subtitle == null ? undefined : (row.results_subtitle as string),
   };

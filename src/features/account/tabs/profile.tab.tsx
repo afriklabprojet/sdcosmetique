@@ -5,20 +5,20 @@
 import { createClient } from '@/shared/supabase/browser.client';
 
 type Message = { type: 'ok' | 'err'; text: string } | null;
-type ProfileForm = { prenom: string; nom: string; email: string; telephone: string; currentPwd: string; newPwd: string; confirmPwd: string };
+type ProfileForm = { firstName: string; lastName: string; email: string; phone: string; currentPwd: string; newPwd: string; confirmPwd: string };
 type PwdForm = { current: string; next: string; confirm: string };
 
 interface ProfileTabProps {
-  readonly isMobile: boolean;
+  readonly mobile: boolean;
   readonly displayEmail: string;
   readonly displayPhone: string;
-  readonly prenom: string;
-  readonly nom: string;
+  readonly firstName: string;
+  readonly lastName: string;
   readonly profileForm: ProfileForm;
   readonly setProfileForm: React.Dispatch<React.SetStateAction<ProfileForm>>;
   readonly profileSaving: boolean;
   readonly profileMsg: Message;
-  readonly handleProfileSave: () => void;
+  readonly saveProfileSection: () => void;
   readonly pwdForm: PwdForm;
   readonly setPwdForm: React.Dispatch<React.SetStateAction<PwdForm>>;
   readonly pwdMsg: Message;
@@ -26,8 +26,8 @@ interface ProfileTabProps {
 }
 
 export default function ProfileTab({
-  isMobile, displayEmail, displayPhone, prenom, nom,
-  profileForm, setProfileForm, profileSaving, profileMsg, handleProfileSave,
+  mobile, displayEmail, displayPhone, firstName, lastName,
+  profileForm, setProfileForm, profileSaving, profileMsg, saveProfileSection,
   pwdForm, setPwdForm, pwdMsg, setPwdMsg,
 }: ProfileTabProps) {
   return (
@@ -40,8 +40,8 @@ export default function ProfileTab({
                       {profileMsg.type === 'ok' ? '✅ ' : '❌ '}{profileMsg.text}
                     </div>
                   )}
-                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
-                    {[{ label: 'Prénom', key: 'prenom', placeholder: prenom || 'Votre prénom' }, { label: 'Nom', key: 'nom', placeholder: nom || 'Votre nom' }].map(f => (
+                  <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: 16 }}>
+                    {[{ label: 'Prénom', key: 'firstName', placeholder: firstName || 'Votre prénom' }, { label: 'Nom', key: 'lastName', placeholder: lastName || 'Votre nom' }].map(f => (
                       <div key={f.key}>
                         <label htmlFor={`profile-${f.key}`} style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6B3D14', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{f.label}</label>
                         <input
@@ -69,16 +69,16 @@ export default function ProfileTab({
                       <input
                         id="profile-phone"
                         type="tel"
-                        value={profileForm.telephone || displayPhone}
+                        value={profileForm.phone || displayPhone}
                         placeholder="+225 07 00 00 00 00"
-                        onChange={e => setProfileForm(p => ({ ...p, telephone: e.target.value }))}
+                        onChange={e => setProfileForm(p => ({ ...p, phone: e.target.value }))}
                         style={{ width: '100%', padding: '10px 14px', border: '1px solid #EDE8E0', borderRadius: 10, fontSize: 13, color: '#1A1A1A', background: '#FAFAF8', outline: 'none', boxSizing: 'border-box' }}
                       />
                     </div>
                   </div>
                   <button
                     disabled={profileSaving}
-                    onClick={handleProfileSave}
+                    onClick={saveProfileSection}
                     style={{ marginTop: 20, padding: '11px 28px', background: profileSaving ? '#9A8A7A' : '#3D1400', border: 'none', borderRadius: 10, color: '#fff', fontSize: 13, fontWeight: 700, cursor: profileSaving ? 'not-allowed' : 'pointer' }}
                   >
                     {profileSaving ? 'Enregistrement…' : 'Enregistrer les modifications'}

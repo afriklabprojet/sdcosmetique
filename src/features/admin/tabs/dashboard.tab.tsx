@@ -24,8 +24,8 @@ interface DashboardTabProps {
   recentOrders: OrderDraft[];
   last7Days: { label: string; value: number }[];
   maxDay: number;
-  onNavigate: (tab: Tab) => void;
-  onOpenDetail: (order: OrderDraft) => void;
+  navigate: (tab: Tab) => void;
+  openDetail: (order: OrderDraft) => void;
   thStyle: React.CSSProperties;
   tdStyle: React.CSSProperties;
 }
@@ -33,7 +33,7 @@ interface DashboardTabProps {
 export function DashboardTab({ 
   orders, editableProducts, reviews, totalRevenue, revenueThisMonth, 
   ordersInProgress, recentOrders, last7Days, maxDay, 
-  onNavigate, onOpenDetail, thStyle, tdStyle 
+  navigate, openDetail, thStyle, tdStyle 
 }: Readonly<DashboardTabProps>) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -43,7 +43,7 @@ export function DashboardTab({
           <h1 style={{ fontSize: '20px', fontWeight: 700, color: TITLE, letterSpacing: '-0.02em' }}>Tableau de bord</h1>
           <p style={{ fontSize: '12px', color: TEXT3, marginTop: '2px' }}>{new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
         </div>
-        <button onClick={() => onNavigate('commandes')} style={{ fontSize: '11px', padding: '7px 14px', borderRadius: '8px', border: `1px solid ${BORDER2}`, background: SURFACE2, color: TEXT2, cursor: 'pointer' }}>Toutes les commandes →</button>
+        <button onClick={() => navigate('commandes')} style={{ fontSize: '11px', padding: '7px 14px', borderRadius: '8px', border: `1px solid ${BORDER2}`, background: SURFACE2, color: TEXT2, cursor: 'pointer' }}>Toutes les commandes →</button>
       </div>
 
       {/* KPI grid */}
@@ -133,7 +133,7 @@ export function DashboardTab({
       <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '12px', overflow: 'hidden' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: `1px solid ${BORDER}` }}>
           <h2 style={{ fontSize: '13px', fontWeight: 600, color: TITLE }}>Dernières commandes</h2>
-          <button onClick={() => onNavigate('commandes')} style={{ fontSize: '11px', color: GOLD, background: 'none', border: 'none', cursor: 'pointer' }}>Voir tout →</button>
+          <button onClick={() => navigate('commandes')} style={{ fontSize: '11px', color: GOLD, background: 'none', border: 'none', cursor: 'pointer' }}>Voir tout →</button>
         </div>
         {recentOrders.length === 0 ? (
           <p style={{ textAlign: 'center', padding: '32px', fontSize: '12px', color: TEXT3 }}>Aucune commande enregistrée.</p>
@@ -148,7 +148,7 @@ export function DashboardTab({
                   <tr key={o.orderNumber} style={{ cursor: 'pointer', transition: 'background 0.15s' }}
                     onMouseEnter={e => (e.currentTarget.style.background = SURFACE2)}
                     onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                    onClick={() => onOpenDetail(o)}>
+                    onClick={() => openDetail(o)}>
                     <td style={tdStyle}><span style={{ color: GOLD, fontWeight: 600 }}>{o.orderNumber}</span></td>
                     <td style={tdStyle}>{formatOrderDate(o.date)}</td>
                     <td style={{ ...tdStyle, fontWeight: 500 }}>{o.delivery.firstName} {o.delivery.lastName}</td>

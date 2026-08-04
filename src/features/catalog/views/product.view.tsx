@@ -24,7 +24,7 @@ import ProductCard from '@/features/catalog/cards/product.card';
 import { useCart } from '@/features/cart/cart.store';
 import { useWishlist } from '@/features/wishlist/wishlist.store';
 import {
-  DARK, GOLD, GOLD2, BORDER, TXT, TXT2, BG,
+  DARK, GOLD, GOLD2, BORDER, TEXT, TEXT_MUTED, BG,
   toneImage, DEFAULT_TRUST, DEFAULT_PAYMENT_BADGES,
 } from '@/features/catalog/product-detail.constant';
 import { TRUST_ICONS, ProductWishlistIcon } from '@/features/catalog/assets/product-detail-icons';
@@ -48,7 +48,7 @@ interface Props {
 export default function ProductDetail({ product, related, reviews, trustItems, paymentBadges, toneImages }: Props) {
   const router               = useRouter();
   const { addItem }          = useCart();
-  const { toggle, isInWishlist } = useWishlist();
+  const { toggle, wishlistContains } = useWishlist();
 
   const trust    = trustItems    ?? DEFAULT_TRUST;
   const payments = paymentBadges ?? DEFAULT_PAYMENT_BADGES;
@@ -84,7 +84,7 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
   }, []);
 
   const category         = CATEGORIES.find(c => c.id === product.category);
-  const inWishlist       = isInWishlist(product.id);
+  const inWishlist       = wishlistContains(product.id);
   const discount         = product.originalPrice
     ? Math.round((1 - product.price / product.originalPrice) * 100)
     : null;
@@ -93,13 +93,13 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
     ? product.ingredients.split(',').slice(0, 6).map((s: string) => s.trim()).filter(Boolean)
     : product.benefits.slice(0, 4);
 
-  const handleAddToCart = () => {
+  const addProductToCart = () => {
     setAdding(true);
     for (let i = 0; i < qty; i++) addItem(product);
     setTimeout(() => setAdding(false), 1500);
   };
 
-  const handleBuyNow = () => {
+  const buyNow = () => {
     for (let i = 0; i < qty; i++) addItem(product);
     router.push('/checkout');
   };
@@ -108,12 +108,12 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
   const purchaseProps = {
     product,
     selectedTone,
-    onSelectTone: setSelectedTone,
+    selectTone: setSelectedTone,
     qty,
-    onChangeQty: changeQty,
+    changeQuantity: changeQty,
     payments,
-    handleAddToCart,
-    handleBuyNow,
+    addProductToCart,
+    buyNow,
     adding,
     discount,
     customToneImages,
@@ -124,14 +124,14 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
 
       {/* Breadcrumb */}
       <div className="max-w-350 mx-auto px-4 sm:px-6 lg:px-10 py-4">
-        <nav style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, fontSize: 12, color: TXT2 }}>
-          <Link href="/" style={{ color: TXT2, textDecoration: 'none' }}>Accueil</Link>
+        <nav style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, fontSize: 12, color: TEXT_MUTED }}>
+          <Link href="/" style={{ color: TEXT_MUTED, textDecoration: 'none' }}>Accueil</Link>
           <span>›</span>
-          <Link href={`/categorie/${product.category}`} style={{ color: TXT2, textDecoration: 'none' }}>
+          <Link href={`/categorie/${product.category}`} style={{ color: TEXT_MUTED, textDecoration: 'none' }}>
             {categoryLabel}
           </Link>
           <span>›</span>
-          <span style={{ color: TXT }}>{product.name}</span>
+          <span style={{ color: TEXT }}>{product.name}</span>
         </nav>
       </div>
 
@@ -155,7 +155,7 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
             <Image src={product.images[mainImg]} alt={product.name} fill priority
               sizes="(max-width:1280px) 35vw,450px"
               style={{ objectFit: 'cover' }} />
-            {product.isBestseller && (
+            {product.bestseller && (
               <div style={{ position: 'absolute', top: 18, right: 18, width: 72, height: 72, borderRadius: '50%', background: DARK, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,.25)' }}>
                 <span style={{ fontSize: 7.5, fontWeight: 900, color: 'white', letterSpacing: '0.08em', textTransform: 'uppercase', lineHeight: 1 }}>BEST</span>
                 <span style={{ fontSize: 7.5, fontWeight: 900, color: 'white', letterSpacing: '0.08em', textTransform: 'uppercase', lineHeight: 1.4 }}>SELLER</span>
@@ -193,7 +193,7 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
           {/* Main image */}
           <div style={{ position: 'relative', borderRadius: 6, overflow: 'hidden', background: 'white', aspectRatio: '1/1' }}>
             <Image src={product.images[mainImg]} alt={product.name} fill priority sizes="100vw" style={{ objectFit: 'cover' }} />
-            {product.isBestseller && (
+            {product.bestseller && (
               <div style={{ position: 'absolute', top: 14, right: 14, width: 64, height: 64, borderRadius: '50%', background: DARK, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                 <span style={{ fontSize: 7, fontWeight: 900, color: 'white', lineHeight: 1 }}>BEST</span>
                 <span style={{ fontSize: 7, fontWeight: 900, color: 'white', lineHeight: 1.4 }}>SELLER</span>
@@ -243,8 +243,8 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
               style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '18px 22px', borderColor: BORDER }}>
               <div style={{ flexShrink: 0 }}>{TRUST_ICONS[item.icon]}</div>
               <div>
-                <p style={{ fontSize: 13, fontWeight: 700, color: TXT, lineHeight: 1.3 }}>{item.label}</p>
-                <p style={{ fontSize: 12, color: TXT2 }}>{item.sub}</p>
+                <p style={{ fontSize: 13, fontWeight: 700, color: TEXT, lineHeight: 1.3 }}>{item.label}</p>
+                <p style={{ fontSize: 12, color: TEXT_MUTED }}>{item.sub}</p>
               </div>
             </div>
           ))}
@@ -256,13 +256,13 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
           reviews={reviews}
           keyIngredients={keyIngredients}
           activeTab={activeTab}
-          onSelectTab={setActiveTab}
+          selectTab={setActiveTab}
         />
 
         {/* ── Related products ───────────────────────────────────────── */}
         {related.length > 0 && (
           <div style={{ marginTop: 56 }}>
-            <h3 style={{ fontSize: 22, fontWeight: 800, color: TXT, fontFamily: 'Georgia,serif', marginBottom: 24 }}>
+            <h3 style={{ fontSize: 22, fontWeight: 800, color: TEXT, fontFamily: 'Georgia,serif', marginBottom: 24 }}>
               Plus de soins {category?.label.toLowerCase() ?? 'similaires'}
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
@@ -275,7 +275,7 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
 
       {/* ── Sticky CTA mobile (s'affiche quand la PurchaseCard sort du viewport) ── */}
       {showSticky && (
-        <StickyPurchase product={product} adding={adding} onAddToCart={handleAddToCart} />
+        <StickyPurchase product={product} adding={adding} addToCart={addProductToCart} />
       )}
 
     </div>

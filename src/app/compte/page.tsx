@@ -16,7 +16,7 @@ import { useRouter } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
 import { createClient } from '@/shared/supabase/browser.client';
 import { getOrders, formatOrderDate, OrderDraft } from '@/features/orders/order.store';
-import { fetchUserOrdersFromDB } from '@/features/orders/order.repository';
+import { fetchUserOrders } from '@/features/orders/order.repository';
 import { formatPrice } from '@/features/catalog/product.query';
 import { useWishlist } from '@/features/wishlist/wishlist.store';
 import {
@@ -27,7 +27,7 @@ import {
 } from '@/features/loyalty/jeko.repository';
 import { fetchSiteConfigSection } from '@/features/site-config/site-config.util';
 import { STATUS_MAP, type Address, type NavItem } from '@/features/account/account.constant';
-import { toProfileMeta } from '@/features/account/account.util';
+import { toStoredProfile } from '@/features/account/account.util';
 import { LockIcon } from '@/features/account/assets/account-icons';
 import AccountSidebar from '@/features/account/sidebars/account.sidebar';
 import DashboardTab from '@/features/account/tabs/dashboard.tab';
@@ -41,22 +41,22 @@ import LoyaltyTab from '@/features/account/tabs/loyalty.tab';
 import NewsletterTab from '@/features/account/tabs/newsletter.tab';
 import SettingsTab from '@/features/account/tabs/settings.tab';
 
-export default function ComptePage() {
+export default function AccountPage() {
   const router = useRouter();
-  const [isMobile, setIsMobile] = useState(false);
+  const [mobile, setIsMobile] = useState(false);
   const [active, setActive] = useState<NavItem>('dashboard');
   const [user, setUser] = useState<User | null>(null);
   const [orders, setOrders] = useState<OrderDraft[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Profil form
-  const [profileForm, setProfileForm] = useState({ prenom: '', nom: '', email: '', telephone: '', currentPwd: '', newPwd: '', confirmPwd: '' });
+  const [profileForm, setProfileForm] = useState({ firstName: '', lastName: '', email: '', phone: '', currentPwd: '', newPwd: '', confirmPwd: '' });
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileMsg, setProfileMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
   // Adresses
   const [addresses, setAddresses] = useState<Address[]>([]);
-  const [addrForm, setAddrForm] = useState<Address>({ id: '', label: 'Domicile', prenom: '', nom: '', rue: '', ville: '', code: '', pays: 'Côte d\'Ivoire', tel: '', isDefault: false });
+  const [addrForm, setAddrForm] = useState<Address>({ id: '', label: 'Domicile', firstName: '', lastName: '', street: '', city: '', postalCode: '', country: 'Côte d\'Ivoire', phone: '', preferred: false });
   const [showAddrForm, setShowAddrForm] = useState(false);
   const [editingAddr, setEditingAddr] = useState<string | null>(null);
 
@@ -104,21 +104,21 @@ export default function ComptePage() {
       setUser(data.user);
       setLoading(false);
       if (data.user) {
-        fetchUserOrdersFromDB(data.user.id).then(setOrders).catch(() => {});
+        fetchUserOrders(data.user.id).then(setOrders).catch(() => {});
 
         // Charger le profil depuis la table profiles
         const { data: profile } = await supabase
           .from('profiles')
-          .select('prenom, nom, telephone, newsletter, points')
+          .select('firstName, lastName, phone, newsletter, points')
           .eq('id', data.user.id)
           .single();
 
         if (profile) {
           setProfileForm(prev => ({
             ...prev,
-            prenom: profile.prenom ?? prev.prenom,
-            nom: profile.nom ?? prev.nom,
-            telephone: profile.telephone ?? prev.telephone,
+            firstName: profile.firstName ?? prev.firstName,
+            lastName: profile.lastName ?? prev.lastName,
+            phone: profile.phone ?? prev.phone,
           }));
           if (typeof profile.newsletter === 'boolean') setNewsletter(profile.newsletter);
           if (typeof profile.points === 'number') setUserPoints(profile.points);
@@ -133,7 +133,7 @@ export default function ComptePage() {
     });
   }, []);
 
-  const handleLogout = async () => {
+  const logout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push('/');
@@ -142,11 +142,11 @@ export default function ComptePage() {
   const { items: wishlistItems, removeItem: removeFromWishlist } = useWishlist();
 
   const cap = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : '';
-  const prenom = cap(user?.user_metadata?.prenom ?? profileForm.prenom ?? '');
-  const nom = cap(user?.user_metadata?.nom ?? profileForm.nom ?? '');
-  const displayName = [prenom, nom].filter(Boolean).join(' ') || 'Cliente';
+  const firstName = cap(user?.user_metadata?.prenom ?? profileForm.firstName ?? '');
+  const lastName = cap(user?.user_metadata?.nom ?? profileForm.lastName ?? '');
+  const displayName = [firstName, lastName].filter(Boolean).join(' ') || 'Cliente';
   const displayEmail = user?.email ?? '';
-  const displayPhone = user?.user_metadata?.telephone ?? profileForm.telephone ?? '';
+  const displayPhone = user?.user_metadata?.telephone ?? profileForm.phone ?? '';
   const createdAt = user?.created_at
     ? new Date(user.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
     : '';
@@ -159,11 +159,11 @@ export default function ComptePage() {
     status: STATUS_MAP[o.status] ?? 'Confirmée',
   }));
 
-  const handleProfileSave = async () => {
+  const saveProfileSection = async () => {
     setProfileSaving(true);
     setProfileMsg(null);
     const supabase = createClient();
-    const meta = toProfileMeta(profileForm);
+    const meta = toStoredProfile(profileForm);
     const updates: Record<string, unknown> = {
       ...(profileForm.email && profileForm.email !== displayEmail ? { email: profileForm.email } : {}),
       ...(Object.keys(meta).length ? { data: meta } : {}),
@@ -187,28 +187,28 @@ export default function ComptePage() {
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
   };
 
-  const handleSaveAddress = () => {
-    if (!addrForm.prenom || !addrForm.rue || !addrForm.ville) return;
+  const saveAddress = () => {
+    if (!addrForm.firstName || !addrForm.street || !addrForm.city) return;
 
     const newAddr = { ...addrForm, id: editingAddr || Date.now().toString() };
     setAddresses(prev => {
       const filtered = editingAddr ? prev.filter(a => a.id !== editingAddr) : prev;
-      const updated = addrForm.isDefault ? filtered.map(a => ({ ...a, isDefault: false })) : filtered;
+      const updated = addrForm.preferred ? filtered.map(a => ({ ...a, preferred: false })) : filtered;
       return [...updated, newAddr];
     });
     setShowAddrForm(false);
     setEditingAddr(null);
   };
 
-  const handleSetDefaultAddress = (addressId: string) => {
-    setAddresses(previous => previous.map(address => ({ ...address, isDefault: address.id === addressId })));
+  const preferAddress = (addressId: string) => {
+    setAddresses(previous => previous.map(address => ({ ...address, preferred: address.id === addressId })));
   };
 
-  const handleDeleteAddress = (addressId: string) => {
+  const deleteAddress = (addressId: string) => {
     setAddresses(previous => previous.filter(address => address.id !== addressId));
   };
 
-  const handleRedeemReward = async () => {
+  const redeemReward = async () => {
     if (!redeemingReward || !user) return;
     setRedeemMsg(null);
     const result = await redeemJekoPoints(user.id, redeemingReward);
@@ -258,7 +258,7 @@ export default function ComptePage() {
 
   return (
     <div style={{ background: '#F5F2EE', minHeight: '100vh' }}>
-      <div style={{ maxWidth: 1440, margin: '0 auto', padding: isMobile ? '18px 12px 0' : '28px 40px 0' }}>
+      <div style={{ maxWidth: 1440, margin: '0 auto', padding: mobile ? '18px 12px 0' : '28px 40px 0' }}>
 
         {/* ── BREADCRUMB ── */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#9A8A7A', marginBottom: 20 }}>
@@ -267,18 +267,18 @@ export default function ComptePage() {
           <span style={{ color: '#1A1A1A' }}>Mon compte</span>
         </div>
 
-        <div style={{ display: 'flex', gap: isMobile ? 14 : 24, alignItems: 'flex-start', flexDirection: isMobile ? 'column' : 'row' }}>
+        <div style={{ display: 'flex', gap: mobile ? 14 : 24, alignItems: 'flex-start', flexDirection: mobile ? 'column' : 'row' }}>
 
           <AccountSidebar
-            isMobile={isMobile}
+            mobile={mobile}
             active={active}
-            onNavigate={setActive}
+            navigate={setActive}
             initial={initial}
             displayName={displayName}
             displayEmail={displayEmail}
             userPoints={userPoints}
             jekoConfig={jekoConfig}
-            onLogout={handleLogout}
+            logout={logout}
           />
 
           {/* ════════════════════════════════
@@ -288,8 +288,8 @@ export default function ComptePage() {
 
             {active === 'dashboard' && (
               <DashboardTab
-                isMobile={isMobile}
-                onNavigate={setActive}
+                mobile={mobile}
+                navigate={setActive}
                 ordersForDisplay={ordersForDisplay}
                 displayName={displayName}
                 displayEmail={displayEmail}
@@ -307,16 +307,16 @@ export default function ComptePage() {
 
             {active === 'profil' && (
               <ProfileTab
-                isMobile={isMobile}
+                mobile={mobile}
                 displayEmail={displayEmail}
                 displayPhone={displayPhone}
-                prenom={prenom}
-                nom={nom}
+                firstName={firstName}
+                lastName={lastName}
                 profileForm={profileForm}
                 setProfileForm={setProfileForm}
                 profileSaving={profileSaving}
                 profileMsg={profileMsg}
-                handleProfileSave={handleProfileSave}
+                saveProfileSection={saveProfileSection}
                 pwdForm={pwdForm}
                 setPwdForm={setPwdForm}
                 pwdMsg={pwdMsg}
@@ -326,7 +326,7 @@ export default function ComptePage() {
 
             {active === 'adresses' && (
               <AddressesTab
-                isMobile={isMobile}
+                mobile={mobile}
                 addresses={addresses}
                 addrForm={addrForm}
                 setAddrForm={setAddrForm}
@@ -334,25 +334,25 @@ export default function ComptePage() {
                 setShowAddrForm={setShowAddrForm}
                 editingAddr={editingAddr}
                 setEditingAddr={setEditingAddr}
-                handleSaveAddress={handleSaveAddress}
-                handleSetDefaultAddress={handleSetDefaultAddress}
-                handleDeleteAddress={handleDeleteAddress}
+                saveAddress={saveAddress}
+                preferAddress={preferAddress}
+                deleteAddress={deleteAddress}
               />
             )}
 
             {active === 'paiements' && <PaymentsTab displayName={displayName} />}
 
             {active === 'favoris' && (
-              <WishlistTab isMobile={isMobile} wishlistItems={wishlistItems} removeFromWishlist={removeFromWishlist} />
+              <WishlistTab mobile={mobile} wishlistItems={wishlistItems} removeFromWishlist={removeFromWishlist} />
             )}
 
-            {active === 'avis' && <ReviewsTab isMobile={isMobile} ordersForDisplay={ordersForDisplay} />}
+            {active === 'avis' && <ReviewsTab mobile={mobile} ordersForDisplay={ordersForDisplay} />}
 
             {active === 'points' && (
               <LoyaltyTab
-                isMobile={isMobile}
+                mobile={mobile}
                 displayEmail={displayEmail}
-                memberName={`${profileForm.prenom} ${profileForm.nom}`.trim()}
+                memberName={`${profileForm.firstName} ${profileForm.lastName}`.trim()}
                 userPoints={userPoints}
                 jekoHistory={jekoHistory}
                 jekoConfig={jekoConfig}
@@ -360,7 +360,7 @@ export default function ComptePage() {
                 setRedeemingReward={setRedeemingReward}
                 redeemMsg={redeemMsg}
                 setRedeemMsg={setRedeemMsg}
-                handleRedeemReward={handleRedeemReward}
+                redeemReward={redeemReward}
               />
             )}
 
@@ -375,14 +375,14 @@ export default function ComptePage() {
             )}
 
             {active === 'parametres' && (
-              <SettingsTab isMobile={isMobile} deleteConfirm={deleteConfirm} setDeleteConfirm={setDeleteConfirm} />
+              <SettingsTab mobile={mobile} deleteConfirm={deleteConfirm} setDeleteConfirm={setDeleteConfirm} />
             )}
           </main>
         </div>
 
         {/* ── TRUST FOOTER ── */}
         <div style={{
-          display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: 0,
+          display: 'grid', gridTemplateColumns: mobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: 0,
           background: '#fff', borderRadius: 16, border: '1px solid #EDE8E0',
           margin: '24px 0 0', padding: '20px 0',
         }}>
@@ -395,9 +395,9 @@ export default function ComptePage() {
           ].map((t, i) => (
             <div key={t.title} style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
-              padding: isMobile ? '12px' : '0 16px',
-              borderRight: !isMobile && i < 4 ? '1px solid #F0EBE0' : 'none',
-              borderBottom: isMobile && i < 3 ? '1px solid #F0EBE0' : 'none',
+              padding: mobile ? '12px' : '0 16px',
+              borderRight: !mobile && i < 4 ? '1px solid #F0EBE0' : 'none',
+              borderBottom: mobile && i < 3 ? '1px solid #F0EBE0' : 'none',
             }}>
               <span style={{ fontSize: 24, marginBottom: 6 }}>{t.icon}</span>
               <p style={{ fontSize: 11, fontWeight: 700, color: '#1A1A1A', lineHeight: 1.3 }}>{t.title}</p>

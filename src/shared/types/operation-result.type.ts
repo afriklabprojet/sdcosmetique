@@ -8,8 +8,14 @@
  *
  * Les cles (`ok`, `error`, `id`) sont conservees telles quelles : plusieurs de
  * ces formes traversent une frontiere JSON (routes `/api/**`) et les renommer
- * changerait un contrat reseau. L'harmonisation du vocabulaire de succes
- * (`ok` / `success` / `isValid`) reste un finding `lexicon`.
+ * changerait un contrat reseau.
+ *
+ * Vague `lexicon` (F-122) : le succes d'une operation s'appelle `ok` partout
+ * dans le scope. Deux emplois de `success` subsistent et sont justifies : la
+ * cle des reponses JSON des routes `/api/**` (contrat reseau) et la propriete
+ * que renvoie le limiteur Upstash (nom impose par la bibliotheque). La
+ * validation d'un code promo garde son propre mot, `valid` : elle rend un
+ * verdict, pas un succes d'ecriture.
  */
 
 /** Ecriture qui ne rapporte qu'une erreur eventuelle : l'absence d'erreur vaut succes. */

@@ -9,11 +9,11 @@ import { CHECKOUT_PALETTE, CHECKOUT_INPUT_STYLE } from '@/features/checkout/chec
 interface DeliveryStepProps {
   /** Valeur deja validee, si l'acheteur revient sur cette etape. */
   readonly initialDelivery: DeliveryInfo;
-  readonly onSubmit: (delivery: DeliveryInfo) => void;
-  readonly onBack: () => void;
+  readonly submitDelivery: (delivery: DeliveryInfo) => void;
+  readonly back: () => void;
   readonly shippingOptions: ShippingOption[];
   readonly selectedShipping: ShippingOption | null;
-  readonly onSelectShipping: (opt: ShippingOption) => void;
+  readonly selectShipping: (opt: ShippingOption) => void;
 }
 
 /*
@@ -23,12 +23,12 @@ interface DeliveryStepProps {
  * Le mode de livraison, lui, change le total affiche dans le recapitulatif :
  * c'est un fait metier, il reste detenu par le parent.
  */
-export default function DeliveryStep({ initialDelivery, onSubmit, onBack, shippingOptions, selectedShipping, onSelectShipping }: DeliveryStepProps) {
+export default function DeliveryStep({ initialDelivery, submitDelivery, back, shippingOptions, selectedShipping, selectShipping }: DeliveryStepProps) {
   const [delivery, setDelivery] = useState<DeliveryInfo>(initialDelivery);
 
-  const handleSubmit = (e: React.SyntheticEvent) => {
+  const submitForm = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    onSubmit(delivery);
+    submitDelivery(delivery);
   };
 
   return (
@@ -36,7 +36,7 @@ export default function DeliveryStep({ initialDelivery, onSubmit, onBack, shippi
       <h2 style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: CHECKOUT_PALETTE.text, marginBottom: '24px' }}>
         Informations de livraison
       </h2>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <form onSubmit={submitForm} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div className="checkout-form-2col">
           <div>
             <label htmlFor="del-firstName" style={{ fontSize: '11px', fontWeight: 600, color: CHECKOUT_PALETTE.textMuted, display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Prénom *</label>
@@ -76,21 +76,21 @@ export default function DeliveryStep({ initialDelivery, onSubmit, onBack, shippi
             <p style={{ fontSize: '11px', fontWeight: 600, color: CHECKOUT_PALETTE.textMuted, display: 'block', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Mode de livraison *</p>
             <div role="radiogroup" aria-label="Mode de livraison" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {shippingOptions.map(opt => {
-                const isFree = opt.freeFrom != null;
-                const isSelected = selectedShipping?.id === opt.id;
+                const free = opt.freeFrom != null;
+                const selected = selectedShipping?.id === opt.id;
                 return (
-                  <div key={opt.id} role="radio" aria-checked={isSelected} tabIndex={0}
-                    onClick={() => onSelectShipping(opt)}
-                    onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); onSelectShipping(opt); } }}
-                    style={{ padding: '12px 14px', border: `1.5px solid ${isSelected ? CHECKOUT_PALETTE.accent : CHECKOUT_PALETTE.border}`, borderRadius: '6px', cursor: 'pointer', background: isSelected ? '#FDFAF7' : 'white', transition: 'border-color .15s', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+                  <div key={opt.id} role="radio" aria-checked={selected} tabIndex={0}
+                    onClick={() => selectShipping(opt)}
+                    onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); selectShipping(opt); } }}
+                    style={{ padding: '12px 14px', border: `1.5px solid ${selected ? CHECKOUT_PALETTE.accent : CHECKOUT_PALETTE.border}`, borderRadius: '6px', cursor: 'pointer', background: selected ? '#FDFAF7' : 'white', transition: 'border-color .15s', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ width: 16, height: 16, borderRadius: '50%', border: `2px solid ${isSelected ? CHECKOUT_PALETTE.accent : '#ccc'}`, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        {isSelected && <span style={{ width: 8, height: 8, borderRadius: '50%', background: CHECKOUT_PALETTE.accent, display: 'block' }} />}
+                      <span style={{ width: 16, height: 16, borderRadius: '50%', border: `2px solid ${selected ? CHECKOUT_PALETTE.accent : '#ccc'}`, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        {selected && <span style={{ width: 8, height: 8, borderRadius: '50%', background: CHECKOUT_PALETTE.accent, display: 'block' }} />}
                       </span>
                       <div>
                         <p style={{ fontSize: '13px', fontWeight: 600, color: CHECKOUT_PALETTE.text }}>{opt.label}</p>
                         {opt.description && <p style={{ fontSize: '11px', color: CHECKOUT_PALETTE.textMuted }}>{opt.description}</p>}
-                        {isFree && <p style={{ fontSize: '11px', color: '#16A34A' }}>Gratuite dès {formatPrice(opt.freeFrom)}</p>}
+                        {free && <p style={{ fontSize: '11px', color: '#16A34A' }}>Gratuite dès {formatPrice(opt.freeFrom)}</p>}
                       </div>
                     </div>
                     <span style={{ fontSize: '13px', fontWeight: 700, color: opt.cost === 0 ? '#16A34A' : CHECKOUT_PALETTE.text, flexShrink: 0 }}>
@@ -104,7 +104,7 @@ export default function DeliveryStep({ initialDelivery, onSubmit, onBack, shippi
         )}
 
         <div style={{ display: 'flex', gap: '10px', marginTop: '8px', justifyContent: 'space-between' }}>
-          <button type="button" onClick={onBack}
+          <button type="button" onClick={back}
             style={{ fontSize: '12px', color: CHECKOUT_PALETTE.textMuted, background: 'none', border: `1px solid ${CHECKOUT_PALETTE.border}`, borderRadius: '4px', padding: '10px 18px', cursor: 'pointer' }}>
             ← Retour
           </button>

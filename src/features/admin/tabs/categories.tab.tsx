@@ -5,7 +5,7 @@
 import React from 'react';
 import ImageUpload from '@/shared/ui/image.input';
 import Image from 'next/image';
-import { addCategoryToDB, deleteCategoryFromDB, fetchAllCategoriesAdmin, updateCategoryInDB, type CategoryRow } from '@/features/catalog/category.repository';
+import { addCategory, deleteCategory, fetchAllCategoriesAdmin, updateCategory, type CategoryRow } from '@/features/catalog/category.repository';
 import { BG, SURFACE, SURFACE2, BORDER, BORDER2, GOLD, TEXT, TEXT2, TEXT3, TITLE, TEXT_M, INFO_C, S_ERR_BG, S_ERR_T, S_OK_T, thStyle, tdStyle, card, inputStyle } from '@/features/admin/admin.constant';
 
 interface CategoriesTabProps {
@@ -69,7 +69,7 @@ export default function CategoriesTab({ categories, catModal, catSaving, setCatM
                                   style={{ borderColor: BORDER2, color: TEXT2 }}
                                 >Éditer</button>
                                 <button
-                                  onClick={async () => { if (confirm(`Supprimer "${cat.label}" ?`)) { await deleteCategoryFromDB(cat.id); setCategories(categories.filter(c => c.id !== cat.id)); } }}
+                                  onClick={async () => { if (confirm(`Supprimer "${cat.label}" ?`)) { await deleteCategory(cat.id); setCategories(categories.filter(c => c.id !== cat.id)); } }}
                                   className="text-xs px-2 py-1 rounded transition-all hover:opacity-80"
                                   style={{ background: S_ERR_BG, color: S_ERR_T }}
                                 >✕</button>
@@ -138,7 +138,7 @@ export default function CategoriesTab({ categories, catModal, catSaving, setCatM
                       {/* Image — upload drag & drop */}
                       <ImageUpload
                         value={catModal.image ?? ''}
-                        onChange={url => setCatModal(prev => prev ? { ...prev, image: url } : prev)}
+                        selectImage={url => setCatModal(prev => prev ? { ...prev, image: url } : prev)}
                         folder="categories"
                         label="Image de la catégorie"
                         previewSize={80}
@@ -164,14 +164,14 @@ export default function CategoriesTab({ categories, catModal, catSaving, setCatM
                             setCatSaving(true);
                             const { _isNew, id, created_at: _createdAt, ...fields } = catModal as CategoryRow & { _isNew?: boolean };
                             if (_isNew) {
-                              const { error } = await addCategoryToDB(fields as Omit<CategoryRow, 'id' | 'created_at'>);
+                              const { error } = await addCategory(fields as Omit<CategoryRow, 'id' | 'created_at'>);
                               if (!error) {
                                 const fresh = await fetchAllCategoriesAdmin();
                                 setCategories(fresh);
                                 setCatModal(null);
                               }
                             } else {
-                              await updateCategoryInDB(id, fields as Partial<Omit<CategoryRow, 'id' | 'created_at'>>);
+                              await updateCategory(id, fields as Partial<Omit<CategoryRow, 'id' | 'created_at'>>);
                               setCategories(prev => prev.map(c => c.id === id ? { ...c, ...fields } : c));
                               setCatModal(null);
                             }

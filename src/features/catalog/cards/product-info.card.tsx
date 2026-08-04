@@ -2,7 +2,7 @@
 
 /*
  * La moitie basse de la carte produit : nom, note, stock, prix, bouton
- * d'ajout. Extrait de `product.card.tsx` (F-115). `isLowStock` la suit :
+ * d'ajout. Extrait de `product.card.tsx` (F-115). `lowStock` la suit :
  * c'est la seule ligne du rendu qui pose la question, et personne d'autre
  * ne l'appelle.
  */
@@ -14,7 +14,7 @@ import StarRating from '@/features/catalog/star-rating';
 import { type EffectivePrice } from '@/features/promo/promo.util';
 import { AddedCheckIcon, AddToCartPlusIcon } from '@/features/catalog/assets/product-card-icons';
 
-function isLowStock(product: Product): boolean {
+function lowStock(product: Product): boolean {
   return product.stockQty !== undefined
     && product.stockQty > 0
     && product.stockQty <= (product.lowStockThreshold ?? 5);
@@ -25,10 +25,10 @@ interface ProductInfoProps {
   readonly category: { label: string } | undefined;
   readonly effectivePrice: EffectivePrice;
   readonly adding: boolean;
-  readonly onAddToCart: () => void;
+  readonly addToCart: () => void;
 }
 
-export default function ProductInfo({ product, category, effectivePrice, adding, onAddToCart }: ProductInfoProps) {
+export default function ProductInfo({ product, category, effectivePrice, adding, addToCart }: ProductInfoProps) {
   return (
       <div style={{ padding: '12px 13px 14px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px' }}>
@@ -64,7 +64,7 @@ export default function ProductInfo({ product, category, effectivePrice, adding,
             </div>
 
             {/* Stock faible */}
-            {isLowStock(product) && (
+            {lowStock(product) && (
               <p style={{ fontSize: '0.72rem', fontWeight: 700, color: '#DC2626', marginBottom: 6 }}>
                 ⚠ Plus que {product.stockQty} en stock
               </p>
@@ -92,7 +92,7 @@ export default function ProductInfo({ product, category, effectivePrice, adding,
 
           {/* Bouton + minimaliste façon Massimo Dutti */}
           <button
-            onClick={onAddToCart}
+            onClick={addToCart}
             disabled={!product.inStock}
             style={{
               width: 32,

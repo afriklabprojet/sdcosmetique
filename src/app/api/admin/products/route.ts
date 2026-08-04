@@ -61,8 +61,8 @@ export async function POST(req: NextRequest) {
         in_stock: product.inStock,
         stock_qty: product.stockQty ?? null,
         low_stock_threshold: product.lowStockThreshold ?? null,
-        is_new: product.isNew ?? false,
-        is_bestseller: product.isBestseller ?? false,
+        is_new: product.newArrival ?? false,
+        is_bestseller: product.bestseller ?? false,
       },
       { onConflict: 'id' },
     );

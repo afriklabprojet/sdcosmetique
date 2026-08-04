@@ -65,9 +65,9 @@ export default function QuizPage() {
   }, [step, answers.skinTone, answers.concern, answers.routine]);
 
   const stepIdx = STEPS.indexOf(step);
-  const isQuestion = step === 'q1' || step === 'q2' || step === 'q3';
-  const questionNum = isQuestion ? STEPS.indexOf(step) : 0;
-  const progress = isQuestion ? (questionNum / 3) * 100 : 0;
+  const question = step === 'q1' || step === 'q2' || step === 'q3';
+  const questionNum = question ? STEPS.indexOf(step) : 0;
+  const progress = question ? (questionNum / 3) * 100 : 0;
 
   const goTo = (next: QuizStep, patch?: Partial<QuizAnswers>) => {
     if (patch) setAnswers(prev => ({ ...prev, ...patch }));
@@ -119,7 +119,7 @@ export default function QuizPage() {
         </div>
 
         {/* PROGRESS RAIL — questions only */}
-        {isQuestion && (
+        {question && (
           <div className={styles.progressRail} aria-hidden="true">
             <span className={styles.progressLabel}>0{questionNum}</span>
             <div className={styles.progressTrack}>
@@ -130,7 +130,7 @@ export default function QuizPage() {
         )}
 
         {step === 'welcome' && (
-          <WelcomeStep hero={hero} onStart={() => goTo('q1')} />
+          <WelcomeStep hero={hero} start={() => goTo('q1')} />
         )}
 
         {/* Q1 — Carnation */}
@@ -141,7 +141,7 @@ export default function QuizPage() {
             title={<>Quel est votre teint&nbsp;?</>}
             hint={<>Sélectionnez la nuance la plus proche de votre peau. Cela calibre l&apos;intensité des actifs et la palette de soins recommandée.</>}
             options={toneOptions}
-            onSelect={id => goTo('q2', { skinTone: id as QuizAnswers['skinTone'] })}
+            selectOption={id => goTo('q2', { skinTone: id as QuizAnswers['skinTone'] })}
             grid
           />
         )}
@@ -154,8 +154,8 @@ export default function QuizPage() {
             title={<>Que souhaitez-vous travailler&nbsp;?</>}
             hint={<>Une seule préoccupation à la fois — c&apos;est ainsi qu&apos;on obtient les meilleurs résultats. Vous pourrez affiner ensuite.</>}
             options={toOptions(concerns)}
-            onSelect={id => goTo('q3', { concern: id })}
-            onBack={goBack}
+            selectOption={id => goTo('q3', { concern: id })}
+            back={goBack}
           />
         )}
 
@@ -167,8 +167,8 @@ export default function QuizPage() {
             title={<>Quelle routine vous ressemble&nbsp;?</>}
             hint={<>Le bon rituel est celui que vous tenez dans la durée. Choisissez en fonction du temps que vous voulez vous accorder.</>}
             options={toOptions(routines)}
-            onSelect={id => goTo('result', { routine: id })}
-            onBack={goBack}
+            selectOption={id => goTo('result', { routine: id })}
+            back={goBack}
           />
         )}
 
@@ -178,7 +178,7 @@ export default function QuizPage() {
             concernLabel={concernLabel}
             routineLabel={routineLabel}
             recommendations={recommendations}
-            onRestart={reset}
+            restart={reset}
           />
         )}
       </div>

@@ -6,19 +6,19 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/shared/supabase/browser.client';
 
 interface SettingsTabProps {
-  readonly isMobile: boolean;
+  readonly mobile: boolean;
   readonly deleteConfirm: string;
   readonly setDeleteConfirm: (v: string) => void;
 }
 
-export default function SettingsTab({ isMobile, deleteConfirm, setDeleteConfirm }: SettingsTabProps) {
+export default function SettingsTab({ mobile, deleteConfirm, setDeleteConfirm }: SettingsTabProps) {
   const router = useRouter();
   return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {/* Langue / région */}
                 <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #EDE8E0', padding: '24px 28px' }}>
                   <h2 style={{ fontSize: 14, fontWeight: 800, color: '#1A1A1A', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 20 }}>Préférences</h2>
-                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: 16 }}>
                     <div>
                       <label htmlFor="pref-language" style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6B3D14', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Langue</label>
                       <select id="pref-language" style={{ width: '100%', padding: '10px 14px', border: '1px solid #EDE8E0', borderRadius: 10, fontSize: 13, background: '#FAFAF8', boxSizing: 'border-box' }}>

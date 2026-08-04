@@ -10,9 +10,9 @@ export const DARK   = '#3D1400';
 export const GOLD   = '#8F5922';
 export const GOLD2  = '#C8974A';
 export const BORDER = '#EDE8E0';
-export const TXT    = '#1A1A1A';
-export const TXT2   = '#9A8A7A';
-export const TXT3   = '#7A6A5A';
+export const TEXT        = '#1A1A1A';
+export const TEXT_MUTED  = '#9A8A7A';
+export const TEXT_BODY   = '#7A6A5A';
 export const BG     = '#F8F4EF';
 
 export const toneColor: Record<string, string> = {

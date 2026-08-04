@@ -23,14 +23,14 @@ export default function GlobalPromoCard({ initialConfig }: Readonly<Props>) {
   const [cfg, setCfg] = useState<GlobalPromoConfig>(initialConfig);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [pending, startTransition] = useTransition();
 
   function update<K extends keyof GlobalPromoConfig>(key: K, value: GlobalPromoConfig[K]) {
     setCfg(prev => ({ ...prev, [key]: value }));
     setSaved(false);
   }
 
-  function handleToggle() {
+  function toggleItem() {
     const newEnabled = !cfg.enabled;
     const newCfg = { ...cfg, enabled: newEnabled };
     setCfg(newCfg);
@@ -46,7 +46,7 @@ export default function GlobalPromoCard({ initialConfig }: Readonly<Props>) {
     });
   }
 
-  function handleSave() {
+  function save() {
     setError(null);
     startTransition(async () => {
       try {
@@ -83,8 +83,8 @@ export default function GlobalPromoCard({ initialConfig }: Readonly<Props>) {
         type="button"
         role="switch"
         aria-checked={cfg.enabled}
-        onClick={() => handleToggle()}
-        onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && handleToggle()}
+        onClick={() => toggleItem()}
+        onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && toggleItem()}
         style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
       >
         <span
@@ -227,21 +227,21 @@ export default function GlobalPromoCard({ initialConfig }: Readonly<Props>) {
       {/* Feedback + bouton */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <button
-          onClick={handleSave}
-          disabled={isPending}
+          onClick={save}
+          disabled={pending}
           style={{
             padding: '7px 18px',
             borderRadius: 6,
             border: '1px solid rgba(212,162,78,0.5)',
-            background: isPending ? 'rgba(212,162,78,0.1)' : 'rgba(212,162,78,0.15)',
+            background: pending ? 'rgba(212,162,78,0.1)' : 'rgba(212,162,78,0.15)',
             color: '#D4A24E',
             fontSize: 12,
             fontWeight: 600,
-            cursor: isPending ? 'not-allowed' : 'pointer',
+            cursor: pending ? 'not-allowed' : 'pointer',
             transition: 'background 0.2s',
           }}
         >
-          {isPending ? 'Sauvegarde…' : 'Sauvegarder'}
+          {pending ? 'Sauvegarde…' : 'Sauvegarder'}
         </button>
         {saved && <span style={{ fontSize: 12, color: '#4CAF50' }}>✓ Sauvegardé</span>}
         {error && <span style={{ fontSize: 12, color: '#f44336' }}>{error}</span>}

@@ -16,6 +16,6 @@ export const NAV = [
 ];
 
 /** Un lien de nav est actif sur sa page et sur toutes ses sous-pages. */
-export function isNavItemActive(href: string, pathname: string): boolean {
+export function navItemActive(href: string, pathname: string): boolean {
   return pathname === href || (href !== '/' && pathname.startsWith(href));
 }

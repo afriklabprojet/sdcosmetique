@@ -16,13 +16,13 @@ interface SidebarProps {
   readonly discount: number;
   readonly total: number;
   readonly step: CheckoutStep;
-  readonly onEditCart: () => void;
+  readonly editCart: () => void;
   readonly appliedPromo: { code: PromoCode; discount: number } | null;
   /** Erreur remontee par le tunnel : code refuse, ou promo devenue invalide. */
   readonly promoError: string | null;
-  readonly onApplyPromo: (code: string) => void;
-  readonly onDismissPromoError: () => void;
-  readonly onRemovePromo: () => void;
+  readonly applyPromo: (code: string) => void;
+  readonly dismissPromoError: () => void;
+  readonly removePromo: () => void;
 }
 
 /*
@@ -31,11 +31,11 @@ interface SidebarProps {
  * total. L'erreur, elle, ne peut pas descendre : le tunnel la produit aussi
  * quand une promo deja posee devient invalide parce que le panier a change.
  */
-export default function Sidebar({ items, totalPrice, shippingCost, discount, total, step, onEditCart, appliedPromo, promoError, onApplyPromo, onDismissPromoError, onRemovePromo }: SidebarProps) {
+export default function Sidebar({ items, totalPrice, shippingCost, discount, total, step, editCart, appliedPromo, promoError, applyPromo, dismissPromoError, removePromo }: SidebarProps) {
   const [promoInput, setPromoInput] = useState('');
 
   const applyTypedPromo = () => {
-    onApplyPromo(promoInput);
+    applyPromo(promoInput);
     setPromoInput('');
   };
 
@@ -46,7 +46,7 @@ export default function Sidebar({ items, totalPrice, shippingCost, discount, tot
         <div style={{ padding: '16px 20px', borderBottom: `1px solid ${CHECKOUT_PALETTE.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: CHECKOUT_PALETTE.text }}>Résumé de la commande</span>
           {step !== 'cart' && (
-            <button type="button" onClick={onEditCart} style={{ fontSize: '12px', color: CHECKOUT_PALETTE.accent, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>
+            <button type="button" onClick={editCart} style={{ fontSize: '12px', color: CHECKOUT_PALETTE.accent, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>
               Modifier le panier
             </button>
           )}
@@ -107,7 +107,7 @@ export default function Sidebar({ items, totalPrice, shippingCost, discount, tot
               <span style={{ color: '#16A34A', fontWeight: 700 }}>✓ {appliedPromo.code.code}</span>
               <span style={{ color: CHECKOUT_PALETTE.textMuted, marginLeft: '6px' }}>−{formatPrice(appliedPromo.discount)}</span>
             </div>
-            <button type="button" onClick={onRemovePromo}
+            <button type="button" onClick={removePromo}
               style={{ fontSize: '11px', color: CHECKOUT_PALETTE.textMuted, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
               Retirer
             </button>
@@ -116,7 +116,7 @@ export default function Sidebar({ items, totalPrice, shippingCost, discount, tot
           <>
             <div style={{ display: 'flex', gap: '6px' }}>
               <input type="text" value={promoInput}
-                onChange={e => { setPromoInput(e.target.value); onDismissPromoError(); }}
+                onChange={e => { setPromoInput(e.target.value); dismissPromoError(); }}
                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); applyTypedPromo(); } }}
                 placeholder="Entrez votre code"
                 style={{ flex: 1, fontSize: '12px', padding: '8px 10px', border: `1px solid ${CHECKOUT_PALETTE.border}`, borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em', outline: 'none' }} />

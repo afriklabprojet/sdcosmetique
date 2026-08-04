@@ -20,14 +20,14 @@ interface QuestionStepProps {
   readonly title: React.ReactNode;
   readonly hint: React.ReactNode;
   readonly options: QuizOption[];
-  readonly onSelect: (id: string) => void;
+  readonly selectOption: (id: string) => void;
   /** Absent sur la premiere question : il n'y a nulle part ou revenir. */
-  readonly onBack?: () => void;
+  readonly back?: () => void;
   /** La carnation s'affiche en grille, les listes textuelles en colonne. */
   readonly grid?: boolean;
 }
 
-export default function QuestionStep({ num, eyebrow, title, hint, options, onSelect, onBack, grid = false }: QuestionStepProps) {
+export default function QuestionStep({ num, eyebrow, title, hint, options, selectOption, back, grid = false }: QuestionStepProps) {
   return (
           <section className={styles.question}>
             <aside className={styles.questionAside}>
@@ -37,8 +37,8 @@ export default function QuestionStep({ num, eyebrow, title, hint, options, onSel
               <div className={styles.questionEyebrow}>{eyebrow}</div>
               <h2 className={styles.questionTitle}>{title}</h2>
               <p className={styles.questionHint}>{hint}</p>
-              {onBack && (
-                <button type="button" className={styles.questionBack} onClick={onBack}>
+              {back && (
+                <button type="button" className={styles.questionBack} onClick={back}>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <polyline points="15 18 9 12 15 6" />
                   </svg>
@@ -53,7 +53,7 @@ export default function QuestionStep({ num, eyebrow, title, hint, options, onSel
                   key={o.id}
                   type="button"
                   className={styles.option}
-                  onClick={() => onSelect(o.id)}
+                  onClick={() => selectOption(o.id)}
                 >
                   {o.swatchColor
                     ? <span className={styles.optionToneSwatch} style={{ background: o.swatchColor }} aria-hidden="true" />

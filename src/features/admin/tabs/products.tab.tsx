@@ -20,7 +20,7 @@ interface ProductsTabProps {
   editableProducts: Product[];
   openNewModal: () => void;
   openEditModal: (product: Product) => void;
-  onRequestDelete: (id: string) => void;
+  requestDelete: (id: string) => void;
   card: React.CSSProperties;
   inputStyle: React.CSSProperties;
   thStyle: React.CSSProperties;
@@ -35,7 +35,7 @@ interface ProductsTabProps {
  * l'admin — et vivent donc dans l'onglet, avec le calcul qu'elles nourrissent.
  */
 export const ProductsTab: React.FC<ProductsTabProps> = ({
-  editableProducts, openNewModal, openEditModal, onRequestDelete, card, inputStyle, thStyle, tdStyle
+  editableProducts, openNewModal, openEditModal, requestDelete, card, inputStyle, thStyle, tdStyle
 }) => {
   const [productSearch, setProductSearch] = useState('');
   const [productCatFilter, setProductCatFilter] = useState('');
@@ -124,8 +124,8 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
                     </td>
                     <td style={tdStyle}>
                       <div className="flex flex-wrap gap-1">
-                        {p.isNew && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: S_INFO_BG, color: S_INFO_T }}>Nouveau</span>}
-                        {p.isBestseller && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: S_ERR_BG, color: S_ERR_T }}>Bestseller</span>}
+                        {p.newArrival && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: S_INFO_BG, color: S_INFO_T }}>Nouveau</span>}
+                        {p.bestseller && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: S_ERR_BG, color: S_ERR_T }}>Bestseller</span>}
                         {p.originalPrice && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: S_WARN_BG, color: S_WARN_T }}>Promo</span>}
                         {(p.badges ?? []).map((b) => (
                           <span key={b} className="text-xs px-2 py-0.5 rounded-full" style={{ background: SURFACE2, color: TEXT2, border: `1px solid ${BORDER2}` }}>{b}</span>
@@ -138,7 +138,7 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
                           className="text-xs px-2 py-1 rounded border transition-all hover:opacity-80"
                           style={{ borderColor: BORDER2, color: GOLD, textDecoration: 'none' }}>↗</a>
                         <button onClick={() => openEditModal(p)} className="text-xs px-2 py-1 rounded border transition-all hover:opacity-80" style={{ borderColor: BORDER2, color: TEXT2 }}>Éditer</button>
-                        <button onClick={() => onRequestDelete(p.id)} className="text-xs px-2 py-1 rounded transition-all hover:opacity-80" style={{ background: S_ERR_BG, color: S_ERR_T }}>✕</button>
+                        <button onClick={() => requestDelete(p.id)} className="text-xs px-2 py-1 rounded transition-all hover:opacity-80" style={{ background: S_ERR_BG, color: S_ERR_T }}>✕</button>
                       </div>
                     </td>
                   </tr>
@@ -146,7 +146,7 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
               </tbody>
             </table>
           </div>
-          {productPageCount > 1 && <Pagination page={productPage} total={productPageCount} onChange={setProductPage} />}
+          {productPageCount > 1 && <Pagination page={productPage} total={productPageCount} goToPage={setProductPage} />}
         </>
       )}
     </div>

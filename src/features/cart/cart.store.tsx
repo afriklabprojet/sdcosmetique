@@ -11,16 +11,16 @@ function subscribeCart(listener: () => void) {
   const browserWindow = globalThis.window;
   if (browserWindow === undefined) return () => {};
 
-  const handleStorage = (event: StorageEvent) => {
+  const syncFromStorage = (event: StorageEvent) => {
     if (event.key === CART_STORAGE_KEY) listener();
   };
 
   cartListeners.add(listener);
-  browserWindow.addEventListener('storage', handleStorage);
+  browserWindow.addEventListener('storage', syncFromStorage);
 
   return () => {
     cartListeners.delete(listener);
-    browserWindow.removeEventListener('storage', handleStorage);
+    browserWindow.removeEventListener('storage', syncFromStorage);
   };
 }
 
@@ -55,7 +55,7 @@ function writeStoredCart(items: CartItem[]) {
 
 interface CartContextValue {
   items: CartItem[];
-  isOpen: boolean;
+  open: boolean;
   totalItems: number;
   totalPrice: number;
   addItem: (product: Product) => void;
@@ -70,7 +70,7 @@ interface CartContextValue {
 const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { readonly children: React.ReactNode }) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [open, setIsOpen] = useState(false);
   const rawCart = useSyncExternalStore(subscribeCart, readStoredCartRaw, () => EMPTY_CART);
   const items = useMemo(() => parseStoredCart(rawCart), [rawCart]);
 
@@ -114,7 +114,7 @@ export function CartProvider({ children }: { readonly children: React.ReactNode 
   const contextValue = useMemo(
     () => ({
       items,
-      isOpen,
+      open,
       totalItems,
       totalPrice,
       addItem,
@@ -125,7 +125,7 @@ export function CartProvider({ children }: { readonly children: React.ReactNode 
       openCart,
       closeCart,
     }),
-    [items, isOpen, totalItems, totalPrice, addItem, removeItem, updateQty, clearCart, toggleCart, openCart, closeCart]
+    [items, open, totalItems, totalPrice, addItem, removeItem, updateQty, clearCart, toggleCart, openCart, closeCart]
   );
 
   return (

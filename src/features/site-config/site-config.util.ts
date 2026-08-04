@@ -132,7 +132,7 @@ export function calculateShippingCost(
 /**
  * Vérifie si la livraison gratuite est applicable
  */
-export function isFreeShippingEligible(
+export function freeShippingEligible(
   orderTotal: number,
   shippingConfig: SiteConfig['shipping']
 ): boolean {

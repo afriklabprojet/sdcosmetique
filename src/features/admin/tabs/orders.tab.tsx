@@ -17,8 +17,8 @@ import { BG, SURFACE, SURFACE2, BORDER, BORDER2, GOLD, TEXT, TEXT3, TITLE, INFO_
 
 interface OrdersTabProps {
   orders: OrderDraft[];
-  onOpenDetail: (order: OrderDraft) => void;
-  handleStatusChange: (orderNumber: string, status: OrderStatus) => void;
+  openDetail: (order: OrderDraft) => void;
+  changeStatus: (orderNumber: string, status: OrderStatus) => void;
   thStyle: React.CSSProperties;
   tdStyle: React.CSSProperties;
 }
@@ -26,7 +26,7 @@ interface OrdersTabProps {
 /* Meme lecture que ProductsTab : recherche, statut filtre et page ne sortaient
  * de l'onglet que pour y revenir sous forme de liste paginee. */
 export function OrdersTab({ 
-  orders, onOpenDetail, handleStatusChange, thStyle, tdStyle 
+  orders, openDetail, changeStatus, thStyle, tdStyle 
 }: Readonly<OrdersTabProps>) {
   const [orderSearchTerm, setOrderSearchTerm] = useState('');
   const [orderStatusFilter, setOrderStatusFilter] = useState('');
@@ -104,7 +104,7 @@ export function OrdersTab({
                       <select
                         aria-label={`Statut de la commande ${o.orderNumber ?? ''}`}
                         value={o.status}
-                        onChange={e => handleStatusChange(o.orderNumber, e.target.value as OrderStatus)}
+                        onChange={e => changeStatus(o.orderNumber, e.target.value as OrderStatus)}
                         style={{ 
                           background: BG, 
                           border: `1px solid ${BORDER2}`, 
@@ -122,7 +122,7 @@ export function OrdersTab({
                       </select>
                     </td>
                     <td style={tdStyle}>
-                      <button onClick={() => onOpenDetail(o)}
+                      <button onClick={() => openDetail(o)}
                         className="text-xs px-2 py-1 rounded border transition-all hover:opacity-80"
                         style={{ borderColor: GOLD, color: GOLD, whiteSpace: 'nowrap' }}>
                         Détail
@@ -133,7 +133,7 @@ export function OrdersTab({
               </tbody>
             </table>
           </div>
-          {orderPageCount > 1 && <Pagination page={orderPage} total={orderPageCount} onChange={setOrderPage} />}
+          {orderPageCount > 1 && <Pagination page={orderPage} total={orderPageCount} goToPage={setOrderPage} />}
         </>
       )}
     </div>

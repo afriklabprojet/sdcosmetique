@@ -26,7 +26,7 @@ export default function ContactPage() {
     fetchSiteConfigSection('legal_contact').then(v => v && setLegal(v)).catch(() => {});
   }, []);
 
-  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+  const submitForm = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
@@ -78,7 +78,7 @@ export default function ContactPage() {
                 </p>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <form onSubmit={submitForm} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <div className={styles.formRow}>
                   <Field label="Nom complet" id="nom">
                     <input

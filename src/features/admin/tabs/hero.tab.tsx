@@ -104,7 +104,7 @@ export default function HeroTab({ siteContent, setSiteContent, saveConfigSection
                     ))}
                     <ImageUpload
                       value={f.image ?? ''}
-                      onChange={(url: string) => setSiteContent({ ...siteContent, [key]: { ...(siteContent[key] as Record<string, unknown>), image: url } })}
+                      selectImage={(url: string) => setSiteContent({ ...siteContent, [key]: { ...(siteContent[key] as Record<string, unknown>), image: url } })}
                       folder="categories"
                       label="Image du hero"
                       previewSize={140}

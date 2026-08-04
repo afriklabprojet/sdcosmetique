@@ -7,7 +7,7 @@ import { createClient } from '@/shared/supabase/browser.client';
 /**
  * Nettoie les sessions corrompues et redirige vers login
  */
-export async function handleAuthError(error: unknown) {
+export async function recoverFromAuthError(error: unknown) {
   const e = error as { message?: string; code?: string } | null;
   // Vérifier si c'est une erreur de refresh token
   if (
@@ -51,7 +51,7 @@ export async function withAuthErrorHandling<T>(
   try {
     return await operation();
   } catch (error) {
-    const handled = await handleAuthError(error);
+    const handled = await recoverFromAuthError(error);
     
     if (!handled) {
       // Re-throw si ce n'est pas une erreur d'auth
@@ -72,7 +72,7 @@ export async function ensureValidSession() {
     const { data: { session }, error } = await supabase.auth.getSession();
     
     if (error) {
-      await handleAuthError(error);
+      await recoverFromAuthError(error);
       return null;
     }
     
@@ -90,7 +90,7 @@ export async function ensureValidSession() {
       const { data, error: refreshError } = await supabase.auth.refreshSession();
       
       if (refreshError) {
-        await handleAuthError(refreshError);
+        await recoverFromAuthError(refreshError);
         return null;
       }
       
@@ -100,7 +100,7 @@ export async function ensureValidSession() {
     return session;
     
   } catch (error) {
-    await handleAuthError(error);
+    await recoverFromAuthError(error);
     return null;
   }
 }

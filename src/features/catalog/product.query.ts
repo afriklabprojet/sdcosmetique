@@ -1,3 +1,14 @@
+/*
+ * Lecture du catalogue depuis le navigateur, via les routes `/api/products`,
+ * avec repli sur PRODUCTS.
+ *
+ * Vague `lexicon` (F-120) : le suffixe `ForClient` disait ou le code s'execute,
+ * pas ce qu'il fait. Il est tombe. `product.repository.ts` expose les memes
+ * deux noms pour la lecture serveur : c'est voulu. Ces fonctions font la meme
+ * chose, seule la source differe, et aucun fichier n'importe les deux. Leur
+ * donner des noms differents reintroduirait dans l'identifiant la contrainte
+ * d'execution que ce finding demandait justement d'en sortir.
+ */
 import { Product, SkinTone, Category } from '@/shared/types/domain.type';
 
 // ─── Options de filtrage ──────────────────────────────────────────────────────
@@ -9,7 +20,7 @@ export interface FetchProductsOptions {
 }
 
 // ─── Fetch produits via API Route (fiable, centralisé) ───────────────────────
-export async function fetchProductsForClient(
+export async function fetchProducts(
   category?: string,
   options?: Omit<FetchProductsOptions, 'category'>
 ): Promise<Product[]> {
@@ -28,14 +39,14 @@ export async function fetchProductsForClient(
   } catch {
     let products = category ? PRODUCTS.filter(p => p.category === category) : PRODUCTS;
     if (options?.skinTone)    products = products.filter(p => p.skinTones.includes(options.skinTone!));
-    if (options?.bestsellers) products = products.filter(p => p.isBestseller);
+    if (options?.bestsellers) products = products.filter(p => p.bestseller);
     if (options?.limit != null) products = products.slice(0, options.limit);
     return products;
   }
 }
 
 // ─── Fetch un produit par slug via API Route ──────────────────────────────────
-export async function fetchProductBySlugForClient(slug: string): Promise<Product | null> {
+export async function fetchProductBySlug(slug: string): Promise<Product | null> {
   try {
     const res = await fetch(`/api/products/${encodeURIComponent(slug)}`, {
       cache: 'no-store',
@@ -76,8 +87,8 @@ export const PRODUCTS: Product[] = [
     usage: 'Appliquer 2-3 gouttes sur le visage propre matin et soir. Masser doucement en mouvements circulaires.',
     ingredients: 'Aqua, Niacinamide 10%, Vitamine C, Huile de Baobab, Acide Hyaluronique, Aloe Vera Bio',
     inStock: true,
-    isNew: false,
-    isBestseller: true,
+    newArrival: false,
+    bestseller: true,
   },
   {
     id: '2',
@@ -95,8 +106,8 @@ export const PRODUCTS: Product[] = [
     benefits: ['Peau soyeuse en 3 jours', 'Formule 100% naturelle', 'Beurre de karité certifié', 'Convient à toutes les peaux'],
     usage: 'Appliquer sur l\'ensemble du corps après la douche sur peau légèrement humide.',
     inStock: true,
-    isNew: true,
-    isBestseller: false,
+    newArrival: true,
+    bestseller: false,
   },
   {
     id: '4',
@@ -114,7 +125,7 @@ export const PRODUCTS: Product[] = [
     benefits: ['Triple usage', 'Absorb. rapide', 'Éclat immédiat', 'Anti-âge naturel'],
     usage: 'Quelques gouttes sur le visage, les pointes des cheveux ou le corps.',
     inStock: true,
-    isBestseller: true,
+    bestseller: true,
   },
   {
     id: '5',
@@ -133,7 +144,7 @@ export const PRODUCTS: Product[] = [
     benefits: ['Synergie prouvée', 'Résultats en 14 jours', 'Format voyage inclus'],
     usage: 'Appliquer le sérum puis la crème jour sur peau propre.',
     inStock: true,
-    isNew: true,
+    newArrival: true,
   },
   {
     id: '6',
@@ -184,10 +195,10 @@ export const getProductById = (id: string) =>
   PRODUCTS.find(p => p.id === id);
 
 export const getBestsellers = () =>
-  PRODUCTS.filter(p => p.isBestseller);
+  PRODUCTS.filter(p => p.bestseller);
 
 export const getNewProducts = () =>
-  PRODUCTS.filter(p => p.isNew);
+  PRODUCTS.filter(p => p.newArrival);
 
 export const getRelatedProducts = (product: Product, limit = 4) =>
   PRODUCTS.filter(p => p.id !== product.id && p.category === product.category).slice(0, limit);

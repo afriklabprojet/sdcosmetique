@@ -31,9 +31,9 @@ export default function CheckoutStepper({ currentStep }: CheckoutStepperProps) {
       marginBottom: '24px'
     }}>
       {STEPS.map((step, index) => {
-        const isActive = index === currentIndex;
-        const isCompleted = index < currentIndex;
-        const isDisabled = index > currentIndex;
+        const active = index === currentIndex;
+        const completed = index < currentIndex;
+        const disabled = index > currentIndex;
         
         return (
           <React.Fragment key={step.key}>
@@ -41,28 +41,28 @@ export default function CheckoutStepper({ currentStep }: CheckoutStepperProps) {
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              opacity: isDisabled ? 0.4 : 1
+              opacity: disabled ? 0.4 : 1
             }}>
               <div style={{
                 width: '32px',
                 height: '32px',
                 borderRadius: '50%',
-                background: isCompleted ? '#10B981' : isActive ? '#D4A24E' : '#333',
-                color: isCompleted || isActive ? '#000' : '#888',
+                background: completed ? '#10B981' : active ? '#D4A24E' : '#333',
+                color: completed || active ? '#000' : '#888',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: '14px',
                 fontWeight: 600
               }}>
-                {isCompleted ? '✓' : index + 1}
+                {completed ? '✓' : index + 1}
               </div>
               
               <div>
                 <div style={{
                   fontSize: '14px',
                   fontWeight: 600,
-                  color: isActive ? '#D4A24E' : isCompleted ? '#10B981' : '#888'
+                  color: active ? '#D4A24E' : completed ? '#10B981' : '#888'
                 }}>
                   {step.label}
                 </div>
@@ -79,7 +79,7 @@ export default function CheckoutStepper({ currentStep }: CheckoutStepperProps) {
               <div style={{
                 flex: 1,
                 height: '2px',
-                background: isCompleted ? '#10B981' : '#333',
+                background: completed ? '#10B981' : '#333',
                 borderRadius: '1px',
                 minWidth: '40px'
               }} />

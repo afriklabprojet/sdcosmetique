@@ -8,7 +8,7 @@
 import Image from 'next/image';
 import { formatPrice } from '@/features/catalog/product.query';
 import type { OrderDraft } from '@/features/orders/order.store';
-import { BORDER, GOLD, TXT, TXT2 } from '@/features/orders/confirmation.constant';
+import { BORDER, GOLD, TEXT, TEXT_MUTED } from '@/features/orders/confirmation.constant';
 
 interface OrderSummaryCardProps {
   readonly order: OrderDraft | null;
@@ -42,27 +42,27 @@ export default function OrderSummaryCard({ order }: OrderSummaryCardProps) {
                           )}
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <p style={{ fontSize: '13px', fontWeight: 600, color: TXT, lineHeight: 1.3, marginBottom: '3px' }}>
+                          <p style={{ fontSize: '13px', fontWeight: 600, color: TEXT, lineHeight: 1.3, marginBottom: '3px' }}>
                             {item.product.name}
                           </p>
                           {item.product.skinTones?.[0] && (
-                            <p style={{ fontSize: '11px', color: TXT2 }}>Teint {item.product.skinTones[0]}</p>
+                            <p style={{ fontSize: '11px', color: TEXT_MUTED }}>Teint {item.product.skinTones[0]}</p>
                           )}
-                          <p style={{ fontSize: '11px', color: TXT2 }}>Quantité : {item.quantity}</p>
+                          <p style={{ fontSize: '11px', color: TEXT_MUTED }}>Quantité : {item.quantity}</p>
                         </div>
-                        <p style={{ fontSize: '13px', fontWeight: 700, color: TXT, flexShrink: 0 }}>
+                        <p style={{ fontSize: '13px', fontWeight: 700, color: TEXT, flexShrink: 0 }}>
                           {formatPrice(item.product.price * item.quantity)}
                         </p>
                       </div>
                     ))}
                   </div>
                   <div style={{ padding: '14px 20px', borderTop: `1px solid ${BORDER}`, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: TXT2 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: TEXT_MUTED }}>
                       <span>Sous-total</span><span>{formatPrice(order.subtotal)}</span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: TXT2 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: TEXT_MUTED }}>
                       <span>Livraison</span>
-                      <span style={{ color: order.shippingCost === 0 ? '#16A34A' : TXT }}>
+                      <span style={{ color: order.shippingCost === 0 ? '#16A34A' : TEXT }}>
                         {order.shippingCost === 0 ? 'Gratuite' : formatPrice(order.shippingCost)}
                       </span>
                     </div>
@@ -70,15 +70,15 @@ export default function OrderSummaryCard({ order }: OrderSummaryCardProps) {
                       display: 'flex', justifyContent: 'space-between',
                       paddingTop: '10px', borderTop: `1px solid ${BORDER}`, marginTop: '2px',
                     }}>
-                      <span style={{ fontSize: '16px', fontWeight: 800, color: TXT, fontFamily: 'Georgia, serif' }}>TOTAL</span>
-                      <span style={{ fontSize: '17px', fontWeight: 800, color: TXT, fontFamily: 'Georgia, serif' }}>
+                      <span style={{ fontSize: '16px', fontWeight: 800, color: TEXT, fontFamily: 'Georgia, serif' }}>TOTAL</span>
+                      <span style={{ fontSize: '17px', fontWeight: 800, color: TEXT, fontFamily: 'Georgia, serif' }}>
                         {formatPrice(order.total)}
                       </span>
                     </div>
                   </div>
                 </>
               ) : (
-                <p style={{ padding: '20px', fontSize: '13px', color: TXT2, textAlign: 'center' }}>
+                <p style={{ padding: '20px', fontSize: '13px', color: TEXT_MUTED, textAlign: 'center' }}>
                   Votre commande a été passée avec succès.
                 </p>
               )}

@@ -8,10 +8,10 @@ import { formatPrice } from '@/features/catalog/product.query';
 import { CHECKOUT_PALETTE } from '@/features/checkout/checkout.constant';
 
 interface CartStepProps {
-  readonly onNext: () => void;
+  readonly next: () => void;
 }
 
-export default function CartStep({ onNext }: CartStepProps) {
+export default function CartStep({ next }: CartStepProps) {
   const { items, updateQty, removeItem } = useCart();
   
   if (items.length === 0) {
@@ -151,7 +151,7 @@ export default function CartStep({ onNext }: CartStepProps) {
 
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <button
-          onClick={onNext}
+          onClick={next}
           style={{
             marginTop: '4px',
             padding: '10px 24px',

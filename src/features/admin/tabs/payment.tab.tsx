@@ -58,7 +58,7 @@ export default function PaymentTab({ siteContent, setSiteContent, saveConfigSect
 
                 <div style={{ background: SURFACE, borderRadius: '14px', border: `1px solid ${GOLD_D3}`, overflow: 'hidden' }}>
                   {ALL_METHODS.map((m, i) => {
-                    const isOn = active.includes(m.id);
+                    const enabled = active.includes(m.id);
                     const imgUrl = paymentImages[m.id] ?? '';
                     return (
                       <div key={m.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', padding: '16px 20px', borderBottom: i < ALL_METHODS.length - 1 ? `1px solid ${GOLD_D3}` : 'none', flexWrap: 'wrap' }}>
@@ -71,12 +71,12 @@ export default function PaymentTab({ siteContent, setSiteContent, saveConfigSect
                           </div>
                           <button
                             onClick={() => toggle(m.id)}
-                            style={{ width: '50px', height: '26px', borderRadius: '13px', border: 'none', cursor: 'pointer', background: isOn ? GOLD : '#3A2E20', position: 'relative', transition: 'background .2s', flexShrink: 0 }}
-                            title={isOn ? 'Désactiver' : 'Activer'}
+                            style={{ width: '50px', height: '26px', borderRadius: '13px', border: 'none', cursor: 'pointer', background: enabled ? GOLD : '#3A2E20', position: 'relative', transition: 'background .2s', flexShrink: 0 }}
+                            title={enabled ? 'Désactiver' : 'Activer'}
                           >
-                            <span style={{ position: 'absolute', top: '3px', left: isOn ? '26px' : '3px', width: '20px', height: '20px', borderRadius: '50%', background: isOn ? '#1A1410' : '#8B7355', transition: 'left .2s' }} />
+                            <span style={{ position: 'absolute', top: '3px', left: enabled ? '26px' : '3px', width: '20px', height: '20px', borderRadius: '50%', background: enabled ? '#1A1410' : '#8B7355', transition: 'left .2s' }} />
                           </button>
-                          <span style={{ fontSize: '12px', fontWeight: 600, color: isOn ? '#10B981' : '#8B7355', width: '60px', textAlign: 'right', flexShrink: 0 }}>{isOn ? '✓ Actif' : '✗ Masqué'}</span>
+                          <span style={{ fontSize: '12px', fontWeight: 600, color: enabled ? '#10B981' : '#8B7355', width: '60px', textAlign: 'right', flexShrink: 0 }}>{enabled ? '✓ Actif' : '✗ Masqué'}</span>
                         </div>
                         {/* Upload image */}
                         <div style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -89,7 +89,7 @@ export default function PaymentTab({ siteContent, setSiteContent, saveConfigSect
                           <div style={{ minWidth: '160px' }}>
                             <ImageUpload
                               value={imgUrl}
-                              onChange={(url) => setPaymentImage(m.id, url)}
+                              selectImage={(url) => setPaymentImage(m.id, url)}
                               folder="payments"
                               label={imgUrl ? '📷 Changer' : '📷 Ajouter logo'}
                               previewSize={0}

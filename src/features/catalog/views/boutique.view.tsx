@@ -14,7 +14,7 @@ const SORT_OPTIONS = [
   { id: 'rating',     label: 'Mieux notés' },
 ];
 
-export default function BoutiqueClient({ products }: Readonly<{ products: Product[] }>) {
+export default function ShopView({ products }: Readonly<{ products: Product[] }>) {
   const [skinToneFilter, setSkinToneFilter] = useState<SkinTone | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState('popular');
@@ -31,9 +31,9 @@ export default function BoutiqueClient({ products }: Readonly<{ products: Produc
     switch (sortBy) {
       case 'price_asc':  return [...list].sort((a, b) => a.price - b.price);
       case 'price_desc': return [...list].sort((a, b) => b.price - a.price);
-      case 'newest':     return [...list].sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
+      case 'newest':     return [...list].sort((a, b) => (b.newArrival ? 1 : 0) - (a.newArrival ? 1 : 0));
       case 'rating':     return [...list].sort((a, b) => b.rating - a.rating);
-      default:           return [...list].sort((a, b) => (b.isBestseller ? 1 : 0) - (a.isBestseller ? 1 : 0));
+      default:           return [...list].sort((a, b) => (b.bestseller ? 1 : 0) - (a.bestseller ? 1 : 0));
     }
   }, [products, skinToneFilter, categoryFilter, sortBy]);
 
@@ -113,7 +113,7 @@ export default function BoutiqueClient({ products }: Readonly<{ products: Produc
           {/* SkinTone + tri */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center', padding: '12px 0' }}>
             <div style={{ flex: '1 1 auto' }}>
-              <SkinToneSelector selected={skinToneFilter} onChange={setSkinToneFilter} />
+              <SkinToneSelector selected={skinToneFilter} selectTone={setSkinToneFilter} />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
               <span style={{ fontSize: '0.72rem', color: 'var(--warm-grey)' }}>{filtered.length} produit{filtered.length === 1 ? '' : 's'}</span>

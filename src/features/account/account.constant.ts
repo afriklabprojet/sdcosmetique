@@ -15,9 +15,9 @@ export type DisplayOrder = {
 };
 
 export type Address = {
-  id: string; label: string; prenom: string; nom: string;
-  rue: string; ville: string; code: string; pays: string;
-  tel: string; isDefault: boolean;
+  id: string; label: string; firstName: string; lastName: string;
+  street: string; city: string; postalCode: string; country: string;
+  phone: string; preferred: boolean;
 };
 
 export type StatusStyle = { bg: string; color: string; label: string };

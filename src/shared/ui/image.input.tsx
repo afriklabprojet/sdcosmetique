@@ -3,7 +3,7 @@ import React, { useCallback, useRef, useState } from 'react';
 
 interface ImageUploadProps {
   readonly value: string;           // URL actuelle
-  readonly onChange: (url: string) => void;
+  readonly selectImage: (url: string) => void;
   readonly folder?: string;         // sous-dossier dans le bucket (ex: 'hero', 'avatars')
   readonly label?: string;
   readonly previewSize?: number;    // px de hauteur de la preview
@@ -11,14 +11,14 @@ interface ImageUploadProps {
 
 export default function ImageUpload({
   value,
-  onChange,
+  selectImage,
   folder = 'uploads',
   label = 'Image',
   previewSize = 120,
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
+  const [dragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const uploadFile = useCallback(async (file: File) => {
@@ -40,30 +40,30 @@ export default function ImageUpload({
       const res = await fetch('/api/upload', { method: 'POST', body: formData });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? 'Erreur upload');
-      onChange(json.url);
+      selectImage(json.url);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Erreur lors de l\'upload.');
     } finally {
       setUploading(false);
     }
-  }, [folder, onChange]);
+  }, [folder, selectImage]);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const dropFile = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files[0];
     if (file) uploadFile(file);
   }, [uploadFile]);
 
-  const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); };
-  const handleDragLeave = () => setIsDragging(false);
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const dragOver = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); };
+  const dragLeave = () => setIsDragging(false);
+  const selectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) uploadFile(file);
     e.target.value = '';
   };
 
-  const isExternal = value.startsWith('http');
+  const external = value.startsWith('http');
   const displaySrc = value || '';
 
   return (
@@ -74,16 +74,16 @@ export default function ImageUpload({
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
+        onDrop={dropFile}
+        onDragOver={dragOver}
+        onDragLeave={dragLeave}
         aria-label={value ? `Remplacer ${label}` : `Téléverser ${label}`}
         style={{
-          border: `2px dashed ${isDragging ? '#D4A25A' : '#2A1A0A'}`,
+          border: `2px dashed ${dragging ? '#D4A25A' : '#2A1A0A'}`,
           borderRadius: '8px',
           padding: '16px',
           cursor: 'pointer',
-          background: isDragging ? 'rgba(212,162,90,0.07)' : '#0F0A06',
+          background: dragging ? 'rgba(212,162,90,0.07)' : '#0F0A06',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -156,7 +156,7 @@ export default function ImageUpload({
               whiteSpace: 'nowrap',
             }}
           />
-          {isExternal && (
+          {external && (
             <a href={value} target="_blank" rel="noreferrer"
               style={{ color: '#D4A25A', fontSize: '10px', whiteSpace: 'nowrap' }}>
               ↗ voir
@@ -164,7 +164,7 @@ export default function ImageUpload({
           )}
           <button
             type="button"
-            onClick={e => { e.stopPropagation(); onChange(''); }}
+            onClick={e => { e.stopPropagation(); selectImage(''); }}
             title="Supprimer l'image"
             style={{ background: 'none', border: '1px solid #3A2020', borderRadius: '4px', color: '#CA5A5A', fontSize: '12px', padding: '2px 7px', cursor: 'pointer', flexShrink: 0 }}
           >
@@ -182,7 +182,7 @@ export default function ImageUpload({
         type="file"
         accept="image/jpeg,image/png,image/webp,image/gif"
         style={{ display: 'none' }}
-        onChange={handleFileChange}
+        onChange={selectFile}
       />
     </div>
   );

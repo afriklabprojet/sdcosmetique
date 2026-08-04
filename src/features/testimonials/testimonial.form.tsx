@@ -11,7 +11,7 @@ export default function TestimonialForm() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
-  const handleSubmit = async (e: React.SyntheticEvent) => {
+  const submitForm = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!name.trim() || !text.trim()) return;
     setStatus('loading');
@@ -66,7 +66,7 @@ export default function TestimonialForm() {
         Votre témoignage sera affiché sur notre site après validation. Merci de partager votre expérience avec nos produits&nbsp;!
       </p>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <form onSubmit={submitForm} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {/* Nom */}
         <div>
           <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#4A3828', marginBottom: '6px' }}>
@@ -118,7 +118,7 @@ export default function TestimonialForm() {
           </label>
           <ImageUpload
             value={avatarUrl}
-            onChange={setAvatarUrl}
+            selectImage={setAvatarUrl}
             folder="testimonials"
             label=""
             previewSize={80}

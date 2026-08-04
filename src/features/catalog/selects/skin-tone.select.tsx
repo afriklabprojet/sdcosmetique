@@ -5,11 +5,11 @@ import { SkinTone, SKIN_TONES } from '@/shared/types/domain.type';
 
 interface SkinToneSelectorProps {
   selected: SkinTone | null;
-  onChange: (tone: SkinTone | null) => void;
+  selectTone: (tone: SkinTone | null) => void;
   label?: string;
 }
 
-export default function SkinToneSelector({ selected, onChange, label = 'Filtrer par carnation' }: SkinToneSelectorProps) {
+export default function SkinToneSelector({ selected, selectTone, label = 'Filtrer par carnation' }: SkinToneSelectorProps) {
   return (
     <div className="flex flex-col gap-3">
       {label && (
@@ -20,7 +20,7 @@ export default function SkinToneSelector({ selected, onChange, label = 'Filtrer 
       <div className="flex flex-wrap gap-2">
         {/* All */}
         <button
-          onClick={() => onChange(null)}
+          onClick={() => selectTone(null)}
           className={`px-3 py-1.5 text-xs font-medium tracking-wide border transition-all duration-200 ${
             selected === null
               ? 'text-white border-transparent'
@@ -38,7 +38,7 @@ export default function SkinToneSelector({ selected, onChange, label = 'Filtrer 
         {SKIN_TONES.map(tone => (
           <button
             key={tone.id}
-            onClick={() => onChange(selected === tone.id ? null : tone.id)}
+            onClick={() => selectTone(selected === tone.id ? null : tone.id)}
             className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium border transition-all duration-200"
             style={{
               background: selected === tone.id ? 'var(--gold-pale)' : 'transparent',

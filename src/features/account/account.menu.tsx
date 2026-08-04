@@ -31,10 +31,10 @@ const NAV_ITEMS: { id: NavItem; label: string; icon: React.ReactNode; badge?: st
 
 interface AccountNavProps {
   active: NavItem;
-  onChange: (item: NavItem) => void;
+  selectItem: (item: NavItem) => void;
 }
 
-export default function AccountNav({ active, onChange }: AccountNavProps) {
+export default function AccountNav({ active, selectItem }: AccountNavProps) {
   return (
     <div style={{
       minWidth: '240px',
@@ -58,7 +58,7 @@ export default function AccountNav({ active, onChange }: AccountNavProps) {
       {NAV_ITEMS.map(item => (
         <button
           key={item.id}
-          onClick={() => onChange(item.id)}
+          onClick={() => selectItem(item.id)}
           style={{
             width: '100%',
             display: 'flex',

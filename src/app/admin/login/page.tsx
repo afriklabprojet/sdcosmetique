@@ -29,7 +29,7 @@ export default function AdminLoginPage() {
     });
   }, []);
 
-  const handleSubmit = async (e: React.SyntheticEvent) => {
+  const submitForm = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -115,7 +115,7 @@ export default function AdminLoginPage() {
           l&apos;expérience client SD Cosmetique.
         </p>
 
-        <form onSubmit={handleSubmit} noValidate>
+        <form onSubmit={submitForm} noValidate>
           <div className={styles.field}>
             <label className={styles.label} htmlFor="admin-email">
               Email administrateur

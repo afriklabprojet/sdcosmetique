@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import type { ProductTrustItem } from '@/features/site-config/site-config.type';
-import { DARK, GOLD, GOLD2, TXT2 } from '@/features/catalog/product-detail.constant';
+import { DARK, GOLD, GOLD2, TEXT_MUTED } from '@/features/catalog/product-detail.constant';
 
 /** Pastille tournante devant chaque bienfait — quatre glyphes en boucle. */
 export function BenefitIcon({ i }: { readonly i: number }) {
@@ -39,7 +39,7 @@ export function ToneCheckIcon() {
 /** Cœur de la wishlist pose sur l'image principale. Deux tailles selon la colonne. */
 export function ProductWishlistIcon({ filled, size }: { readonly filled: boolean; readonly size: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? GOLD : 'none'} stroke={filled ? GOLD : TXT2} strokeWidth="1.8">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? GOLD : 'none'} stroke={filled ? GOLD : TEXT_MUTED} strokeWidth="1.8">
       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
     </svg>
   );

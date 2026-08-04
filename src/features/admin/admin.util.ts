@@ -14,8 +14,8 @@ export const getSaveButtonText = (saved: boolean, saving: boolean) => {
 };
 
 // Fonctions utilitaires pour les couleurs des statuts
-export const getTabColor = (isActive: boolean, status: AdminTabStatus) => {
-  if (isActive) return GOLD;
+export const getTabColor = (active: boolean, status: AdminTabStatus) => {
+  if (active) return GOLD;
   if (status === 'premium') return '#E5B366';
   if (status === 'important') return '#10B981';
   return '#A8956B';
@@ -36,8 +36,8 @@ export const getReviewCountText = (filteredLength: number, totalLength: number) 
 };
 
 // Fonction utilitaire pour les labels de quiz
-export const getQuizModalTitle = (isNew: boolean, type: string) => {
-  const prefix = isNew ? 'Nouvelle' : 'Modifier la';
+export const getQuizModalTitle = (newArrival: boolean, type: string) => {
+  const prefix = newArrival ? 'Nouvelle' : 'Modifier la';
   const suffix = type === 'concern' ? 'préoccupation' : 'routine';
   return `${prefix} ${suffix}`;
 };

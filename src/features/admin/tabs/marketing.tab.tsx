@@ -182,7 +182,7 @@ export default function MarketingTab({ siteContent, setSiteContent, saveConfigSe
                 {/* ── Pop-up Bienvenue ── */}
                 {mktSubTab === 'popup' && (() => {
                   const p = mkt.welcomePopup;
-                  const handlePopupStringField = (e: React.ChangeEvent<HTMLInputElement>) => {
+                  const editPopupField = (e: React.ChangeEvent<HTMLInputElement>) => {
                     updPopup({ [e.currentTarget.dataset.field as keyof WelcomePopup]: e.currentTarget.value });
                   };
                   return (
@@ -211,7 +211,7 @@ export default function MarketingTab({ siteContent, setSiteContent, saveConfigSe
                           <label key={key} style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                             <span style={{ fontSize: '11px', color: TEXT2 }}>{label}</span>
                             <input value={(p[key] as string) ?? ''} placeholder={ph} data-field={key}
-                              onChange={handlePopupStringField}
+                              onChange={editPopupField}
                               style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: '6px', padding: '9px 12px', color: TEXT, fontSize: '13px', outline: 'none' }} />
                           </label>
                         ))}

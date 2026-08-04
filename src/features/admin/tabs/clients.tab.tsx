@@ -9,7 +9,7 @@ import { formatPrice } from '@/features/catalog/product.query';
 import { SURFACE2, GOLD, TEXT, TEXT3, INFO_C, thStyle, tdStyle, card, inputStyle } from '@/features/admin/admin.constant';
 
 interface ClientsTabProps {
-  readonly clientList: ClientRow[];
+  readonly clients: ClientRow[];
   readonly filteredClients: ClientRow[];
   readonly pagedClients: ClientRow[];
   readonly clientPage: number;
@@ -19,7 +19,7 @@ interface ClientsTabProps {
   readonly setClientSearch: (s: string) => void;
 }
 
-export default function ClientsTab({ clientList, filteredClients, pagedClients, clientPage, clientPageCount, clientSearch, setClientPage, setClientSearch }: ClientsTabProps) {
+export default function ClientsTab({ clients, filteredClients, pagedClients, clientPage, clientPageCount, clientSearch, setClientPage, setClientSearch }: ClientsTabProps) {
   return (
             <div className="space-y-4">
               <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -36,7 +36,7 @@ export default function ClientsTab({ clientList, filteredClients, pagedClients, 
               <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
                 {filteredClients.length === 0 ? (
                   <p className="text-xs text-center py-10" style={{ color: TEXT3 }}>
-                    {clientList.length === 0 ? 'Aucun client pour le moment.' : 'Aucun résultat.'}
+                    {clients.length === 0 ? 'Aucun client pour le moment.' : 'Aucun résultat.'}
                   </p>
                 ) : (
                   <>
@@ -60,7 +60,7 @@ export default function ClientsTab({ clientList, filteredClients, pagedClients, 
                         </tbody>
                       </table>
                     </div>
-                    {clientPageCount > 1 && <Pagination page={clientPage} total={clientPageCount} onChange={setClientPage} />}
+                    {clientPageCount > 1 && <Pagination page={clientPage} total={clientPageCount} goToPage={setClientPage} />}
                   </>
                 )}
               </div>

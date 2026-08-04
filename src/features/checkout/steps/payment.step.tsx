@@ -29,10 +29,10 @@ const MOBILE_METHODS: { id: PaymentMethod; label: string; desc: string; logo: Re
 
 interface PaymentStepProps {
   readonly paymentMethod: PaymentMethod;
-  readonly onSelectMethod: (m: PaymentMethod) => void;
-  readonly onPlaceOrder: (mobileNumber: string) => Promise<void>;
+  readonly selectMethod: (m: PaymentMethod) => void;
+  readonly placeOrder: (mobileNumber: string) => Promise<void>;
   readonly processing: boolean;
-  readonly onBack: () => void;
+  readonly back: () => void;
   readonly activeMethods?: string[];
 }
 
@@ -40,35 +40,35 @@ interface PaymentStepProps {
  * Le numero de payeur est une saisie : il n'existe que le temps du formulaire,
  * et le tunnel ne le recoit qu'au moment de la commande. Le mode de paiement
  * reste dehors : il decide du statut de la commande et du parcours qui suit.
- * `isMobile` etait passe en prop alors que l'etape le rededuisait deja ligne a
+ * `mobile` etait passe en prop alors que l'etape le rededuisait deja ligne a
  * ligne du meme `paymentMethod` — la prop disparait, le calcul reste.
  */
-export default function PaymentStep({ paymentMethod, onSelectMethod, onPlaceOrder, processing, onBack, activeMethods = ['orange_money', 'wave', 'mtn_momo', 'moov_money', 'djamo', 'cash_on_delivery'] }: PaymentStepProps) {
+export default function PaymentStep({ paymentMethod, selectMethod, placeOrder, processing, back, activeMethods = ['orange_money', 'wave', 'mtn_momo', 'moov_money', 'djamo', 'cash_on_delivery'] }: PaymentStepProps) {
   const [mobileNumber, setMobileNumber] = useState('');
   const showMobileInput = ['orange_money', 'wave', 'mtn_momo', 'moov_money', 'djamo'].includes(paymentMethod);
 
-  const handleSubmit = async (e: React.SyntheticEvent) => {
+  const submitForm = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    await onPlaceOrder(mobileNumber);
+    await placeOrder(mobileNumber);
   };
   const visibleMobile = MOBILE_METHODS.filter(m => activeMethods.includes(m.id));
   const showCashOnDelivery = activeMethods.includes('cash_on_delivery');
   return (
     <div style={{ background: 'white', border: `1px solid ${CHECKOUT_PALETTE.border}`, borderRadius: '8px', padding: '24px' }}>
       <h2 style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: CHECKOUT_PALETTE.text, marginBottom: '20px' }}>Mode de paiement</h2>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <form onSubmit={submitForm} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         {/* Mobile money methods */}
         {visibleMobile.length > 0 && (
         <div>
           <p style={{ fontSize: '11px', fontWeight: 600, color: CHECKOUT_PALETTE.textMuted, marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Paiement Mobile</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {visibleMobile.map(m => {
-              const isSelected = paymentMethod === m.id;
+              const selected = paymentMethod === m.id;
               return (
-                <div key={m.id} role="radio" aria-checked={isSelected} tabIndex={0}
-                  onClick={() => onSelectMethod(m.id)}
-                  onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); onSelectMethod(m.id); } }}
-                  style={{ padding: '12px 14px', border: `1.5px solid ${isSelected ? CHECKOUT_PALETTE.accent : CHECKOUT_PALETTE.border}`, borderRadius: '6px', cursor: 'pointer', background: isSelected ? CHECKOUT_PALETTE.rowBackground : 'white', display: 'flex', alignItems: 'center', gap: '12px', transition: 'border-color .15s' }}>
+                <div key={m.id} role="radio" aria-checked={selected} tabIndex={0}
+                  onClick={() => selectMethod(m.id)}
+                  onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); selectMethod(m.id); } }}
+                  style={{ padding: '12px 14px', border: `1.5px solid ${selected ? CHECKOUT_PALETTE.accent : CHECKOUT_PALETTE.border}`, borderRadius: '6px', cursor: 'pointer', background: selected ? CHECKOUT_PALETTE.rowBackground : 'white', display: 'flex', alignItems: 'center', gap: '12px', transition: 'border-color .15s' }}>
                   {m.logo}
                   <div style={{ flex: 1 }}>
                     <p style={{ fontSize: '13px', fontWeight: 600, color: CHECKOUT_PALETTE.text }}>{m.label}</p>
@@ -93,8 +93,8 @@ export default function PaymentStep({ paymentMethod, onSelectMethod, onPlaceOrde
         {/* Cash on delivery — visible uniquement si activé en admin */}
         {showCashOnDelivery && (
         <div role="radio" aria-checked={paymentMethod === 'cash_on_delivery'} tabIndex={0}
-          onClick={() => onSelectMethod('cash_on_delivery')}
-          onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); onSelectMethod('cash_on_delivery'); } }}
+          onClick={() => selectMethod('cash_on_delivery')}
+          onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); selectMethod('cash_on_delivery'); } }}
           style={{ padding: '12px 14px', border: `1.5px solid ${paymentMethod === 'cash_on_delivery' ? CHECKOUT_PALETTE.accent : CHECKOUT_PALETTE.border}`, borderRadius: '6px', cursor: 'pointer', background: paymentMethod === 'cash_on_delivery' ? CHECKOUT_PALETTE.rowBackground : 'white', display: 'flex', alignItems: 'center', gap: '12px', transition: 'border-color .15s' }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: '50%', background: '#10B981', color: '#fff', fontSize: '18px', flexShrink: 0 }}>💵</span>
           <div>
@@ -105,7 +105,7 @@ export default function PaymentStep({ paymentMethod, onSelectMethod, onPlaceOrde
         )}
 
         <div style={{ display: 'flex', gap: '10px', marginTop: '8px', justifyContent: 'space-between' }}>
-          <button type="button" onClick={onBack}
+          <button type="button" onClick={back}
             style={{ fontSize: '12px', color: CHECKOUT_PALETTE.textMuted, background: 'none', border: `1px solid ${CHECKOUT_PALETTE.border}`, borderRadius: '4px', padding: '10px 18px', cursor: 'pointer' }}>
             ← Retour
           </button>

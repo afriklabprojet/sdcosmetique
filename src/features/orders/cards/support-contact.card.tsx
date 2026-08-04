@@ -6,7 +6,7 @@
  * de la commande — c'est l'assistance, pas la confirmation.
  */
 
-import { BORDER, DARK, GOLD, TXT, TXT3, CONTACT_PHONE, CONTACT_PHONE_TEL, CONTACT_EMAIL, CONTACT_WA } from '@/features/orders/confirmation.constant';
+import { BORDER, DARK, GOLD, TEXT, TEXT_BODY, CONTACT_PHONE, CONTACT_PHONE_TEL, CONTACT_EMAIL, CONTACT_WA } from '@/features/orders/confirmation.constant';
 
 export default function SupportContactCard() {
   return (
@@ -14,7 +14,7 @@ export default function SupportContactCard() {
               <p style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: DARK, marginBottom: '8px' }}>
                 Besoin d&apos;aide ?
               </p>
-              <p style={{ fontSize: '12px', color: TXT3, marginBottom: '16px', lineHeight: 1.5 }}>
+              <p style={{ fontSize: '12px', color: TEXT_BODY, marginBottom: '16px', lineHeight: 1.5 }}>
                 Notre équipe est disponible pour vous accompagner.
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -28,7 +28,7 @@ export default function SupportContactCard() {
                       <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.39 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.128.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.8a16 16 0 0 0 5.55 5.55l.95-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.572 2.81.7A2 2 0 0 1 21 16.92z"/>
                     </svg>
                   </div>
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: TXT }}>{CONTACT_PHONE}</span>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: TEXT }}>{CONTACT_PHONE}</span>
                 </a>
                 <a href={`mailto:${CONTACT_EMAIL}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
                   <div style={{
@@ -41,7 +41,7 @@ export default function SupportContactCard() {
                       <polyline points="22,6 12,13 2,6"/>
                     </svg>
                   </div>
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: TXT }}>{CONTACT_EMAIL}</span>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: TEXT }}>{CONTACT_EMAIL}</span>
                 </a>
                 <a href={CONTACT_WA} target="_blank" rel="noopener noreferrer"
                   style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>

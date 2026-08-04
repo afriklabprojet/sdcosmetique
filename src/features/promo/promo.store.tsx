@@ -34,7 +34,7 @@ export function GlobalPromoProvider({ initialConfig, children }: GlobalPromoProv
 
 /**
  * Accède à la configuration de la promo globale.
- * Utiliser `isPromoActive(config)` depuis promo.ts pour vérifier l'état.
+ * Utiliser `promoActive(config)` depuis promo.ts pour vérifier l'état.
  */
 export function useGlobalPromo(): GlobalPromoConfig {
   return useContext(PromoContext);

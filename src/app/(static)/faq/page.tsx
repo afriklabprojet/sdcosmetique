@@ -39,13 +39,13 @@ export default function FAQPage() {
             <div className={styles.faqList}>
               {cat.items.map((item, qi) => {
                 const id = `cat${ci}-q${qi}`;
-                const isOpen = open === id;
+                const expanded = open === id;
                 return (
                   <div key={id} className={styles.faqItem}>
                     <button
                       className={styles.faqQuestion}
-                      aria-expanded={isOpen}
-                      onClick={() => setOpen(isOpen ? null : id)}
+                      aria-expanded={expanded}
+                      onClick={() => setOpen(expanded ? null : id)}
                     >
                       <span>{item.q}</span>
                       <span className={styles.faqIcon}>
@@ -55,7 +55,7 @@ export default function FAQPage() {
                         </svg>
                       </span>
                     </button>
-                    <div className={styles.faqAnswer} data-open={isOpen}>
+                    <div className={styles.faqAnswer} data-open={expanded}>
                       <p>{item.a}</p>
                     </div>
                   </div>

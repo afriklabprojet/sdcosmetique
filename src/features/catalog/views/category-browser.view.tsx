@@ -19,7 +19,7 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { PRODUCTS, fetchProductsForClient } from '@/features/catalog/product.query';
+import { PRODUCTS, fetchProducts } from '@/features/catalog/product.query';
 import { CATEGORIES, type Category, SkinTone } from '@/shared/types/domain.type';
 import ProductCard from '@/features/catalog/cards/product.card';
 import SkinToneSelector from '@/features/catalog/selects/skin-tone.select';
@@ -55,7 +55,7 @@ export default function CategoryBrowser({ styles, category, unitLabel, emptyScop
   const [sortBy, setSortBy] = useState('popular');
   const [allProducts, setAllProducts] = useState(PRODUCTS.filter(p => p.category === category));
 
-  useEffect(() => { fetchProductsForClient(category).then(setAllProducts).catch(() => {}); }, [category]);
+  useEffect(() => { fetchProducts(category).then(setAllProducts).catch(() => {}); }, [category]);
 
   const products = useMemo(() => {
     let list = allProducts;
@@ -65,9 +65,9 @@ export default function CategoryBrowser({ styles, category, unitLabel, emptyScop
     switch (sortBy) {
       case 'price_asc':  return [...list].sort((a, b) => a.price - b.price);
       case 'price_desc': return [...list].sort((a, b) => b.price - a.price);
-      case 'newest':     return [...list].sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
+      case 'newest':     return [...list].sort((a, b) => (b.newArrival ? 1 : 0) - (a.newArrival ? 1 : 0));
       case 'rating':     return [...list].sort((a, b) => b.rating - a.rating);
-      default:           return [...list].sort((a, b) => (b.isBestseller ? 1 : 0) - (a.isBestseller ? 1 : 0));
+      default:           return [...list].sort((a, b) => (b.bestseller ? 1 : 0) - (a.bestseller ? 1 : 0));
     }
   }, [skinToneFilter, sortBy, allProducts]);
 
@@ -77,12 +77,12 @@ export default function CategoryBrowser({ styles, category, unitLabel, emptyScop
       <nav className={styles.catNav} aria-label="Toutes les catégories">
         <div className={styles.catNavInner}>
           {CATEGORIES.map(cat => {
-            const isActive = cat.id === category;
+            const active = cat.id === category;
             return (
               <Link
                 key={cat.id}
                 href={`/categorie/${cat.id}`}
-                className={`${styles.catLink} ${isActive ? styles.catLinkActive : ''}`}
+                className={`${styles.catLink} ${active ? styles.catLinkActive : ''}`}
               >
                 {cat.label}
               </Link>
@@ -97,7 +97,7 @@ export default function CategoryBrowser({ styles, category, unitLabel, emptyScop
         <div className={styles.toolbar}>
           <div className={styles.toolbarLeft}>
             <span className={styles.toolbarLabel}>Filtrer par carnation</span>
-            <SkinToneSelector selected={skinToneFilter} onChange={setSkinToneFilter} />
+            <SkinToneSelector selected={skinToneFilter} selectTone={setSkinToneFilter} />
           </div>
 
           <div className={styles.toolbarRight}>

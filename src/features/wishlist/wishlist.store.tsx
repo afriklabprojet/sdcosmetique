@@ -10,16 +10,16 @@ const wishlistListeners = new Set<() => void>();
 function subscribeWishlist(listener: () => void) {
   if (globalThis.window === undefined) return () => {};
 
-  const handleStorage = (event: StorageEvent) => {
+  const syncFromStorage = (event: StorageEvent) => {
     if (event.key === WISHLIST_STORAGE_KEY) listener();
   };
 
   wishlistListeners.add(listener);
-  globalThis.window.addEventListener('storage', handleStorage);
+  globalThis.window.addEventListener('storage', syncFromStorage);
 
   return () => {
     wishlistListeners.delete(listener);
-    globalThis.window!.removeEventListener('storage', handleStorage);
+    globalThis.window!.removeEventListener('storage', syncFromStorage);
   };
 }
 
@@ -56,7 +56,7 @@ interface WishlistContextValue {
   addItem: (product: Product) => void;
   removeItem: (productId: string) => void;
   toggle: (product: Product) => void;
-  isInWishlist: (productId: string) => boolean;
+  wishlistContains: (productId: string) => boolean;
 }
 
 const WishlistContext = createContext<WishlistContextValue | null>(null);
@@ -85,11 +85,11 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     );
   }, [updateItems]);
 
-  const isInWishlist = useCallback((productId: string) =>
+  const wishlistContains = useCallback((productId: string) =>
     items.some(p => p.id === productId), [items]);
 
   return (
-    <WishlistContext.Provider value={{ items, addItem, removeItem, toggle, isInWishlist }}>
+    <WishlistContext.Provider value={{ items, addItem, removeItem, toggle, wishlistContains }}>
       {children}
     </WishlistContext.Provider>
   );

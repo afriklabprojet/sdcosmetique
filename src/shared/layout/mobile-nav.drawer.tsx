@@ -9,14 +9,14 @@
  */
 
 import Link from 'next/link';
-import { NAV, isNavItemActive } from '@/shared/layout/navigation.constant';
+import { NAV, navItemActive } from '@/shared/layout/navigation.constant';
 
 interface MobileNavDrawerProps {
   readonly pathname: string;
-  readonly onClose: () => void;
+  readonly close: () => void;
 }
 
-export default function MobileNavDrawer({ pathname, onClose }: MobileNavDrawerProps) {
+export default function MobileNavDrawer({ pathname, close }: MobileNavDrawerProps) {
   return (
         <div
           style={{
@@ -30,17 +30,17 @@ export default function MobileNavDrawer({ pathname, onClose }: MobileNavDrawerPr
         >
           <nav aria-label="Menu mobile" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {NAV.map((it) => {
-              const isActive = isNavItemActive(it.href, pathname);
+              const active = navItemActive(it.href, pathname);
               return (
                 <Link
                   key={it.label}
                   href={it.href}
-                  onClick={onClose}
+                  onClick={close}
                   style={{
                     fontFamily: 'var(--font-inter), Inter, sans-serif',
                     fontSize: '1rem', fontWeight: 600,
                     letterSpacing: '0.08em',
-                    color: isActive ? '#8F5922' : '#1A0E05',
+                    color: active ? '#8F5922' : '#1A0E05',
                     textDecoration: 'none',
                     padding: '14px 0',
                     borderBottom: '1px solid rgba(143,89,34,0.08)',
@@ -50,7 +50,7 @@ export default function MobileNavDrawer({ pathname, onClose }: MobileNavDrawerPr
             })}
           </nav>
           <div style={{ marginTop: 28, display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <Link href="/connexion" onClick={onClose} style={{
+            <Link href="/connexion" onClick={close} style={{
               display: 'flex', alignItems: 'center', gap: 12,
               fontFamily: 'var(--font-inter), Inter, sans-serif',
               fontSize: '0.9rem', color: '#1A0E05', textDecoration: 'none',
@@ -58,7 +58,7 @@ export default function MobileNavDrawer({ pathname, onClose }: MobileNavDrawerPr
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8F5922" strokeWidth="2"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" /></svg>
               Mon compte
             </Link>
-            <Link href="/wishlist" onClick={onClose} style={{
+            <Link href="/wishlist" onClick={close} style={{
               display: 'flex', alignItems: 'center', gap: 12,
               fontFamily: 'var(--font-inter), Inter, sans-serif',
               fontSize: '0.9rem', color: '#1A0E05', textDecoration: 'none',

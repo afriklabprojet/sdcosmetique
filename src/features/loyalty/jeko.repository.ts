@@ -68,7 +68,7 @@ export const JEKO_REWARDS: JekoReward[] = [
 // ─── Utilitaires ──────────────────────────────────────────────────────────────
 
 /** Résoudre le palier depuis un tableau de paliers (support config dynamique) */
-export function getJekoTierFromList(points: number, tiers: JekoTier[]): JekoTier {
+export function resolveJekoTier(points: number, tiers: JekoTier[]): JekoTier {
   const sorted = [...tiers].sort((a, b) => b.next - a.next);
   return sorted.find(t => points >= (t.next === Infinity ? 0 : tiers.indexOf(t) === 0 ? 0 : tiers[tiers.indexOf(t) - 1]?.next ?? 0)) ?? tiers[0];
 }

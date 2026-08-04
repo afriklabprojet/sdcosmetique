@@ -15,7 +15,7 @@ const ZONES = [
   { name: 'Reste du monde', delay: '7 à 15 jours ouvrés', price: '29,90 €', free: '250 €', carrier: 'DHL · UPS' },
 ];
 
-export default function LivraisonPage() {
+export default function ShippingPage() {
   return (
     <div className={styles.page}>
       <section className={styles.hero}>

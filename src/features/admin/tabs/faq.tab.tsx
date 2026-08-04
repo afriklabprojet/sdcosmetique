@@ -23,10 +23,10 @@ interface FaqTabProps {
 export default function FaqTab({ siteContent, saveConfigSection, contentSaving, contentSaved, addFaqCat, addFaqItem, removeFaqCat, removeFaqItem, updateFaqCatTitle, updateFaqItem }: FaqTabProps) {
             const faq = siteContent.faq;
             const save = async () => { await saveConfigSection('faq', faq); };
-            const handleFaqItemInput = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+            const editFaqItem = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
               updateFaqItem(Number(e.currentTarget.dataset.ci), Number(e.currentTarget.dataset.qi), { [e.currentTarget.dataset.field as 'q' | 'a']: e.currentTarget.value });
             };
-            const handleFaqItemRemove = (e: React.MouseEvent<HTMLButtonElement>) => {
+            const removeClickedFaqItem = (e: React.MouseEvent<HTMLButtonElement>) => {
               removeFaqItem(Number(e.currentTarget.dataset.ci), Number(e.currentTarget.dataset.qi));
             };
             return (
@@ -52,11 +52,11 @@ export default function FaqTab({ siteContent, saveConfigSection, contentSaving, 
                       {cat.items.map((it: {q: string; a: string}, qi: number) => (
                         <div key={`faq-item-${ci}-${qi}`} style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '10px', borderTop: `1px solid ${BORDER2}` }}>
                           <div style={{ display: 'flex', gap: '6px' }}>
-                            <input placeholder="Question" value={it.q} data-ci={ci} data-qi={qi} data-field="q" onChange={handleFaqItemInput}
+                            <input placeholder="Question" value={it.q} data-ci={ci} data-qi={qi} data-field="q" onChange={editFaqItem}
                               style={{ flex: 1, background: SURFACE, color: TEXT, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 9px', fontSize: '12px' }} />
-                            <button data-ci={ci} data-qi={qi} onClick={handleFaqItemRemove} style={{ background: 'transparent', color: S_ERR_T, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '4px 8px', fontSize: '10px', cursor: 'pointer' }}>×</button>
+                            <button data-ci={ci} data-qi={qi} onClick={removeClickedFaqItem} style={{ background: 'transparent', color: S_ERR_T, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '4px 8px', fontSize: '10px', cursor: 'pointer' }}>×</button>
                           </div>
-                          <textarea placeholder="Réponse" value={it.a} data-ci={ci} data-qi={qi} data-field="a" onChange={handleFaqItemInput} rows={3}
+                          <textarea placeholder="Réponse" value={it.a} data-ci={ci} data-qi={qi} data-field="a" onChange={editFaqItem} rows={3}
                             style={{ width: '100%', background: SURFACE, color: TEXT, border: `1px solid ${BORDER}`, borderRadius: '4px', padding: '6px 9px', fontSize: '12px', resize: 'vertical', fontFamily: 'inherit' }} />
                         </div>
                       ))}

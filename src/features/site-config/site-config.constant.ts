@@ -13,7 +13,7 @@ import type {
   KitsHeroConfig,
   DuoHeroConfig,
   QuizHeroConfig,
-  TeintHeroConfig,
+  SkinToneHeroConfig,
   ProductTrustItem,
   PaymentBadge,
   ShippingConfig,
@@ -115,11 +115,11 @@ export const DEFAULT_QUIZ_HERO: QuizHeroConfig = {
   floaterText: '« Une beauté juste, conçue pour les peaux mélaninées. »',
 };
 
-export const DEFAULT_TEINT_HERO_NOIR: TeintHeroConfig = { image: '' };
-export const DEFAULT_TEINT_HERO_MARRON: TeintHeroConfig = { image: '' };
-export const DEFAULT_TEINT_HERO_MARRON_CLAIR: TeintHeroConfig = { image: '' };
-export const DEFAULT_TEINT_HERO_CLAIR: TeintHeroConfig = { image: '' };
-export const DEFAULT_TEINT_HERO_METISSE: TeintHeroConfig = { image: '' };
+export const DEFAULT_SKIN_TONE_HERO_NOIR: SkinToneHeroConfig = { image: '' };
+export const DEFAULT_SKIN_TONE_HERO_MARRON: SkinToneHeroConfig = { image: '' };
+export const DEFAULT_SKIN_TONE_HERO_MARRON_CLAIR: SkinToneHeroConfig = { image: '' };
+export const DEFAULT_SKIN_TONE_HERO_CLAIR: SkinToneHeroConfig = { image: '' };
+export const DEFAULT_SKIN_TONE_HERO_METISSE: SkinToneHeroConfig = { image: '' };
 
 export const DEFAULT_SHIPPING: ShippingConfig = {
   options: [
@@ -275,11 +275,11 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   hero_kits: DEFAULT_KITS_HERO,
   hero_duo: DEFAULT_DUO_HERO,
   hero_quiz: DEFAULT_QUIZ_HERO,
-  hero_teint_noir: DEFAULT_TEINT_HERO_NOIR,
-  hero_teint_marron: DEFAULT_TEINT_HERO_MARRON,
-  hero_teint_marron_clair: DEFAULT_TEINT_HERO_MARRON_CLAIR,
-  hero_teint_clair: DEFAULT_TEINT_HERO_CLAIR,
-  hero_teint_metisse: DEFAULT_TEINT_HERO_METISSE,
+  hero_teint_noir: DEFAULT_SKIN_TONE_HERO_NOIR,
+  hero_teint_marron: DEFAULT_SKIN_TONE_HERO_MARRON,
+  hero_teint_marron_clair: DEFAULT_SKIN_TONE_HERO_MARRON_CLAIR,
+  hero_teint_clair: DEFAULT_SKIN_TONE_HERO_CLAIR,
+  hero_teint_metisse: DEFAULT_SKIN_TONE_HERO_METISSE,
   skin_tone_section_title: 'Choisissez votre teint',
   product_tone_images: {
     noir:         '/hero/skintone-noir.svg',

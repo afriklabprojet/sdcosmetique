@@ -6,13 +6,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { Product } from '@/shared/types/domain.type';
 import { formatPrice } from '@/features/catalog/product.query';
-import { getJekoTierFromList, type JekoConfig } from '@/features/loyalty/jeko.repository';
+import { resolveJekoTier, type JekoConfig } from '@/features/loyalty/jeko.repository';
 import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
 import { STATUS_CONFIG, type DisplayOrder, type NavItem } from '@/features/account/account.constant';
 
 interface DashboardTabProps {
-  readonly isMobile: boolean;
-  readonly onNavigate: (tab: NavItem) => void;
+  readonly mobile: boolean;
+  readonly navigate: (tab: NavItem) => void;
   readonly ordersForDisplay: DisplayOrder[];
   readonly displayName: string;
   readonly displayEmail: string;
@@ -26,14 +26,14 @@ interface DashboardTabProps {
 }
 
 export default function DashboardTab({
-  isMobile, onNavigate, ordersForDisplay, displayName, displayEmail, displayPhone,
+  mobile, navigate, ordersForDisplay, displayName, displayEmail, displayPhone,
   createdAt, wishlistItems, userPoints, jekoConfig, compteHeroBg, parrainageHeroBg,
 }: DashboardTabProps) {
   return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
                 {/* ROW 1: Welcome + Points */}
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 280px', gap: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 280px', gap: 16 }}>
 
                   {/* Welcome card */}
                   <div style={{
@@ -62,7 +62,7 @@ export default function DashboardTab({
                           letterSpacing: '0.1em', textTransform: 'uppercase',
                         }}>
                           <svg width="10" height="10" viewBox="0 0 24 24" fill="#E8C47A"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                          Membre {getJekoTierFromList(userPoints, jekoConfig.tiers).label}
+                          Membre {resolveJekoTier(userPoints, jekoConfig.tiers).label}
                         </span>
                       </div>
 
@@ -89,7 +89,7 @@ export default function DashboardTab({
                       {/* CTA */}
                       <div>
                         <button
-                          onClick={() => onNavigate('profil')}
+                          onClick={() => navigate('profil')}
                           style={{
                             display: 'inline-flex', alignItems: 'center', gap: 8,
                             padding: '10px 22px',
@@ -135,7 +135,7 @@ export default function DashboardTab({
                       <span style={{ fontSize: 10, color: '#9A8A7A' }}>500 pts</span>
                     </div>
                     <button
-                      onClick={() => onNavigate('points')}
+                      onClick={() => navigate('points')}
                       style={{
                         padding: '10px 0', background: '#3D1400', border: 'none',
                         borderRadius: 12, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
@@ -148,13 +148,13 @@ export default function DashboardTab({
                 </div>
 
                 {/* ROW 2: Commandes + Favoris */}
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 280px', gap: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 280px', gap: 16 }}>
 
                   {/* Commandes table */}
                   <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #EDE8E0', overflow: 'hidden' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #F5F0E8' }}>
                       <p style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.08em', color: '#1A1A1A', textTransform: 'uppercase' }}>Mes Commandes</p>
-                      <button onClick={() => onNavigate('commandes')} style={{ fontSize: 11, color: '#C8974A', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+                      <button onClick={() => navigate('commandes')} style={{ fontSize: 11, color: '#C8974A', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
                         Voir toutes →
                       </button>
                     </div>
@@ -208,11 +208,11 @@ export default function DashboardTab({
                   <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #EDE8E0', overflow: 'hidden' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #F5F0E8' }}>
                       <p style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.08em', color: '#1A1A1A', textTransform: 'uppercase' }}>Mes Favoris</p>
-                      <button onClick={() => onNavigate('favoris')} style={{ fontSize: 11, color: '#C8974A', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+                      <button onClick={() => navigate('favoris')} style={{ fontSize: 11, color: '#C8974A', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
                         Voir tous →
                       </button>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 0 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: 0 }}>
                       {wishlistItems.length === 0 ? (
                         <p style={{ padding: '20px', fontSize: 12, color: '#9A8A7A', gridColumn: '1 / -1', textAlign: 'center' }}>Aucun favori pour l&apos;instant</p>
                       ) : wishlistItems.slice(0, 4).map((fav, i) => (
@@ -239,7 +239,7 @@ export default function DashboardTab({
                 </div>
 
                 {/* ROW 3: Infos compte + Parrainage */}
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 280px', gap: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 280px', gap: 16 }}>
 
                   {/* Infos compte */}
                   <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #EDE8E0', padding: '24px 28px' }}>
@@ -247,11 +247,11 @@ export default function DashboardTab({
                     {/* Header */}
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
                       <p style={{ fontSize: 13, fontWeight: 800, letterSpacing: '0.1em', color: '#8B4513', textTransform: 'uppercase' }}>Informations du compte</p>
-                      <button onClick={() => onNavigate('profil')} style={{ fontSize: 13, color: '#C8974A', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}>Modifier</button>
+                      <button onClick={() => navigate('profil')} style={{ fontSize: 13, color: '#C8974A', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}>Modifier</button>
                     </div>
 
                     {/* Champs 2x2 */}
-                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 20 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: 20 }}>
                       {[
                         { svg: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B4513" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>, label: 'Nom complet', val: displayName },
                         { svg: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B4513" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.1a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.56 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>, label: 'Téléphone', val: displayPhone || 'Non renseigné' },
@@ -285,7 +285,7 @@ export default function DashboardTab({
                         Parrainez vos proches et gagnez des points à chaque parrainage.
                       </p>
                       <button
-                        onClick={() => onNavigate('points')}
+                        onClick={() => navigate('points')}
                         style={{
                           width: '100%', padding: '10px 0', background: '#C8974A',
                           border: 'none', borderRadius: 10, color: '#fff',

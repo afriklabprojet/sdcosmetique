@@ -18,19 +18,19 @@
 import Image from 'next/image';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { PRODUCTS, fetchProductsForClient } from '@/features/catalog/product.query';
+import { PRODUCTS, fetchProducts } from '@/features/catalog/product.query';
 
 interface ProductSearchProps {
-  readonly onClose: () => void;
+  readonly close: () => void;
 }
 
-export default function ProductSearch({ onClose }: ProductSearchProps) {
+export default function ProductSearch({ close }: ProductSearchProps) {
   const [query, setQuery] = useState('');
   const [searchProducts, setSearchProducts] = useState(PRODUCTS);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
-  useEffect(() => { fetchProductsForClient().then(setSearchProducts).catch(() => {}); }, []);
+  useEffect(() => { fetchProducts().then(setSearchProducts).catch(() => {}); }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => inputRef.current?.focus(), 50);
@@ -48,7 +48,7 @@ export default function ProductSearch({ onClose }: ProductSearchProps) {
   }, [query, searchProducts]);
 
   const goToProduct = (slug: string) => {
-    onClose();
+    close();
     router.push(`/produit/${slug}`);
   };
 
@@ -57,7 +57,7 @@ export default function ProductSearch({ onClose }: ProductSearchProps) {
       type="button"
       aria-label="Fermer la recherche"
       className="search-overlay"
-      onClick={onClose}
+      onClick={close}
       style={{ border: 'none', padding: 0, background: 'transparent', cursor: 'default' }}
     >
       <dialog
@@ -77,7 +77,7 @@ export default function ProductSearch({ onClose }: ProductSearchProps) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
-          <button className="search-close" onClick={onClose} aria-label="Fermer">
+          <button className="search-close" onClick={close} aria-label="Fermer">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
             </svg>

@@ -13,7 +13,7 @@
 import type { Product } from '@/shared/types/domain.type';
 import { formatPrice } from '@/features/catalog/product.query';
 import StarRating from '@/features/catalog/star-rating';
-import { GOLD, GOLD2, BORDER, TXT, TXT2, TXT3 } from '@/features/catalog/product-detail.constant';
+import { GOLD, GOLD2, BORDER, TEXT, TEXT_MUTED, TEXT_BODY } from '@/features/catalog/product-detail.constant';
 import { BenefitIcon } from '@/features/catalog/assets/product-detail-icons';
 
 /** Les seules differences entre la colonne desktop et le bloc mobile. */
@@ -37,7 +37,7 @@ export default function ProductSummary({ product, categoryLabel, selectedToneLab
       <span style={{ display: 'inline-block', padding: s.badgePadding, background: GOLD, color: 'white', fontSize: 10, fontWeight: 800, letterSpacing: s.badgeSpacing, textTransform: 'uppercase', borderRadius: 2, marginBottom: s.badgeMargin }}>
         {categoryLabel}
       </span>
-      <h1 style={{ fontSize: s.title, fontWeight: 800, color: TXT, fontFamily: 'Georgia,serif', lineHeight: 1.2, marginBottom: 4 }}>
+      <h1 style={{ fontSize: s.title, fontWeight: 800, color: TEXT, fontFamily: 'Georgia,serif', lineHeight: 1.2, marginBottom: 4 }}>
         {product.name}
       </h1>
       <p style={{ fontSize: compact ? 17 : 20, fontWeight: 700, color: GOLD2, fontFamily: 'Georgia,serif', marginBottom: s.toneMargin }}>
@@ -47,22 +47,22 @@ export default function ProductSummary({ product, categoryLabel, selectedToneLab
         <StarRating rating={product.rating} count={product.reviewCount} size={s.star} />
       </div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: s.priceMargin }}>
-        <span style={{ fontSize: s.price, fontWeight: 800, color: TXT, fontFamily: 'Georgia,serif' }}>
+        <span style={{ fontSize: s.price, fontWeight: 800, color: TEXT, fontFamily: 'Georgia,serif' }}>
           {product.price.toLocaleString('fr-FR')}
         </span>
-        <span style={{ fontSize: s.currency, fontWeight: 700, color: TXT2 }}>FCFA</span>
+        <span style={{ fontSize: s.currency, fontWeight: 700, color: TEXT_MUTED }}>FCFA</span>
         {product.originalPrice && (
-          <span style={{ fontSize: s.strike, textDecoration: 'line-through', color: TXT2, marginLeft: s.strikeMarginLeft }}>
+          <span style={{ fontSize: s.strike, textDecoration: 'line-through', color: TEXT_MUTED, marginLeft: s.strikeMarginLeft }}>
             {formatPrice(product.originalPrice)}
           </span>
         )}
       </div>
-      <p style={{ fontSize: 13, color: TXT3, lineHeight: 1.65, marginBottom: s.descMargin }}>
+      <p style={{ fontSize: 13, color: TEXT_BODY, lineHeight: 1.65, marginBottom: s.descMargin }}>
         {product.shortDescription}
       </p>
       {product.benefits.length > 0 && (
         <div>
-          <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: s.benefitsSpacing, textTransform: 'uppercase', color: TXT, marginBottom: s.benefitsMargin }}>
+          <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: s.benefitsSpacing, textTransform: 'uppercase', color: TEXT, marginBottom: s.benefitsMargin }}>
             Bienfaits
           </p>
           {product.benefits.map((b, i) => (
@@ -70,7 +70,7 @@ export default function ProductSummary({ product, categoryLabel, selectedToneLab
               <div style={{ width: s.benefitCircle, height: s.benefitCircle, borderRadius: '50%', flexShrink: 0, background: '#FDF4E8', border: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <BenefitIcon i={i} />
               </div>
-              <span style={{ fontSize: 13, color: TXT }}>{b}</span>
+              <span style={{ fontSize: 13, color: TEXT }}>{b}</span>
             </div>
           ))}
         </div>

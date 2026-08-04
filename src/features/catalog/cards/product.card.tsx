@@ -25,8 +25,8 @@ interface ProductCardProps {
 // Helpers extraits pour réduire la complexité cognitive
 function getPrimaryBadge(product: Product): string | null {
   if (product.badges?.[0]) return product.badges[0];
-  if (product.isNew) return 'Nouveau';
-  if (product.isBestseller) return 'Best Seller';
+  if (product.newArrival) return 'Nouveau';
+  if (product.bestseller) return 'Best Seller';
   return null;
 }
 
@@ -44,7 +44,7 @@ function makeCardStyle(hovered: boolean): React.CSSProperties {
 
 export default function ProductCard({ product }: Readonly<ProductCardProps>) {
   const { addItem } = useCart();
-  const { toggle, isInWishlist } = useWishlist();
+  const { toggle, wishlistContains } = useWishlist();
   const globalPromo = useGlobalPromo();
   const effectivePrice = computeEffectivePrice(product, globalPromo);
   const [adding, setAdding] = useState(false);
@@ -59,32 +59,32 @@ export default function ProductCard({ product }: Readonly<ProductCardProps>) {
     return () => mediaQuery.removeEventListener('change', updateCanHover);
   }, []);
 
-  const inWishlist = isInWishlist(product.id);
+  const inWishlist = wishlistContains(product.id);
   const category = CATEGORIES.find(item => item.id === product.category);
   const primaryBadge = getPrimaryBadge(product);
   const interactiveHover = canHover && hovered;
 
-  const handleAddToCart = () => {
+  const addProductToCart = () => {
     setAdding(true);
     addItem(product);
     setTimeout(() => setAdding(false), 1400);
   };
 
-  const handleWishlist = () => {
+  const toggleWishlist = () => {
     toggle(product);
   };
 
-  const handleMouseEnter = () => {
+  const pointerEnter = () => {
     if (canHover) setHovered(true);
   };
-  const handleMouseLeave = () => {
+  const pointerLeave = () => {
     if (canHover) setHovered(false);
   };
 
   return (
     <article
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onMouseEnter={pointerEnter}
+      onMouseLeave={pointerLeave}
       style={makeCardStyle(interactiveHover)}
     >
       <ProductMedia
@@ -94,14 +94,14 @@ export default function ProductCard({ product }: Readonly<ProductCardProps>) {
         badgeColor={globalPromo.badgeColor}
         interactiveHover={interactiveHover}
         inWishlist={inWishlist}
-        onWishlist={handleWishlist}
+        toggleWishlist={toggleWishlist}
       />
       <ProductInfo
         product={product}
         category={category}
         effectivePrice={effectivePrice}
         adding={adding}
-        onAddToCart={handleAddToCart}
+        addToCart={addProductToCart}
       />
     </article>
   );

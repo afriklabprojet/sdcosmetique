@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
   // Idempotence : la même transaction peut arriver plusieurs fois (retry policy).
   const reference = payload.transactionDetails?.reference;
   const txnId     = payload.id;
-  const isSuccess = payload.status === 'success';
+  const succeeded = payload.status === 'success';
 
   if (!reference) {
     // Paiement via payment_link non créé par l'API → ack mais skip update.
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     const expectedCents = Math.round(Number(orderRow.total) * 100);
     const receivedCents = payload.amount?.amount ?? 0;
 
-    if (isSuccess && receivedCents !== expectedCents) {
+    if (succeeded && receivedCents !== expectedCents) {
       console.error('[jeko-webhook] Montant incohérent', { reference, expectedCents, receivedCents });
       // Ne PAS marquer comme payée — logguer et acquitter (200) pour éviter les retries Jeko.
       return NextResponse.json({ received: true, error: 'amount_mismatch' }, { status: 200 });
@@ -71,13 +71,13 @@ export async function POST(req: NextRequest) {
     const { data: updated, error } = await supabase
       .from('orders')
       .update({
-        payment_status:          isSuccess ? 'paid' : 'failed',
+        payment_status:          succeeded ? 'paid' : 'failed',
         // Paiement validé → commande confirmée ; échec → reste en attente (retry possible)
-        ...(isSuccess ? { status: 'confirmed' } : {}),
+        ...(succeeded ? { status: 'confirmed' } : {}),
         payment_provider:        'jeko',
         payment_provider_txn_id: txnId,
         payment_reference:       reference,
-        payment_paid_at:         isSuccess ? new Date().toISOString() : null,
+        payment_paid_at:         succeeded ? new Date().toISOString() : null,
         updated_at:              new Date().toISOString(),
       })
       .eq('order_number', reference)
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
     // Email de confirmation : uniquement si CE webhook est celui qui a fait
     // passer la commande à `paid`. Un retry Jeko ne matche plus aucune ligne
     // (à cause du .neq('payment_status','paid')) → pas de second envoi.
-    if (isSuccess && updated && updated.length > 0) {
+    if (succeeded && updated && updated.length > 0) {
       await sendOrderConfirmationByNumber(reference);
     }
   } catch (e) {

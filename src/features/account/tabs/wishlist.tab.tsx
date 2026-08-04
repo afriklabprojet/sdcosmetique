@@ -8,12 +8,12 @@ import type { Product } from '@/shared/types/domain.type';
 import { formatPrice } from '@/features/catalog/product.query';
 
 interface WishlistTabProps {
-  readonly isMobile: boolean;
+  readonly mobile: boolean;
   readonly wishlistItems: Product[];
   readonly removeFromWishlist: (id: string) => void;
 }
 
-export default function WishlistTab({ isMobile, wishlistItems, removeFromWishlist }: WishlistTabProps) {
+export default function WishlistTab({ mobile, wishlistItems, removeFromWishlist }: WishlistTabProps) {
   return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <h2 style={{ fontSize: 16, fontWeight: 800, color: '#1A1A1A' }}>Mes favoris</h2>
@@ -21,10 +21,10 @@ export default function WishlistTab({ isMobile, wishlistItems, removeFromWishlis
                   <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #EDE8E0', padding: '48px 24px', textAlign: 'center' }}>
                     <p style={{ fontSize: 40, marginBottom: 12 }}>🤍</p>
                     <p style={{ fontSize: 14, color: '#9A8A7A', marginBottom: 16 }}>Votre liste de favoris est vide.</p>
-                    <Link href="/boutique" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 44, width: isMobile ? '100%' : 'auto', maxWidth: isMobile ? 320 : 'none', padding: '10px 24px', background: '#3D1400', borderRadius: 10, color: '#fff', fontSize: 13, fontWeight: 700, textDecoration: 'none', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Découvrir nos produits</Link>
+                    <Link href="/boutique" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 44, width: mobile ? '100%' : 'auto', maxWidth: mobile ? 320 : 'none', padding: '10px 24px', background: '#3D1400', borderRadius: 10, color: '#fff', fontSize: 13, fontWeight: 700, textDecoration: 'none', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Découvrir nos produits</Link>
                   </div>
                 ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 16 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(3, 1fr)', gap: 16 }}>
                     {wishlistItems.map(product => (
                       <div key={product.id} style={{ background: '#fff', borderRadius: 16, border: '1px solid #EDE8E0', overflow: 'hidden' }}>
                         <div style={{ position: 'relative', height: 180, background: '#FAF8F5' }}>

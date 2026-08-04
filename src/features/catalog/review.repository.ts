@@ -10,7 +10,7 @@ import { createClient } from '@/shared/supabase/browser.client';
 import type { Review, SkinTone } from '@/shared/types/domain.type';
 
 // ─── Fetch tous les avis (admin) ──────────────────────────────────────────────
-export async function fetchAllReviewsFromDB(): Promise<(Review & { productId?: string })[]> {
+export async function fetchAllReviews(): Promise<(Review & { productId?: string })[]> {
   try {
     const supabase = createClient();
     const { data, error } = await supabase
@@ -34,7 +34,7 @@ export async function fetchAllReviewsFromDB(): Promise<(Review & { productId?: s
 }
 
 // ─── Supprimer un avis ────────────────────────────────────────────────────────
-export async function deleteReviewFromDB(id: string): Promise<void> {
+export async function deleteReview(id: string): Promise<void> {
   try {
     const supabase = createClient();
     await supabase.from('reviews').delete().eq('id', id);
@@ -44,7 +44,7 @@ export async function deleteReviewFromDB(id: string): Promise<void> {
 }
 
 // ─── Approuver / retirer un avis (toggle verified) ───────────────────────────
-export async function approveReviewInDB(id: string, verified: boolean): Promise<void> {
+export async function approveReview(id: string, verified: boolean): Promise<void> {
   try {
     const supabase = createClient();
     await supabase.from('reviews').update({ verified }).eq('id', id);

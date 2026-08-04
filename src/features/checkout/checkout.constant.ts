@@ -5,7 +5,7 @@ import type React from 'react';
  *
  * Ces six couleurs ne voyageaient jamais separement : elles etaient importees
  * en bloc par chaque etape du tunnel. Elles forment donc un concept, pas six
- * constantes. La numerotation d'origine (TXT / TXT2 / TXT3) n'etait pas un
+ * constantes. La numerotation d'origine (TEXT / TEXT_MUTED / TEXT_BODY) n'etait pas un
  * vocabulaire : elle est remplacee par le role de chaque teinte.
  */
 export interface CheckoutPalette {

@@ -44,8 +44,8 @@ export interface Product {
   stockQty?: number;
   /** Seuil d'alerte stock bas (défaut: 5). */
   lowStockThreshold?: number;
-  isNew?: boolean;
-  isBestseller?: boolean;
+  newArrival?: boolean;
+  bestseller?: boolean;
   /** Encart « Résultats » de la page produit (titre court, ex: « Résultats visibles dès 7 jours d'utilisation »). */
   resultsTitle?: string;
   /** Sous-titre de l'encart « Résultats » (ex: « Peau plus lumineuse, lisse et unifiée. »). */
