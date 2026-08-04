@@ -20,33 +20,35 @@
     "start": "next start -p ${PORT:-3000}",
     "lint": "eslint",
     "setup:admin": "dotenv -e .env.local npx tsx scripts/create-admin-users.ts",
+    "seed:products": "dotenv -e .env.local npx tsx scripts/seed-products-from-toml.ts",
     "test": "playwright test",
     "test:ui": "playwright test --ui",
     "test:report": "playwright show-report",
     "test:sidebar": "playwright test tests/admin-sidebar.spec.ts"
   },
   "dependencies": {
-    "@supabase/ssr": "^0.10.2",
-    "@supabase/supabase-js": "^2.105.1",
+    "@supabase/ssr": "^0.10.3",
+    "@supabase/supabase-js": "^2.112.0",
     "@upstash/ratelimit": "^2.0.8",
-    "@upstash/redis": "^1.37.0",
-    "framer-motion": "^12.38.0",
+    "@upstash/redis": "^1.38.2",
+    "framer-motion": "^12.43.0",
     "next": "16.2.6",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "sharp": "^0.34.5"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.11.3",
-    "@playwright/test": "^1.59.1",
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@axe-core/playwright": "^4.12.1",
+    "@playwright/test": "^1.62.1",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^20.19.43",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
     "dotenv-cli": "^11.0.0",
-    "eslint": "^9",
+    "eslint": "^9.39.5",
     "eslint-config-next": "16.2.4",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "smol-toml": "^1.7.1",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.3"
   }
 }
