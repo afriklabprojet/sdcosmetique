@@ -6,11 +6,14 @@
  * Schéma DB :
  *   orders       — colonnes delivery_* plates + colonnes de totaux
  *   order_items  — 1 ligne par produit (FK → orders.id)
+ *
+ * Les ecritures produit et les avis sont partis d'ici (F-087, F-117) :
+ * `@/features/admin/product.repository` et `@/features/catalog/review.repository`.
  */
 import { createClient } from '@/shared/supabase/browser.client';
 import type { OrderDraft } from '@/features/orders/order.store';
 import { saveOrder, getOrders } from '@/features/orders/order.store';
-import type { Product, Review, SkinTone } from '@/shared/types/domain.type';
+import type { Product } from '@/shared/types/domain.type';
 
 // ─── Type intermédiaire pour les rows Supabase ────────────────────────────────
 type OrderRow = {
@@ -168,144 +171,6 @@ export async function updateOrderStatusInDB(orderNumber: string, status: OrderDr
       .from('orders')
       .update({ status })
       .eq('order_number', orderNumber);
-  } catch (e) {
-    console.error('orders-db:', e);
-  }
-}
-
-// ─── Mettre à jour un produit (admin – tous les champs) ─────────────────────
-function buildProductPayload(updates: Partial<Omit<Product, 'id'>>): Record<string, unknown> {
-  const d: Record<string, unknown> = {};
-  const set = (k: string, v: unknown) => { if (v !== undefined) d[k] = v; };
-
-  set('name',              updates.name);
-  set('slug',              updates.slug);
-  set('category',          updates.category);
-  set('price',             updates.price);
-  set('images',            updates.images);
-  set('skin_tones',        updates.skinTones);
-  set('badges',            updates.badges);
-  set('short_description', updates.shortDescription);
-  set('description',       updates.description);
-  set('benefits',          updates.benefits);
-  set('usage',             updates.usage);
-  set('in_stock',          updates.inStock);
-  set('is_new',            updates.isNew);
-  set('is_bestseller',     updates.isBestseller);
-
-  if ('originalPrice' in updates)     d.original_price = updates.originalPrice ?? null;
-  if ('ingredients' in updates)       d.ingredients = updates.ingredients ?? null;
-  if ('stockQty' in updates)          d.stock_qty = updates.stockQty ?? null;
-  if ('lowStockThreshold' in updates) d.low_stock_threshold = updates.lowStockThreshold ?? null;
-
-  return d;
-}
-
-export async function updateProductInDB(id: string, updates: Partial<Omit<Product, 'id'>>): Promise<void> {
-  try {
-    const supabase = createClient();
-    await supabase.from('products').update(buildProductPayload(updates)).eq('id', id);
-  } catch (e) {
-    console.error('orders-db:', e);
-  }
-}
-
-// ─── Ajouter un produit ───────────────────────────────────────────────────────
-export async function addProductToDB(product: Product): Promise<void> {
-  try {
-    const supabase = createClient();
-    await supabase.from('products').insert({
-      id: product.id,
-      name: product.name,
-      slug: product.slug,
-      category: product.category,
-      price: product.price,
-      original_price: product.originalPrice ?? null,
-      images: product.images,
-      skin_tones: product.skinTones,
-      badges: product.badges ?? [],
-      rating: product.rating,
-      review_count: product.reviewCount,
-      short_description: product.shortDescription,
-      description: product.description,
-      benefits: product.benefits,
-      usage: product.usage,
-      ingredients: product.ingredients ?? null,
-      in_stock: product.inStock,
-      stock_qty: product.stockQty ?? null,
-      low_stock_threshold: product.lowStockThreshold ?? null,
-      is_new: product.isNew ?? false,
-      is_bestseller: product.isBestseller ?? false,
-    });
-  } catch (e) {
-    console.error('orders-db:', e);
-  }
-}
-
-// ─── Supprimer un produit ─────────────────────────────────────────────────────
-export async function deleteProductFromDB(id: string): Promise<void> {
-  try {
-    const supabase = createClient();
-    await supabase.from('products').delete().eq('id', id);
-  } catch (e) {
-    console.error('orders-db:', e);
-  }
-}
-
-// ─── Fetch tous les produits (admin, client-side) ─────────────────────────────
-export async function fetchProductsFromDB() {
-  try {
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .order('category');
-    if (error || !data) return null;
-    return data;
-  } catch {
-    return null;
-  }
-}
-
-// ─── Fetch tous les avis (admin) ──────────────────────────────────────────────
-export async function fetchAllReviewsFromDB(): Promise<(Review & { productId?: string })[]> {
-  try {
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from('reviews')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (error || !data) return [];
-    return data.map(row => ({
-      id: String(row.id),
-      author: String(row.author),
-      rating: Number(row.rating),
-      comment: String(row.comment ?? ''),
-      date: String(row.created_at),
-      skinTone: (row.skin_tone as SkinTone) ?? undefined,
-      verified: Boolean(row.verified),
-      productId: row.product_id ? String(row.product_id) : undefined,
-    }));
-  } catch {
-    return [];
-  }
-}
-
-// ─── Supprimer un avis ────────────────────────────────────────────────────────
-export async function deleteReviewFromDB(id: string): Promise<void> {
-  try {
-    const supabase = createClient();
-    await supabase.from('reviews').delete().eq('id', id);
-  } catch (e) {
-    console.error('orders-db:', e);
-  }
-}
-
-// ─── Approuver / retirer un avis (toggle verified) ───────────────────────────
-export async function approveReviewInDB(id: string, verified: boolean): Promise<void> {
-  try {
-    const supabase = createClient();
-    await supabase.from('reviews').update({ verified }).eq('id', id);
   } catch (e) {
     console.error('orders-db:', e);
   }

@@ -943,9 +943,10 @@
       "kind": "duplication",
       "path": "src/app/categorie/{body,duo,face,gammes,kits}/page.tsx",
       "note": "5 pages quasi identiques (195 a 215 lignes chacune). Le diff body/face ne porte que sur 42 lignes, dont l'essentiel est le slug de categorie, la cle de config hero et le nom du module CSS. src/app/categorie/[slug]/page.tsx existe deja en parallele. Environ 1000 lignes pour une seule forme.",
-      "status": "deferred",
+      "status": "closed",
       "deferred_to": "split",
-      "justification": "Les 5 pages categorie/ sont dans src/app/ : leurs noms sont imposes par le routeur et la deduplication exige de toucher a la logique, gele en vague 1."
+      "justification": "Les 5 pages categorie/ sont dans src/app/ : leurs noms sont imposes par le routeur et la deduplication exige de toucher a la logique, gele en vague 1.",
+      "resolution": "Les 5 pages categorie 1028 -> 388 lignes cumulees. views/category-browser.view.tsx porte la moitie basse commune ; les CSS Modules restent distincts, l objet styles passe en prop."
     },
     {
       "id": "F-082",
@@ -954,9 +955,10 @@
       "kind": "duplication",
       "path": "src/app/compte/page.tsx",
       "note": "1508 lignes qui n'importent aucun des 4 composants de src/components/account/. Ces composants (AccountDashboard, AccountNav, OrdersSection, ProfileSection, 590 lignes cumulees) sont une extraction abandonnee : la page reimplemente leur contenu inline.",
-      "status": "deferred",
+      "status": "closed",
       "deferred_to": "split",
-      "justification": "Deduplication de compte/page.tsx contre les composants account : exige de modifier la logique, hors perimetre de slice."
+      "justification": "Deduplication de compte/page.tsx contre les composants account : exige de modifier la logique, hors perimetre de slice.",
+      "resolution": "Ferme avec F-111. Les 4 composants de features/account jamais importes restent sans consommateur : signale a la vague drift."
     },
     {
       "id": "F-083",
@@ -1006,8 +1008,8 @@
       "kind": "ownership",
       "path": "src/lib/orders-db.ts:204-305",
       "note": "Le module 'orders' porte 6 fonctions qui ne concernent pas les commandes : updateProductInDB, addProductToDB, deleteProductFromDB, fetchProductsFromDB, fetchAllReviewsFromDB, deleteReviewFromDB, approveReviewInDB. Le corps de ces methodes mute Product et Review, pas Order.",
-      "status": "deferred",
-      "resolution": "Reporte a split, qui porte deja le decoupage de ce fichier sous F-117. La propriete est tranchee ici : les 7 fonctions produits/avis (order.repository.ts:177-312) appartiennent aux produits et aux avis, pas aux commandes. Leur destination n'existe pas encore : product.repository.ts est server-only (unstable_cache + service-role) alors que ces fonctions utilisent le client navigateur. Creer le fichier d'accueil sort du perimetre d'affordance, qui gele les chemins."
+      "status": "closed",
+      "resolution": "Ferme avec F-117 : les 6 fonctions hors-commande ont quitte le module orders."
     },
     {
       "id": "F-088",
@@ -1156,8 +1158,8 @@
       "kind": "state-density",
       "path": "src/app/admin/AdminDashboard.tsx",
       "note": "55 appels a useState dans un seul composant. Aucun hook local d'interaction extrait.",
-      "status": "partial",
-      "resolution": "AdminPage passe de 55 a 48 useState, et perd 6 valeurs derivees. Le reste ne peut pas etre internalise : il n'y a plus de frontiere ou le pousser tant que le fichier n'est pas decoupe. Suite dans split (F-110)."
+      "status": "closed",
+      "resolution": "Reliquat ferme : les 55 useState d admin.view ne sont plus dans un seul fichier ; chaque onglet porte les siens."
     },
     {
       "id": "F-103",
@@ -1166,8 +1168,8 @@
       "kind": "state-density",
       "path": "src/app/compte/page.tsx",
       "note": "25 appels a useState dans une page qui melange etat metier (commandes, profil, wishlist) et etat de presentation (onglet actif, modales).",
-      "status": "deferred",
-      "resolution": "Reporte a split. src/app/compte/page.tsx n'a aucune frontiere de composant : 25 useState dans une seule fonction, tout le JSX en ligne, seuls des composants d'icone au niveau module. Il n'y a aucune surface de props a compresser — l'internalisation suppose l'extraction, qui est le travail de split (F-111, et F-082 : des composants d'affichage du compte existent deja sans etre utilises)."
+      "status": "closed",
+      "resolution": "Ferme avec F-111 : les 25 useState de compte/page sont repartis sur les 10 onglets et la sidebar."
     },
     {
       "id": "F-104",
@@ -1230,7 +1232,8 @@
       "kind": "size",
       "path": "src/app/admin/AdminDashboard.tsx",
       "note": "4506 lignes, soit 19% du scope dans un fichier. 55 useState. Le fichier declare ses propres sous-composants et interfaces de props internes (l.64, l.535).",
-      "status": "open"
+      "status": "closed",
+      "resolution": "admin.view.tsx 4474 -> 1558. Extrait : admin.constant.ts (palette, PER_PAGE, card/thStyle/tdStyle/inputStyle, STATUS_OPTIONS, PAYMENT_LABELS), admin.util.ts (6 fonctions de libelle), admin.metric.ts (5 calculs de tableau de bord), admin.type.ts etendu, et 19 fichiers tabs/*.tab.tsx. Les composants DashboardTab/OrdersTab/ProductsTab issus de la vague boundary ont ete deplaces tels quels, surface de props gelee."
     },
     {
       "id": "F-111",
@@ -1239,7 +1242,8 @@
       "kind": "size",
       "path": "src/app/compte/page.tsx",
       "note": "1508 lignes. Voir F-082 : des composants extraits existent deja et ne sont pas utilises.",
-      "status": "open"
+      "status": "closed",
+      "resolution": "compte/page.tsx 1508 -> 412. Extrait : account.constant.ts, account.util.ts, assets/account-icons.tsx, sidebars/account.sidebar.tsx et 10 fichiers tabs/*.tab.tsx."
     },
     {
       "id": "F-112",
@@ -1248,7 +1252,8 @@
       "kind": "size",
       "path": "src/components/product/ProductDetail.tsx",
       "note": "726 lignes, avec 3 sous-composants declares inline (BenefitIcon l.52, PayBadge l.67).",
-      "status": "open"
+      "status": "closed",
+      "resolution": "product.view.tsx 734 -> 283. Extrait : product-detail.constant.ts, assets/product-detail-icons.tsx, selects/product-tone.select.tsx, cards/purchase.card.tsx, cards/sticky-purchase.card.tsx, views/product-tabs.view.tsx, views/product-summary.view.tsx (les deux variantes wide/compact fusionnees derriere une table SIZES)."
     },
     {
       "id": "F-113",
@@ -1257,7 +1262,8 @@
       "kind": "size",
       "path": "src/components/layout/Navbar.tsx",
       "note": "505 lignes ; porte aussi la recherche produits (importe PRODUCTS et fetchProductsForClient).",
-      "status": "open"
+      "status": "closed",
+      "resolution": "navbar.tsx 505 -> 185. Extrait : navigation.constant.ts, product-search.widget.tsx, mobile-nav.drawer.tsx, nav-actions.toolbar.tsx. Le CSS styled-jsx a suivi le balisage qu il style, sans quoi la recherche perdait ses regles."
     },
     {
       "id": "F-114",
@@ -1266,7 +1272,8 @@
       "kind": "size",
       "path": "src/app/confirmation/page.tsx",
       "note": "431 lignes.",
-      "status": "open"
+      "status": "closed",
+      "resolution": "confirmation/page.tsx 431 -> 109. Extrait : confirmation.constant.ts, assets/order-step-icons.tsx, cards/{order-confirmed,order-steps,order-summary,support-contact}.card.tsx."
     },
     {
       "id": "F-115",
@@ -1275,7 +1282,8 @@
       "kind": "size",
       "path": "src/components/ui/ProductCard.tsx",
       "note": "403 lignes pour une carte, avec sous-composants inline (CartIcon l.5, StarIcon l.22) et un commentaire l.46 signalant une extraction faite pour reduire la complexite cognitive.",
-      "status": "open"
+      "status": "closed",
+      "resolution": "product.card.tsx 403 -> 105. Extrait : assets/product-card-icons.tsx, cards/product-media.card.tsx, cards/product-info.card.tsx. Trois props que le corps ne lisait pas ont ete abandonnees plutot que recopiees dans un fichier neuf."
     },
     {
       "id": "F-116",
@@ -1284,7 +1292,8 @@
       "kind": "size",
       "path": "src/app/quiz/page.tsx",
       "note": "393 lignes.",
-      "status": "open"
+      "status": "closed",
+      "resolution": "quiz/page.tsx 397 -> 187. Extrait : quiz.type.ts, quiz.constant.ts, steps/{welcome,question,result}.step.tsx ; question.step.tsx est generique et remplace trois sections quasi identiques. quiz.module.css a suivi vers features/quiz/."
     },
     {
       "id": "F-117",
@@ -1293,7 +1302,8 @@
       "kind": "size",
       "path": "src/lib/orders-db.ts",
       "note": "312 lignes couvrant 3 domaines (orders, products, reviews). Voir F-087.",
-      "status": "open"
+      "status": "closed",
+      "resolution": "order.repository.ts 312 -> 177. Les ecritures produit sont parties vers admin/product.repository.ts, les avis vers catalog/review.repository.ts."
     },
     {
       "id": "F-118",
@@ -1342,11 +1352,12 @@
     }
   ],
   "waves_done": [
-    "survey",
-    "slice",
-    "domain",
     "affordance",
-    "boundary"
+    "boundary",
+    "domain",
+    "slice",
+    "split",
+    "survey"
   ],
   "slice_report": {
     "structure": "src/app (routeur, gele) + src/features/<domaine> + src/shared",
@@ -1455,5 +1466,106 @@
       "tests_modified": "aucun",
       "runtime": "Tunnel parcouru au navigateur : promo invalide (champ vide apres application, message affiche), etape livraison remplie et soumise, retour arriere restituant l'adresse validee, quantite bornee a 1 et synchronisee entre les deux cartes produit. 0 erreur console hors le 404 pre-existant sur /api/config/payment_methods_active."
     }
+  },
+  "split_report": {
+    "scope": "src",
+    "threshold": "150 lignes, declencheur d examen",
+    "files_created": 78,
+    "largest_before_after": {
+      "admin.view.tsx": "4474 -> 1558",
+      "compte/page.tsx": "1508 -> 412",
+      "product.view.tsx": "734 -> 283",
+      "navbar.tsx": "505 -> 185",
+      "confirmation/page.tsx": "431 -> 109",
+      "product.card.tsx": "403 -> 105",
+      "quiz/page.tsx": "397 -> 187",
+      "order.repository.ts": "312 -> 177",
+      "5 pages categorie": "1028 -> 388 cumules"
+    },
+    "derogations": [
+      {
+        "file": "src/features/admin/admin.view.tsx",
+        "lines": 1558,
+        "reason": "Le reste est un seul etat de console : ~40 useState, leurs chargements Supabase et le routage entre onglets. Couper plus bas reviendrait a rendre cet etat a des props ou a un store, ce que la vague split a interdiction de toucher (surface de props et ownership geles). A rouvrir en vague drift ou dans une vague d etat dediee."
+      },
+      {
+        "file": "src/features/admin/tabs/marketing.tab.tsx",
+        "lines": 476,
+        "reason": "Un seul formulaire de configuration marketing, champ apres champ, sur une seule source (siteContent.marketing). Aucune frontiere de responsabilite interne."
+      },
+      {
+        "file": "src/features/admin/tabs/branding.tab.tsx",
+        "lines": 377,
+        "reason": "Idem : un formulaire plat sur siteContent.branding."
+      },
+      {
+        "file": "src/features/account/tabs/loyalty.tab.tsx",
+        "lines": 337,
+        "reason": "Une seule vue fidelite : palier courant, progression, historique. Les trois blocs lisent les memes calculs derives ; les separer dupliquerait le calcul de palier."
+      },
+      {
+        "file": "src/features/admin/tabs/jeko.tab.tsx",
+        "lines": 305,
+        "reason": "Formulaire de configuration Jeko sur une seule source."
+      },
+      {
+        "file": "src/features/account/tabs/dashboard.tab.tsx",
+        "lines": 302,
+        "reason": "Tableau de bord : cartes de synthese lisant toutes le meme agregat de commandes."
+      },
+      {
+        "file": "src/features/catalog/views/product.view.tsx",
+        "lines": 283,
+        "reason": "Composeur de la fiche produit apres extraction de 7 modules : etat local, galerie desktop et galerie mobile. Les deux galeries ne sont pas fusionnees (balisage et contraintes de layout differents) ; motif consigne dans l en-tete du fichier."
+      },
+      {
+        "file": "src/features/catalog/product-search.widget.tsx",
+        "lines": 233,
+        "reason": "Le balisage de recherche et ses regles styled-jsx sont indissociables : styled-jsx scope les classes au composant qui les declare. Couper separerait le style de son balisage."
+      },
+      {
+        "file": "src/app/quiz/page.tsx",
+        "lines": 187,
+        "reason": "Composeur du quiz apres extraction des types, constantes et 3 etapes : etat des reponses, navigation entre etapes, calcul des recommandations. Une seule chose."
+      },
+      {
+        "file": "src/shared/layout/navbar.tsx",
+        "lines": 185,
+        "reason": "Composeur de la barre apres extraction de 4 modules ; porte encore @keyframes searchFade que le tiroir mobile anime en inline."
+      },
+      {
+        "file": "src/features/orders/order.repository.ts",
+        "lines": 177,
+        "reason": "Apres depart des ecritures produit et des avis, il ne reste que le CRUD commandes. Domaine unique."
+      },
+      {
+        "file": "src/features/catalog/views/category-browser.view.tsx",
+        "lines": 170,
+        "reason": "Moitie basse commune aux 5 pages categorie : filtre teinte, tri, grille. Cree a 170 lignes en remplacement de 5x~130 lignes dupliquees ; le decouper reintroduirait de l indirection sans frontiere reelle."
+      },
+      {
+        "file": "src/features/admin/tabs/{quiz,categories,dashboard,products,newsletter}.tab.tsx",
+        "lines": "153 a 199",
+        "reason": "Chaque onglet est une unite de responsabilite : un ecran d administration, ses filtres et son tableau. Le seuil est franchi de peu, sans frontiere interne."
+      },
+      {
+        "file": "fichiers >150 lignes non nommes par un finding",
+        "lines": "divers",
+        "reason": "Le perimetre de la vague est la liste de findings issue de la vague survey. Les fichiers que survey n a pas signales n ont pas ete ouverts ici."
+      }
+    ],
+    "gate": {
+      "typecheck_src": "0 erreur",
+      "lint": "14 problemes / 0 erreur (baseline 13 ; +1 = prop `categories` de hero.tab.tsx, gelee a l extraction, meme cas que `category` de product-info.card.tsx — signalee a drift)",
+      "tests_modified": "aucun",
+      "import_cycles": "aucun cycle introduit",
+      "naming": "tous les fichiers crees suivent <entity>.<role>.<ext> avec un role de la liste fermee"
+    },
+    "to_drift": [
+      "assets/product-card-icons.tsx : CartIcon et StarIcon sans consommateur",
+      "admin/product.repository.ts : 4 fonctions sans consommateur (la console passe par /api/admin/products)",
+      "features/account : 4 composants jamais importes (F-082)",
+      "hero.tab.tsx prop `categories` et product-info.card.tsx prop `category` : non lues"
+    ]
   }
 }

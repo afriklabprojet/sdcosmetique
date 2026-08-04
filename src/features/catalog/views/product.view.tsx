@@ -1,41 +1,37 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+/*
+ * Fiche produit. Ce fichier est desormais le composeur : il detient l'etat de
+ * la fiche (image affichee, teint, quantite, onglet, ajout en cours), calcule
+ * ce qui en decoule, et pose les blocs extraits en vague `split` (F-112) —
+ * `product-summary.view`, `cards/purchase.card`, `product-tabs.view`,
+ * `cards/sticky-purchase.card`.
+ *
+ * Ce qui reste ici est la galerie, en deux versions. Ce n'est pas un oubli :
+ * le desktop empile ses vignettes en colonne a gauche de l'image, le mobile
+ * les fait defiler sous elle. Les deux ne partagent que la source des images,
+ * pas la mise en page ; il n'y a pas de composant commun a en tirer sans
+ * inventer une abstraction que le rendu ne demande pas.
+ */
+
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { formatPrice } from '@/features/catalog/product.query';
 import { Product, Review, CATEGORIES, SKIN_TONES, SkinTone } from '@/shared/types/domain.type';
 import type { ProductTrustItem, PaymentBadge, ProductToneImages } from '@/features/site-config/site-config.type';
 import ProductCard from '@/features/catalog/cards/product.card';
-import StarRating from '@/features/catalog/star-rating';
 import { useCart } from '@/features/cart/cart.store';
 import { useWishlist } from '@/features/wishlist/wishlist.store';
-
-const DARK   = '#3D1400';
-const GOLD   = '#8F5922';
-const GOLD2  = '#C8974A';
-const BORDER = '#EDE8E0';
-const TXT    = '#1A1A1A';
-const TXT2   = '#9A8A7A';
-const TXT3   = '#7A6A5A';
-const BG     = '#F8F4EF';
-
-const toneColor: Record<string, string> = {
-  noir:           '#2C1810',
-  marron:         '#7B4A2D',
-  'marron-clair': '#C68642',
-  clair:          '#F0CEAA',
-  metisse:        '#A0714F',
-};
-
-const toneImage: Record<string, string> = {
-  noir:           '/hero/skintone-noir.svg',
-  marron:         '/hero/skintone-marron.svg',
-  'marron-clair': '/hero/skintone-marron-clair.svg',
-  clair:          '/hero/skintone-clair.svg',
-  metisse:        '/hero/skintone-metisse.svg',
-};
+import {
+  DARK, GOLD, GOLD2, BORDER, TXT, TXT2, BG,
+  toneImage, DEFAULT_TRUST, DEFAULT_PAYMENT_BADGES,
+} from '@/features/catalog/product-detail.constant';
+import { TRUST_ICONS, ProductWishlistIcon } from '@/features/catalog/assets/product-detail-icons';
+import ProductSummary from '@/features/catalog/views/product-summary.view';
+import ProductTabs, { type ProductTabId } from '@/features/catalog/views/product-tabs.view';
+import PurchaseCard from '@/features/catalog/cards/purchase.card';
+import StickyPurchase from '@/features/catalog/cards/sticky-purchase.card';
 
 interface Props {
   readonly product: Product;
@@ -47,227 +43,6 @@ interface Props {
   readonly paymentBadges?: PaymentBadge[];
   /** Images cercles teint (depuis site_config). */
   readonly toneImages?: ProductToneImages;
-}
-
-function BenefitIcon({ i }: { readonly i: number }) {
-  const c = {
-    width: 15, height: 15, viewBox: '0 0 24 24',
-    fill: 'none' as const, stroke: GOLD2, strokeWidth: '2',
-    strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const,
-  };
-  const icons = [
-    <svg key="sun"  {...c}><circle cx="12" cy="12" r="4.5"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/></svg>,
-    <svg key="star" {...c}><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/></svg>,
-    <svg key="drop" {...c}><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>,
-    <svg key="leaf" {...c}><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5l6.74-6.76z"/><line x1="16" y1="8" x2="2" y2="22"/></svg>,
-  ];
-  return <>{icons[i % 4]}</>;
-}
-
-function PayBadge({ label, bg, text = 'white' }: { readonly label: string; readonly bg: string; readonly text?: string }) {
-  return (
-    <div style={{ width: 44, height: 28, borderRadius: 5, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2px 3px' }}>
-      <span style={{ fontSize: '6px', fontWeight: 900, color: text, textAlign: 'center', lineHeight: 1.2, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-        {label}
-      </span>
-    </div>
-  );
-}
-
-const TRUST_ICONS: Record<ProductTrustItem['icon'], React.ReactNode> = {
-  truck:  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={DARK} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>,
-  shield: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={DARK} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>,
-  leaf:   <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={DARK} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22V12"/><path d="M12 12C12 7 5 5 5 2c0 0 7 1 12 7 3 3 0 9-5 3z"/></svg>,
-  rotate: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={DARK} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>,
-};
-
-const DEFAULT_TRUST: ProductTrustItem[] = [
-  { icon: 'truck',  label: 'Livraison rapide',       sub: 'en 24h - 48h' },
-  { icon: 'shield', label: 'Produits authentiques',  sub: '100% certifiés' },
-  { icon: 'leaf',   label: 'Ingrédients naturels',   sub: 'et de qualité' },
-  { icon: 'rotate', label: 'Satisfait ou remboursé', sub: 'sous 7 jours' },
-];
-
-const DEFAULT_PAYMENT_BADGES: PaymentBadge[] = [
-  { label: 'Orange Money',   bg: '#FF6600' },
-  { label: 'Wave',           bg: '#0066CC' },
-  { label: 'MTN MoMo',       bg: '#FFCC00', text: '#1A1A1A' },
-  { label: 'Moov Money',     bg: '#00A651' },
-  { label: 'Djamo',          bg: '#4C35A8' },
-  { label: 'Carte Bancaire', bg: '#1A1F71' },
-];
-
-// ─── TonePicker (module-level) ──────────────────────────────────────────────
-interface TonePickerProps {
-  readonly skinTones: string[];
-  readonly selectedTone: string;
-  readonly onSelect: (t: string) => void;
-  readonly size?: number;
-  /** Surcharge des images de teint (depuis site_config). */
-  readonly customToneImages?: Record<string, string>;
-}
-function TonePicker({ skinTones, selectedTone, onSelect, size = 40, customToneImages }: TonePickerProps) {
-  const resolvedToneImage = { ...toneImage, ...customToneImages };
-  return (
-    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-      {skinTones.map(tone => {
-        const info     = SKIN_TONES.find(s => s.id === tone);
-        const isActive = selectedTone === tone;
-        return (
-          <button key={tone} onClick={() => onSelect(tone)}
-            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-            <div style={{ width: size, height: size, borderRadius: '50%', background: toneColor[tone] ?? '#888', border: `2px solid ${isActive ? GOLD : BORDER}`, position: 'relative', overflow: 'hidden', boxShadow: isActive ? `0 0 0 2px white, 0 0 0 4px ${GOLD}` : 'none', transition: 'box-shadow .2s' }}>
-              {resolvedToneImage[tone] && (
-                <Image
-                  src={resolvedToneImage[tone]}
-                  alt={info?.label ?? tone}
-                  fill
-                  sizes="48px"
-                  style={{ objectFit: 'cover' }}
-                />
-              )}
-              {isActive && (
-                <div style={{ position: 'absolute', inset: 0, background: 'rgba(61,20,0,.45)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                </div>
-              )}
-            </div>
-            <span style={{ fontSize: 9, fontWeight: isActive ? 700 : 400, color: isActive ? DARK : TXT2, textAlign: 'center', lineHeight: 1.2 }}>
-              {info?.label ?? tone}
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-
-// ─── PurchaseCard (module-level) ─────────────────────────────────────────────
-interface PurchaseCardProps {
-  readonly product: import('@/shared/types/domain.type').Product;
-  readonly selectedTone: string;
-  readonly onSelectTone: (t: import('@/shared/types/domain.type').SkinTone) => void;
-  readonly qty: number;
-  readonly onChangeQty: (q: number) => void;
-  readonly payments: import('@/features/site-config/site-config.type').PaymentBadge[];
-  readonly handleAddToCart: () => void;
-  readonly handleBuyNow: () => void;
-  readonly adding: boolean;
-  readonly discount: number | null;
-  readonly customToneImages?: Record<string, string>;
-}
-/*
- * Teinte et quantite ne descendent pas dans cette carte : elle est rendue deux
- * fois (desktop et mobile) et les deux instances doivent afficher le meme
- * choix, que l'en-tete de la fiche lit egalement. L'etat reste donc chez son
- * seul proprietaire possible ; ce sont les props qui cessent d'etre des setters
- * pour devenir des affordances, et le bornage de la quantite remonte avec elle.
- */
-function PurchaseCard({ product, selectedTone, onSelectTone, qty, onChangeQty, payments, handleAddToCart, handleBuyNow, adding, discount, customToneImages }: PurchaseCardProps) {
-  return (
-    <div style={{ background: 'white', border: `1px solid ${BORDER}`, borderRadius: 8, padding: '20px 18px' }}>
-
-      {/* Prix */}
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 16 }}>
-        <span style={{ fontSize: 28, fontWeight: 800, color: TXT, fontFamily: 'Georgia,serif' }}>
-          {product.price.toLocaleString('fr-FR')}
-        </span>
-        <span style={{ fontSize: 14, fontWeight: 700, color: TXT2 }}>FCFA</span>
-        {product.originalPrice && (
-          <span style={{ fontSize: 13, textDecoration: 'line-through', color: TXT2, marginLeft: 4 }}>
-            {formatPrice(product.originalPrice)}
-          </span>
-        )}
-        {discount && (
-          <span style={{ fontSize: 11, fontWeight: 700, color: '#C0392B', background: '#FEE2E2', padding: '2px 6px', borderRadius: 3, marginLeft: 4 }}>
-            -{discount}%
-          </span>
-        )}
-      </div>
-
-      {/* Sélecteur de teint */}
-      {product.skinTones.length > 0 && (
-        <div style={{ marginBottom: 16 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: TXT, marginBottom: 12 }}>
-            Votre teint
-          </p>
-          <TonePicker skinTones={product.skinTones} selectedTone={selectedTone} onSelect={t => onSelectTone(t as import('@/shared/types/domain.type').SkinTone)} customToneImages={customToneImages} />
-        </div>
-      )}
-
-      {/* Quantité */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-        <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: TXT, margin: 0 }}>Qté</p>
-        <div style={{ display: 'flex', alignItems: 'center', border: `1px solid ${BORDER}`, borderRadius: 4, overflow: 'hidden' }}>
-          <button onClick={() => onChangeQty(qty - 1)} aria-label="Diminuer la quantité"
-            style={{ width: 44, height: 44, background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: TXT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
-          <span style={{ minWidth: 28, textAlign: 'center', fontSize: 14, fontWeight: 600, color: TXT }}>{qty}</span>
-          <button onClick={() => onChangeQty(qty + 1)} aria-label="Augmenter la quantité"
-            style={{ width: 44, height: 44, background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: TXT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
-        </div>
-      </div>
-
-      {/* Bouton Ajouter au panier — minimaliste */}
-      <button
-        onClick={handleAddToCart}
-        disabled={adding}
-        style={{
-          width: '100%',
-          height: 48,
-          marginBottom: 10,
-          background: adding ? TXT : 'transparent',
-          color: adding ? '#fff' : TXT,
-          border: `1px solid ${TXT}`,
-          fontSize: 11,
-          fontWeight: 600,
-          letterSpacing: '0.18em',
-          textTransform: 'uppercase',
-          cursor: adding ? 'wait' : 'pointer',
-          transition: 'background 0.25s ease, color 0.25s ease',
-        }}
-        onMouseEnter={(e) => { if (!adding) { e.currentTarget.style.background = TXT; e.currentTarget.style.color = '#fff'; } }}
-        onMouseLeave={(e) => { if (!adding) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = TXT; } }}
-      >
-        {adding ? '✓ Ajouté' : 'Ajouter au panier'}
-      </button>
-
-      {/* Bouton Acheter maintenant — minimaliste */}
-      <button
-        onClick={handleBuyNow}
-        style={{
-          width: '100%',
-          height: 48,
-          marginBottom: 18,
-          background: TXT,
-          color: '#fff',
-          border: `1px solid ${TXT}`,
-          fontSize: 11,
-          fontWeight: 600,
-          letterSpacing: '0.18em',
-          textTransform: 'uppercase',
-          cursor: 'pointer',
-          transition: 'opacity 0.25s ease',
-        }}
-        onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.85'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
-      >
-        Acheter maintenant
-      </button>
-
-      {/* Badges paiement */}
-      {payments.length > 0 && (
-        <div>
-          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: TXT2, marginBottom: 8, textAlign: 'center' }}>
-            Paiement sécurisé
-          </p>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
-            {payments.map((p) => <PayBadge key={p.label} label={p.label} bg={p.bg} text={p.text} />)}
-          </div>
-        </div>
-      )}
-    </div>
-  );
 }
 
 export default function ProductDetail({ product, related, reviews, trustItems, paymentBadges, toneImages }: Props) {
@@ -291,7 +66,7 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
   const [qty,          setQty]          = useState(1);
   const [selectedTone, setSelectedTone] = useState<SkinTone>(product.skinTones[0] ?? 'noir');
   const changeQty = (q: number) => setQty(Math.max(1, q));
-  const [activeTab,    setActiveTab]    = useState<'description' | 'usage' | 'ingredients' | 'reviews'>('description');
+  const [activeTab,    setActiveTab]    = useState<ProductTabId>('description');
   const [adding,       setAdding]       = useState(false);
 
   /* ── Sticky CTA mobile ───────────────────────────────────────── */
@@ -329,9 +104,20 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
     router.push('/checkout');
   };
 
-  // TonePicker défini au niveau module (voir ci-dessus)
-
-  // PurchaseCard défini au niveau module (voir ci-dessus)
+  const categoryLabel = category?.label ?? product.category;
+  const purchaseProps = {
+    product,
+    selectedTone,
+    onSelectTone: setSelectedTone,
+    qty,
+    onChangeQty: changeQty,
+    payments,
+    handleAddToCart,
+    handleBuyNow,
+    adding,
+    discount,
+    customToneImages,
+  };
 
   return (
     <div style={{ background: BG }}>
@@ -342,7 +128,7 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
           <Link href="/" style={{ color: TXT2, textDecoration: 'none' }}>Accueil</Link>
           <span>›</span>
           <Link href={`/categorie/${product.category}`} style={{ color: TXT2, textDecoration: 'none' }}>
-            {category?.label ?? product.category}
+            {categoryLabel}
           </Link>
           <span>›</span>
           <span style={{ color: TXT }}>{product.name}</span>
@@ -383,72 +169,20 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
             )}
             <button onClick={() => toggle(product)}
               style={{ position: 'absolute', bottom: 14, right: 14, width: 44, height: 44, borderRadius: '50%', background: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,.15)' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill={inWishlist ? GOLD : 'none'} stroke={inWishlist ? GOLD : TXT2} strokeWidth="1.8">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-              </svg>
+              <ProductWishlistIcon filled={inWishlist} size={16} />
             </button>
           </div>
 
           {/* Col 3 – Product info */}
-          <div style={{ paddingTop: 4 }}>
-            <span style={{ display: 'inline-block', padding: '4px 12px', background: GOLD, color: 'white', fontSize: 10, fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', borderRadius: 2, marginBottom: 12 }}>
-              {category?.label ?? product.category}
-            </span>
-            <h1 style={{ fontSize: 26, fontWeight: 800, color: TXT, fontFamily: 'Georgia,serif', lineHeight: 1.2, marginBottom: 4 }}>
-              {product.name}
-            </h1>
-            <p style={{ fontSize: 20, fontWeight: 700, color: GOLD2, fontFamily: 'Georgia,serif', marginBottom: 12 }}>
-              Teint {selectedToneInfo?.label ?? ''}
-            </p>
-            <div style={{ marginBottom: 16 }}>
-              <StarRating rating={product.rating} count={product.reviewCount} size={15} />
-            </div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 14 }}>
-              <span style={{ fontSize: 26, fontWeight: 800, color: TXT, fontFamily: 'Georgia,serif' }}>
-                {product.price.toLocaleString('fr-FR')}
-              </span>
-              <span style={{ fontSize: 15, fontWeight: 700, color: TXT2 }}>FCFA</span>
-              {product.originalPrice && (
-                <span style={{ fontSize: 14, textDecoration: 'line-through', color: TXT2, marginLeft: 4 }}>
-                  {formatPrice(product.originalPrice)}
-                </span>
-              )}
-            </div>
-            <p style={{ fontSize: 13, color: TXT3, lineHeight: 1.65, marginBottom: 20 }}>
-              {product.shortDescription}
-            </p>
-            {product.benefits.length > 0 && (
-              <div>
-                <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: TXT, marginBottom: 12 }}>
-                  Bienfaits
-                </p>
-                {product.benefits.map((b, i) => (
-                  <div key={b} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                    <div style={{ width: 34, height: 34, borderRadius: '50%', flexShrink: 0, background: '#FDF4E8', border: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <BenefitIcon i={i} />
-                    </div>
-                    <span style={{ fontSize: 13, color: TXT }}>{b}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <ProductSummary
+            product={product}
+            categoryLabel={categoryLabel}
+            selectedToneLabel={selectedToneInfo?.label ?? ''}
+          />
 
           {/* Col 4 – Purchase sidebar */}
           <div style={{ alignSelf: 'start' }}>
-            <PurchaseCard
-              product={product}
-              selectedTone={selectedTone}
-              onSelectTone={setSelectedTone}
-              qty={qty}
-              onChangeQty={changeQty}
-              payments={payments}
-              handleAddToCart={handleAddToCart}
-              handleBuyNow={handleBuyNow}
-              adding={adding}
-              discount={discount}
-              customToneImages={customToneImages}
-            />
+            <PurchaseCard {...purchaseProps} />
           </div>
 
         </div>{/* end desktop */}
@@ -468,9 +202,7 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
             )}
             <button onClick={() => toggle(product)}
               style={{ position: 'absolute', bottom: 12, right: 12, width: 44, height: 44, borderRadius: '50%', background: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,.15)' }}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill={inWishlist ? GOLD : 'none'} stroke={inWishlist ? GOLD : TXT2} strokeWidth="1.8">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-              </svg>
+              <ProductWishlistIcon filled={inWishlist} size={15} />
             </button>
           </div>
 
@@ -487,65 +219,16 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
           )}
 
           {/* Info */}
-          <div>
-            <span style={{ display: 'inline-block', padding: '4px 10px', background: GOLD, color: 'white', fontSize: 10, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', borderRadius: 2, marginBottom: 10 }}>
-              {category?.label ?? product.category}
-            </span>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: TXT, fontFamily: 'Georgia,serif', lineHeight: 1.2, marginBottom: 4 }}>
-              {product.name}
-            </h1>
-            <p style={{ fontSize: 17, fontWeight: 700, color: GOLD2, fontFamily: 'Georgia,serif', marginBottom: 10 }}>
-              Teint {selectedToneInfo?.label ?? ''}
-            </p>
-            <div style={{ marginBottom: 12 }}>
-              <StarRating rating={product.rating} count={product.reviewCount} size={14} />
-            </div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 12 }}>
-              <span style={{ fontSize: 22, fontWeight: 800, color: TXT, fontFamily: 'Georgia,serif' }}>
-                {product.price.toLocaleString('fr-FR')}
-              </span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: TXT2 }}>FCFA</span>
-              {product.originalPrice && (
-                <span style={{ fontSize: 13, textDecoration: 'line-through', color: TXT2 }}>
-                  {formatPrice(product.originalPrice)}
-                </span>
-              )}
-            </div>
-            <p style={{ fontSize: 13, color: TXT3, lineHeight: 1.65, marginBottom: 16 }}>
-              {product.shortDescription}
-            </p>
-            {product.benefits.length > 0 && (
-              <div>
-                <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: TXT, marginBottom: 10 }}>
-                  Bienfaits
-                </p>
-                {product.benefits.map((b, i) => (
-                  <div key={b} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                    <div style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, background: '#FDF4E8', border: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <BenefitIcon i={i} />
-                    </div>
-                    <span style={{ fontSize: 13, color: TXT }}>{b}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <ProductSummary
+            product={product}
+            categoryLabel={categoryLabel}
+            selectedToneLabel={selectedToneInfo?.label ?? ''}
+            compact
+          />
 
           {/* Purchase card */}
           <div ref={mobilePurchaseRef}>
-            <PurchaseCard
-              product={product}
-              selectedTone={selectedTone}
-              onSelectTone={setSelectedTone}
-              qty={qty}
-              onChangeQty={changeQty}
-              payments={payments}
-              handleAddToCart={handleAddToCart}
-              handleBuyNow={handleBuyNow}
-              adding={adding}
-              discount={discount}
-              customToneImages={customToneImages}
-            />
+            <PurchaseCard {...purchaseProps} />
           </div>
 
         </div>{/* end mobile */}
@@ -568,111 +251,13 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
         </div>
 
         {/* ── Tabs + side panels (Ingrédients clés / Résultats) ──────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4" style={{ marginTop: 28 }}>
-
-          {/* Left : tabs + tab content */}
-          <div className="lg:col-span-6" style={{ border: `1px solid ${BORDER}`, borderRadius: 6, background: 'white', padding: '0 22px 22px' }}>
-            <div style={{ display: 'flex', gap: 24, borderBottom: `2px solid ${BORDER}` }}>
-              {([
-                { id: 'description', label: 'Description' },
-                { id: 'usage',       label: "Conseils d'utilisation" },
-                { id: 'ingredients', label: 'Ingrédients' },
-                { id: 'reviews',     label: `Avis clients (${reviews.length || product.reviewCount})` },
-              ] as const).map(tab => (
-                <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                  style={{ padding: '16px 10px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: activeTab === tab.id ? GOLD : TXT2, borderBottom: `2px solid ${activeTab === tab.id ? GOLD : 'transparent'}`, marginBottom: -2, whiteSpace: 'nowrap', transition: 'color .2s' }}>
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-
-            <div style={{ paddingTop: 20 }}>
-              {activeTab === 'description' && (
-                <p style={{ fontSize: 13, color: TXT3, lineHeight: 1.75 }}>{product.description}</p>
-              )}
-
-              {activeTab === 'usage' && (
-                <p style={{ fontSize: 13, color: TXT3, lineHeight: 1.75 }}>{product.usage}</p>
-              )}
-
-              {activeTab === 'ingredients' && (
-                <p style={{ fontSize: 12, color: TXT3, lineHeight: 1.8, fontFamily: 'monospace' }}>
-                  {product.ingredients ?? 'Liste des ingrédients non disponible.'}
-                </p>
-              )}
-
-              {activeTab === 'reviews' && (
-                reviews.length === 0
-                  ? <p style={{ fontSize: 14, color: TXT2 }}>Aucun avis pour ce produit.</p>
-                  : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                      {reviews.map(review => (
-                        <div key={review.id} style={{ paddingBottom: 20, borderBottom: `1px solid ${BORDER}` }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                            <div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                                <span style={{ fontSize: 14, fontWeight: 700, color: TXT, fontFamily: 'Georgia,serif' }}>{review.author}</span>
-                                {review.verified && (
-                                  <span style={{ padding: '2px 8px', background: '#FDF4E8', color: GOLD, fontSize: 10, fontWeight: 600, borderRadius: 2 }}>
-                                    Achat vérifié
-                                  </span>
-                                )}
-                              </div>
-                              <StarRating rating={review.rating} showCount={false} size={12} />
-                            </div>
-                            <span style={{ fontSize: 12, color: TXT2 }}>
-                              {new Date(review.date).toLocaleDateString('fr-FR')}
-                            </span>
-                          </div>
-                          <p style={{ fontSize: 13, color: TXT3, lineHeight: 1.7 }}>{review.comment}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )
-              )}
-            </div>
-          </div>
-
-          {/* Middle : Ingrédients clés */}
-          <div className="lg:col-span-3" style={{ border: `1px solid ${BORDER}`, borderRadius: 6, background: BG, padding: '20px 20px' }}>
-            <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: GOLD, marginBottom: 16 }}>
-              Ingrédients clés
-            </p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {keyIngredients.map((ing) => (
-                <span key={ing} style={{ padding: '6px 14px', background: 'white', border: `1px solid ${BORDER}`, borderRadius: 20, fontSize: 12, fontWeight: 500, color: GOLD }}>
-                  {ing}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Right : Résultats avec image */}
-          <div className="lg:col-span-3" style={{ border: `1px solid ${BORDER}`, borderRadius: 6, background: BG, overflow: 'hidden', display: 'flex', alignItems: 'stretch' }}>
-            <div style={{ position: 'relative', width: '45%', flexShrink: 0, background: '#E8DFD0' }}>
-              {product.images?.[0] ? (
-                <Image
-                  src={product.images[0]}
-                  alt={product.name}
-                  fill
-                  style={{ objectFit: 'cover' }}
-                  sizes="180px"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                />
-              ) : null}
-            </div>
-            <div style={{ padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <p style={{ fontSize: 18, fontWeight: 800, color: TXT, fontFamily: 'Georgia,serif', lineHeight: 1.2, marginBottom: 8 }}>
-                {(product.resultsTitle ?? "Résultats visibles dès 7 jours d'utilisation")
-                  .split(/\n|<br\s*\/?>/i)
-                  .flatMap((line, i, arr) => i < arr.length - 1 ? [line, <br key={line} />] : [line])}
-              </p>
-              <p style={{ fontSize: 12, color: TXT3, lineHeight: 1.5 }}>
-                {product.resultsSubtitle ?? 'Peau plus lumineuse, lisse et unifiée.'}
-              </p>
-            </div>
-          </div>
-        </div>
+        <ProductTabs
+          product={product}
+          reviews={reviews}
+          keyIngredients={keyIngredients}
+          activeTab={activeTab}
+          onSelectTab={setActiveTab}
+        />
 
         {/* ── Related products ───────────────────────────────────────── */}
         {related.length > 0 && (
@@ -690,43 +275,7 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
 
       {/* ── Sticky CTA mobile (s'affiche quand la PurchaseCard sort du viewport) ── */}
       {showSticky && (
-        <section
-          className="lg:hidden"
-          aria-label="Acheter rapidement"
-          style={{
-            position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100,
-            background: 'white', borderTop: `1px solid ${BORDER}`,
-            padding: '10px 16px',
-            display: 'flex', alignItems: 'center', gap: 12,
-            boxShadow: '0 -4px 20px rgba(0,0,0,0.1)',
-          }}
-        >
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontSize: 12, fontWeight: 700, color: TXT, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {product.name}
-            </p>
-            <p style={{ fontSize: 14, fontWeight: 800, color: GOLD, margin: 0 }}>
-              {product.price.toLocaleString('fr-FR')}&nbsp;FCFA
-            </p>
-          </div>
-          <button
-            onClick={handleAddToCart}
-            disabled={adding}
-            aria-label="Ajouter au panier"
-            style={{
-              flexShrink: 0, minWidth: 152, height: 44,
-              background: TXT, color: '#fff',
-              border: `1px solid ${TXT}`, borderRadius: 0,
-              fontSize: 11, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase',
-              cursor: adding ? 'wait' : 'pointer',
-              transition: 'opacity 0.25s ease',
-              opacity: adding ? 0.85 : 1,
-              padding: '0 16px',
-            }}
-          >
-            {adding ? '✓ Ajouté' : 'Ajouter au panier'}
-          </button>
-        </section>
+        <StickyPurchase product={product} adding={adding} onAddToCart={handleAddToCart} />
       )}
 
     </div>
