@@ -9,7 +9,7 @@
 
 import React, { useMemo, useState } from 'react';
 import Pagination from '@/features/admin/pagination';
-import { filterOrdersData, paginateData } from '@/features/admin/admin.metric';
+import { filterOrdersData, paginateData } from '@/features/admin/admin-metrics';
 import { type OrderStatus } from '@/features/admin/admin.type';
 import { formatPrice } from '@/features/catalog/product.query';
 import { formatOrderDate, type OrderDraft } from '@/features/orders/order.store';

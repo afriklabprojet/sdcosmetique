@@ -10,7 +10,7 @@
 import React, { useMemo, useState } from 'react';
 import Pagination from '@/features/admin/pagination';
 import Image from 'next/image';
-import { filterProductsData, paginateData } from '@/features/admin/admin.metric';
+import { filterProductsData, paginateData } from '@/features/admin/admin-metrics';
 import { getProductCountText } from '@/features/admin/admin.util';
 import { formatPrice } from '@/features/catalog/product.query';
 import { type Product } from '@/shared/types/domain.type';

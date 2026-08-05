@@ -3,6 +3,10 @@
  * `admin.view.tsx` (F-110) : ils etaient declares au niveau module et sont
  * appeles par les onglets sortis en vague `split`. Aucun etat entre deux
  * appels.
+ *
+ * Vague `drift` : le fichier s'appelait `admin.metric.ts`. `metric` n'est pas
+ * dans la liste fermee des roles de la vague `slice` ; un fichier dont le role
+ * n'y figure pas garde un nom nu, comme `admin-actions.ts` a cote.
  */
 import type { OrderDraft } from '@/features/orders/order.store';
 import type { EditableProduct, ReviewRow } from '@/features/admin/admin.type';

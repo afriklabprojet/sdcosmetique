@@ -29,7 +29,7 @@ import type { JekoTierConfig, JekoRewardConfig, JekoMember, JekoTransactionAdmin
 
 // Composants extraits
 import StatusBadge from '@/features/admin/badges/status.badge';
-import { paginateData, calculateDashboardMetrics, calculateLast7DaysData } from '@/features/admin/admin.metric';
+import { paginateData, calculateDashboardMetrics, calculateLast7DaysData } from '@/features/admin/admin-metrics';
 import { BG, SURFACE, SURFACE2, BORDER, BORDER2, GOLD, TEXT, TEXT2, TEXT3, GOLD2, BTN_BG, BORDER3, S_ERR_BG, S_ERR_T, S_SAVE_BG, S_SAVE_T, GOLD_D3, PER_PAGE, STATUS_OPTIONS, PAYMENT_LABELS } from '@/features/admin/admin.constant';
 import { getSaveButtonText, getTabColor } from '@/features/admin/admin.util';
 

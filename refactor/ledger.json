@@ -969,7 +969,10 @@
       "note": "CheckoutStepper.tsx et PaymentLogos.tsx ne sont references par aucun fichier, alors que checkout/page.tsx importe CartStep, DeliveryStep, PaymentStep et Sidebar du meme dossier. Slice partiellement morte.",
       "status": "deferred",
       "deferred_to": "drift",
-      "justification": "Slice partiellement morte : les fichiers ont ete places dans features/checkout ; la suppression appartient a drift."
+      "justification": "Slice partiellement morte : les fichiers ont ete places dans features/checkout ; la suppression appartient a drift.",
+      "drift_verification": "Verifie le 2026-08-05 : `checkout-stepper.tsx` et `payment-logos.tsx` restent sans reference. `app/checkout/page.tsx` reimplemente le stepper en ligne, avec des classes CSS `checkout-stepper-*` homonymes — c'est la seule occurrence de la chaine, pas un import.",
+      "derogation": "Perimetre. La vague `drift` autorise les deplacements et renommages de conformite sur les fichiers crees apres la vague 1, plus la mise a jour du ledger ; toute semantique est gelee, et la section `## drift` du rulebook ne liste que des invariants de conformite (convention de nom, pas de barrel, pas d'agent noun, build et typecheck verts). Supprimer un module n'est ni un deplacement ni un renommage, et onze des douze modules concernes existaient avant la vague 1. La vague `survey` a donc attribue ces findings a `drift` alors qu'aucune vague du pipeline n'est habilitee a supprimer du code. Le constat est verifie et consigne ici ; la suppression demande une decision explicite hors pipeline.",
+      "owner": "decision hors pipeline"
     },
     {
       "id": "F-084",
@@ -999,7 +1002,10 @@
       "path": "src/utils/supabase/auth-helpers.ts",
       "note": "Module 'helpers' porteur de logique de traitement des erreurs d'authentification. Zero consommateur (voir F-101), mais la regle affordance s'applique s'il survit a la purge.",
       "status": "deferred",
-      "resolution": "Reporte a drift : le module (desormais src/shared/supabase/auth-error.guard.ts) a zero consommateur. La regle affordance ne s'applique pas a du code mort ; c'est la suppression qui le regle."
+      "resolution": "Reporte a drift : le module (desormais src/shared/supabase/auth-error.guard.ts) a zero consommateur. La regle affordance ne s'applique pas a du code mort ; c'est la suppression qui le regle.",
+      "drift_verification": "Verifie le 2026-08-05 : `shared/supabase/auth-error.guard.ts` (106 l.) reste sans consommateur. La regle `affordance` ne s'applique pas a un module mort.",
+      "derogation": "Perimetre. La vague `drift` autorise les deplacements et renommages de conformite sur les fichiers crees apres la vague 1, plus la mise a jour du ledger ; toute semantique est gelee, et la section `## drift` du rulebook ne liste que des invariants de conformite (convention de nom, pas de barrel, pas d'agent noun, build et typecheck verts). Supprimer un module n'est ni un deplacement ni un renommage, et onze des douze modules concernes existaient avant la vague 1. La vague `survey` a donc attribue ces findings a `drift` alors qu'aucune vague du pipeline n'est habilitee a supprimer du code. Le constat est verifie et consigne ici ; la suppression demande une decision explicite hors pipeline.",
+      "owner": "decision hors pipeline"
     },
     {
       "id": "F-087",
@@ -1089,7 +1095,10 @@
       "path": "src/lib/products.ts:183 + src/lib/config/utilities.ts:183",
       "note": "Deux formateurs de prix concurrents : formatPrice (XOF, 0 decimale) et formatConfigPrice (EUR, 2 decimales). Deux devises differentes pour un meme site. formatConfigPrice n'a aucun consommateur (voir F-103).",
       "status": "deferred",
-      "resolution": "Reporte a `drift`. formatConfigPrice (EUR) n a toujours aucun consommateur : la resolution est une suppression, hors perimetre de `domain` qui ne supprime pas. formatPrice (XOF) reste le seul formateur vivant."
+      "resolution": "Reporte a `drift`. formatConfigPrice (EUR) n a toujours aucun consommateur : la resolution est une suppression, hors perimetre de `domain` qui ne supprime pas. formatPrice (XOF) reste le seul formateur vivant.",
+      "drift_verification": "Verifie le 2026-08-05 : les deux formateurs coexistent toujours, `formatConfigPrice` (EUR) sans consommateur face a `formatPrice` (XOF, 21 consommateurs).",
+      "derogation": "Perimetre. La vague `drift` autorise les deplacements et renommages de conformite sur les fichiers crees apres la vague 1, plus la mise a jour du ledger ; toute semantique est gelee, et la section `## drift` du rulebook ne liste que des invariants de conformite (convention de nom, pas de barrel, pas d'agent noun, build et typecheck verts). Supprimer un module n'est ni un deplacement ni un renommage, et onze des douze modules concernes existaient avant la vague 1. La vague `survey` a donc attribue ces findings a `drift` alors qu'aucune vague du pipeline n'est habilitee a supprimer du code. Le constat est verifie et consigne ici ; la suppression demande une decision explicite hors pipeline.",
+      "owner": "decision hors pipeline"
     },
     {
       "id": "F-096",
@@ -1178,7 +1187,10 @@
       "kind": "dead-code",
       "path": "src/components/account/{AccountDashboard,AccountNav,OrdersSection,ProfileSection}.tsx",
       "note": "Zero reference dans tout le scope, y compris par imports dynamiques. 590 lignes. Voir F-082 pour la cause.",
-      "status": "open"
+      "status": "deferred",
+      "drift_verification": "Verifie le 2026-08-05 : toujours zero reference, imports dynamiques compris.",
+      "derogation": "Perimetre. La vague `drift` autorise les deplacements et renommages de conformite sur les fichiers crees apres la vague 1, plus la mise a jour du ledger ; toute semantique est gelee, et la section `## drift` du rulebook ne liste que des invariants de conformite (convention de nom, pas de barrel, pas d'agent noun, build et typecheck verts). Supprimer un module n'est ni un deplacement ni un renommage, et onze des douze modules concernes existaient avant la vague 1. La vague `survey` a donc attribue ces findings a `drift` alors qu'aucune vague du pipeline n'est habilitee a supprimer du code. Le constat est verifie et consigne ici ; la suppression demande une decision explicite hors pipeline.",
+      "owner": "decision hors pipeline"
     },
     {
       "id": "F-105",
@@ -1187,7 +1199,10 @@
       "kind": "dead-code",
       "path": "src/components/{ui/Button.tsx,admin/OrderUtils.ts,admin/NewsletterCard.tsx,checkout/CheckoutStepper.tsx,checkout/PaymentLogos.tsx,home/CTABanner.tsx,product/ProductGallery.tsx}",
       "note": "7 modules sans aucune reference dans le scope.",
-      "status": "open"
+      "status": "deferred",
+      "drift_verification": "Verifie le 2026-08-05. Modules sans aucune reference : account/profile.form.tsx (224 l.), account/order.list.tsx (156), catalog/product-gallery.tsx (119), account/account.view.tsx (110), shared/ui/app.button.tsx (97), account/account.menu.tsx (97), home/cta-banner.tsx (72), admin/cards/newsletter.card.tsx (43), admin/order-export.ts (28).",
+      "derogation": "Perimetre. La vague `drift` autorise les deplacements et renommages de conformite sur les fichiers crees apres la vague 1, plus la mise a jour du ledger ; toute semantique est gelee, et la section `## drift` du rulebook ne liste que des invariants de conformite (convention de nom, pas de barrel, pas d'agent noun, build et typecheck verts). Supprimer un module n'est ni un deplacement ni un renommage, et onze des douze modules concernes existaient avant la vague 1. La vague `survey` a donc attribue ces findings a `drift` alors qu'aucune vague du pipeline n'est habilitee a supprimer du code. Le constat est verifie et consigne ici ; la suppression demande une decision explicite hors pipeline.",
+      "owner": "decision hors pipeline"
     },
     {
       "id": "F-106",
@@ -1196,7 +1211,10 @@
       "kind": "dead-code",
       "path": "src/utils/supabase/auth-helpers.ts",
       "note": "Module sans aucun consommateur.",
-      "status": "open"
+      "status": "deferred",
+      "drift_verification": "Verifie le 2026-08-05 : toujours aucun consommateur.",
+      "derogation": "Perimetre. La vague `drift` autorise les deplacements et renommages de conformite sur les fichiers crees apres la vague 1, plus la mise a jour du ledger ; toute semantique est gelee, et la section `## drift` du rulebook ne liste que des invariants de conformite (convention de nom, pas de barrel, pas d'agent noun, build et typecheck verts). Supprimer un module n'est ni un deplacement ni un renommage, et onze des douze modules concernes existaient avant la vague 1. La vague `survey` a donc attribue ces findings a `drift` alors qu'aucune vague du pipeline n'est habilitee a supprimer du code. Le constat est verifie et consigne ici ; la suppression demande une decision explicite hors pipeline.",
+      "owner": "decision hors pipeline"
     },
     {
       "id": "F-107",
@@ -1205,7 +1223,10 @@
       "kind": "dead-export",
       "path": "src/lib/products.ts:165-179",
       "note": "5 selecteurs exportes sans consommateur : getProductsByCategory, getProductsBySkinTone, getProductBySlug, getBestsellers, getNewProducts. Seul getRelatedProducts (l.180) est utilise.",
-      "status": "open"
+      "status": "deferred",
+      "drift_verification": "**Constat partiellement perime.** Verifie le 2026-08-05 : la vague `domain` a fait passer le repli de `product.repository.ts` par ces selecteurs. `getProductsByCategory`, `getProductBySlug` et `getBestsellers` ont desormais des consommateurs reels et ne sont plus morts. Seuls `getProductsBySkinTone` et `getNewProducts` restent sans reference.",
+      "derogation": "Perimetre. La vague `drift` autorise les deplacements et renommages de conformite sur les fichiers crees apres la vague 1, plus la mise a jour du ledger ; toute semantique est gelee, et la section `## drift` du rulebook ne liste que des invariants de conformite (convention de nom, pas de barrel, pas d'agent noun, build et typecheck verts). Supprimer un module n'est ni un deplacement ni un renommage, et onze des douze modules concernes existaient avant la vague 1. La vague `survey` a donc attribue ces findings a `drift` alors qu'aucune vague du pipeline n'est habilitee a supprimer du code. Le constat est verifie et consigne ici ; la suppression demande une decision explicite hors pipeline.",
+      "owner": "decision hors pipeline"
     },
     {
       "id": "F-108",
@@ -1214,7 +1235,10 @@
       "kind": "dead-export",
       "path": "src/lib/config/utilities.ts:183",
       "note": "formatConfigPrice n'a aucun consommateur, meme via barrel.",
-      "status": "open"
+      "status": "deferred",
+      "drift_verification": "Verifie le 2026-08-05 : `formatConfigPrice` n'a toujours qu'une occurrence, sa propre declaration.",
+      "derogation": "Perimetre. La vague `drift` autorise les deplacements et renommages de conformite sur les fichiers crees apres la vague 1, plus la mise a jour du ledger ; toute semantique est gelee, et la section `## drift` du rulebook ne liste que des invariants de conformite (convention de nom, pas de barrel, pas d'agent noun, build et typecheck verts). Supprimer un module n'est ni un deplacement ni un renommage, et onze des douze modules concernes existaient avant la vague 1. La vague `survey` a donc attribue ces findings a `drift` alors qu'aucune vague du pipeline n'est habilitee a supprimer du code. Le constat est verifie et consigne ici ; la suppression demande une decision explicite hors pipeline.",
+      "owner": "decision hors pipeline"
     },
     {
       "id": "F-109",
@@ -1223,7 +1247,10 @@
       "kind": "dead-export",
       "path": "src/lib/config/utilities.ts:{68,161,212}",
       "note": "fetchFullSiteConfig, validatePromoCode et isFreeShippingEligible ne sont references que par les deux barrels site-config.ts et config/index.ts, eux-memes sans consommateur reel. Morts une fois les barrels retires.",
-      "status": "open"
+      "status": "deferred",
+      "drift_verification": "Verifie le 2026-08-05. Les deux barrels ont ete retires en vague `slice`, ce qui rend le pronostic du finding exact : `fetchFullSiteConfig`, `freeShippingEligible` et `validatePromoCode` (parti dans promo/promo.util.ts en vague `domain`) n'ont plus aucun consommateur.",
+      "derogation": "Perimetre. La vague `drift` autorise les deplacements et renommages de conformite sur les fichiers crees apres la vague 1, plus la mise a jour du ledger ; toute semantique est gelee, et la section `## drift` du rulebook ne liste que des invariants de conformite (convention de nom, pas de barrel, pas d'agent noun, build et typecheck verts). Supprimer un module n'est ni un deplacement ni un renommage, et onze des douze modules concernes existaient avant la vague 1. La vague `survey` a donc attribue ces findings a `drift` alors qu'aucune vague du pipeline n'est habilitee a supprimer du code. Le constat est verifie et consigne ici ; la suppression demande une decision explicite hors pipeline.",
+      "owner": "decision hors pipeline"
     },
     {
       "id": "F-110",
@@ -1360,6 +1387,7 @@
     "affordance",
     "boundary",
     "domain",
+    "drift",
     "lexicon",
     "slice",
     "split",
@@ -1609,6 +1637,41 @@
       "suffixes_bannis": "zero, hors noms de classes CSS et champs persistes",
       "abreviations_nouvelles": "aucune ; Qty -> Quantity au passage sur changeQuantity",
       "typecheck_src": "0 erreur"
+    }
+  },
+  "drift_report": {
+    "scope": "src",
+    "conformite": {
+      "fichiers_verifies": "67 fichiers crees par les vagues 2 a 6, plus l'ensemble de l'arbre pour les invariants.",
+      "non_conformites_corrigees": [
+        {
+          "from": "src/features/admin/admin.metric.ts",
+          "to": "src/features/admin/admin-metrics.ts",
+          "wave_origine": "split",
+          "reason": "`metric` n'est pas dans la liste fermee des roles de la section `slice`. La regle est explicite : un fichier dont le role n'y figure pas garde un nom nu, et on n'invente pas de role. Meme traitement que F-012 et F-019 en vague 1. Nom nu en kebab-case, comme `admin-actions.ts` dans le meme dossier."
+        }
+      ],
+      "roles_inventes_restants": "aucun",
+      "barrels": "aucun. Les deux barrels retires en vague `slice` (site-config.ts, config/index.ts) n'ont pas ete reintroduits ; aucun `index.ts` de reexport dans le scope.",
+      "agent_nouns": "aucun (Manager, Handler, Helper, Processor, Controller, Dispatcher, Coordinator, Orchestrator, Builder, Worker)",
+      "dossiers_de_categorie": "Le dossier pluriel du role est applique la ou le role a plusieurs freres dans la feature (cards/, views/, tabs/, steps/, selects/, badges/, sidebars/, drawers/) et les singletons restent a plat (profile.form.tsx, welcome.modal.tsx, account.menu.tsx, product-search.widget.tsx). C'est le partage etabli par la vague 1 ; `drift` applique la convention, il ne la redecide pas."
+    },
+    "invariants_pipeline": {
+      "src_legacy": "aucun repertoire src/legacy dans ce depot : rien a proteger, rien touche.",
+      "un_commit_par_vague": "6 commits de vague : slice 6e34d6a, domain 82b22cb, affordance 91584b6, boundary 57cb1fc, split 6806873, lexicon 1973567. La vague `survey` n'a produit que le ledger. La vague `literal` n'a pas eu lieu : aucun finding ne lui a ete attribue.",
+      "hors_scope": "aucune modification hors `src/` et `refactor/ledger.json`. Les fichiers pre-existants et non lies (bun.lock, package.json, next-env.d.ts, docs/*, scripts/seed-products-from-toml.ts) sont restes hors de chaque commit de vague."
+    },
+    "findings_restants": {
+      "nombre": 9,
+      "nature": "tous du code mort : 12 modules sans aucune reference et 8 symboles exportes sans consommateur.",
+      "decision": "deroges, avec verification a jour. Voir le champ `derogation` de chaque finding.",
+      "proprietaire": "decision hors pipeline"
+    },
+    "gate": {
+      "typecheck_src": "0 erreur",
+      "lint": "14 problemes / 0 erreur (baseline inchangee)",
+      "build": "vert",
+      "tests_modifies": "aucun"
     }
   }
 }
