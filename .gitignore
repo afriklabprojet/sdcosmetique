@@ -89,3 +89,4 @@ ehthumbs.db
 .claude/
 .gemini/
 trash/
+next-env.d.ts
