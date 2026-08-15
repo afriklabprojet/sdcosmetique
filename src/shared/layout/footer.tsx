@@ -87,7 +87,7 @@ export default function Footer({ logoUrl, siteName }: Readonly<{ logoUrl?: strin
         {/* Colonne logo */}
         <div>
           <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginBottom: '14px', gap: 10 }}>
-            <Image src={logoUrl || '/logo.svg'} alt={siteName || 'SD Cosmetique'} width={160} height={40} style={{ height: 40, width: 'auto', filter: 'brightness(0) invert(1) sepia(1) saturate(2) hue-rotate(5deg)', flexShrink: 0 }} />
+            <Image src={logoUrl || '/logo.svg'} alt={siteName || 'SD Cosmetique'} width={40} height={40} style={{ height: 40, width: 'auto', filter: 'brightness(0) invert(1) sepia(1) saturate(2) hue-rotate(5deg)', flexShrink: 0 }} />
             {siteName && (
               <span style={{
                 fontSize: 17,

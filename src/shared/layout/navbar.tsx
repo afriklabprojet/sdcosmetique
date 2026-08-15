@@ -83,7 +83,7 @@ export default function Navbar({ logoUrl, logoCaption, siteName }: Readonly<{ lo
           <Image
             src={logoUrl || '/logo.svg'}
             alt={siteName || 'SD Cosmetique'}
-            width={340}
+            width={64}
             height={64}
             priority
             style={{ height: 44, width: 'auto', flexShrink: 0 }}

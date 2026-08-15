@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/features/cart/cart.store';
 import { PaymentMethod } from '@/shared/types/domain.type';
@@ -39,6 +39,14 @@ export default function CheckoutPage() {
   });
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('orange_money');
   const [processing, setProcessing] = useState(false);
+  /**
+   * Clé d'idempotence de la tentative de commande en cours.
+   * Générée une seule fois, puis réutilisée par chaque réessai après un
+   * paiement échoué : le serveur met alors à jour la commande `pending`
+   * existante au lieu d'en créer une nouvelle (plus de lignes orphelines).
+   * Remise à zéro uniquement quand le paiement est réellement initié/confirmé.
+   */
+  const attemptOrderNumber = useRef<string | null>(null);
   const [shippingCfg, setShippingCfg] = useState<ShippingConfig>(DEFAULT_SITE_CONFIG.shipping);
   const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(
     DEFAULT_SITE_CONFIG.shipping.options.find(o => o.active) ?? null
@@ -108,7 +116,7 @@ export default function CheckoutPage() {
   const placeOrder = async (mobileNumber: string) => {
     setProcessing(true);
 
-    const num = generateOrderNumber();
+    const num = (attemptOrderNumber.current ??= generateOrderNumber());
     const orderData = {
       orderNumber: num, date: new Date().toISOString(), items: [...items],
       subtotal: totalPrice, shippingCost, total, delivery, paymentMethod,
@@ -126,6 +134,9 @@ export default function CheckoutPage() {
     }).catch(() => null);
 
     if (!createRes?.ok) {
+      // 409 → ce numéro correspond déjà à une commande payée : il ne peut plus
+      // être réutilisé, le prochain essai doit repartir sur un numéro neuf.
+      if (createRes?.status === 409) attemptOrderNumber.current = null;
       alert('Erreur lors de la création de la commande. Veuillez réessayer.');
       setProcessing(false);
       return;
@@ -175,6 +186,7 @@ export default function CheckoutPage() {
       // Le paiement est réellement initié → on peut persister et vider le panier
       cacheOrder(orderData);
       clearCart();
+      attemptOrderNumber.current = null;
       // Redirection vers le checkout hébergé Jeko
       globalThis.window.location.href = data.redirectUrl;
       return;
@@ -183,6 +195,7 @@ export default function CheckoutPage() {
     // Paiement à la livraison : la commande est confirmée dès sa création
     cacheOrder(orderData);
     clearCart();
+    attemptOrderNumber.current = null;
     setProcessing(false);
     router.push('/confirmation');
   };

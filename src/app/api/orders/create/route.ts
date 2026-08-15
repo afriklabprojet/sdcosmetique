@@ -104,28 +104,45 @@ export async function POST(req: NextRequest) {
 
   const computedTotal = Math.max(0, computedSubtotal + computedShipping - computedDiscount);
 
-  const { data: inserted, error } = await supabase
+  // [IDEM] Un réessai après un paiement échoué renvoie le même `orderNumber`.
+  // On met alors à jour la commande `pending` existante plutôt que d'en créer
+  // une seconde — sinon chaque réessai laisse une ligne orpheline en base.
+  // Une commande déjà payée n'est jamais réécrite (409), et le numéro n'est
+  // réutilisable que par le même destinataire (garde anti-écrasement).
+  const { data: previous } = await supabase
     .from('orders')
-    .insert({
-      order_number:        orderNumber,
-      user_id:             userId,
-      subtotal:            computedSubtotal,
-      shipping_cost:       computedShipping,
-      total:               computedTotal,
-      payment_method:      paymentMethod,
-      // status = toujours 'confirmed' (contrainte DB) ; payment_status distingue les paiements en attente
-      status:              'confirmed',
-      payment_status:      (order.status === 'pending_payment') ? 'pending' : 'paid',
-      delivery_first_name: delivery.firstName,
-      delivery_last_name:  delivery.lastName,
-      delivery_email:      delivery.email,
-      delivery_phone:      delivery.phone ?? '',
-      delivery_address:    delivery.address ?? '',
-      delivery_city:       delivery.city ?? '',
-      delivery_country:    delivery.country ?? '',
-    })
-    .select('id')
-    .single();
+    .select('id, payment_status, delivery_email')
+    .eq('order_number', orderNumber)
+    .maybeSingle();
+
+  if (previous && (previous.payment_status !== 'pending'
+    || previous.delivery_email !== delivery.email)) {
+    return NextResponse.json({ error: 'order_already_settled' }, { status: 409 });
+  }
+
+  const orderRow = {
+    order_number:        orderNumber,
+    user_id:             userId,
+    subtotal:            computedSubtotal,
+    shipping_cost:       computedShipping,
+    total:               computedTotal,
+    payment_method:      paymentMethod,
+    // status = toujours 'confirmed' (contrainte DB) ; payment_status distingue les paiements en attente
+    status:              'confirmed',
+    payment_status:      (order.status === 'pending_payment') ? 'pending' : 'paid',
+    delivery_first_name: delivery.firstName,
+    delivery_last_name:  delivery.lastName,
+    delivery_email:      delivery.email,
+    delivery_phone:      delivery.phone ?? '',
+    delivery_address:    delivery.address ?? '',
+    delivery_city:       delivery.city ?? '',
+    delivery_country:    delivery.country ?? '',
+  };
+
+  const { data: inserted, error } = previous
+    ? await supabase.from('orders').update(orderRow)
+        .eq('id', previous.id).select('id').single()
+    : await supabase.from('orders').insert(orderRow).select('id').single();
 
   if (error || !inserted) {
     console.error('[api/orders/create] Échec insert commande:', {
@@ -134,6 +151,12 @@ export async function POST(req: NextRequest) {
       code: error?.code,
     });
     return NextResponse.json({ error: 'db_error' }, { status: 500 });
+  }
+
+  // Sur un réessai, le panier a pu changer : on repart des articles à jour
+  // plutôt que d'empiler les lignes de la tentative précédente.
+  if (previous) {
+    await supabase.from('order_items').delete().eq('order_id', inserted.id);
   }
 
   // Insérer les articles avec le prix SERVEUR (jamais item.product.price du client)
