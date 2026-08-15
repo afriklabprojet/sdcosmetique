@@ -2,19 +2,19 @@ import type { Metadata, Viewport } from "next";
 import dynamic from "next/dynamic";
 import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
-import { CartProvider } from "@/context/CartContext";
-import { WishlistProvider } from "@/context/WishlistContext";
-import { GlobalPromoProvider } from "@/context/PromoContext";
-import TopBar from "@/components/layout/TopBar";
-import Navbar from "@/components/layout/Navbar";
-import TrackingScripts from "@/components/marketing/TrackingScripts";
-import ClientOnlyOverlays from "@/components/layout/ClientOnlyOverlays";
-import { getSiteConfig } from "@/lib/site-config.server";
+import { CartProvider } from "@/features/cart/cart.store";
+import { WishlistProvider } from "@/features/wishlist/wishlist.store";
+import { GlobalPromoProvider } from "@/features/promo/promo.store";
+import TopBar from "@/shared/layout/top-bar";
+import Navbar from "@/shared/layout/navbar";
+import TrackingScripts from "@/features/marketing/tracking-scripts";
+import ClientOnlyOverlays from "@/shared/layout/client-only-overlays";
+import { getSiteConfig } from "@/features/site-config/site-config.query";
 
-import PromoBannerBar from "@/components/marketing/PromoBanner";
+import PromoBannerBar from "@/features/promo/promo-banner";
 
 // ── Chargements différés (non-critiques pour LCP/TTI) ─────────────────────
-const Footer = dynamic(() => import("@/components/layout/Footer"), { ssr: true });
+const Footer = dynamic(() => import("@/shared/layout/footer"), { ssr: true });
 
 const playfair = Playfair_Display({
   subsets: ['latin'],

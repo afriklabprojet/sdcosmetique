@@ -1,10 +1,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { fetchProducts } from '@/lib/products-server';
-import { getSiteConfig } from '@/lib/site-config.server';
-import { SKIN_TONES, type SkinTone } from '@/types';
-import ProductCard from '@/components/ui/ProductCard';
+import { fetchProducts } from '@/features/catalog/product.repository';
+import { getSiteConfig } from '@/features/site-config/site-config.query';
+import { SKIN_TONES, type SkinTone } from '@/shared/types/domain.type';
+import ProductCard from '@/features/catalog/cards/product.card';
 import styles from '../../(static)/static.module.css';
 
 // Revalide à chaque requête pour que les images admin soient toujours à jour
@@ -15,7 +15,7 @@ export function generateStaticParams() {
 }
 
 // Mapping SkinTone → clé de config Supabase
-const TEINT_CONFIG_KEYS: Record<SkinTone, 'hero_teint_noir' | 'hero_teint_marron' | 'hero_teint_marron_clair' | 'hero_teint_clair' | 'hero_teint_metisse'> = {
+const SKIN_TONE_CONFIG_KEYS: Record<SkinTone, 'hero_teint_noir' | 'hero_teint_marron' | 'hero_teint_marron_clair' | 'hero_teint_clair' | 'hero_teint_metisse'> = {
   'noir':         'hero_teint_noir',
   'marron':       'hero_teint_marron',
   'marron-clair': 'hero_teint_marron_clair',
@@ -81,7 +81,7 @@ const TONE_META: Record<SkinTone, { hero: string; title: string; intro: string; 
   },
 };
 
-export default async function TeintPage({ params }: Readonly<{ params: Promise<{ slug: string }> }>) {
+export default async function SkinTonePage({ params }: Readonly<{ params: Promise<{ slug: string }> }>) {
   const { slug } = await params;
   const tone = SKIN_TONES.find((t) => t.id === slug);
   if (!tone) notFound();
@@ -90,8 +90,8 @@ export default async function TeintPage({ params }: Readonly<{ params: Promise<{
 
   // Image héro dynamique depuis la config admin (fallback sur meta.hero si non définie)
   const siteConfig = await getSiteConfig();
-  const teintConfigKey = TEINT_CONFIG_KEYS[tone.id];
-  const heroImage = siteConfig[teintConfigKey]?.image || meta.hero;
+  const skinToneConfigKey = SKIN_TONE_CONFIG_KEYS[tone.id];
+  const heroImage = siteConfig[skinToneConfigKey]?.image || meta.hero;
 
   const allProducts = await fetchProducts();
   const products = allProducts.filter((p) => p.skinTones.includes(tone.id)).slice(0, 8);

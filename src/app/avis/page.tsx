@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { useState, useMemo, useEffect } from 'react';
 import styles from '../(static)/static.module.css';
-import TestimonialForm from '@/components/home/TestimonialForm';
-import { createClient } from '@/utils/supabase/client';
+import TestimonialForm from '@/features/testimonials/testimonial.form';
+import { createClient } from '@/shared/supabase/browser.client';
 
 type Review = {
   id: string;
@@ -23,7 +23,7 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-async function fetchReviewsFromDB(): Promise<Review[]> {
+async function fetchReviews(): Promise<Review[]> {
   try {
     const supabase = createClient();
     const { data, error } = await supabase
@@ -61,11 +61,11 @@ const REVIEWS: Review[] = [
 
 const FILTERS = [5, 4, 3] as const;
 
-export default function AvisPage() {
+export default function ReviewsPage() {
   const [ratingFilter, setRatingFilter] = useState<number | null>(null);
   const [reviews, setReviews] = useState<Review[]>(REVIEWS);
 
-  useEffect(() => { fetchReviewsFromDB().then(setReviews).catch(() => {}); }, []);;
+  useEffect(() => { fetchReviews().then(setReviews).catch(() => {}); }, []);;
 
   const filtered = useMemo(
     () => (ratingFilter ? reviews.filter((r) => r.rating === ratingFilter) : reviews),

@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/utils/supabase/client';
+import { createClient } from '@/shared/supabase/browser.client';
 import styles from '../auth.module.css';
 
 export default function InscriptionPage() {
@@ -22,11 +22,11 @@ export default function InscriptionPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const changeField = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = async (e: React.SyntheticEvent) => {
+  const submitForm = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (form.password !== form.confirm) {
       setError('Les mots de passe ne correspondent pas.');
@@ -180,7 +180,7 @@ export default function InscriptionPage() {
             </p>
           </header>
 
-          <form className={styles.fields} onSubmit={handleSubmit}>
+          <form className={styles.fields} onSubmit={submitForm}>
             <div className={styles.row}>
               <div className={styles.field}>
                 <label htmlFor="prenom" className={styles.label}>Prénom</label>
@@ -191,7 +191,7 @@ export default function InscriptionPage() {
                   className={styles.input}
                   placeholder="Aïcha"
                   value={form.prenom}
-                  onChange={handleChange}
+                  onChange={changeField}
                   autoComplete="given-name"
                   required
                 />
@@ -205,7 +205,7 @@ export default function InscriptionPage() {
                   className={styles.input}
                   placeholder="Diallo"
                   value={form.nom}
-                  onChange={handleChange}
+                  onChange={changeField}
                   autoComplete="family-name"
                   required
                 />
@@ -221,7 +221,7 @@ export default function InscriptionPage() {
                 className={styles.input}
                 placeholder="vous@exemple.fr"
                 value={form.email}
-                onChange={handleChange}
+                onChange={changeField}
                 autoComplete="email"
                 required
               />
@@ -237,7 +237,7 @@ export default function InscriptionPage() {
                   className={styles.input}
                   placeholder="Minimum 8 caractères"
                   value={form.password}
-                  onChange={handleChange}
+                  onChange={changeField}
                   autoComplete="new-password"
                   minLength={8}
                   required
@@ -272,7 +272,7 @@ export default function InscriptionPage() {
                 className={styles.input}
                 placeholder="Ressaisir le mot de passe"
                 value={form.confirm}
-                onChange={handleChange}
+                onChange={changeField}
                 autoComplete="new-password"
                 minLength={8}
                 required

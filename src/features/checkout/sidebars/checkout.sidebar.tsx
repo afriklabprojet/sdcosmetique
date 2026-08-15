@@ -1,0 +1,153 @@
+'use client';
+
+import React, { useState } from 'react';
+import Image from 'next/image';
+import { useCart } from '@/features/cart/cart.store';
+import { formatPrice } from '@/features/catalog/product.query';
+import { SKIN_TONES } from '@/shared/types/domain.type';
+import type { PromoCode } from '@/features/site-config/site-config.type';
+import { type CheckoutStep } from '@/features/checkout/checkout.type';
+import { CHECKOUT_PALETTE } from '@/features/checkout/checkout.constant';
+
+interface SidebarProps {
+  readonly items: ReturnType<typeof useCart>['items'];
+  readonly totalPrice: number;
+  readonly shippingCost: number;
+  readonly discount: number;
+  readonly total: number;
+  readonly step: CheckoutStep;
+  readonly editCart: () => void;
+  readonly appliedPromo: { code: PromoCode; discount: number } | null;
+  /** Erreur remontee par le tunnel : code refuse, ou promo devenue invalide. */
+  readonly promoError: string | null;
+  readonly applyPromo: (code: string) => void;
+  readonly dismissPromoError: () => void;
+  readonly removePromo: () => void;
+}
+
+/*
+ * Le code en cours de frappe ne concerne que ce champ : il reste ici. Ce que le
+ * tunnel doit savoir, c'est la promo appliquee — un fait metier qui change le
+ * total. L'erreur, elle, ne peut pas descendre : le tunnel la produit aussi
+ * quand une promo deja posee devient invalide parce que le panier a change.
+ */
+export default function Sidebar({ items, totalPrice, shippingCost, discount, total, step, editCart, appliedPromo, promoError, applyPromo, dismissPromoError, removePromo }: SidebarProps) {
+  const [promoInput, setPromoInput] = useState('');
+
+  const applyTypedPromo = () => {
+    applyPromo(promoInput);
+    setPromoInput('');
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {/* Order summary card */}
+      <div style={{ background: 'white', border: `1px solid ${CHECKOUT_PALETTE.border}`, borderRadius: '8px', overflow: 'hidden' }}>
+        <div style={{ padding: '16px 20px', borderBottom: `1px solid ${CHECKOUT_PALETTE.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: CHECKOUT_PALETTE.text }}>Résumé de la commande</span>
+          {step !== 'cart' && (
+            <button type="button" onClick={editCart} style={{ fontSize: '12px', color: CHECKOUT_PALETTE.accent, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>
+              Modifier le panier
+            </button>
+          )}
+        </div>
+        {/* Items */}
+        <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {items.map(item => {
+            const tone = item.product.skinTones[0]
+              ? (SKIN_TONES.find(s => s.id === item.product.skinTones[0])?.label ?? item.product.skinTones[0])
+              : null;
+            return (
+              <div key={item.product.id} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ width: '60px', height: '60px', borderRadius: '6px', overflow: 'hidden', flexShrink: 0, background: '#F5EDE5', border: `1px solid ${CHECKOUT_PALETTE.border}` }}>
+                  <Image src={item.product.images[0] ?? '/placeholder.png'} alt={item.product.name} width={60} height={60} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: '13px', fontWeight: 600, color: CHECKOUT_PALETTE.text, marginBottom: '3px', lineHeight: 1.3 }}>{item.product.name}</p>
+                  {tone && <p style={{ fontSize: '11px', color: CHECKOUT_PALETTE.textMuted, lineHeight: 1.3 }}>Teint {tone}</p>}
+                  <p style={{ fontSize: '11px', color: CHECKOUT_PALETTE.textMuted }}>Quantité : {item.quantity}</p>
+                </div>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: CHECKOUT_PALETTE.text, flexShrink: 0 }}>
+                  {formatPrice(item.product.price * item.quantity)}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+        {/* Totals */}
+        <div style={{ padding: '14px 20px', borderTop: `1px solid ${CHECKOUT_PALETTE.border}`, display: 'flex', flexDirection: 'column', gap: '9px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: CHECKOUT_PALETTE.textMuted }}>
+            <span>Sous-total</span><span>{formatPrice(totalPrice)}</span>
+          </div>
+          {appliedPromo && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#16A34A' }}>
+              <span>Réduction <span style={{ fontSize: '11px', opacity: 0.8 }}>({appliedPromo.code.code})</span></span>
+              <span>−{formatPrice(discount)}</span>
+            </div>
+          )}
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: CHECKOUT_PALETTE.textMuted }}>
+            <span>Livraison</span>
+            <span style={{ color: shippingCost === 0 ? '#16A34A' : CHECKOUT_PALETTE.text }}>
+              {shippingCost === 0 ? 'Gratuite' : formatPrice(shippingCost)}
+            </span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '10px', borderTop: `1px solid ${CHECKOUT_PALETTE.border}`, marginTop: '2px' }}>
+            <span style={{ fontSize: '15px', fontWeight: 700, color: CHECKOUT_PALETTE.text, fontFamily: 'var(--font-heading)' }}>TOTAL</span>
+            <span style={{ fontSize: '16px', fontWeight: 800, color: CHECKOUT_PALETTE.text, fontFamily: 'var(--font-heading)' }}>{formatPrice(total)}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Code promo */}
+      <div style={{ background: 'white', border: `1px solid ${CHECKOUT_PALETTE.border}`, borderRadius: '8px', padding: '14px 20px' }}>
+        <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: CHECKOUT_PALETTE.text, marginBottom: '10px' }}>Code promo</p>
+        {appliedPromo ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+            <div style={{ fontSize: '12px' }}>
+              <span style={{ color: '#16A34A', fontWeight: 700 }}>✓ {appliedPromo.code.code}</span>
+              <span style={{ color: CHECKOUT_PALETTE.textMuted, marginLeft: '6px' }}>−{formatPrice(appliedPromo.discount)}</span>
+            </div>
+            <button type="button" onClick={removePromo}
+              style={{ fontSize: '11px', color: CHECKOUT_PALETTE.textMuted, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+              Retirer
+            </button>
+          </div>
+        ) : (
+          <>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <input type="text" value={promoInput}
+                onChange={e => { setPromoInput(e.target.value); dismissPromoError(); }}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); applyTypedPromo(); } }}
+                placeholder="Entrez votre code"
+                style={{ flex: 1, fontSize: '12px', padding: '8px 10px', border: `1px solid ${CHECKOUT_PALETTE.border}`, borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em', outline: 'none' }} />
+              <button type="button" onClick={applyTypedPromo}
+                style={{ fontSize: '11px', fontWeight: 700, padding: '0 14px', background: CHECKOUT_PALETTE.accent, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', letterSpacing: '0.05em' }}>
+                Appliquer
+              </button>
+            </div>
+            {promoError && <p style={{ fontSize: '11px', color: '#DC2626', marginTop: '6px' }}>{promoError}</p>}
+          </>
+        )}
+      </div>
+
+      {/* Engagements */}
+      <div style={{ background: 'white', border: `1px solid ${CHECKOUT_PALETTE.border}`, borderRadius: '8px', padding: '16px 20px' }}>
+        <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: CHECKOUT_PALETTE.text, marginBottom: '14px' }}>Nos Engagements</p>
+        <div className="checkout-form-2col" style={{ gap: '14px' }}>
+          {[
+            { icon: '🛡️', l: 'Paiement',      s: '100% sécurisé' },
+            { icon: '🚚', l: 'Livraison rapide', s: 'et suivie' },
+            { icon: '✅', l: 'Produits',       s: 'authentiques' },
+            { icon: '↩️', l: 'Satisfait ou',   s: 'remboursé sous 7 jours' },
+          ].map(e => (
+            <div key={e.l} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '4px' }}>
+              <span style={{ fontSize: '22px' }}>{e.icon}</span>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: CHECKOUT_PALETTE.text, lineHeight: 1.3 }}>{e.l}</p>
+              <p style={{ fontSize: '10px', color: CHECKOUT_PALETTE.textSubtle, lineHeight: 1.3 }}>{e.s}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}

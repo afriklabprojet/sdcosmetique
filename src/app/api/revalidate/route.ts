@@ -15,10 +15,18 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath, revalidateTag } from 'next/cache';
+import { rateLimit, getIp, rateLimitHeaders } from '@/shared/http/rate-limit.guard';
 
 export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
+  // Empêche le brute-force du secret (comparaison non constant-time ci-dessous
+  // couplée à un budget de tentatives serré).
+  const rl = await rateLimit(`revalidate:${getIp(req)}`, { limit: 10, windowMs: 10 * 60 * 1000 });
+  if (!rl.ok) {
+    return NextResponse.json({ error: 'rate_limit_exceeded' }, { status: 429, headers: rateLimitHeaders(rl) });
+  }
+
   const secret = req.headers.get('x-revalidate-secret');
   if (!secret || secret !== process.env.REVALIDATE_SECRET) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });

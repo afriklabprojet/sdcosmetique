@@ -3,9 +3,9 @@ import {
   fetchProducts,
   fetchProductsByCategory,
   fetchBestsellerProducts,
-} from '@/lib/products-server';
-import { PRODUCTS } from '@/lib/products';
-import { SkinTone } from '@/types';
+} from '@/features/catalog/product.repository';
+import { PRODUCTS } from '@/features/catalog/product.query';
+import { SkinTone } from '@/shared/types/domain.type';
 
 export async function GET(req: NextRequest) {
   try {

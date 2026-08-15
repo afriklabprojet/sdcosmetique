@@ -1,20 +1,20 @@
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
-import HeroBanner from '@/components/home/HeroBanner';
-import CategoryHighlight from '@/components/home/CategoryHighlight';
+import HeroBanner from '@/features/home/hero-banner';
+import CategoryHighlight from '@/features/home/category-highlight';
 
 // ── ISR : cache HTML 5 minutes → réduit TTFB (Document request latency) ────
 export const revalidate = 300;
 // Sections below-fold : code-splitting JS pour réduire le bundle initial (score Lighthouse "unused JS")
-const SkinToneSection  = dynamic(() => import('@/components/home/SkinToneSection'),  { ssr: true });
-const Testimonials     = dynamic(() => import('@/components/home/Testimonials'),      { ssr: true });
-const TrendingProducts = dynamic(() => import('@/components/home/TrendingProducts'),  { ssr: true });
-const PaymentBand      = dynamic(() => import('@/components/home/PaymentBand'),       { ssr: true });
-import { TrendingProductsSkeleton } from '@/components/ui/ProductCardSkeleton';
-import { fetchBestsellerProducts } from '@/lib/products-server';
-import { getSiteConfig } from '@/lib/site-config.server';
-import { fetchApprovedTestimonials } from '@/lib/testimonials-server';
-import { fetchActiveCategories } from '@/lib/categories-server';
+const SkinToneSection  = dynamic(() => import('@/features/home/skin-tone-section'),  { ssr: true });
+const Testimonials     = dynamic(() => import('@/features/testimonials/testimonials'),      { ssr: true });
+const TrendingProducts = dynamic(() => import('@/features/home/trending-products'),  { ssr: true });
+const PaymentBand      = dynamic(() => import('@/features/home/payment-band'),       { ssr: true });
+import { TrendingProductsSkeleton } from '@/features/catalog/cards/product-card-skeleton';
+import { fetchBestsellerProducts } from '@/features/catalog/product.repository';
+import { getSiteConfig } from '@/features/site-config/site-config.query';
+import { fetchApprovedTestimonials } from '@/features/testimonials/testimonial.query';
+import { fetchActiveCategories } from '@/features/catalog/category.query';
 
 // ─── Section bestsellers dans son propre Suspense boundary ──────────────────
 async function BestsellersSection() {

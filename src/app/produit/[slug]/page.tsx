@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { fetchProductBySlug, fetchRelatedProducts, fetchReviewsByProduct } from '@/lib/products-server';
-import { getSiteConfig } from '@/lib/site-config.server';
-import ProductDetail from '@/components/product/ProductDetail';
+import { fetchProductBySlug, fetchRelatedProducts, fetchReviewsByProduct } from '@/features/catalog/product.repository';
+import { getSiteConfig } from '@/features/site-config/site-config.query';
+import ProductDetail from '@/features/catalog/views/product.view';
 
 type PageProps = { params: Promise<{ slug: string }> };
 

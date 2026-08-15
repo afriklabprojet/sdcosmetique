@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { createServiceClient } from '@/utils/supabase/service';
+import { createServiceClient } from '@/shared/supabase/service.client';
+import { requireAdmin } from '@/shared/auth/admin.guard';
 
 export const runtime = 'nodejs';
-
-async function requireAdmin() {
-  const userClient = await db();
-  const { data: { user } } = await userClient.auth.getUser();
-  return user;
-}
 
 // PATCH : toggle unsubscribed
 export async function PATCH(req: NextRequest) {
@@ -20,8 +14,8 @@ export async function PATCH(req: NextRequest) {
   const sb = createServiceClient();
   const { error } = await sb.from('newsletter_subscribers').update({ unsubscribed }).eq('id', id);
   if (error) {
-    
-    return NextResponse.json({ error: 'db_error', detail: error.message }, { status: 500 });
+    console.error('[newsletter/manage] db error:', error.message);
+    return NextResponse.json({ error: 'db_error' }, { status: 500 });
   }
   return NextResponse.json({ ok: true });
 }
@@ -34,8 +28,8 @@ export async function DELETE(req: NextRequest) {
   const sb = createServiceClient();
   const { error } = await sb.from('newsletter_subscribers').delete().eq('id', id);
   if (error) {
-    
-    return NextResponse.json({ error: 'db_error', detail: error.message }, { status: 500 });
+    console.error('[newsletter/manage] db error:', error.message);
+    return NextResponse.json({ error: 'db_error' }, { status: 500 });
   }
   return NextResponse.json({ ok: true });
 }

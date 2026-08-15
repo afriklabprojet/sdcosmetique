@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { createClient } from '@/utils/supabase/client';
-import { fetchSiteConfigSection } from '@/lib/config/utilities';
+import { createClient } from '@/shared/supabase/browser.client';
+import { fetchSiteConfigSection } from '@/features/site-config/site-config.util';
 import styles from './admin-login.module.css';
 
 // ─── Whitelist emails autorisés (vérification UI seulement — la vraie vérif est côté serveur via middleware) ───
@@ -29,7 +29,7 @@ export default function AdminLoginPage() {
     });
   }, []);
 
-  const handleSubmit = async (e: React.SyntheticEvent) => {
+  const submitForm = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -115,7 +115,7 @@ export default function AdminLoginPage() {
           l&apos;expérience client SD Cosmetique.
         </p>
 
-        <form onSubmit={handleSubmit} noValidate>
+        <form onSubmit={submitForm} noValidate>
           <div className={styles.field}>
             <label className={styles.label} htmlFor="admin-email">
               Email administrateur

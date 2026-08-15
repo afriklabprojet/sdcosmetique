@@ -1,17 +1,22 @@
 'use client';
 
-import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { useCart } from '@/context/CartContext';
-import { PaymentMethod } from '@/types';
-import { saveOrder, generateOrderNumber, type OrderDraft } from '@/lib/orders';
-import { DEFAULT_SITE_CONFIG, fetchSiteConfigSection, ShippingOption, ShippingConfig, PromoCode, applyPromoCode } from '@/lib/site-config';
-import { CheckoutStep, DeliveryInfo, GOLD, BORDER, TXT, TXT2, TXT3 } from '@/components/checkout/shared';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
+import { useCart } from '@/features/cart/cart.store';
+import { PaymentMethod } from '@/shared/types/domain.type';
+import { cacheOrder, generateOrderNumber, type OrderDraft } from '@/features/orders/order.store';
+import type { ShippingOption, ShippingConfig, PromoCode } from '@/features/site-config/site-config.type';
+import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
+import { fetchSiteConfigSection } from '@/features/site-config/site-config.util';
+import { applyPromoCode } from '@/features/promo/promo.util';
+import { CheckoutStep, DeliveryInfo } from '@/features/checkout/checkout.type';
+import { CHECKOUT_PALETTE } from '@/features/checkout/checkout.constant';
 
 // Composants extraits (lazy)
-import CartStep from '@/components/checkout/CartStep';
-const Sidebar      = lazy(() => import('@/components/checkout/Sidebar'));
-const DeliveryStep = lazy(() => import('@/components/checkout/DeliveryStep'));
-const PaymentStep  = lazy(() => import('@/components/checkout/PaymentStep'));
+import CartStep from '@/features/checkout/steps/cart.step';
+const Sidebar      = lazy(() => import('@/features/checkout/sidebars/checkout.sidebar'));
+const DeliveryStep = lazy(() => import('@/features/checkout/steps/delivery.step'));
+const PaymentStep  = lazy(() => import('@/features/checkout/steps/payment.step'));
 
 // ── Stepper config ────────────────────────────────────────────────────────────
 const STEPS = [
@@ -25,6 +30,7 @@ const STEP_ORDER: CheckoutStep[] = ['cart', 'delivery', 'payment', 'confirmation
 
 
 export default function CheckoutPage() {
+  const router = useRouter();
   const { items, totalPrice, clearCart } = useCart();
   const [step, setStep] = useState<CheckoutStep>('cart');
   const [delivery, setDelivery] = useState<DeliveryInfo>({
@@ -32,14 +38,20 @@ export default function CheckoutPage() {
     address: '', city: '', country: "Côte d'Ivoire",
   });
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('orange_money');
-  const [mobileNumber, setMobileNumber] = useState('');
   const [processing, setProcessing] = useState(false);
+  /**
+   * Clé d'idempotence de la tentative de commande en cours.
+   * Générée une seule fois, puis réutilisée par chaque réessai après un
+   * paiement échoué : le serveur met alors à jour la commande `pending`
+   * existante au lieu d'en créer une nouvelle (plus de lignes orphelines).
+   * Remise à zéro uniquement quand le paiement est réellement initié/confirmé.
+   */
+  const attemptOrderNumber = useRef<string | null>(null);
   const [shippingCfg, setShippingCfg] = useState<ShippingConfig>(DEFAULT_SITE_CONFIG.shipping);
   const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(
     DEFAULT_SITE_CONFIG.shipping.options.find(o => o.active) ?? null
   );
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
-  const [promoInput, setPromoInput] = useState('');
   const [appliedPromo, setAppliedPromo] = useState<{ code: PromoCode; discount: number } | null>(null);
   const [promoError, setPromoError] = useState<string | null>(null);
   const [activeMethods, setActiveMethods] = useState<string[]>(['orange_money', 'wave', 'mtn_momo', 'moov_money', 'djamo', 'cash_on_delivery']);
@@ -64,7 +76,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (!appliedPromo) return;
     const r = applyPromoCode(totalPrice, appliedPromo.code.code, promoCodes);
-    if (r.isValid) {
+    if (r.valid) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       if (r.discount !== appliedPromo.discount) setAppliedPromo({ code: appliedPromo.code, discount: r.discount });
     } else {
@@ -73,13 +85,12 @@ export default function CheckoutPage() {
     }
   }, [totalPrice, promoCodes, appliedPromo]);
 
-  const handleApplyPromo = () => {
+  const applyPromo = (typedCode: string) => {
     setPromoError(null);
-    const r = applyPromoCode(totalPrice, promoInput, promoCodes);
-    if (r.isValid) {
-      const codeObj = promoCodes.find(p => p.code.toUpperCase() === promoInput.toUpperCase());
+    const r = applyPromoCode(totalPrice, typedCode, promoCodes);
+    if (r.valid) {
+      const codeObj = promoCodes.find(p => p.code.toUpperCase() === typedCode.toUpperCase());
       if (codeObj) setAppliedPromo({ code: codeObj, discount: r.discount });
-      setPromoInput('');
     } else {
       setAppliedPromo(null);
       setPromoError(r.error ?? 'Code invalide');
@@ -98,20 +109,21 @@ export default function CheckoutPage() {
   }
   const total = Math.max(0, totalPrice + shippingCost - discount);
   const stepIdx = STEP_ORDER.indexOf(step);
-  const isMobile = ['orange_money', 'wave', 'mtn_momo', 'moov_money', 'djamo'].includes(paymentMethod);
+  const mobile = ['orange_money', 'wave', 'mtn_momo', 'moov_money', 'djamo'].includes(paymentMethod);
 
-  const handleDeliverySubmit = (e: React.SyntheticEvent) => { e.preventDefault(); setStep('payment'); };
+  const submitDelivery = (info: DeliveryInfo) => { setDelivery(info); setStep('payment'); };
 
-  const handlePlaceOrder = async (e: React.SyntheticEvent) => {
-    e.preventDefault();
+  const placeOrder = async (mobileNumber: string) => {
     setProcessing(true);
 
-    const num = generateOrderNumber();
+    const num = (attemptOrderNumber.current ??= generateOrderNumber());
     const orderData = {
       orderNumber: num, date: new Date().toISOString(), items: [...items],
       subtotal: totalPrice, shippingCost, total, delivery, paymentMethod,
       // Mobile money → en attente de confirmation Jeko ; COD → confirmé d'office
-      status: (isMobile ? 'pending_payment' : 'confirmed') as OrderDraft['status'],
+      status: (mobile ? 'pending_payment' : 'confirmed') as OrderDraft['status'],
+      shippingOptionId: selectedShipping?.id,
+      promoCode: appliedPromo?.code.code,
     };
 
         // 1. Création de la commande côté serveur — unique source de vérité [ARCH-01/02]
@@ -122,52 +134,70 @@ export default function CheckoutPage() {
     }).catch(() => null);
 
     if (!createRes?.ok) {
+      // 409 → ce numéro correspond déjà à une commande payée : il ne peut plus
+      // être réutilisé, le prochain essai doit repartir sur un numéro neuf.
+      if (createRes?.status === 409) attemptOrderNumber.current = null;
       alert('Erreur lors de la création de la commande. Veuillez réessayer.');
       setProcessing(false);
       return;
     }
 
-    // 1.b — Sauvegarder localement pour affichage sur /confirmation (lecture client uniquement)
-    saveOrder(orderData);
-
-    // 1.c — Email de confirmation (fire & forget, no-op si Resend non configuré)
-    fetch('/api/orders/notify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(orderData),
-    }).catch(() => {});
+    // NB : l'email de confirmation est envoyé côté serveur uniquement — par le
+    // webhook Jeko une fois le paiement confirmé (mobile money), ou par
+    // /api/orders/create pour le paiement à la livraison.
 
     // 2. Mobile money → Jeko Africa (redirect hosted checkout)
-    if (isMobile) {
+    if (mobile) {
+      let res: Response;
       try {
-        const res = await fetch('/api/jeko-pay/checkout', {
+        res = await fetch('/api/jeko-pay/checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             orderNumber:   num,
-            amountXof:     total,
             paymentMethod,                 // 'orange_money' | 'wave' | 'mtn_momo' | 'moov_money' | 'djamo'
             payerPhone:    mobileNumber.trim() || undefined,
           }),
         });
-        const data = await res.json();
-        if (!res.ok || !data?.redirectUrl) {
-          alert('Le paiement n\'a pas pu être initié. Veuillez réessayer.');
-          setProcessing(false);
-          return;
-        }
-        clearCart();
-        // Redirection vers le checkout hébergé Jeko
-        globalThis.window.location.href = data.redirectUrl as string;
-        return;
       } catch {
+        // Seul cas où le fetch lui-même a échoué → vraie panne réseau
         alert('Erreur réseau lors de l\'initialisation du paiement.');
         setProcessing(false);
         return;
       }
+
+      // Ne jamais faire `res.json()` directement : un body vide ou non-JSON
+      // ferait throw et serait à tort présenté comme une erreur réseau.
+      const rawBody = await res.text().catch(() => '');
+      let data: { redirectUrl?: string } | null = null;
+      try {
+        data = rawBody ? (JSON.parse(rawBody) as { redirectUrl?: string }) : null;
+      } catch {
+        data = null;
+      }
+
+      if (!res.ok || !data?.redirectUrl) {
+        console.error('[checkout] Échec init paiement', { status: res.status, body: rawBody.slice(0, 500) });
+        alert('Le paiement n\'a pas pu être initié. Veuillez réessayer.');
+        setProcessing(false);
+        return;
+      }
+
+      // Le paiement est réellement initié → on peut persister et vider le panier
+      cacheOrder(orderData);
+      clearCart();
+      attemptOrderNumber.current = null;
+      // Redirection vers le checkout hébergé Jeko
+      globalThis.window.location.href = data.redirectUrl;
+      return;
     }
 
+    // Paiement à la livraison : la commande est confirmée dès sa création
+    cacheOrder(orderData);
+    clearCart();
+    attemptOrderNumber.current = null;
     setProcessing(false);
+    router.push('/confirmation');
   };
 
 
@@ -175,29 +205,29 @@ export default function CheckoutPage() {
     <div style={{ background: '#F8F4EF', minHeight: '100vh' }}>
 
       {/* ── Stepper header ── */}
-      <div style={{ background: 'white', borderBottom: `1px solid ${BORDER}`, padding: '24px 16px' }}>
+      <div style={{ background: 'white', borderBottom: `1px solid ${CHECKOUT_PALETTE.border}`, padding: '24px 16px' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <p style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: TXT, textAlign: 'center', marginBottom: '24px' }}>
+          <p style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: CHECKOUT_PALETTE.text, textAlign: 'center', marginBottom: '24px' }}>
             Procédure de paiement
           </p>
           <div className="checkout-stepper-row" style={{ display: 'flex', alignItems: 'flex-start', width: '100%' }}>
             {STEPS.map((s, i) => {
               const idx = STEP_ORDER.indexOf(s.key as CheckoutStep);
-              const isActive = step === s.key;
-              const isDone = stepIdx > idx;
+              const active = step === s.key;
+              const done = stepIdx > idx;
               let labelColor: string;
-              if (isActive) { labelColor = GOLD; } else if (isDone) { labelColor = TXT; } else { labelColor = TXT3; }
+              if (active) { labelColor = CHECKOUT_PALETTE.accent; } else if (done) { labelColor = CHECKOUT_PALETTE.text; } else { labelColor = CHECKOUT_PALETTE.textSubtle; }
               return (
                 <React.Fragment key={s.key}>
                   <div className="checkout-stepper-step" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', flex: 1, minWidth: 0 }}>
-                    <div className="checkout-stepper-circle" style={{ width: '36px', height: '36px', borderRadius: '50%', background: isActive || isDone ? GOLD : '#EDE5DC', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}>
-                      <span style={{ fontSize: '13px', fontWeight: 700, color: isActive || isDone ? 'white' : TXT3 }}>{i + 1}</span>
+                    <div className="checkout-stepper-circle" style={{ width: '36px', height: '36px', borderRadius: '50%', background: active || done ? CHECKOUT_PALETTE.accent : '#EDE5DC', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 700, color: active || done ? 'white' : CHECKOUT_PALETTE.textSubtle }}>{i + 1}</span>
                     </div>
-                    <span className="checkout-stepper-label" style={{ fontSize: '12px', fontWeight: isActive ? 700 : 500, color: labelColor, textAlign: 'center', lineHeight: 1.2 }}>{s.label}</span>
-                    <span className="checkout-stepper-sub" style={{ fontSize: '10px', color: TXT3, textAlign: 'center', lineHeight: 1.2 }}>{s.sub}</span>
+                    <span className="checkout-stepper-label" style={{ fontSize: '12px', fontWeight: active ? 700 : 500, color: labelColor, textAlign: 'center', lineHeight: 1.2 }}>{s.label}</span>
+                    <span className="checkout-stepper-sub" style={{ fontSize: '10px', color: CHECKOUT_PALETTE.textSubtle, textAlign: 'center', lineHeight: 1.2 }}>{s.sub}</span>
                   </div>
                   {i < STEPS.length - 1 && (
-                    <div className="checkout-stepper-connector" style={{ height: '2px', flexBasis: '52px', maxWidth: '52px', background: stepIdx > i ? GOLD : '#EDE5DC', marginTop: '17px', flexShrink: 1, transition: 'background 0.3s' }} />
+                    <div className="checkout-stepper-connector" style={{ height: '2px', flexBasis: '52px', maxWidth: '52px', background: stepIdx > i ? CHECKOUT_PALETTE.accent : '#EDE5DC', marginTop: '17px', flexShrink: 1, transition: 'background 0.3s' }} />
                   )}
                 </React.Fragment>
               );
@@ -213,9 +243,9 @@ export default function CheckoutPage() {
           {/* Left: step content */}
           <div className="lg:col-span-2">
             <Suspense fallback={null}>
-              {step === 'cart'     && <CartStep onNext={() => setStep('delivery')} />}
-              {step === 'delivery' && <DeliveryStep delivery={delivery} setDelivery={setDelivery} setStep={setStep} handleDeliverySubmit={handleDeliverySubmit} shippingOptions={shippingCfg.options ?? []} selectedShipping={selectedShipping} setSelectedShipping={setSelectedShipping} />}
-              {step === 'payment'  && <PaymentStep paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} mobileNumber={mobileNumber} setMobileNumber={setMobileNumber} handlePlaceOrder={handlePlaceOrder} processing={processing} setStep={setStep} isMobile={isMobile} activeMethods={activeMethods} />}
+              {step === 'cart'     && <CartStep next={() => setStep('delivery')} />}
+              {step === 'delivery' && <DeliveryStep initialDelivery={delivery} submitDelivery={submitDelivery} back={() => setStep('cart')} shippingOptions={shippingCfg.options ?? []} selectedShipping={selectedShipping} selectShipping={setSelectedShipping} />}
+              {step === 'payment'  && <PaymentStep paymentMethod={paymentMethod} selectMethod={setPaymentMethod} placeOrder={placeOrder} processing={processing} back={() => setStep('delivery')} activeMethods={activeMethods} />}
             </Suspense>
           </div>
 
@@ -223,25 +253,25 @@ export default function CheckoutPage() {
           <div className="lg:col-span-1">
             <div className="lg:sticky" style={{ top: '24px' }}>
               <Suspense fallback={null}>
-                <Sidebar items={items} totalPrice={totalPrice} shippingCost={shippingCost} discount={discount} total={total} step={step} setStep={setStep} appliedPromo={appliedPromo} promoInput={promoInput} setPromoInput={setPromoInput} promoError={promoError} setPromoError={setPromoError} handleApplyPromo={handleApplyPromo} removePromo={removePromo} />
+                <Sidebar items={items} totalPrice={totalPrice} shippingCost={shippingCost} discount={discount} total={total} step={step} editCart={() => setStep('cart')} appliedPromo={appliedPromo} promoError={promoError} applyPromo={applyPromo} dismissPromoError={() => setPromoError(null)} removePromo={removePromo} />
               </Suspense>
             </div>
           </div>
         </div>
 
         {/* ── Trust bar ── */}
-        <div style={{ marginTop: '24px', background: 'white', border: `1px solid ${BORDER}`, borderRadius: '8px' }}>
+        <div style={{ marginTop: '24px', background: 'white', border: `1px solid ${CHECKOUT_PALETTE.border}`, borderRadius: '8px' }}>
           <div className="grid grid-cols-1 sm:grid-cols-3">
             {[
               { icon: '🎧', title: "Besoin d'aide ?",     sub: 'Notre service client est disponible 7j/7' },
               { icon: '🔒', title: 'Paiement sécurisé',   sub: 'Toutes vos transactions sont 100% sécurisées' },
               { icon: '🚚', title: 'Livraison rapide',     sub: "Partout en Côte d'Ivoire et à l'international" },
             ].map((t, i) => (
-              <div key={t.title} className={`flex items-start gap-3 p-5${i > 0 ? ' sm:border-l' : ''}`} style={{ borderColor: BORDER }}>
+              <div key={t.title} className={`flex items-start gap-3 p-5${i > 0 ? ' sm:border-l' : ''}`} style={{ borderColor: CHECKOUT_PALETTE.border }}>
                 <span style={{ fontSize: '26px', flexShrink: 0 }}>{t.icon}</span>
                 <div>
-                  <p style={{ fontSize: '13px', fontWeight: 700, color: TXT, marginBottom: '3px' }}>{t.title}</p>
-                  <p style={{ fontSize: '12px', color: TXT2, lineHeight: 1.4 }}>{t.sub}</p>
+                  <p style={{ fontSize: '13px', fontWeight: 700, color: CHECKOUT_PALETTE.text, marginBottom: '3px' }}>{t.title}</p>
+                  <p style={{ fontSize: '12px', color: CHECKOUT_PALETTE.textMuted, lineHeight: 1.4 }}>{t.sub}</p>
                 </div>
               </div>
             ))}

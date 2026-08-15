@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
-import { requireAdmin } from '@/lib/admin-auth';
-import { createServiceClient } from '@/utils/supabase/service';
-import { rowToProduct } from '@/lib/mappers';
-import type { Product } from '@/types';
+import { revalidatePath, revalidateTag } from 'next/cache';
+import { requireAdmin } from '@/shared/auth/admin.guard';
+import { createServiceClient } from '@/shared/supabase/service.client';
+import { rowToProduct } from '@/features/catalog/catalog.mapper';
+import type { Product } from '@/shared/types/domain.type';
 
 export async function GET() {
   try {
@@ -19,13 +19,14 @@ export async function GET() {
       .order('created_at');
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error('[admin/products GET] db error:', error.message);
+      return NextResponse.json({ error: 'db_error' }, { status: 500 });
     }
 
     return NextResponse.json((data ?? []).map(rowToProduct));
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error('[admin/products GET] unexpected error:', err instanceof Error ? err.message : err);
+    return NextResponse.json({ error: 'internal_error' }, { status: 500 });
   }
 }
 
@@ -60,17 +61,19 @@ export async function POST(req: NextRequest) {
         in_stock: product.inStock,
         stock_qty: product.stockQty ?? null,
         low_stock_threshold: product.lowStockThreshold ?? null,
-        is_new: product.isNew ?? false,
-        is_bestseller: product.isBestseller ?? false,
+        is_new: product.newArrival ?? false,
+        is_bestseller: product.bestseller ?? false,
       },
       { onConflict: 'id' },
     );
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error('[admin/products POST] db error:', error.message);
+      return NextResponse.json({ error: 'db_error' }, { status: 500 });
     }
 
     try {
+      revalidateTag('products', 'default');
       revalidatePath('/boutique');
       revalidatePath('/');
     } catch {
@@ -79,8 +82,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error('[admin/products POST] unexpected error:', err instanceof Error ? err.message : err);
+    return NextResponse.json({ error: 'internal_error' }, { status: 500 });
   }
 }
 
@@ -100,10 +103,12 @@ export async function DELETE(req: NextRequest) {
     const { error } = await supabase.from('products').delete().eq('id', id);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error('[admin/products DELETE] db error:', error.message);
+      return NextResponse.json({ error: 'db_error' }, { status: 500 });
     }
 
     try {
+      revalidateTag('products', 'default');
       revalidatePath('/boutique');
       revalidatePath('/');
     } catch {
@@ -112,7 +117,7 @@ export async function DELETE(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error('[admin/products DELETE] unexpected error:', err instanceof Error ? err.message : err);
+    return NextResponse.json({ error: 'internal_error' }, { status: 500 });
   }
 }

@@ -66,7 +66,7 @@ const ENGAGEMENTS = [
 ];
 
 export default async function EngagementsPage() {
-  const { getSiteConfig } = await import('@/lib/site-config.server');
+  const { getSiteConfig } = await import('@/features/site-config/site-config.query');
   const cfg = await getSiteConfig();
   const legal = cfg.legal_engagements;
   return (

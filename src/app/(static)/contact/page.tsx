@@ -3,7 +3,9 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import styles from '../static.module.css';
-import { fetchSiteConfigSection, DEFAULT_SITE_CONFIG, type LegalPage } from '@/lib/site-config';
+import type { LegalPage } from '@/features/site-config/site-config.type';
+import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
+import { fetchSiteConfigSection } from '@/features/site-config/site-config.util';
 
 const SUBJECTS = [
   'Question sur une commande',
@@ -24,7 +26,7 @@ export default function ContactPage() {
     fetchSiteConfigSection('legal_contact').then(v => v && setLegal(v)).catch(() => {});
   }, []);
 
-  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+  const submitForm = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
@@ -76,7 +78,7 @@ export default function ContactPage() {
                 </p>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <form onSubmit={submitForm} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <div className={styles.formRow}>
                   <Field label="Nom complet" id="nom">
                     <input

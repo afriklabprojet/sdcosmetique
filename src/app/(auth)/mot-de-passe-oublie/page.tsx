@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
-import { createClient } from '@/utils/supabase/client';
+import { createClient } from '@/shared/supabase/browser.client';
 import styles from '../auth.module.css';
 
 export default function MotDePasseOubliePage() {
@@ -12,7 +12,7 @@ export default function MotDePasseOubliePage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.SyntheticEvent) => {
+  const submitForm = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -113,7 +113,7 @@ export default function MotDePasseOubliePage() {
               </p>
             </div>
           ) : (
-            <form className={styles.fields} onSubmit={handleSubmit}>
+            <form className={styles.fields} onSubmit={submitForm}>
               {error && (
                 <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '8px', padding: '0.85rem 1rem', fontSize: '0.875rem', color: '#DC2626' }}>
                   {error}

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { rateLimit, getIp, rateLimitHeaders } from '@/lib/rate-limit';
+import { db } from '@/shared/supabase/request.client';
+import { rateLimit, getIp, rateLimitHeaders } from '@/shared/http/rate-limit.guard';
 
 export const runtime = 'nodejs';
 
@@ -12,7 +12,7 @@ const VALID_SOURCES = new Set(['footer', 'popup', 'homepage', 'quiz', 'blog', 'b
 
 export async function POST(req: NextRequest) {
   // 3 inscriptions / heure par IP
-  const rl = await rateLimit(`newsletter:${getIp(req)}`, 3, 60 * 60 * 1000);
+  const rl = await rateLimit(`newsletter:${getIp(req)}`, { limit: 3, windowMs: 60 * 60 * 1000 });
   if (!rl.ok) {
     return NextResponse.json(
       { error: 'rate_limit_exceeded' },

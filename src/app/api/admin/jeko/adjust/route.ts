@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceClient } from '@/utils/supabase/service';
-import { requireAdmin } from '@/lib/admin-auth';
+import { createServiceClient } from '@/shared/supabase/service.client';
+import { requireAdmin } from '@/shared/auth/admin.guard';
 
 // POST /api/admin/jeko/adjust  { userId, points, label }
 export async function POST(req: NextRequest) {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceClient } from '@/utils/supabase/service';
-import { sendJekoPointsNotification } from '@/lib/emails';
-import { requireAdmin } from '@/lib/admin-auth';
+import { createServiceClient } from '@/shared/supabase/service.client';
+import { sendJekoPointsNotification } from '@/shared/notifications/email.service';
+import { requireAdmin } from '@/shared/auth/admin.guard';
 
 export const runtime = 'nodejs';
 

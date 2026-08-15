@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db } from '@/shared/supabase/request.client';
 
 // [SEC-06] Whitelist des clés autorisées en lecture publique.
 // Toute clé absente de cette liste retourne 403 — empêche l'exposition

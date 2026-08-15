@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdmin } from '@/lib/admin-auth';
-import { normalizePhone } from '@/lib/whatsapp';
+import { requireAdmin } from '@/shared/auth/admin.guard';
+import { normalizePhone } from '@/shared/notifications/whatsapp.service';
 
 export const runtime = 'nodejs';
 

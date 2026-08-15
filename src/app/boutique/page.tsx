@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import { fetchProducts } from '@/lib/products-server';
-import BoutiqueClient from './BoutiqueClient';
+import { fetchProducts } from '@/features/catalog/product.repository';
+import ShopView from '@/features/catalog/views/boutique.view';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sdcosmetique.ci';
 
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function BoutiquePage() {
+export default async function ShopPage() {
   const products = await fetchProducts();
-  return <BoutiqueClient products={products} />;
+  return <ShopView products={products} />;
 }

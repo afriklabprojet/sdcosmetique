@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
-import { createServiceClient } from '@/utils/supabase/service';
-import { db } from '@/lib/db';
-import { rateLimit, getIp, rateLimitHeaders } from '@/lib/rate-limit';
+import { createServiceClient } from '@/shared/supabase/service.client';
+import { requireAdmin } from '@/shared/auth/admin.guard';
+import { rateLimit, getIp, rateLimitHeaders } from '@/shared/http/rate-limit.guard';
 
 export const runtime = 'nodejs';
 
 export async function POST(request: Request) {
   // 10 soumissions / 10 min par IP
-  const rl = await rateLimit(`quiz:${getIp(request)}`, 10, 10 * 60 * 1000);
+  const rl = await rateLimit(`quiz:${getIp(request)}`, { limit: 10, windowMs: 10 * 60 * 1000 });
   if (!rl.ok) {
     return NextResponse.json(
       { error: 'rate_limit_exceeded' },
@@ -36,9 +36,8 @@ export async function POST(request: Request) {
 
 export async function GET() {
   try {
-    const userClient = await db();
-    const { data: { user } } = await userClient.auth.getUser();
-    if (!user) return NextResponse.json({ ok: false, error: 'unauthorized', items: [] }, { status: 401 });
+    const admin = await requireAdmin();
+    if (!admin) return NextResponse.json({ ok: false, error: 'unauthorized', items: [] }, { status: 401 });
     const supabase = createServiceClient();
     const { data, error } = await supabase
       .from('quiz_submissions')

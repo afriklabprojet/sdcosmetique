@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdmin } from '@/lib/admin-auth';
-import { createServiceClient } from '@/utils/supabase/service';
-import type { OrderDraft } from '@/lib/orders';
+import { requireAdmin } from '@/shared/auth/admin.guard';
+import { createServiceClient } from '@/shared/supabase/service.client';
+import type { OrderDraft } from '@/features/orders/order.store';
 
 type OrderStatus = OrderDraft['status'];
 
@@ -81,8 +81,8 @@ function rowToOrder(row: OrderRow): OrderDraft {
         benefits: [],
         usage: '',
         inStock: true,
-        isNew: false,
-        isBestseller: false,
+        newArrival: false,
+        bestseller: false,
       },
       quantity: i.quantity,
     })),
@@ -102,7 +102,8 @@ export async function GET() {
     .order('created_at', { ascending: false });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('[admin/orders GET] db error:', error.message);
+    return NextResponse.json({ error: 'db_error' }, { status: 500 });
   }
 
   const orders = ((data ?? []) as OrderRow[]).map(rowToOrder);
@@ -130,7 +131,8 @@ export async function PATCH(req: NextRequest) {
     .eq('order_number', orderNumber);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('[admin/orders PATCH] db error:', error.message);
+    return NextResponse.json({ error: 'db_error' }, { status: 500 });
   }
 
   return NextResponse.json({ success: true });

@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { updateSession } from "@/utils/supabase/middleware";
+import { updateSession } from "@/shared/supabase/session.guard";
 import { createServerClient } from "@supabase/ssr";
 
 const ADMIN_EMAILS: readonly string[] = (process.env.ADMIN_EMAILS ?? '')
@@ -25,12 +25,12 @@ async function proxy(request: NextRequest) {
 
     const { data: { user } } = await supabase.auth.getUser();
 
-    const isAdmin =
+    const admin =
       user?.email &&
       ADMIN_EMAILS.length > 0 &&
       ADMIN_EMAILS.includes(user.email.toLowerCase());
 
-    if (!isAdmin) {
+    if (!admin) {
       const loginUrl = request.nextUrl.clone();
       loginUrl.pathname = '/admin/login';
       return NextResponse.redirect(loginUrl);

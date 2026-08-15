@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchProductBySlug } from '@/lib/products-server';
+import { fetchProductBySlug } from '@/features/catalog/product.repository';
 
 export async function GET(
   _req: NextRequest,
