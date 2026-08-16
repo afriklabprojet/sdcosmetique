@@ -26,6 +26,9 @@ export interface JekoWebhookPayload {
     reference?: string;
     paymentLinkId?: string;
   };
+  /** Certaines charges utiles portent la référence à la racine. */
+  reference?: string;
+  paymentRequest?: { reference?: string };
 }
 
 /**

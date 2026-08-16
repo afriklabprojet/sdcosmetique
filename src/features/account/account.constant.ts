@@ -31,8 +31,10 @@ export const STATUS_CONFIG: Record<string, StatusStyle> = {
 };
 
 export const STATUS_MAP: Record<string, string> = {
+  pending_payment: 'En attente de paiement',
   confirmed: 'Confirmée',
   processing: 'En cours',
   shipped: 'Expédiée',
   delivered: 'Livrée',
+  cancelled: 'Annulée',
 };

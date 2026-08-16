@@ -120,6 +120,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'order_already_settled' }, { status: 409 });
   }
 
+  // [PAY-01] Le statut du paiement est la source de vérité : AUCUNE commande
+  // n'est créée en `paid`. Seul un événement de paiement réel fait basculer
+  // `payment_status` :
+  //   • mobile money  → webhook Jeko (ou réconciliation via /api/jeko-pay/reconcile) ;
+  //   • à la livraison → encaissement marqué par l'admin.
+  // `status` (avancement logistique) et `payment_status` (argent reçu) sont
+  // désormais deux axes distincts, jamais déduits l'un de l'autre.
+  const awaitingPayment = order.status === 'pending_payment';
+
   const orderRow = {
     order_number:        orderNumber,
     user_id:             userId,
@@ -127,9 +136,8 @@ export async function POST(req: NextRequest) {
     shipping_cost:       computedShipping,
     total:               computedTotal,
     payment_method:      paymentMethod,
-    // status = toujours 'confirmed' (contrainte DB) ; payment_status distingue les paiements en attente
-    status:              'confirmed',
-    payment_status:      (order.status === 'pending_payment') ? 'pending' : 'paid',
+    status:              awaitingPayment ? 'pending_payment' : 'confirmed',
+    payment_status:      'pending',
     delivery_first_name: delivery.firstName,
     delivery_last_name:  delivery.lastName,
     delivery_email:      delivery.email,
@@ -184,7 +192,7 @@ export async function POST(req: NextRequest) {
   // Email de confirmation : uniquement pour les commandes sans paiement à capturer
   // (paiement à la livraison). Pour le mobile money, c'est le webhook Jeko qui
   // déclenche l'email, une fois le paiement réellement confirmé.
-  if (order.status !== 'pending_payment') {
+  if (!awaitingPayment) {
     await sendOrderConfirmationByNumber(orderNumber);
   }
 

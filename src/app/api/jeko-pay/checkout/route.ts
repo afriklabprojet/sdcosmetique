@@ -136,6 +136,26 @@ async function goToCheckout(req: NextRequest) {
       forceProviderDirect: body.forceProviderDirect,
     });
 
+    // [PAY-03] Persister l'id de la demande de paiement : c'est la seule prise
+    // qui permet ensuite d'interroger Jeko si le webhook est manque
+    // (cf. /api/jeko-pay/reconcile). Un echec d'ecriture ne doit pas empecher
+    // le client de payer — on logue et on continue.
+    const { error: refErr } = await supabase
+      .from('orders')
+      .update({
+        payment_request_id: payment.id,
+        payment_provider:   'jeko',
+      })
+      .eq('order_number', body.orderNumber);
+
+    if (refErr) {
+      console.error('[jeko-pay] Echec persistance payment_request_id:', {
+        orderNumber: body.orderNumber,
+        paymentId:   payment.id,
+        message:     refErr.message,
+      });
+    }
+
     return NextResponse.json({
       id:          payment.id,
       reference:   payment.reference,

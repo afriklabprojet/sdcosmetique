@@ -1,7 +1,9 @@
 /**
  * orders-db.ts — Fonctions Supabase pour la gestion des commandes.
  * Utilise le browser client → peut être appelé depuis des Client Components.
- * Fallback automatique sur localStorage si la DB est indisponible.
+ *
+ * La DB est la seule source de verite de l'historique : plus aucun repli sur
+ * `localStorage`, qui ressuscitait des commandes jamais payees (PAY-05).
  *
  * Schéma DB :
  *   orders       — colonnes delivery_* plates + colonnes de totaux
@@ -12,7 +14,6 @@
  */
 import { createClient } from '@/shared/supabase/browser.client';
 import type { OrderDraft } from '@/features/orders/order.store';
-import { cacheOrder, getOrders } from '@/features/orders/order.store';
 import type { Product } from '@/shared/types/domain.type';
 
 // ─── Type intermédiaire pour les rows Supabase ────────────────────────────────
@@ -79,75 +80,27 @@ function rowToOrder(row: OrderRow): OrderDraft {
   };
 }
 
-// ─── Sauvegarder une commande (DB + localStorage) ─────────────────────────────
-export async function saveOrder(order: OrderDraft, userId?: string | null): Promise<void> {
-  // Toujours sauvegarder en localStorage (fallback)
-  cacheOrder(order);
-  try {
-    const supabase = createClient();
-    const { data: inserted, error } = await supabase
-      .from('orders')
-      .insert({
-        order_number:        order.orderNumber,
-        user_id:             userId ?? null,
-        subtotal:            order.subtotal,
-        shipping_cost:       order.shippingCost,
-        total:               order.total,
-        payment_method:      order.paymentMethod,
-        // 'pending_payment' n'est pas un statut DB valide → mapper sur confirmed + payment_status
-        status:              (order.status === 'pending_payment') ? 'confirmed' : (order.status ?? 'confirmed'),
-        payment_status:      (order.status === 'pending_payment') ? 'pending' : 'paid',
-        delivery_first_name: order.delivery?.firstName ?? '',
-        delivery_last_name:  order.delivery?.lastName ?? '',
-        delivery_email:      order.delivery?.email ?? '',
-        delivery_phone:      order.delivery?.phone ?? '',
-        delivery_address:    order.delivery?.address ?? '',
-        delivery_city:       order.delivery?.city ?? '',
-        delivery_country:    order.delivery?.country ?? '',
-      })
-      .select('id')
-      .single();
-
-    if (error || !inserted) {
-      
-      return;
-    }
-
-    // Insérer les lignes d'articles
-    if (order.items?.length) {
-      const items = order.items.map(item => ({
-        order_id:     inserted.id,
-        product_id:   item.product.id,
-        product_slug: item.product.slug,
-        name:         item.product.name,
-        price:        item.product.price,
-        quantity:     item.quantity,
-        image_url:    item.product.images[0] ?? null,
-        shade:        null,
-      }));
-      await supabase.from('order_items').insert(items);
-    }
-  } catch (e) {
-    console.error('orders-db:', e);
-  }
-}
-
-// ─── Toutes les commandes (admin) ─────────────────────────────────────────────
-export async function fetchAllOrders(): Promise<OrderDraft[]> {
-  try {
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from('orders')
-      .select('*, order_items(*)')
-      .order('created_at', { ascending: false });
-    if (error || !data?.length) return getOrders();
-    return (data as OrderRow[]).map(rowToOrder);
-  } catch {
-    return getOrders();
-  }
-}
+// [PAY-06] `saveOrder` et `fetchAllOrders` ont ete supprimes ici.
+// `saveOrder` etait un vestige du double-save client remplace par
+// POST /api/orders/create (ARCH-01/02) et portait encore la regle fautive
+// « commande creee = commande payee » ; `fetchAllOrders` n'avait plus
+// d'appelant, l'admin passant par GET /api/admin/orders. Les garder revenait
+// a laisser deux copies divergentes de la logique de paiement.
 
 // ─── Commandes d'un utilisateur (compte) ─────────────────────────────────────
+/**
+ * Historique des commandes du client.
+ *
+ * [PAY-05] Ne renvoie QUE les commandes reellement payees (`payment_status =
+ * 'paid'`), le paiement etant la seule source de verite. Une commande creee
+ * puis abandonnee, echouee ou annulee au moment de payer n'a jamais sa place
+ * dans un historique.
+ *
+ * Le repli sur `localStorage` a ete supprime : il republiait des commandes
+ * mises en cache par le checkout AVANT la redirection vers Jeko, donc jamais
+ * payees — elles reapparaissaient indefiniment dans « mes commandes ». En cas
+ * d'erreur reseau, mieux vaut un historique vide qu'un historique faux.
+ */
 export async function fetchUserOrders(userId: string): Promise<OrderDraft[]> {
   try {
     const supabase = createClient();
@@ -155,11 +108,12 @@ export async function fetchUserOrders(userId: string): Promise<OrderDraft[]> {
       .from('orders')
       .select('*, order_items(*)')
       .eq('user_id', userId)
+      .eq('payment_status', 'paid')
       .order('created_at', { ascending: false });
-    if (error || !data?.length) return getOrders();
+    if (error || !data?.length) return [];
     return (data as OrderRow[]).map(rowToOrder);
   } catch {
-    return getOrders();
+    return [];
   }
 }
 

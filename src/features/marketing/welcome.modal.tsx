@@ -3,7 +3,29 @@
 import { useEffect, useState } from 'react';
 import type { WelcomePopup } from '@/features/site-config/site-config.type';
 
+// localStorage et non sessionStorage : le popup doit n'etre vu qu'une fois par
+// visiteur, comme annonce dans l'admin. Avec sessionStorage il reapparaissait a
+// chaque nouvel onglet et a chaque nouvelle session.
 const STORAGE_KEY = 'sdc_popup_shown';
+
+// `localStorage` leve en navigation privee stricte ou quand les cookies tiers
+// sont bloques. Un popup marketing ne doit jamais casser la page : en cas
+// d'echec on retombe sur « pas encore vu », le comportement d'avant le flag.
+function hasBeenShown(): boolean {
+  try {
+    return globalThis.window.localStorage.getItem(STORAGE_KEY) !== null;
+  } catch {
+    return false;
+  }
+}
+
+function markAsShown(): void {
+  try {
+    globalThis.window.localStorage.setItem(STORAGE_KEY, '1');
+  } catch {
+    // Ignore : le popup se reaffichera, sans plus de consequence.
+  }
+}
 
 interface WelcomePopupProps {
   readonly config: WelcomePopup;
@@ -17,7 +39,7 @@ export default function WelcomePopupModal({ config }: WelcomePopupProps) {
     if (!config.enabled) return;
     const browserWindow = globalThis.window;
     if (browserWindow === undefined) return;
-    if (browserWindow.sessionStorage.getItem(STORAGE_KEY)) return;
+    if (hasBeenShown()) return;
 
     const timer = setTimeout(() => {
       setVisible(true);
@@ -27,7 +49,7 @@ export default function WelcomePopupModal({ config }: WelcomePopupProps) {
   }, [config.enabled, config.delaySeconds]);
 
   const close = () => {
-    globalThis.window.sessionStorage.setItem(STORAGE_KEY, '1');
+    markAsShown();
     setVisible(false);
   };
 

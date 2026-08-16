@@ -41,14 +41,13 @@ const VALID_STATUS: ReadonlySet<string> = new Set([
 ]);
 
 function rowToOrder(row: OrderRow): OrderDraft {
-  // Synthétiser 'pending_payment' pour les commandes mobile money en attente de paiement
-  // (payment_status='pending' + status='confirmed' = paiement mobile non encore confirmé)
-  const effectiveStatus: OrderStatus =
-    row.payment_status === 'pending' && row.status === 'confirmed'
-      ? 'pending_payment'
-      : ((row.status as OrderStatus) ?? 'confirmed');
+  // [PAY-07] Plus de statut « synthetise ». La base porte desormais les deux
+  // axes separement (`status` logistique, `payment_status` financier) : les
+  // deduire l'un de l'autre ici masquait le vrai defaut cote ecriture.
+  const effectiveStatus: OrderStatus = (row.status as OrderStatus) ?? 'pending_payment';
   return {
     orderNumber: row.order_number,
+    paymentStatus: (row.payment_status as OrderDraft['paymentStatus']) ?? 'pending',
     date: row.created_at,
     subtotal: Number(row.subtotal),
     shippingCost: Number(row.shipping_cost),
@@ -119,15 +118,40 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json();
   const orderNumber = String(body?.orderNumber ?? '').trim();
   const status = String(body?.status ?? '').trim();
+  const paymentStatus = String(body?.paymentStatus ?? '').trim();
 
-  if (!orderNumber || !VALID_STATUS.has(status)) {
+  if (!orderNumber) {
+    return NextResponse.json({ error: 'Payload invalide' }, { status: 400 });
+  }
+  if (status && !VALID_STATUS.has(status)) {
+    return NextResponse.json({ error: 'Payload invalide' }, { status: 400 });
+  }
+  // [PAY-08] Encaissement manuel : le paiement a la livraison n'a pas de PSP
+  // pour confirmer l'argent recu, c'est donc l'admin qui l'atteste. Restreint a
+  // `paid` / `failed` — un encaissement ne se « remet » pas en attente, et les
+  // paiements Jeko restent pilotes par le PSP.
+  if (paymentStatus && !['paid', 'failed'].includes(paymentStatus)) {
+    return NextResponse.json({ error: 'Payload invalide' }, { status: 400 });
+  }
+  if (!status && !paymentStatus) {
     return NextResponse.json({ error: 'Payload invalide' }, { status: 400 });
   }
 
   const supabase = createServiceClient();
   const { error } = await supabase
     .from('orders')
-    .update({ status })
+    .update({
+      ...(status ? { status } : {}),
+      ...(paymentStatus
+        ? {
+            payment_status:  paymentStatus,
+            payment_paid_at: paymentStatus === 'paid' ? new Date().toISOString() : null,
+            // Un encaissement fait sortir la commande de l'attente de paiement.
+            ...(paymentStatus === 'paid' && !status ? { status: 'confirmed' } : {}),
+          }
+        : {}),
+      updated_at: new Date().toISOString(),
+    })
     .eq('order_number', orderNumber);
 
   if (error) {

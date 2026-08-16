@@ -15,7 +15,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
 import { createClient } from '@/shared/supabase/browser.client';
-import { getOrders, formatOrderDate, OrderDraft } from '@/features/orders/order.store';
+import { formatOrderDate, OrderDraft } from '@/features/orders/order.store';
 import { fetchUserOrders } from '@/features/orders/order.repository';
 import { formatPrice } from '@/features/catalog/product.query';
 import { useWishlist } from '@/features/wishlist/wishlist.store';
@@ -128,7 +128,10 @@ export default function AccountPage() {
         getJekoHistory(data.user.id).then(setJekoHistory).catch(() => {});
         fetchJekoConfig().then(setJekoConfig).catch(() => {});
       } else {
-        setOrders(getOrders());
+        // [PAY-05] Aucun repli sur localStorage : il affichait des commandes
+        // mises en cache avant paiement, donc jamais payees. Sans session, il
+        // n'y a pas d'historique a montrer.
+        setOrders([]);
       }
     });
   }, []);
@@ -156,7 +159,9 @@ export default function AccountPage() {
     id: o.orderNumber,
     date: formatOrderDate(o.date),
     total: formatPrice(o.total),
-    status: STATUS_MAP[o.status] ?? 'Confirmée',
+    // Jamais de repli sur « Confirmée » : un statut inconnu ne doit pas se
+    // faire passer pour une commande validee.
+    status: STATUS_MAP[o.status] ?? o.status,
   }));
 
   const saveProfileSection = async () => {

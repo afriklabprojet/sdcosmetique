@@ -19,14 +19,26 @@ interface OrdersTabProps {
   orders: OrderDraft[];
   openDetail: (order: OrderDraft) => void;
   changeStatus: (orderNumber: string, status: OrderStatus) => void;
+  /** Encaissement d'une commande payee a la livraison. */
+  markPaid: (orderNumber: string) => void;
   thStyle: React.CSSProperties;
   tdStyle: React.CSSProperties;
 }
 
+/* Etat financier affiche a part du statut logistique : une commande peut etre
+ * « confirmee » et pas encore payee, l'admin doit voir les deux. */
+const PAYMENT_STATUS_LABELS: Record<string, { label: string; color: string }> = {
+  pending:    { label: 'En attente',  color: '#F59E0B' },
+  processing: { label: 'En cours',    color: '#F59E0B' },
+  paid:       { label: 'Payée',       color: '#10B981' },
+  failed:     { label: 'Échouée',     color: '#EF4444' },
+  refunded:   { label: 'Remboursée',  color: '#6B7280' },
+};
+
 /* Meme lecture que ProductsTab : recherche, statut filtre et page ne sortaient
  * de l'onglet que pour y revenir sous forme de liste paginee. */
-export function OrdersTab({ 
-  orders, openDetail, changeStatus, thStyle, tdStyle 
+export function OrdersTab({
+  orders, openDetail, changeStatus, markPaid, thStyle, tdStyle
 }: Readonly<OrdersTabProps>) {
   const [orderSearchTerm, setOrderSearchTerm] = useState('');
   const [orderStatusFilter, setOrderStatusFilter] = useState('');
@@ -83,7 +95,7 @@ export function OrdersTab({
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead style={{ background: SURFACE2, borderBottom: `1px solid ${BORDER}` }}>
                 <tr>
-                  {['N° commande', 'Date', 'Client', 'Email', 'Articles', 'Total', 'Paiement', 'Statut', 'Actions'].map(h => (
+                  {['N° commande', 'Date', 'Client', 'Email', 'Articles', 'Total', 'Moyen', 'Règlement', 'Statut', 'Actions'].map(h => (
                     <th key={h} style={thStyle}>{h}</th>
                   ))}
                 </tr>
@@ -100,6 +112,35 @@ export function OrdersTab({
                     <td style={{ ...tdStyle, textAlign: 'center' }}>{o.items.reduce((s, i) => s + i.quantity, 0)}</td>
                     <td style={{ ...tdStyle, fontWeight: 600 }}>{formatPrice(o.total)}</td>
                     <td style={tdStyle}>{PAYMENT_LABELS[o.paymentMethod] ?? o.paymentMethod}</td>
+                    <td style={tdStyle}>
+                      {(() => {
+                        const ps = o.paymentStatus ?? 'pending';
+                        const meta = PAYMENT_STATUS_LABELS[ps] ?? PAYMENT_STATUS_LABELS.pending;
+                        return (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                            <span style={{
+                              padding: '3px 7px', borderRadius: '10px', fontSize: '10px', fontWeight: 700,
+                              background: `${meta.color}15`, color: meta.color, border: `1px solid ${meta.color}30`,
+                              whiteSpace: 'nowrap',
+                            }}>{meta.label}</span>
+                            {ps !== 'paid' && (
+                              <button
+                                type="button"
+                                onClick={() => markPaid(o.orderNumber)}
+                                title="Confirmer l'encaissement de cette commande"
+                                style={{
+                                  background: 'none', border: `1px solid ${BORDER2}`, borderRadius: '6px',
+                                  color: TEXT3, fontSize: '10px', padding: '2px 6px', cursor: 'pointer',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                Encaisser
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </td>
                     <td style={tdStyle}>
                       <select
                         aria-label={`Statut de la commande ${o.orderNumber ?? ''}`}

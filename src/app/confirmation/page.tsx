@@ -19,6 +19,7 @@ import SupportContactCard from '@/features/orders/cards/support-contact.card';
 export default function ConfirmationPage() {
   const router = useRouter();
   const [order] = useState<OrderDraft | null>(() => getLastOrder());
+  const [paymentState, setPaymentState] = useState<'unknown' | 'paid' | 'pending' | 'failed'>('unknown');
 
   // SEC-04 : si aucune commande en localStorage, l'utilisateur n'arrive pas du checkout
   // → rediriger vers la boutique pour éviter l'affichage d'une fausse "confirmation"
@@ -27,6 +28,35 @@ export default function ConfirmationPage() {
       router.replace('/boutique');
     }
   }, [order, router]);
+
+  // [PAY-04] Filet du webhook : au retour du checkout hébergé Jeko, demander au
+  // serveur de vérifier l'état RÉEL du paiement auprès de Jeko. Sans cela, un
+  // webhook manqué laissait la commande « en attente de paiement » indéfiniment
+  // alors que le client avait bien payé.
+  useEffect(() => {
+    const ref = new URLSearchParams(globalThis.location.search).get('ref')
+      ?? order?.orderNumber;
+    if (!ref) return;
+
+    let cancelled = false;
+    fetch('/api/jeko-pay/reconcile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderNumber: ref }),
+    })
+      .then(res => (res.ok ? res.json() : null))
+      .then((data: { paymentStatus?: string } | null) => {
+        if (cancelled || !data?.paymentStatus) return;
+        if (data.paymentStatus === 'paid') setPaymentState('paid');
+        else if (data.paymentStatus === 'failed') setPaymentState('failed');
+        else setPaymentState('pending');
+      })
+      .catch(() => {
+        // Réseau indisponible : on n'affirme rien sur le paiement.
+      });
+
+    return () => { cancelled = true; };
+  }, [order?.orderNumber]);
 
   const orderDate = order
     ? formatOrderDate(order.date)
@@ -45,6 +75,20 @@ export default function ConfirmationPage() {
 
           {/* ═══════════ LEFT (2 cols) ═══════════ */}
           <div className="lg:col-span-2 flex flex-col gap-5">
+
+            {/* Le paiement, pas la creation de commande, decide du message affiche. */}
+            {(paymentState === 'pending' || paymentState === 'failed') && (
+              <div style={{
+                border: `1px solid ${paymentState === 'failed' ? '#DC2626' : '#F59E0B'}`,
+                background: paymentState === 'failed' ? '#FEF2F2' : '#FFFBEB',
+                color: paymentState === 'failed' ? '#991B1B' : '#92400E',
+                borderRadius: '6px', padding: '14px 16px', fontSize: '13px', lineHeight: 1.5,
+              }}>
+                {paymentState === 'failed'
+                  ? "Votre paiement n'a pas abouti. Votre commande est enregistrée mais reste en attente de paiement."
+                  : "Nous n'avons pas encore reçu la confirmation de votre paiement. Elle peut prendre quelques instants ; vous recevrez un e-mail dès qu'il sera validé."}
+              </div>
+            )}
 
             <OrderConfirmedCard
               orderNumber={order?.orderNumber ?? '—'}

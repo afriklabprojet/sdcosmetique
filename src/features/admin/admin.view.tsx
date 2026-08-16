@@ -568,6 +568,28 @@ export default function AdminPage() { // NOSONAR typescript:S3776
     router.push('/');
   };
 
+  /**
+   * Encaissement d'une commande payee a la livraison. C'est le seul geste
+   * humain autorise a declarer un paiement recu — les paiements Jeko restent
+   * pilotes par le PSP (webhook / reconciliation).
+   */
+  const markOrderPaid = async (orderNumber: string) => {
+    const previousOrders = orders;
+    setOrders(prev => prev.map(o => o.orderNumber === orderNumber
+      ? { ...o, paymentStatus: 'paid' as const, status: 'confirmed' as OrderStatus }
+      : o));
+    try {
+      const res = await fetch('/api/admin/orders', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderNumber, paymentStatus: 'paid' }),
+      });
+      if (!res.ok) throw new Error(`Erreur ${res.status}`);
+    } catch {
+      setOrders(previousOrders);
+    }
+  };
+
   const changeStatus = async (orderNumber: string, status: OrderStatus) => {
     const previousOrders = orders;
     updateOrderStatus(orderNumber, status);
@@ -1233,6 +1255,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               orders={orders}
               openDetail={setOrderDetail}
               changeStatus={changeStatus}
+              markPaid={markOrderPaid}
               thStyle={thStyle}
               tdStyle={tdStyle}
             />
