@@ -1,0 +1,20 @@
+# Configuration pnpm — les réglages ne sont plus lus depuis package.json ni .npmrc.
+# https://pnpm.io/settings
+#
+# Paquets autorisés à exécuter leurs scripts install/postinstall.
+# Sans ça, pnpm >= 10.16 échoue avec ERR_PNPM_IGNORED_BUILDS pendant le déploiement.
+
+# pnpm 11+
+allowBuilds:
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
+
+minimumReleaseAgeExclude:
+  - mysql2@3.23.4
+
+# pnpm 10 (même liste, ancienne clé — ignorée par pnpm 11)
+onlyBuiltDependencies:
+  - esbuild
+  - sharp
+  - unrs-resolver
