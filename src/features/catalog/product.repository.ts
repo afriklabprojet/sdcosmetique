@@ -1,15 +1,11 @@
 /**
- * products-server.ts — Fonctions asynchrones pour Server Components uniquement.
- * Ne jamais importer dans un Client Component ('use client').
- *
- * [PERF-M1] Ces lectures utilisent le client service-role (pas de cookies())
- * + `unstable_cache`, pour que les pages produits/boutique restent statiques
- * (ISR) au lieu d'être forcées en dynamique par un appel à cookies() côté
- * SSR. Invalidé via revalidateTag('products') dans admin/actions.ts et
- * api/admin/products/route.ts à chaque écriture.
+ * product.repository.ts — Fonctions asynchrones pour Server Components uniquement.
+ * Utilise Drizzle ORM avec MariaDB + unstable_cache pour ISR.
  */
 import { unstable_cache } from 'next/cache';
-import { createServiceClient } from '@/shared/supabase/service.client';
+import { eq, desc, ne, and } from 'drizzle-orm';
+import { db } from '@/shared/db';
+import { products, reviews } from '@/shared/db/schema';
 import { Product, Category, Review } from '@/shared/types/domain.type';
 import {
   PRODUCTS,
@@ -25,14 +21,11 @@ import { rowToProduct, rowToReview } from '@/features/catalog/catalog.mapper';
 export const fetchProducts = unstable_cache(
   async (): Promise<Product[]> => {
     try {
-      const supabase = createServiceClient();
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('created_at');
-      if (error || !data?.length) return PRODUCTS;
+      const data = await db.select().from(products).orderBy(products.createdAt);
+      if (!data?.length) return PRODUCTS;
       return data.map(rowToProduct);
-    } catch {
+    } catch (err) {
+      console.warn('[product.repository] Falling back to default products:', err);
       return PRODUCTS;
     }
   },
@@ -44,14 +37,9 @@ export const fetchProducts = unstable_cache(
 export const fetchProductBySlug = unstable_cache(
   async (slug: string): Promise<Product | null> => {
     try {
-      const supabase = createServiceClient();
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('slug', slug)
-        .single();
-      if (error || !data) return getProductBySlug(slug) ?? null;
-      return rowToProduct(data);
+      const data = await db.select().from(products).where(eq(products.slug, slug)).limit(1);
+      if (!data?.length) return getProductBySlug(slug) ?? null;
+      return rowToProduct(data[0]);
     } catch {
       return getProductBySlug(slug) ?? null;
     }
@@ -64,13 +52,12 @@ export const fetchProductBySlug = unstable_cache(
 export const fetchProductsByCategory = unstable_cache(
   async (category: string): Promise<Product[]> => {
     try {
-      const supabase = createServiceClient();
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('category', category)
-        .order('is_bestseller', { ascending: false });
-      if (error || !data?.length) return getProductsByCategory(category as Category);
+      const data = await db
+        .select()
+        .from(products)
+        .where(eq(products.category, category as Category))
+        .orderBy(desc(products.isBestseller));
+      if (!data?.length) return getProductsByCategory(category as Category);
       return data.map(rowToProduct);
     } catch {
       return getProductsByCategory(category as Category);
@@ -84,13 +71,12 @@ export const fetchProductsByCategory = unstable_cache(
 export const fetchBestsellerProducts = unstable_cache(
   async (limit = 5): Promise<Product[]> => {
     try {
-      const supabase = createServiceClient();
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('is_bestseller', true)
+      const data = await db
+        .select()
+        .from(products)
+        .where(eq(products.isBestseller, true))
         .limit(limit);
-      if (error || !data?.length) return getBestsellers().slice(0, limit);
+      if (!data?.length) return getBestsellers().slice(0, limit);
       return data.map(rowToProduct);
     } catch {
       return getBestsellers().slice(0, limit);
@@ -104,14 +90,12 @@ export const fetchBestsellerProducts = unstable_cache(
 export const fetchRelatedProducts = unstable_cache(
   async (productId: string, category: Category, limit = 4): Promise<Product[]> => {
     try {
-      const supabase = createServiceClient();
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('category', category)
-        .neq('id', productId)
+      const data = await db
+        .select()
+        .from(products)
+        .where(and(eq(products.category, category), ne(products.id, productId)))
         .limit(limit);
-      if (error || !data?.length) {
+      if (!data?.length) {
         const p = getProductById(productId);
         return p ? getRelatedProducts(p, limit) : [];
       }
@@ -126,16 +110,14 @@ export const fetchRelatedProducts = unstable_cache(
 );
 
 // ─── Fetch reviews by product ─────────────────────────────────────────────────
-// Non mis en cache : sujet à changer plus fréquemment (avis clients).
 export async function fetchReviewsByProduct(productId: string): Promise<Review[]> {
   try {
-    const supabase = createServiceClient();
-    const { data, error } = await supabase
-      .from('reviews')
-      .select('*')
-      .eq('product_id', productId)
-      .order('created_at', { ascending: false });
-    if (error || !data) return [];
+    const data = await db
+      .select()
+      .from(reviews)
+      .where(eq(reviews.productId, productId))
+      .orderBy(desc(reviews.createdAt));
+    if (!data?.length) return [];
     return data.map(rowToReview);
   } catch {
     return [];

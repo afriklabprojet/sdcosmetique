@@ -78,9 +78,6 @@ export default async function RootLayout({
     <html lang="fr" data-scroll-behavior="smooth" className={`h-full ${playfair.variable} ${inter.variable}`}>
       <head>
         {/* ── Préchargement connexions tierces (LCP + tracking) ──────────── */}
-        {/* Supabase Storage : préconnexion pour les images produits/hero */}
-        <link rel="preconnect" href="https://spcguwuqqwvjfnfctrzs.supabase.co" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://spcguwuqqwvjfnfctrzs.supabase.co" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://connect.facebook.net" />
         <link rel="dns-prefetch" href="https://analytics.tiktok.com" />

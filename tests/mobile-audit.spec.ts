@@ -530,9 +530,9 @@ test.describe('📝 Suite 3 — Formulaires & Clavier Mobile', () => {
 
       // Vérifier que le champ est visible dans le viewport réduit
       const inputBox = await firstInput.boundingBox();
-      if (inputBox && inputBox.top > device.height * 0.5) {
+      if (inputBox && inputBox.y > device.height * 0.5) {
         issue('MAJEUR', 'Clavier Mobile', device.label, ROUTES.checkout,
-          `Input focus positionné en bas d'écran (top: ${Math.round(inputBox.top)}px) — risque masquage par clavier`,
+          `Input focus positionné en bas d'écran (top: ${Math.round(inputBox.y)}px) — risque masquage par clavier`,
           'Input masqué par clavier virtuel = saisie aveugle ou abandon');
       }
     } catch { /* input not found */ }

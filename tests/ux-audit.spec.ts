@@ -314,7 +314,7 @@ test.describe('♿ Audit Accessibilité Axe-core', () => {
 
       const violations = results.violations.map(v => ({
         id: v.id,
-        impact: v.impact,
+        impact: v.impact ?? undefined,
         description: v.description,
         nodes: v.nodes.length,
       }));
@@ -761,7 +761,7 @@ ${allOverflows.length > 0 ? `- ❌ **Overflow horizontal** détecté sur ${allOv
 
 ### Espacements
 - **CSS Variables définies :** ${tokens?.cssVars.defined !== 'none' ? '✅ Oui' : '⚠️ Non — utilisation de valeurs hardcodées'}
-- **Styles inline :** ${inlineCount} éléments → ${typeof inlineCount === 'number' && inlineCount > 30 ? '🔴 CRITIQUE — migrer vers CSS classes' : inlineCount > 10 ? '⚠️ À réduire' : '✅ Acceptable'}
+- **Styles inline :** ${inlineCount} éléments → ${typeof inlineCount === 'number' && inlineCount > 30 ? '🔴 CRITIQUE — migrer vers CSS classes' : typeof inlineCount === 'number' && inlineCount > 10 ? '⚠️ À réduire' : '✅ Acceptable'}
 
 ---
 

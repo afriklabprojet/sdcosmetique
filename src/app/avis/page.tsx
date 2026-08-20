@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useState, useMemo, useEffect } from 'react';
 import styles from '../(static)/static.module.css';
 import TestimonialForm from '@/features/testimonials/testimonial.form';
-import { createClient } from '@/shared/supabase/browser.client';
 
 type Review = {
   id: string;
@@ -18,35 +17,6 @@ type Review = {
   text: string;
   verified: boolean;
 };
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-}
-
-async function fetchReviews(): Promise<Review[]> {
-  try {
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from('reviews')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (error || !data?.length) return REVIEWS;
-    return data.map((row) => ({
-      id: String(row.id),
-      author: String(row.author),
-      city: String(row.city ?? ''),
-      product: String(row.product ?? ''),
-      productSlug: String(row.product_slug ?? ''),
-      rating: Number(row.rating),
-      date: row.created_at ? formatDate(String(row.created_at)) : '',
-      title: String(row.title ?? ''),
-      text: String(row.text),
-      verified: Boolean(row.verified),
-    }));
-  } catch {
-    return REVIEWS;
-  }
-}
 
 const REVIEWS: Review[] = [
   { id: '1', author: 'Aïssatou D.', city: 'Dakar', product: 'Sérum Éclat Intense', productSlug: 'serum-eclat-intense', rating: 5, date: '12 mars 2026', title: 'Une révélation pour ma peau', text: 'J\'utilise le sérum depuis 6 semaines. Mes taches pigmentaires ont visiblement diminué et mon teint est lumineux. Texture légère, parfum délicat. Je rachèterai sans hésiter.', verified: true },
@@ -65,7 +35,27 @@ export default function ReviewsPage() {
   const [ratingFilter, setRatingFilter] = useState<number | null>(null);
   const [reviews, setReviews] = useState<Review[]>(REVIEWS);
 
-  useEffect(() => { fetchReviews().then(setReviews).catch(() => {}); }, []);;
+  useEffect(() => {
+    fetch('/api/reviews')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setReviews(data.map((r: { id: string; author: string; rating: number; comment?: string; text?: string; date: string; verified?: boolean }) => ({
+            id: r.id,
+            author: r.author,
+            city: '',
+            product: '',
+            productSlug: '',
+            rating: r.rating,
+            date: r.date,
+            title: '',
+            text: r.comment || r.text || '',
+            verified: Boolean(r.verified),
+          })));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const filtered = useMemo(
     () => (ratingFilter ? reviews.filter((r) => r.rating === ratingFilter) : reviews),
@@ -229,21 +219,23 @@ export default function ReviewsPage() {
                   {r.author}
                 </p>
                 <p style={{ fontSize: '0.75rem', color: 'rgba(26,14,5,0.5)', margin: '4px 0 0' }}>
-                  {r.city} · {r.date}
+                  {r.city ? `${r.city} · ` : ''}{r.date}
                 </p>
-                <Link
-                  href={`/produit/${r.productSlug}`}
-                  style={{
-                    display: 'inline-block',
-                    marginTop: '0.6rem',
-                    fontSize: '0.78rem',
-                    color: '#8F5922',
-                    textDecoration: 'none',
-                    borderBottom: '1px solid rgba(143,89,34,0.3)',
-                  }}
-                >
-                  {r.product}
-                </Link>
+                {r.productSlug && (
+                  <Link
+                    href={`/produit/${r.productSlug}`}
+                    style={{
+                      display: 'inline-block',
+                      marginTop: '0.6rem',
+                      fontSize: '0.78rem',
+                      color: '#8F5922',
+                      textDecoration: 'none',
+                      borderBottom: '1px solid rgba(143,89,34,0.3)',
+                    }}
+                  >
+                    {r.product}
+                  </Link>
+                )}
               </div>
             </article>
           ))}

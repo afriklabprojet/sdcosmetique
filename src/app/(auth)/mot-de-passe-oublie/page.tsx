@@ -3,7 +3,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
-import { createClient } from '@/shared/supabase/browser.client';
 import styles from '../auth.module.css';
 
 export default function MotDePasseOubliePage() {
@@ -16,23 +15,25 @@ export default function MotDePasseOubliePage() {
     e.preventDefault();
     setError('');
     setLoading(true);
-    const supabase = createClient();
-    const { error: authError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${globalThis.window.location.origin}/auth/confirm?next=/compte/reset-password`,
-    });
-    setLoading(false);
-    if (authError) {
-      const msg = authError.message.toLowerCase();
-      if (msg.includes('rate limit') || msg.includes('too many requests')) {
-        setError('Trop de tentatives. Veuillez patienter quelques minutes.');
-      } else if (msg.includes('network') || msg.includes('fetch')) {
-        setError('Erreur réseau. Vérifiez votre connexion.');
-      } else {
+
+    try {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      setLoading(false);
+      if (!res.ok) {
         setError('Une erreur est survenue. Veuillez réessayer.');
+        return;
       }
-      return;
+
+      setSent(true);
+    } catch {
+      setLoading(false);
+      setError('Erreur réseau. Vérifiez votre connexion.');
     }
-    setSent(true);
   };
 
   return (

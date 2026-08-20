@@ -1,30 +1,13 @@
 'use server';
 
 import { revalidatePath, revalidateTag } from 'next/cache';
+import { eq } from 'drizzle-orm';
+import { db } from '@/shared/db';
+import { products, siteConfig } from '@/shared/db/schema';
 import { requireAdmin } from '@/shared/auth/admin.guard';
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { SiteConfig } from '@/features/site-config/site-config.type';
 import type { Product } from '@/shared/types/domain.type';
 
-// ⚠️ Ne PAS importer depuis @/shared/supabase/service.client ici :
-// ce fichier a `import 'server-only'` qui déclenche un bug Turbopack dev-mode
-// (module factory not available) quand une Server Action est importée depuis un Client Component.
-// Le service role key n'est jamais exposé côté client (variable non NEXT_PUBLIC_).
-let _serviceClient: SupabaseClient | null = null;
-function getServiceClient(): SupabaseClient {
-  if (_serviceClient) return _serviceClient;
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error('[actions] SUPABASE env vars manquantes');
-  _serviceClient = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
-  return _serviceClient;
-}
-
-/**
- * Sauvegarde une section de site_config côté serveur.
- * - Vérifie que l'appelant est admin (auth serveur).
- * - Utilise le service role pour bypasser les RLS.
- */
 export async function saveSiteConfigSection(
   key: keyof SiteConfig,
   value: SiteConfig[typeof key],
@@ -32,14 +15,13 @@ export async function saveSiteConfigSection(
   const user = await requireAdmin();
   if (!user) throw new Error('Accès refusé');
 
-  const supabase = getServiceClient();
-  const { error } = await supabase
-    .from('site_config')
-    .upsert({ key, value, updated_at: new Date().toISOString() });
+  const existing = await db.select({ key: siteConfig.key }).from(siteConfig).where(eq(siteConfig.key, key)).limit(1);
+  if (existing.length) {
+    await db.update(siteConfig).set({ value: value as Record<string, unknown> }).where(eq(siteConfig.key, key));
+  } else {
+    await db.insert(siteConfig).values({ key, value: value as Record<string, unknown> });
+  }
 
-  if (error) throw new Error(error.message);
-
-  // Invalide immédiatement le cache Next.js
   revalidateTag('site-config', 'default');
   revalidatePath('/', 'layout');
   revalidatePath('/produit/[slug]', 'layout');
@@ -47,39 +29,42 @@ export async function saveSiteConfigSection(
   revalidatePath('/boutique', 'layout');
 }
 
-// ─── Produits ────────────────────────────────────────────────────────────────
-
 export async function addProduct(product: Product): Promise<void> {
   const user = await requireAdmin();
   if (!user) throw new Error('Accès refusé');
 
-  const supabase = getServiceClient();
-  const { error } = await supabase.from('products').upsert({
+  const payload = {
     id: product.id,
     name: product.name,
     slug: product.slug,
     category: product.category,
     price: product.price,
-    original_price: product.originalPrice ?? null,
+    originalPrice: product.originalPrice ?? null,
     images: product.images.filter((url) => url.trim() !== ''),
-
-    skin_tones: product.skinTones,
+    skinTones: product.skinTones,
     badges: product.badges ?? [],
-    rating: product.rating,
-    review_count: product.reviewCount,
-    short_description: product.shortDescription,
+    rating: String(product.rating),
+    reviewCount: product.reviewCount,
+    shortDescription: product.shortDescription,
     description: product.description,
     benefits: product.benefits,
     usage: product.usage,
     ingredients: product.ingredients ?? null,
-    in_stock: product.inStock,
-    stock_qty: product.stockQty ?? null,
-    low_stock_threshold: product.lowStockThreshold ?? null,
-    is_new: product.newArrival ?? false,
-    is_bestseller: product.bestseller ?? false,
-  }, { onConflict: 'id' });
+    inStock: product.inStock,
+    stockQty: product.stockQty ?? null,
+    lowStockThreshold: product.lowStockThreshold ?? null,
+    isNew: product.newArrival ?? false,
+    isBestseller: product.bestseller ?? false,
+    resultsTitle: product.resultsTitle ?? null,
+    resultsSubtitle: product.resultsSubtitle ?? null,
+  };
 
-  if (error) throw new Error(error.message);
+  const existing = await db.select({ id: products.id }).from(products).where(eq(products.id, product.id)).limit(1);
+  if (existing.length) {
+    await db.update(products).set(payload).where(eq(products.id, product.id));
+  } else {
+    await db.insert(products).values(payload);
+  }
 
   revalidateTag('products', 'default');
   revalidatePath('/boutique');
@@ -93,10 +78,29 @@ export async function updateProduct(
   const user = await requireAdmin();
   if (!user) throw new Error('Accès refusé');
 
-  const d = buildUpdatePayload(updates);
-  const supabase = getServiceClient();
-  const { error } = await supabase.from('products').update(d).eq('id', id);
-  if (error) throw new Error(error.message);
+  const updatePayload: Record<string, unknown> = {};
+  if (updates.name !== undefined) updatePayload.name = updates.name;
+  if (updates.slug !== undefined) updatePayload.slug = updates.slug;
+  if (updates.category !== undefined) updatePayload.category = updates.category;
+  if (updates.price !== undefined) updatePayload.price = updates.price;
+  if (updates.originalPrice !== undefined) updatePayload.originalPrice = updates.originalPrice;
+  if (updates.images !== undefined) updatePayload.images = updates.images.filter(s => s.trim() !== '');
+  if (updates.skinTones !== undefined) updatePayload.skinTones = updates.skinTones;
+  if (updates.badges !== undefined) updatePayload.badges = updates.badges;
+  if (updates.shortDescription !== undefined) updatePayload.shortDescription = updates.shortDescription;
+  if (updates.description !== undefined) updatePayload.description = updates.description;
+  if (updates.benefits !== undefined) updatePayload.benefits = updates.benefits;
+  if (updates.usage !== undefined) updatePayload.usage = updates.usage;
+  if (updates.ingredients !== undefined) updatePayload.ingredients = updates.ingredients;
+  if (updates.inStock !== undefined) updatePayload.inStock = updates.inStock;
+  if (updates.stockQty !== undefined) updatePayload.stockQty = updates.stockQty;
+  if (updates.lowStockThreshold !== undefined) updatePayload.lowStockThreshold = updates.lowStockThreshold;
+  if (updates.newArrival !== undefined) updatePayload.isNew = updates.newArrival;
+  if (updates.bestseller !== undefined) updatePayload.isBestseller = updates.bestseller;
+  if (updates.resultsTitle !== undefined) updatePayload.resultsTitle = updates.resultsTitle;
+  if (updates.resultsSubtitle !== undefined) updatePayload.resultsSubtitle = updates.resultsSubtitle;
+
+  await db.update(products).set(updatePayload).where(eq(products.id, id));
 
   revalidateTag('products', 'default');
   revalidatePath('/boutique');
@@ -104,48 +108,11 @@ export async function updateProduct(
   revalidatePath(`/produit/${updates.slug ?? id}`);
 }
 
-function buildUpdatePayload(u: Partial<Omit<Product, 'id'>>): Record<string, unknown> {
-  const d: Record<string, unknown> = {};
-  const map: Array<[keyof typeof u, string]> = [
-    ['name', 'name'],
-    ['slug', 'slug'],
-    ['category', 'category'],
-    ['price', 'price'],
-    ['images', 'images'],  // sera filtré ci-dessous
-    ['skinTones', 'skin_tones'],
-    ['badges', 'badges'],
-    ['shortDescription', 'short_description'],
-    ['description', 'description'],
-    ['benefits', 'benefits'],
-    ['usage', 'usage'],
-    ['inStock', 'in_stock'],
-    ['newArrival', 'is_new'],
-    ['bestseller', 'is_bestseller'],
-  ];
-  for (const [jsKey, dbKey] of map) {
-    if (jsKey in u) {
-      const val = u[jsKey];
-      // Filtrer les chaînes vides des tableaux d'images
-      d[dbKey] = Array.isArray(val) && dbKey === 'images'
-        ? (val as string[]).filter((s) => s.trim() !== '')
-        : val;
-    }
-  }
-  // nullable fields (must use 'in' to allow null)
-  if ('originalPrice' in u)       d.original_price    = u.originalPrice ?? null;
-  if ('ingredients' in u)         d.ingredients       = u.ingredients ?? null;
-  if ('stockQty' in u)            d.stock_qty         = u.stockQty ?? null;
-  if ('lowStockThreshold' in u)   d.low_stock_threshold = u.lowStockThreshold ?? null;
-  return d;
-}
-
 export async function deleteProduct(id: string): Promise<void> {
   const user = await requireAdmin();
   if (!user) throw new Error('Accès refusé');
 
-  const supabase = getServiceClient();
-  const { error } = await supabase.from('products').delete().eq('id', id);
-  if (error) throw new Error(error.message);
+  await db.delete(products).where(eq(products.id, id));
 
   revalidateTag('products', 'default');
   revalidatePath('/boutique');

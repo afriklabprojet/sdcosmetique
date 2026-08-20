@@ -1,20 +1,9 @@
 'use client';
 
-/*
- * Espace client. Apres la vague `split` (F-111, F-082, F-103) cette page tient
- * l'etat du compte — session, commandes, profil, adresses, fidelite — et pose
- * les dix onglets extraits dans `features/account/tabs/`.
- *
- * Les setters restes en props sont ceux dont l'etat sert a la page autant qu'a
- * l'onglet : la propriete de l'etat a ete tranchee en vague `boundary`, celle-ci
- * ne fait que deplacer le rendu. Ce qui la traverse encore est note F-103.
- */
-
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { User } from '@supabase/supabase-js';
-import { createClient } from '@/shared/supabase/browser.client';
+import type { SafeUser } from '@/shared/auth/auth.service';
 import { formatOrderDate, OrderDraft } from '@/features/orders/order.store';
 import { fetchUserOrders } from '@/features/orders/order.repository';
 import { formatPrice } from '@/features/catalog/product.query';
@@ -27,7 +16,6 @@ import {
 } from '@/features/loyalty/jeko.repository';
 import { fetchSiteConfigSection } from '@/features/site-config/site-config.util';
 import { STATUS_MAP, type Address, type NavItem } from '@/features/account/account.constant';
-import { toStoredProfile } from '@/features/account/account.util';
 import { LockIcon } from '@/features/account/assets/account-icons';
 import AccountSidebar from '@/features/account/sidebars/account.sidebar';
 import DashboardTab from '@/features/account/tabs/dashboard.tab';
@@ -45,7 +33,7 @@ export default function AccountPage() {
   const router = useRouter();
   const [mobile, setIsMobile] = useState(false);
   const [active, setActive] = useState<NavItem>('dashboard');
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<SafeUser | null>(null);
   const [orders, setOrders] = useState<OrderDraft[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -99,59 +87,51 @@ export default function AccountPage() {
   }, []);
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(async ({ data }) => {
-      setUser(data.user);
-      setLoading(false);
-      if (data.user) {
-        fetchUserOrders(data.user.id).then(setOrders).catch(() => {});
+    fetch('/api/auth/me')
+      .then(res => res.json())
+      .then(async (data: { user: SafeUser | null }) => {
+        setUser(data.user);
+        setLoading(false);
+        if (data.user) {
+          fetchUserOrders(data.user.id).then(setOrders).catch(() => {});
 
-        // Charger le profil depuis la table profiles
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('firstName, lastName, phone, newsletter, points')
-          .eq('id', data.user.id)
-          .single();
-
-        if (profile) {
           setProfileForm(prev => ({
             ...prev,
-            firstName: profile.firstName ?? prev.firstName,
-            lastName: profile.lastName ?? prev.lastName,
-            phone: profile.phone ?? prev.phone,
+            firstName: data.user?.prenom ?? prev.firstName,
+            lastName: data.user?.nom ?? prev.lastName,
+            phone: data.user?.telephone ?? prev.phone,
+            email: data.user?.email ?? prev.email,
           }));
-          if (typeof profile.newsletter === 'boolean') setNewsletter(profile.newsletter);
-          if (typeof profile.points === 'number') setUserPoints(profile.points);
-        }
+          setNewsletter(data.user.newsletter ?? true);
+          setUserPoints(data.user.points ?? 0);
 
-        // Charger l'historique Jeko + config
-        getJekoHistory(data.user.id).then(setJekoHistory).catch(() => {});
-        fetchJekoConfig().then(setJekoConfig).catch(() => {});
-      } else {
-        // [PAY-05] Aucun repli sur localStorage : il affichait des commandes
-        // mises en cache avant paiement, donc jamais payees. Sans session, il
-        // n'y a pas d'historique a montrer.
-        setOrders([]);
-      }
-    });
+          getJekoHistory(data.user.id).then(setJekoHistory).catch(() => {});
+          fetchJekoConfig().then(setJekoConfig).catch(() => {});
+        } else {
+          setOrders([]);
+        }
+      })
+      .catch(() => {
+        setLoading(false);
+        setUser(null);
+      });
   }, []);
 
   const logout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/');
   };
 
   const { items: wishlistItems, removeItem: removeFromWishlist } = useWishlist();
 
   const cap = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : '';
-  const firstName = cap(user?.user_metadata?.prenom ?? profileForm.firstName ?? '');
-  const lastName = cap(user?.user_metadata?.nom ?? profileForm.lastName ?? '');
+  const firstName = cap(user?.prenom ?? profileForm.firstName ?? '');
+  const lastName = cap(user?.nom ?? profileForm.lastName ?? '');
   const displayName = [firstName, lastName].filter(Boolean).join(' ') || 'Cliente';
   const displayEmail = user?.email ?? '';
-  const displayPhone = user?.user_metadata?.telephone ?? profileForm.phone ?? '';
-  const createdAt = user?.created_at
-    ? new Date(user.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+  const displayPhone = user?.telephone ?? profileForm.phone ?? '';
+  const createdAt = user?.createdAt
+    ? new Date(user.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
     : '';
   const initial = displayName[0]?.toUpperCase() ?? '?';
 
@@ -159,37 +139,39 @@ export default function AccountPage() {
     id: o.orderNumber,
     date: formatOrderDate(o.date),
     total: formatPrice(o.total),
-    // Jamais de repli sur « Confirmée » : un statut inconnu ne doit pas se
-    // faire passer pour une commande validee.
     status: STATUS_MAP[o.status] ?? o.status,
   }));
 
   const saveProfileSection = async () => {
     setProfileSaving(true);
     setProfileMsg(null);
-    const supabase = createClient();
-    const meta = toStoredProfile(profileForm);
-    const updates: Record<string, unknown> = {
-      ...(profileForm.email && profileForm.email !== displayEmail ? { email: profileForm.email } : {}),
-      ...(Object.keys(meta).length ? { data: meta } : {}),
-    };
 
-    const { error } = await supabase.auth.updateUser(updates as Parameters<typeof supabase.auth.updateUser>[0]);
+    try {
+      const res = await fetch('/api/auth/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prenom: profileForm.firstName,
+          nom: profileForm.lastName,
+          telephone: profileForm.phone,
+          newsletter,
+        }),
+      });
 
-    if (!error && user) {
-      if (Object.keys(meta).length) {
-        await supabase.from('profiles').upsert({ id: user.id, ...meta });
+      const data = await res.json();
+      setProfileSaving(false);
+
+      if (!res.ok || data.error) {
+        setProfileMsg({ type: 'err', text: data.error || 'Erreur lors de la mise à jour.' });
+        return;
       }
-    }
 
-    setProfileSaving(false);
-    if (error) {
-      setProfileMsg({ type: 'err', text: error.message });
-      return;
+      setProfileMsg({ type: 'ok', text: 'Profil mis à jour avec succès !' });
+      if (data.user) setUser(data.user);
+    } catch {
+      setProfileSaving(false);
+      setProfileMsg({ type: 'err', text: 'Erreur réseau.' });
     }
-
-    setProfileMsg({ type: 'ok', text: 'Profil mis à jour avec succès !' });
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
   };
 
   const saveAddress = () => {
@@ -265,7 +247,6 @@ export default function AccountPage() {
     <div style={{ background: '#F5F2EE', minHeight: '100vh' }}>
       <div style={{ maxWidth: 1440, margin: '0 auto', padding: mobile ? '18px 12px 0' : '28px 40px 0' }}>
 
-        {/* ── BREADCRUMB ── */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#9A8A7A', marginBottom: 20 }}>
           <Link href="/" style={{ color: '#9A8A7A', textDecoration: 'none' }}>Accueil</Link>
           <span>›</span>
@@ -286,9 +267,6 @@ export default function AccountPage() {
             logout={logout}
           />
 
-          {/* ════════════════════════════════
-              MAIN CONTENT
-          ════════════════════════════════ */}
           <main style={{ flex: 1, minWidth: 0, width: '100%', paddingBottom: 40 }}>
 
             {active === 'dashboard' && (
@@ -371,7 +349,7 @@ export default function AccountPage() {
 
             {active === 'newsletter' && (
               <NewsletterTab
-                user={user}
+                user={user as unknown as { id: string; email: string }}
                 newsletter={newsletter}
                 setNewsletter={setNewsletter}
                 newsletterSaved={newsletterSaved}
@@ -385,7 +363,6 @@ export default function AccountPage() {
           </main>
         </div>
 
-        {/* ── TRUST FOOTER ── */}
         <div style={{
           display: 'grid', gridTemplateColumns: mobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: 0,
           background: '#fff', borderRadius: 16, border: '1px solid #EDE8E0',

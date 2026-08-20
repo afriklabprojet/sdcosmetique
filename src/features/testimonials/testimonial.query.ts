@@ -1,21 +1,29 @@
-import { db } from '@/shared/supabase/request.client';
+import { eq, desc } from 'drizzle-orm';
+import { db } from '@/shared/db';
+import { testimonials } from '@/shared/db/schema';
 import type { TestimonialRow } from '@/features/testimonials/testimonial.repository';
 import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
 
-// ─── Fetch les témoignages approuvés pour la homepage ────────────────────────
 export async function fetchApprovedTestimonials(): Promise<TestimonialRow[]> {
   try {
-    const supabase = await db();
-    const { data, error } = await supabase
-      .from('testimonials')
-      .select('*')
-      .eq('approved', true)
-      .order('created_at', { ascending: false })
+    const data = await db
+      .select()
+      .from(testimonials)
+      .where(eq(testimonials.approved, true))
+      .orderBy(desc(testimonials.createdAt))
       .limit(6);
-    if (error) throw error;
-    return (data ?? []) as TestimonialRow[];
+
+    if (!data.length) throw new Error('No testimonials');
+
+    return data.map(r => ({
+      id: r.id,
+      name: r.name,
+      text: r.text,
+      avatar_url: r.avatarUrl ?? '',
+      approved: true,
+      created_at: r.createdAt.toISOString(),
+    }));
   } catch {
-    // Fallback : convertit les défauts du site_config au format TestimonialRow
     return DEFAULT_SITE_CONFIG.testimonials_home.map((t, i) => ({
       id: `default-${i}`,
       name: t.name,

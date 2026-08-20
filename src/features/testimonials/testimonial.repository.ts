@@ -1,4 +1,6 @@
-import { createClient } from '@/shared/supabase/browser.client';
+import { eq, desc } from 'drizzle-orm';
+import { db } from '@/shared/db';
+import { testimonials } from '@/shared/db/schema';
 import type { WriteResult } from '@/shared/types/operation-result.type';
 
 export interface TestimonialRow {
@@ -10,62 +12,52 @@ export interface TestimonialRow {
   created_at: string;
 }
 
-// ─── Soumettre un témoignage (public) ────────────────────────────────────────
 export async function submitTestimonial(data: {
   name: string;
   text: string;
   avatar_url?: string;
 }): Promise<WriteResult> {
   try {
-    const supabase = createClient();
-    const { error } = await supabase.from('testimonials').insert({
+    await db.insert(testimonials).values({
       name: data.name.trim(),
       text: data.text.trim(),
-      avatar_url: data.avatar_url ?? '',
+      avatarUrl: data.avatar_url ?? '',
+      approved: false,
     });
-    if (error) return { error: error.message };
     return {};
-  } catch (e) {
-    return { error: String(e) };
+  } catch (e: unknown) {
+    return { error: e instanceof Error ? e.message : String(e) };
   }
 }
 
-// ─── Fetch tous les témoignages (admin) ──────────────────────────────────────
 export async function fetchAllTestimonialsAdmin(): Promise<TestimonialRow[]> {
   try {
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from('testimonials')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (error) throw error;
-    return (data ?? []) as TestimonialRow[];
+    const data = await db.select().from(testimonials).orderBy(desc(testimonials.createdAt));
+    return data.map(r => ({
+      id: r.id,
+      name: r.name,
+      text: r.text,
+      avatar_url: r.avatarUrl ?? '',
+      approved: Boolean(r.approved),
+      created_at: r.createdAt.toISOString(),
+    }));
   } catch {
     return [];
   }
 }
 
-// ─── Approuver / retirer un témoignage ───────────────────────────────────────
 export async function approveTestimonial(id: string, approved: boolean): Promise<void> {
   try {
-    const supabase = createClient();
-    const { error } = await supabase
-      .from('testimonials')
-      .update({ approved })
-      .eq('id', id);
-    
+    await db.update(testimonials).set({ approved }).where(eq(testimonials.id, id));
   } catch (e) {
-    
+    console.error('[testimonial.repository] approve error:', e);
   }
 }
 
-// ─── Supprimer un témoignage ─────────────────────────────────────────────────
 export async function deleteTestimonial(id: string): Promise<void> {
   try {
-    const supabase = createClient();
-    const { error } = await supabase.from('testimonials').delete().eq('id', id);
-    
+    await db.delete(testimonials).where(eq(testimonials.id, id));
   } catch (e) {
-    
+    console.error('[testimonial.repository] delete error:', e);
   }
 }

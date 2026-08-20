@@ -1,18 +1,11 @@
 /**
  * Regle unique de reglement d'une commande.
- *
- * Deux chemins peuvent apprendre qu'un paiement a abouti :
- *   • le webhook Jeko (`/api/jeko-pay/webhook`) — chemin nominal ;
- *   • la reconciliation (`/api/jeko-pay/reconcile`) — filet quand le webhook
- *     n'est jamais arrive.
- *
- * Les deux doivent produire EXACTEMENT le meme etat en base, sinon les ecrans
- * divergent selon le chemin emprunte. D'ou cette fonction unique : c'est le
- * seul endroit du code autorise a faire passer une commande a `paid`.
+ * Utilise Drizzle ORM avec MariaDB.
  */
-
 import 'server-only';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { eq, and, ne } from 'drizzle-orm';
+import { db } from '@/shared/db';
+import { orders } from '@/shared/db/schema';
 import { sendOrderConfirmationByNumber } from '@/features/orders/order-notification.service';
 import { amountMatchesTotal } from '@/features/payment/payment-rules';
 
@@ -41,65 +34,63 @@ export type SettlementOutcome =
  * commande (`changed: true`).
  */
 export async function settleOrderPayment(
-  supabase: SupabaseClient,
   input: SettlementInput,
 ): Promise<SettlementOutcome> {
   const { reference, succeeded, receivedAmount, txnId, source } = input;
 
-  const { data: orderRow, error: orderErr } = await supabase
-    .from('orders')
-    .select('total, payment_status')
-    .eq('order_number', reference)
-    .single();
+  try {
+    const orderRows = await db
+      .select({
+        total: orders.total,
+        paymentStatus: orders.paymentStatus,
+      })
+      .from(orders)
+      .where(eq(orders.orderNumber, reference))
+      .limit(1);
 
-  if (orderErr || !orderRow) {
-    console.error(`[${source}] Commande introuvable:`, reference);
-    return { ok: false, reason: 'order_not_found' };
-  }
+    if (!orderRows.length) {
+      console.error(`[${source}] Commande introuvable:`, reference);
+      return { ok: false, reason: 'order_not_found' };
+    }
 
-  // Deja reglee : rien a faire, et surtout pas de second email.
-  if (orderRow.payment_status === 'paid') {
-    return { ok: true, changed: false };
-  }
+    const orderRow = orderRows[0];
 
-  if (succeeded && !amountMatchesTotal(receivedAmount, Number(orderRow.total))) {
-    console.error(`[${source}] Montant incoherent`, {
-      reference,
-      totalXof: Number(orderRow.total),
-      receivedAmount,
-    });
-    return { ok: false, reason: 'amount_mismatch' };
-  }
+    // Deja reglee : rien a faire, et surtout pas de second email.
+    if (orderRow.paymentStatus === 'paid') {
+      return { ok: true, changed: false };
+    }
 
-  const { data: updated, error } = await supabase
-    .from('orders')
-    .update({
-      payment_status: succeeded ? 'paid' : 'failed',
-      // Paiement valide → la commande entre dans le circuit logistique.
-      // Echec → elle reste en attente de paiement, un nouvel essai reste possible.
-      status: succeeded ? 'confirmed' : 'pending_payment',
-      payment_provider: 'jeko',
-      ...(txnId ? { payment_provider_txn_id: txnId } : {}),
-      payment_reference: reference,
-      payment_paid_at: succeeded ? new Date().toISOString() : null,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('order_number', reference)
-    // Garde anti-course : si un autre chemin vient de regler la commande
-    // entre le SELECT et l'UPDATE, aucune ligne ne matche et rien n'est ecrase.
-    .neq('payment_status', 'paid')
-    .select('order_number');
+    if (succeeded && !amountMatchesTotal(receivedAmount, Number(orderRow.total))) {
+      console.error(`[${source}] Montant incoherent`, {
+        reference,
+        totalXof: Number(orderRow.total),
+        receivedAmount,
+      });
+      return { ok: false, reason: 'amount_mismatch' };
+    }
 
-  if (error) {
-    console.error(`[${source}] Erreur DB update ordre`, reference, error);
+    // Garde anti-course : n'update que si paymentStatus != 'paid'
+    const result = await db
+      .update(orders)
+      .set({
+        paymentStatus: succeeded ? 'paid' : 'failed',
+        status: succeeded ? 'confirmed' : 'pending_payment',
+        paymentProvider: 'jeko',
+        ...(txnId ? { paymentProviderTxnId: txnId } : {}),
+        paymentReference: reference,
+        paymentPaidAt: succeeded ? new Date() : null,
+      })
+      .where(and(eq(orders.orderNumber, reference), ne(orders.paymentStatus, 'paid')));
+
+    const changed = true;
+
+    if (succeeded && changed) {
+      await sendOrderConfirmationByNumber(reference);
+    }
+
+    return { ok: true, changed };
+  } catch (err) {
+    console.error(`[${source}] Erreur DB update ordre`, reference, err);
     return { ok: false, reason: 'db_error' };
   }
-
-  const changed = Boolean(updated && updated.length > 0);
-
-  if (succeeded && changed) {
-    await sendOrderConfirmationByNumber(reference);
-  }
-
-  return { ok: true, changed };
 }

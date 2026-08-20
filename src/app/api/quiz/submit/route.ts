@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
-import { createServiceClient } from '@/shared/supabase/service.client';
+import { desc } from 'drizzle-orm';
+import { db } from '@/shared/db';
+import { quizSubmissions } from '@/shared/db/schema';
 import { requireAdmin } from '@/shared/auth/admin.guard';
 import { rateLimit, getIp, rateLimitHeaders } from '@/shared/http/rate-limit.guard';
 
 export const runtime = 'nodejs';
 
 export async function POST(request: Request) {
-  // 10 soumissions / 10 min par IP
   const rl = await rateLimit(`quiz:${getIp(request)}`, { limit: 10, windowMs: 10 * 60 * 1000 });
   if (!rl.ok) {
     return NextResponse.json(
@@ -17,16 +18,19 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json().catch(() => ({}));
-    const skin_tone = typeof body.skin_tone === 'string' ? body.skin_tone.slice(0, 50) : null;
+    const skinTone = typeof body.skin_tone === 'string' ? body.skin_tone.slice(0, 50) : null;
     const concern = typeof body.concern === 'string' ? body.concern.slice(0, 80) : null;
     const routine = typeof body.routine === 'string' ? body.routine.slice(0, 80) : null;
-    // [CQ-08] Regex email identique à celle du contact — email.includes('@') trop permissif
     const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const user_email = typeof body.email === 'string' && EMAIL_RE.test(body.email) ? body.email.slice(0, 200) : null;
+    const userEmail = typeof body.email === 'string' && EMAIL_RE.test(body.email) ? body.email.slice(0, 200) : null;
 
-    const supabase = createServiceClient();
-    const { error } = await supabase.from('quiz_submissions').insert({ skin_tone, concern, routine, user_email });
-    if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 200 });
+    await db.insert(quizSubmissions).values({
+      skinTone,
+      concern,
+      routine,
+      userEmail,
+    });
+
     return NextResponse.json({ ok: true });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'unknown';
@@ -38,14 +42,22 @@ export async function GET() {
   try {
     const admin = await requireAdmin();
     if (!admin) return NextResponse.json({ ok: false, error: 'unauthorized', items: [] }, { status: 401 });
-    const supabase = createServiceClient();
-    const { data, error } = await supabase
-      .from('quiz_submissions')
-      .select('skin_tone, concern, routine, created_at')
-      .order('created_at', { ascending: false })
+
+    const data = await db
+      .select()
+      .from(quizSubmissions)
+      .orderBy(desc(quizSubmissions.createdAt))
       .limit(2000);
-    if (error) return NextResponse.json({ ok: false, error: error.message, items: [] }, { status: 200 });
-    return NextResponse.json({ ok: true, items: data ?? [] });
+
+    return NextResponse.json({
+      ok: true,
+      items: data.map(r => ({
+        skin_tone: r.skinTone,
+        concern: r.concern,
+        routine: r.routine,
+        created_at: r.createdAt.toISOString(),
+      })),
+    });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'unknown';
     return NextResponse.json({ ok: false, error: msg, items: [] }, { status: 200 });

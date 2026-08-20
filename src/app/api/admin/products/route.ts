@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath, revalidateTag } from 'next/cache';
+import { eq, asc } from 'drizzle-orm';
+import { db } from '@/shared/db';
+import { products } from '@/shared/db/schema';
 import { requireAdmin } from '@/shared/auth/admin.guard';
-import { createServiceClient } from '@/shared/supabase/service.client';
 import { rowToProduct } from '@/features/catalog/catalog.mapper';
 import type { Product } from '@/shared/types/domain.type';
 
@@ -12,17 +14,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 401 });
     }
 
-    const supabase = createServiceClient();
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .order('created_at');
-
-    if (error) {
-      console.error('[admin/products GET] db error:', error.message);
-      return NextResponse.json({ error: 'db_error' }, { status: 500 });
-    }
-
+    const data = await db.select().from(products).orderBy(asc(products.createdAt));
     return NextResponse.json((data ?? []).map(rowToProduct));
   } catch (err) {
     console.error('[admin/products GET] unexpected error:', err instanceof Error ? err.message : err);
@@ -39,37 +31,37 @@ export async function POST(req: NextRequest) {
 
     const product: Product = await req.json();
 
-    const supabase = createServiceClient();
-    const { error } = await supabase.from('products').upsert(
-      {
-        id: product.id,
-        name: product.name,
-        slug: product.slug,
-        category: product.category,
-        price: product.price,
-        original_price: product.originalPrice ?? null,
-        images: product.images.filter((url: string) => url.trim() !== ''),
-        skin_tones: product.skinTones,
-        badges: product.badges ?? [],
-        rating: product.rating,
-        review_count: product.reviewCount,
-        short_description: product.shortDescription,
-        description: product.description,
-        benefits: product.benefits,
-        usage: product.usage,
-        ingredients: product.ingredients ?? null,
-        in_stock: product.inStock,
-        stock_qty: product.stockQty ?? null,
-        low_stock_threshold: product.lowStockThreshold ?? null,
-        is_new: product.newArrival ?? false,
-        is_bestseller: product.bestseller ?? false,
-      },
-      { onConflict: 'id' },
-    );
+    const payload = {
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      category: product.category,
+      price: product.price,
+      originalPrice: product.originalPrice ?? null,
+      images: product.images.filter((url: string) => url.trim() !== ''),
+      skinTones: product.skinTones,
+      badges: product.badges ?? [],
+      rating: String(product.rating),
+      reviewCount: product.reviewCount,
+      shortDescription: product.shortDescription,
+      description: product.description,
+      benefits: product.benefits,
+      usage: product.usage,
+      ingredients: product.ingredients ?? null,
+      inStock: product.inStock,
+      stockQty: product.stockQty ?? null,
+      lowStockThreshold: product.lowStockThreshold ?? null,
+      isNew: product.newArrival ?? false,
+      isBestseller: product.bestseller ?? false,
+      resultsTitle: product.resultsTitle ?? null,
+      resultsSubtitle: product.resultsSubtitle ?? null,
+    };
 
-    if (error) {
-      console.error('[admin/products POST] db error:', error.message);
-      return NextResponse.json({ error: 'db_error' }, { status: 500 });
+    const existing = await db.select({ id: products.id }).from(products).where(eq(products.id, product.id)).limit(1);
+    if (existing.length) {
+      await db.update(products).set(payload).where(eq(products.id, product.id));
+    } else {
+      await db.insert(products).values(payload);
     }
 
     try {
@@ -77,7 +69,7 @@ export async function POST(req: NextRequest) {
       revalidatePath('/boutique');
       revalidatePath('/');
     } catch {
-      // revalidatePath peut échouer sur certains hébergeurs — non bloquant
+      // non-bloquant
     }
 
     return NextResponse.json({ success: true });
@@ -99,13 +91,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'id manquant' }, { status: 400 });
     }
 
-    const supabase = createServiceClient();
-    const { error } = await supabase.from('products').delete().eq('id', id);
-
-    if (error) {
-      console.error('[admin/products DELETE] db error:', error.message);
-      return NextResponse.json({ error: 'db_error' }, { status: 500 });
-    }
+    await db.delete(products).where(eq(products.id, id));
 
     try {
       revalidateTag('products', 'default');

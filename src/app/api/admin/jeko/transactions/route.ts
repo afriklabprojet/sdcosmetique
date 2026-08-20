@@ -1,23 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceClient } from '@/shared/supabase/service.client';
+import { eq, desc } from 'drizzle-orm';
+import { db } from '@/shared/db';
+import { jekoTransactions } from '@/shared/db/schema';
 import { requireAdmin } from '@/shared/auth/admin.guard';
 
 export async function GET(req: NextRequest) {
-  const user = await requireAdmin();
-  if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+  const admin = await requireAdmin();
+  if (!admin) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
   const userId = searchParams.get('userId');
 
-  const supabase = createServiceClient();
-  let q = supabase
-    .from('jeko_transactions')
-    .select('id, user_id, points, reason, label, reference_id, created_at')
-    .order('created_at', { ascending: false })
-    .limit(300);
-  if (userId) q = q.eq('user_id', userId);
+  try {
+    let rows;
+    if (userId) {
+      rows = await db
+        .select()
+        .from(jekoTransactions)
+        .where(eq(jekoTransactions.userId, userId))
+        .orderBy(desc(jekoTransactions.createdAt))
+        .limit(300);
+    } else {
+      rows = await db
+        .select()
+        .from(jekoTransactions)
+        .orderBy(desc(jekoTransactions.createdAt))
+        .limit(300);
+    }
 
-  const { data, error } = await q;
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data ?? []);
+    return NextResponse.json(rows.map(r => ({
+      id: r.id,
+      user_id: r.userId,
+      points: r.points,
+      reason: r.reason,
+      label: r.label,
+      reference_id: r.referenceId,
+      created_at: r.createdAt.toISOString(),
+    })));
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Erreur DB';
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 }

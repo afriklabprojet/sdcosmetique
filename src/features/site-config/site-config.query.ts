@@ -1,24 +1,17 @@
 /**
- * site-config.server.ts — Server-only. Ne jamais importer depuis un Client Component.
- * Utiliser site-config.ts pour les types, defaults et saveSiteConfigSection.
+ * site-config.query.ts — Server-only. Utilise Drizzle ORM avec unstable_cache.
  */
 import { unstable_cache } from 'next/cache';
-import { createServiceClient } from '@/shared/supabase/service.client';
+import { db } from '@/shared/db';
+import { siteConfig } from '@/shared/db/schema';
 import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
 import type { SiteConfig } from '@/features/site-config/site-config.type';
 
-// Note : utilise createServiceClient() (pas db/cookies) car unstable_cache
-// ne peut pas appeler des APIs dynamiques (cookies, headers) à l'intérieur.
 async function fetchSiteConfig(): Promise<SiteConfig> {
   try {
-    const supabase = createServiceClient();
-    const { data, error } = await supabase
-      .from('site_config')
-      .select('key, value');
-    if (error || !data?.length) {
-      console.error('[site-config] DB fetch error:', error?.message ?? 'no rows', 'count:', data?.length ?? 0);
-      return DEFAULT_SITE_CONFIG;
-    }
+    const data = await db.select().from(siteConfig);
+    if (!data?.length) return DEFAULT_SITE_CONFIG;
+
     const cfg: SiteConfig = JSON.parse(JSON.stringify(DEFAULT_SITE_CONFIG));
     for (const row of data) {
       if (row.key in cfg) {

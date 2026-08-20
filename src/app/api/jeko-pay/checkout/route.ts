@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { eq } from 'drizzle-orm';
+import { db } from '@/shared/db';
+import { orders } from '@/shared/db/schema';
 import {
   createRedirectPayment,
   PAYMENT_METHOD_TO_JEKO,
@@ -6,65 +9,42 @@ import {
   type JekoPayProvider,
 } from '@/features/payment/jeko-pay.client';
 import { rateLimit, getIp, rateLimitHeaders } from '@/shared/http/rate-limit.guard';
-import { createServiceClient } from '@/shared/supabase/service.client';
 
 export const runtime = 'nodejs';
 
 interface CheckoutBody {
-  orderNumber: string;        // notre référence interne (ex: "SDC-2024-0001")
-  paymentMethod: string;      // 'wave' | 'orange_money' | 'mtn_momo' | 'moov_money' | provider direct
+  orderNumber: string;
+  paymentMethod: string;
   payerPhone?: string;
   forceProviderDirect?: boolean;
 }
 
 function siteUrl(): string {
-  // SITE_URL est lu au runtime (pas inliné au build) — priorité sur NEXT_PUBLIC_SITE_URL
-  // qui lui est inliné au build-time et peut être figé à http://localhost:3000
   return process.env.SITE_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
 }
 
-/**
- * Normalise un numéro de téléphone ivoirien au format international +225XXXXXXXXXX
- * Exemples acceptés : "0700123456", "07 00 12 34 56", "225 07 00 12 34 56", "+22507...
- */
 function normalizePhone(raw: string | undefined): string | undefined {
   if (!raw) return undefined;
-  // Supprimer espaces, tirets, parenthèses
   const digits = raw.replaceAll(/[\s\-().]/g, '');
   if (!digits) return undefined;
-  // Déjà au format international
   if (digits.startsWith('+')) return digits;
-  // Format 225XXXXXXXXXX → +225XXXXXXXXXX
   if (digits.startsWith('225') && digits.length >= 11) return `+${digits}`;
-  // Format local 0XXXXXXXXX (10 chiffres, commence par 0) → +2250XXXXXXXXX... non:
-  // En CI les numéros locaux font 10 chiffres : 07 00 XX XX XX → +225 07 00 XX XX XX
   if (digits.startsWith('0') && digits.length === 10) return `+225${digits}`;
-  // Si déjà 8 ou 9 chiffres sans indicatif → préfixer +225
   if (digits.length >= 8 && digits.length <= 9) return `+225${digits}`;
-  return digits; // laisser passer et laisser Jeko valider
+  return digits;
 }
 
 function resolveProvider(method: string): JekoPayProvider | null {
-  // Accepte soit le code interne soit directement un provider Jeko
   if (method in PAYMENT_METHOD_TO_JEKO) return PAYMENT_METHOD_TO_JEKO[method];
   const direct = ['wave', 'orange', 'mtn', 'moov', 'djamo'] as const;
   return (direct as readonly string[]).includes(method) ? (method as JekoPayProvider) : null;
 }
 
-/**
- * POST /api/jeko-pay/checkout
- * Initie un paiement Jeko Africa et renvoie l'URL de redirection.
- */
 export async function POST(req: NextRequest) {
   try {
     return await goToCheckout(req);
   } catch (e) {
-    // Filet de sécurité : la route doit TOUJOURS répondre avec un body JSON,
-    // jamais un 500 vide (que le client ne peut pas parser → « erreur réseau »).
     console.error('[jeko-pay] Erreur non gérée:', e instanceof Error ? e.message : e);
-    // [SEC-M3] Ne jamais renvoyer le texte de l'exception au client (peut
-    // contenir des détails internes) — le champ `message` reste présent
-    // (générique) pour que le body JSON soit toujours parseable côté client.
     return NextResponse.json(
       { error: 'internal_error', message: 'unknown' },
       { status: 500 },
@@ -73,7 +53,6 @@ export async function POST(req: NextRequest) {
 }
 
 async function goToCheckout(req: NextRequest) {
-  // 10 tentatives de paiement / 10 min par IP
   const rl = await rateLimit(`checkout:${getIp(req)}`, { limit: 10, windowMs: 10 * 60 * 1000 });
   if (!rl.ok) {
     return NextResponse.json(
@@ -101,19 +80,20 @@ async function goToCheckout(req: NextRequest) {
     );
   }
 
-  // [SEC] Le montant à facturer vient TOUJOURS de la commande en DB (calculée
-  // par /api/orders/create côté serveur), jamais du body client.
-  const supabase = createServiceClient();
-  const { data: ord, error: ordErr } = await supabase
-    .from('orders')
-    .select('total, payment_status')
-    .eq('order_number', body.orderNumber)
-    .single();
+  const ordRows = await db
+    .select({
+      total: orders.total,
+      paymentStatus: orders.paymentStatus,
+    })
+    .from(orders)
+    .where(eq(orders.orderNumber, body.orderNumber))
+    .limit(1);
 
-  if (ordErr || !ord) {
+  if (!ordRows.length) {
     return NextResponse.json({ error: 'order_not_found' }, { status: 400 });
   }
-  if (ord.payment_status === 'paid') {
+  const ord = ordRows[0];
+  if (ord.paymentStatus === 'paid') {
     return NextResponse.json({ error: 'already_paid' }, { status: 400 });
   }
 
@@ -136,25 +116,13 @@ async function goToCheckout(req: NextRequest) {
       forceProviderDirect: body.forceProviderDirect,
     });
 
-    // [PAY-03] Persister l'id de la demande de paiement : c'est la seule prise
-    // qui permet ensuite d'interroger Jeko si le webhook est manque
-    // (cf. /api/jeko-pay/reconcile). Un echec d'ecriture ne doit pas empecher
-    // le client de payer — on logue et on continue.
-    const { error: refErr } = await supabase
-      .from('orders')
-      .update({
-        payment_request_id: payment.id,
-        payment_provider:   'jeko',
+    await db
+      .update(orders)
+      .set({
+        paymentRequestId: payment.id,
+        paymentProvider:   'jeko',
       })
-      .eq('order_number', body.orderNumber);
-
-    if (refErr) {
-      console.error('[jeko-pay] Echec persistance payment_request_id:', {
-        orderNumber: body.orderNumber,
-        paymentId:   payment.id,
-        message:     refErr.message,
-      });
-    }
+      .where(eq(orders.orderNumber, body.orderNumber));
 
     return NextResponse.json({
       id:          payment.id,

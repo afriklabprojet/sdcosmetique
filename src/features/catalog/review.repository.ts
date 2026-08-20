@@ -1,32 +1,24 @@
 /**
- * Acces Supabase aux avis produits.
- * Utilise le browser client → appelable depuis des Client Components.
- *
- * Ces fonctions vivaient dans `order.repository.ts` (F-087). Leur corps ne
- * touche jamais une commande : il lit et mute la table `reviews`. La vague
- * `affordance` a tranche le proprietaire, cette vague deplace le fichier.
+ * review.repository.ts — Acces aux avis produits avec Drizzle ORM.
  */
-import { createClient } from '@/shared/supabase/browser.client';
+import { eq, desc } from 'drizzle-orm';
+import { db } from '@/shared/db';
+import { reviews } from '@/shared/db/schema';
 import type { Review, SkinTone } from '@/shared/types/domain.type';
 
 // ─── Fetch tous les avis (admin) ──────────────────────────────────────────────
 export async function fetchAllReviews(): Promise<(Review & { productId?: string })[]> {
   try {
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from('reviews')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (error || !data) return [];
+    const data = await db.select().from(reviews).orderBy(desc(reviews.createdAt));
     return data.map(row => ({
       id: String(row.id),
       author: String(row.author),
       rating: Number(row.rating),
-      comment: String(row.comment ?? ''),
-      date: String(row.created_at),
-      skinTone: (row.skin_tone as SkinTone) ?? undefined,
+      comment: String(row.text || ''),
+      date: row.createdAt.toISOString(),
+      skinTone: row.skinTone ?? undefined,
       verified: Boolean(row.verified),
-      productId: row.product_id ? String(row.product_id) : undefined,
+      productId: row.productId ?? undefined,
     }));
   } catch {
     return [];
@@ -36,19 +28,17 @@ export async function fetchAllReviews(): Promise<(Review & { productId?: string 
 // ─── Supprimer un avis ────────────────────────────────────────────────────────
 export async function deleteReview(id: string): Promise<void> {
   try {
-    const supabase = createClient();
-    await supabase.from('reviews').delete().eq('id', id);
+    await db.delete(reviews).where(eq(reviews.id, id));
   } catch (e) {
-    console.error('orders-db:', e);
+    console.error('[review.repository] deleteReview error:', e);
   }
 }
 
 // ─── Approuver / retirer un avis (toggle verified) ───────────────────────────
 export async function approveReview(id: string, verified: boolean): Promise<void> {
   try {
-    const supabase = createClient();
-    await supabase.from('reviews').update({ verified }).eq('id', id);
+    await db.update(reviews).set({ verified }).where(eq(reviews.id, id));
   } catch (e) {
-    console.error('orders-db:', e);
+    console.error('[review.repository] approveReview error:', e);
   }
 }

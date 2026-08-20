@@ -1,16 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { createClient } from '@/shared/supabase/browser.client';
 import { fetchSiteConfigSection } from '@/features/site-config/site-config.util';
 import styles from './admin-login.module.css';
 
-// ─── Whitelist emails autorisés (vérification UI seulement — la vraie vérif est côté serveur via middleware) ───
-// Ne pas mettre d'emails réels ici : ils seraient visibles dans le bundle JS.
-// La protection réelle est assurée par src/middleware.ts + lib/admin-auth.ts.
-
-export default function AdminLoginPage() {
+function AdminLoginContent() {
   const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -34,28 +29,32 @@ export default function AdminLoginPage() {
     setError('');
     setLoading(true);
 
-    const supabase = createClient();
-    const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (authError || !data.user) {
+      const data = await res.json();
       setLoading(false);
-      setError('Email ou mot de passe incorrect.');
-      return;
-    }
 
-    // La protection réelle est dans src/middleware.ts (server-side).
-    // window.location.href force un rechargement complet de la page pour que
-    // les cookies Supabase soient propagés côté serveur avant la navigation.
-    // (router.replace est client-side et peut arriver avant que les cookies soient commits)
-    globalThis.location.href = '/admin';
+      if (!res.ok || data.error) {
+        setError(data.error || 'Email ou mot de passe incorrect.');
+        return;
+      }
+
+      globalThis.location.href = '/admin';
+    } catch {
+      setLoading(false);
+      setError('Erreur de connexion au serveur.');
+    }
   };
 
   return (
     <div className={styles.wrap}>
-      {/* ── Gauche — Editorial ── */}
       <div className={styles.leftSide}>
         <div className={styles.leftBg} style={{ backgroundImage: `url('${loginBg}')` }} />
-
         <div className={styles.leftBrand}>
           <span className={styles.brandName}>SD Cosmetique</span>
           <span className={styles.brandDot} />
@@ -94,7 +93,6 @@ export default function AdminLoginPage() {
         <div className={styles.leftNum}><span>→</span></div>
       </div>
 
-      {/* ── Droite — Formulaire ── */}
       <div className={styles.right}>
         <div className={styles.rightHeader}>
           <div className={styles.rightLogo}>
@@ -183,5 +181,13 @@ export default function AdminLoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AdminLoginPage() {
+  return (
+    <Suspense>
+      <AdminLoginContent />
+    </Suspense>
   );
 }

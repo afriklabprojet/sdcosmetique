@@ -5,30 +5,35 @@
 import type { Product, SkinTone, Category, Review } from '@/shared/types/domain.type';
 
 export function rowToProduct(row: Record<string, unknown>): Product {
+  const images = (row.images ?? []) as string[];
+  const skinTones = (row.skinTones ?? row.skin_tones ?? []) as SkinTone[];
+  const badges = (row.badges ?? []) as string[];
+  const benefits = (row.benefits ?? []) as string[];
+
   return {
     id: String(row.id),
     name: String(row.name),
     slug: String(row.slug),
     category: row.category as Category,
     price: Number(row.price),
-    originalPrice: row.original_price == null ? undefined : Number(row.original_price),
-    images: ((row.images as string[]) ?? []).filter(Boolean),
-    skinTones: (row.skin_tones as SkinTone[]) ?? [],
-    badges: (row.badges as string[]) ?? [],
-    rating: Number(row.rating),
-    reviewCount: Number(row.review_count),
-    shortDescription: row.short_description == null ? '' : (row.short_description as string),
-    description: row.description == null ? '' : (row.description as string),
-    benefits: (row.benefits as string[]) ?? [],
-    usage: row.usage == null ? '' : (row.usage as string),
-    ingredients: row.ingredients == null ? undefined : (row.ingredients as string),
-    inStock: Boolean(row.in_stock),
-    stockQty: row.stock_qty == null ? undefined : Number(row.stock_qty),
-    lowStockThreshold: row.low_stock_threshold == null ? undefined : Number(row.low_stock_threshold),
-    newArrival: Boolean(row.is_new),
-    bestseller: Boolean(row.is_bestseller),
-    resultsTitle: row.results_title == null ? undefined : (row.results_title as string),
-    resultsSubtitle: row.results_subtitle == null ? undefined : (row.results_subtitle as string),
+    originalPrice: row.originalPrice != null ? Number(row.originalPrice) : (row.original_price != null ? Number(row.original_price) : undefined),
+    images: Array.isArray(images) ? images.filter(Boolean) : [],
+    skinTones: Array.isArray(skinTones) ? skinTones : [],
+    badges: Array.isArray(badges) ? badges : [],
+    rating: Number(row.rating ?? 0),
+    reviewCount: Number(row.reviewCount ?? row.review_count ?? 0),
+    shortDescription: String(row.shortDescription ?? row.short_description ?? ''),
+    description: String(row.description ?? ''),
+    benefits: Array.isArray(benefits) ? benefits : [],
+    usage: String(row.usage ?? ''),
+    ingredients: row.ingredients != null ? String(row.ingredients) : undefined,
+    inStock: row.inStock != null ? Boolean(row.inStock) : Boolean(row.in_stock ?? true),
+    stockQty: row.stockQty != null ? Number(row.stockQty) : (row.stock_qty != null ? Number(row.stock_qty) : undefined),
+    lowStockThreshold: row.lowStockThreshold != null ? Number(row.lowStockThreshold) : (row.low_stock_threshold != null ? Number(row.low_stock_threshold) : undefined),
+    newArrival: Boolean(row.isNew ?? row.newArrival ?? row.is_new),
+    bestseller: Boolean(row.isBestseller ?? row.bestseller ?? row.is_bestseller),
+    resultsTitle: row.resultsTitle != null ? String(row.resultsTitle) : (row.results_title != null ? String(row.results_title) : undefined),
+    resultsSubtitle: row.resultsSubtitle != null ? String(row.resultsSubtitle) : (row.results_subtitle != null ? String(row.results_subtitle) : undefined),
   };
 }
 
@@ -37,9 +42,9 @@ export function rowToReview(row: Record<string, unknown>): Review {
     id: String(row.id),
     author: String(row.author),
     rating: Number(row.rating),
-    comment: row.comment == null ? '' : (row.comment as string),
-    date: String(row.created_at),
-    skinTone: (row.skin_tone as SkinTone) ?? undefined,
+    comment: String(row.comment ?? row.text ?? ''),
+    date: String(row.createdAt ?? row.created_at ?? new Date().toISOString()),
+    skinTone: (row.skinTone ?? row.skin_tone) as SkinTone | undefined,
     verified: Boolean(row.verified),
   };
 }

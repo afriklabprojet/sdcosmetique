@@ -1,91 +1,79 @@
 /**
  * Envoi des notifications de confirmation de commande (email + WhatsApp)
- * à partir du **numéro de commande uniquement**.
- *
- * La commande est rechargée depuis Supabase : aucun payload client n'est
- * jamais utilisé comme source de vérité (cf. l'ancien /api/orders/notify,
- * qui acceptait n'importe quel body non authentifié → relais d'email ouvert).
+ * à partir du numéro de commande avec Drizzle ORM.
  */
-
-import { createServiceClient } from '@/shared/supabase/service.client';
+import { eq } from 'drizzle-orm';
+import { db } from '@/shared/db';
+import { orders, orderItems } from '@/shared/db/schema';
 import { sendOrderConfirmation, sendOrderShipped } from '@/shared/notifications/email.service';
 import { sendWaOrderConfirmation, sendWaOrderShipped } from '@/shared/notifications/whatsapp.service';
 import type { OrderDraft } from '@/features/orders/order.store';
 import type { CartItem } from '@/shared/types/domain.type';
 
-interface OrderItemRow {
-  product_id: string | null;
-  product_slug: string | null;
-  name: string | null;
-  price: number | null;
-  quantity: number | null;
-  image_url: string | null;
-}
-
-/** Reconstruit les CartItem attendus par les templates (name / price / quantity). */
-function toCartItems(rows: OrderItemRow[]): CartItem[] {
-  return rows.map(r => ({
-    quantity: r.quantity ?? 1,
-    product: {
-      id:    r.product_id ?? '',
-      slug:  r.product_slug ?? '',
-      name:  r.name ?? '',
-      price: r.price ?? 0,
-      images: r.image_url ? [r.image_url] : [],
-    } as CartItem['product'],
-  }));
-}
-
-/** Recharge une commande depuis Supabase et la reconstruit en `OrderDraft`. */
+/** Recharge une commande depuis DB et la reconstruit en `OrderDraft`. */
 async function loadOrderByNumber(orderNumber: string): Promise<OrderDraft | null> {
-  const supabase = createServiceClient();
+  const rowList = await db
+    .select()
+    .from(orders)
+    .where(eq(orders.orderNumber, orderNumber))
+    .limit(1);
 
-  const { data: row, error } = await supabase
-    .from('orders')
-    .select('id, order_number, created_at, subtotal, shipping_cost, total, payment_method, status, delivery_first_name, delivery_last_name, delivery_email, delivery_phone, delivery_address, delivery_city, delivery_country')
-    .eq('order_number', orderNumber)
-    .single();
-
-  if (error || !row) {
-    console.error('[order-notifications] Commande introuvable', orderNumber, error?.message);
+  if (!rowList.length) {
+    console.error('[order-notifications] Commande introuvable', orderNumber);
     return null;
   }
 
-  const { data: itemRows, error: itemsError } = await supabase
-    .from('order_items')
-    .select('product_id, product_slug, name, price, quantity, image_url')
-    .eq('order_id', row.id);
+  const row = rowList[0];
 
-  if (itemsError) {
-    console.error('[order-notifications] Échec lecture order_items', orderNumber, itemsError.message);
-  }
+  const itemRows = await db
+    .select()
+    .from(orderItems)
+    .where(eq(orderItems.orderId, row.id));
+
+  const items: CartItem[] = itemRows.map(r => ({
+    quantity: r.quantity,
+    product: {
+      id: r.productId,
+      slug: r.productSlug ?? '',
+      name: r.name,
+      price: Number(r.price),
+      images: r.imageUrl ? [r.imageUrl] : [],
+      category: 'face',
+      skinTones: [],
+      badges: [],
+      rating: 0,
+      reviewCount: 0,
+      shortDescription: '',
+      description: '',
+      benefits: [],
+      usage: '',
+      inStock: true,
+      newArrival: false,
+      bestseller: false,
+    },
+  }));
 
   return {
-    orderNumber:  row.order_number,
-    date:         row.created_at ?? new Date().toISOString(),
-    items:        toCartItems((itemRows ?? []) as OrderItemRow[]),
-    subtotal:     row.subtotal ?? 0,
-    shippingCost: row.shipping_cost ?? 0,
-    total:        row.total ?? 0,
+    orderNumber: row.orderNumber,
+    date: row.createdAt.toISOString(),
+    items,
+    subtotal: Number(row.subtotal),
+    shippingCost: Number(row.shippingCost),
+    total: Number(row.total),
     delivery: {
-      firstName: row.delivery_first_name ?? '',
-      lastName:  row.delivery_last_name ?? '',
-      email:     row.delivery_email ?? '',
-      phone:     row.delivery_phone ?? '',
-      address:   row.delivery_address ?? '',
-      city:      row.delivery_city ?? '',
-      country:   row.delivery_country ?? '',
+      firstName: row.deliveryFirstName ?? '',
+      lastName: row.deliveryLastName ?? '',
+      email: row.deliveryEmail ?? '',
+      phone: row.deliveryPhone ?? '',
+      address: row.deliveryAddress ?? '',
+      city: row.deliveryCity ?? '',
+      country: row.deliveryCountry ?? '',
     },
-    paymentMethod: row.payment_method ?? '',
-    status:        'confirmed',
+    paymentMethod: row.paymentMethod ?? '',
+    status: (row.status as OrderDraft['status']) ?? 'confirmed',
   };
 }
 
-/**
- * Envoie l'email (+ WhatsApp) de confirmation pour `orderNumber`.
- * Ne throw jamais : les erreurs sont loggées et avalées, pour ne pas faire
- * échouer l'appelant (webhook Jeko notamment, qui doit répondre 2xx < 5s).
- */
 export async function sendOrderConfirmationByNumber(orderNumber: string): Promise<void> {
   try {
     const order = await loadOrderByNumber(orderNumber);
@@ -110,11 +98,6 @@ export async function sendOrderConfirmationByNumber(orderNumber: string): Promis
   }
 }
 
-/**
- * Envoie l'email (+ WhatsApp) d'expédition pour `orderNumber`.
- * Recharge la commande (et son adresse email) depuis la DB — jamais du body
- * client, qui pourrait sinon pointer vers une adresse arbitraire.
- */
 export async function sendOrderShippedByNumber(orderNumber: string, trackingUrl?: string): Promise<void> {
   try {
     const order = await loadOrderByNumber(orderNumber);

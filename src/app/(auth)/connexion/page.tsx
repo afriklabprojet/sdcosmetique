@@ -4,7 +4,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { createClient } from '@/shared/supabase/browser.client';
 import styles from '../auth.module.css';
 
 function ConnexionContent() {
@@ -19,8 +18,7 @@ function ConnexionContent() {
 
   useEffect(() => {
     if (searchParams.get('lien') === 'expire') {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setError('Ce lien de confirmation a expiré. Veuillez vous inscrire à nouveau ou contacter le support.');
+      setError('Ce lien a expiré. Veuillez vous reconnecter.');
     }
   }, [searchParams]);
 
@@ -28,35 +26,32 @@ function ConnexionContent() {
     e.preventDefault();
     setError('');
     setLoading(true);
-    const supabase = createClient();
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (authError) {
-      const msg = authError.message.toLowerCase();
-      if (msg.includes('invalid login credentials') || msg.includes('invalid credentials')) {
-        setError('Email ou mot de passe incorrect.');
-      } else if (msg.includes('email not confirmed')) {
-        setError('Votre email n\'est pas encore confirmé. Vérifiez votre boîte mail.');
-      } else if (msg.includes('rate limit') || msg.includes('too many requests') || msg.includes('over_email_send_rate_limit')) {
-        setError('Trop de tentatives. Veuillez patienter quelques minutes avant de réessayer.');
-      } else if (msg.includes('user not found') || msg.includes('no user found')) {
-        setError('Aucun compte trouvé avec cette adresse email.');
-      } else if (msg.includes('network') || msg.includes('fetch')) {
-        setError('Erreur réseau. Vérifiez votre connexion et réessayez.');
-      } else if (msg.includes('disabled')) {
-        setError('Ce compte est désactivé. Contactez le support.');
-      } else {
-        setError('Une erreur est survenue. Veuillez réessayer.');
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+      setLoading(false);
+
+      if (!res.ok || data.error) {
+        setError(data.error || 'Email ou mot de passe incorrect.');
+        return;
       }
-      return;
+
+      const next = new URLSearchParams(globalThis.location.search).get('next') ?? '/compte';
+      globalThis.location.href = next;
+    } catch {
+      setLoading(false);
+      setError('Erreur réseau. Vérifiez votre connexion et réessayez.');
     }
-    const next = new URLSearchParams(globalThis.location.search).get('next') ?? '/compte';
-    router.push(next);
   };
 
   return (
     <div className={styles.page}>
-      {/* LEFT — VISUAL */}
       <aside className={styles.visual}>
         <Image
           src="/hero/model.png"
@@ -87,7 +82,6 @@ function ConnexionContent() {
         </div>
       </aside>
 
-      {/* RIGHT — FORM */}
       <main className={styles.formWrap}>
         <div className={styles.card}>
           <header className={styles.formHead}>
@@ -141,7 +135,7 @@ function ConnexionContent() {
                     </svg>
                   ) : (
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z" />
                       <circle cx="12" cy="12" r="3" />
                     </svg>
                   )}

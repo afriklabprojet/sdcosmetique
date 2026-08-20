@@ -1,34 +1,34 @@
 import { NextResponse } from 'next/server';
-import { createServiceClient } from '@/shared/supabase/service.client';
+import { desc } from 'drizzle-orm';
+import { db } from '@/shared/db';
+import { users } from '@/shared/db/schema';
 import { requireAdmin } from '@/shared/auth/admin.guard';
 
 export async function GET() {
-  const user = await requireAdmin();
-  if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+  const admin = await requireAdmin();
+  if (!admin) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
-  const supabase = createServiceClient();
-  const { data: profiles, error } = await supabase
-    .from('profiles')
-    .select('id, prenom, nom, points, created_at')
-    .order('points', { ascending: false });
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-
-  // L'email vit dans auth.users, pas dans profiles → on fusionne via auth admin.
-  const emailById = new Map<string, string>();
   try {
-    const { data: usersPage } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
-    for (const u of usersPage?.users ?? []) {
-      if (u.id && u.email) emailById.set(u.id, u.email);
-    }
-  } catch {
-    // Si l'API admin échoue, on retourne quand même les profils sans email.
+    const rows = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        prenom: users.prenom,
+        nom: users.nom,
+        points: users.points,
+        created_at: users.createdAt,
+      })
+      .from(users)
+      .orderBy(desc(users.points));
+
+    return NextResponse.json(rows.map(r => ({
+      ...r,
+      prenom: r.prenom ?? '',
+      nom: r.nom ?? '',
+      created_at: r.created_at.toISOString(),
+    })));
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Erreur DB';
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
-
-  const members = (profiles ?? []).map(p => ({
-    ...p,
-    email: emailById.get(p.id) ?? '',
-  }));
-
-  return NextResponse.json(members);
 }

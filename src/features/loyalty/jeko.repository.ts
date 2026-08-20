@@ -1,16 +1,10 @@
 /**
- * jeko.ts — Système de fidélité "SDZ Fidélité"
- * Règle : 1 000 FCFA dépensé = 10 points ; 1 point = 10 FCFA de réduction
- *
- * Sécurité :
- *  - Les crédits (achat, bienvenue) sont insérés exclusivement par des triggers DB (SECURITY DEFINER)
- *  - Les débits (rédemptions) sont insérés depuis le client avec une policy RLS `points < 0`
- *  - Un trigger BEFORE INSERT valide que le solde ne devient pas négatif
+ * jeko.repository.ts — Système de fidélité "SDZ Fidélité" avec Drizzle ORM.
  */
-import { createClient } from '@/shared/supabase/browser.client';
+import { eq, desc } from 'drizzle-orm';
+import { db } from '@/shared/db';
+import { users, jekoTransactions, jekoConfig } from '@/shared/db/schema';
 import type { OperationResult } from '@/shared/types/operation-result.type';
-
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface JekoTransaction {
   id: string;
@@ -30,8 +24,6 @@ export interface JekoTier {
   textColor: string;
 }
 
-// ─── Paliers ──────────────────────────────────────────────────────────────────
-
 export const JEKO_TIERS: JekoTier[] = [
   { label: 'Bronze',  next: 50,      emoji: '🥉', color: '#CD7F32', bg: '#FDF6EE', textColor: '#92400E' },
   { label: 'Argent',  next: 200,     emoji: '⭐', color: '#6B7280', bg: '#F9FAFB', textColor: '#374151' },
@@ -48,8 +40,6 @@ export function getJekoTier(points: number): JekoTier {
   return JEKO_TIERS[0];
 }
 
-// ─── Récompenses ──────────────────────────────────────────────────────────────
-
 export interface JekoReward {
   id: string;
   pts: number;
@@ -65,20 +55,14 @@ export const JEKO_REWARDS: JekoReward[] = [
   { id: 'r500', pts: 500, label: 'Produit offert', icon: '👑', description: 'Un produit au choix jusqu\'à 5 000 FCFA offert',       active: true },
 ];
 
-// ─── Utilitaires ──────────────────────────────────────────────────────────────
-
-/** Résoudre le palier depuis un tableau de paliers (support config dynamique) */
 export function resolveJekoTier(points: number, tiers: JekoTier[]): JekoTier {
   const sorted = [...tiers].sort((a, b) => b.next - a.next);
   return sorted.find(t => points >= (t.next === Infinity ? 0 : tiers.indexOf(t) === 0 ? 0 : tiers[tiers.indexOf(t) - 1]?.next ?? 0)) ?? tiers[0];
 }
 
-/** 1 000 FCFA dépensé = 10 points (règle par défaut) */
 export function computePurchasePoints(totalFcfa: number): number {
   return Math.floor(totalFcfa / 1000) * 10;
 }
-
-// ─── Config dynamique depuis Supabase ─────────────────────────────────────────
 
 export interface JekoConfig {
   settings: { points_per_1000: number; welcome_bonus: number };
@@ -86,26 +70,24 @@ export interface JekoConfig {
   rewards: JekoReward[];
 }
 
-/** Charger toute la config Jeko depuis la DB (fallback sur les valeurs statiques) */
 export async function fetchJekoConfig(): Promise<JekoConfig> {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from('jeko_config')
-    .select('key, value');
+  try {
+    const data = await db.select().from(jekoConfig);
+    if (!data?.length) {
+      return { settings: { points_per_1000: 10, welcome_bonus: 20 }, tiers: JEKO_TIERS, rewards: JEKO_REWARDS };
+    }
 
-  if (error || !data) {
+    const byKey = Object.fromEntries(data.map(r => [r.key, r.value]));
+    return {
+      settings: (byKey['settings'] as JekoConfig['settings']) ?? { points_per_1000: 10, welcome_bonus: 20 },
+      tiers:    (byKey['tiers']    as JekoTier[])              ?? JEKO_TIERS,
+      rewards:  (byKey['rewards']  as JekoReward[])            ?? JEKO_REWARDS,
+    };
+  } catch {
     return { settings: { points_per_1000: 10, welcome_bonus: 20 }, tiers: JEKO_TIERS, rewards: JEKO_REWARDS };
   }
-
-  const byKey = Object.fromEntries(data.map(r => [r.key, r.value]));
-  return {
-    settings: (byKey['settings'] as JekoConfig['settings']) ?? { points_per_1000: 10, welcome_bonus: 20 },
-    tiers:    (byKey['tiers']    as JekoTier[])              ?? JEKO_TIERS,
-    rewards:  (byKey['rewards']  as JekoReward[])            ?? JEKO_REWARDS,
-  };
 }
 
-/** Formater une date ISO en "14 avr. 2026" */
 export function formatJekoDate(iso: string): string {
   return new Date(iso).toLocaleDateString('fr-FR', {
     day: 'numeric',
@@ -114,7 +96,6 @@ export function formatJekoDate(iso: string): string {
   });
 }
 
-/** Libellé affiché selon la raison */
 export function reasonLabel(reason: JekoTransaction['reason'], label: string | null): string {
   if (label) return label;
   switch (reason) {
@@ -126,39 +107,55 @@ export function reasonLabel(reason: JekoTransaction['reason'], label: string | n
   }
 }
 
-// ─── Fonctions Supabase ───────────────────────────────────────────────────────
-
-/** Récupérer l'historique des transactions (50 dernières) */
 export async function getJekoHistory(userId: string): Promise<JekoTransaction[]> {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from('jeko_transactions')
-    .select('id, points, reason, label, reference_id, created_at')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(50);
+  try {
+    const data = await db
+      .select()
+      .from(jekoTransactions)
+      .where(eq(jekoTransactions.userId, userId))
+      .orderBy(desc(jekoTransactions.createdAt))
+      .limit(50);
 
-  if (error || !data) return [];
-  return data as JekoTransaction[];
+    return data.map(r => ({
+      id: r.id,
+      points: r.points,
+      reason: r.reason as JekoTransaction['reason'],
+      label: r.label,
+      reference_id: r.referenceId,
+      created_at: r.createdAt.toISOString(),
+    }));
+  } catch {
+    return [];
+  }
 }
 
-/**
- * Utiliser une récompense (insère un débit négatif).
- * Le trigger DB valide que le solde ne devient pas négatif.
- */
 export async function redeemJekoPoints(
   userId: string,
   reward: JekoReward,
 ): Promise<OperationResult> {
-  const supabase = createClient();
-  const { error } = await supabase.from('jeko_transactions').insert({
-    user_id:     userId,
-    points:      -reward.pts,
-    reason:      'redemption',
-    label:       `Récompense utilisée : ${reward.label}`,
-    reference_id: null,
-  });
+  try {
+    const userRows = await db.select({ points: users.points }).from(users).where(eq(users.id, userId)).limit(1);
+    if (!userRows.length || userRows[0].points < reward.pts) {
+      return { ok: false, error: 'Solde de points insuffisant.' };
+    }
 
-  if (error) return { ok: false, error: error.message };
-  return { ok: true };
+    await db.transaction(async (tx) => {
+      await tx.insert(jekoTransactions).values({
+        userId,
+        points: -reward.pts,
+        reason: 'redemption',
+        label: `Récompense utilisée : ${reward.label}`,
+        referenceId: null,
+      });
+
+      await tx.update(users).set({
+        points: userRows[0].points - reward.pts,
+      }).where(eq(users.id, userId));
+    });
+
+    return { ok: true };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Unknown error';
+    return { ok: false, error: msg };
+  }
 }

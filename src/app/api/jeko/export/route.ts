@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceClient } from '@/shared/supabase/service.client';
+import { desc } from 'drizzle-orm';
+import { db } from '@/shared/db';
+import { users, jekoTransactions } from '@/shared/db/schema';
 import { requireAdmin } from '@/shared/auth/admin.guard';
 
 export const runtime = 'nodejs';
@@ -15,18 +17,23 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
   const type = req.nextUrl.searchParams.get('type') ?? 'members';
-  const sb = createServiceClient();
 
   if (type === 'members') {
-    const { data, error } = await sb
-      .from('profiles')
-      .select('id, email, prenom, nom, points, created_at')
-      .order('points', { ascending: false });
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    const rows = data ?? [];
+    const rows = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        prenom: users.prenom,
+        nom: users.nom,
+        points: users.points,
+        createdAt: users.createdAt,
+      })
+      .from(users)
+      .orderBy(desc(users.points));
+
     const header = 'id,email,prenom,nom,points,created_at';
     const body = rows.map(r =>
-      [r.id, r.email, r.prenom, r.nom, r.points ?? 0, r.created_at].map(csvEscape).join(','),
+      [r.id, r.email, r.prenom ?? '', r.nom ?? '', r.points, r.createdAt.toISOString()].map(csvEscape).join(','),
     ).join('\n');
     const csv = `${header}\n${body}`;
     return new NextResponse(csv, {
@@ -38,16 +45,15 @@ export async function GET(req: NextRequest) {
   }
 
   if (type === 'transactions') {
-    const { data, error } = await sb
-      .from('jeko_transactions')
-      .select('id, user_id, points, reason, label, reference_id, created_at')
-      .order('created_at', { ascending: false })
+    const rows = await db
+      .select()
+      .from(jekoTransactions)
+      .orderBy(desc(jekoTransactions.createdAt))
       .limit(10000);
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    const rows = data ?? [];
+
     const header = 'id,user_id,points,reason,label,reference_id,created_at';
     const body = rows.map(r =>
-      [r.id, r.user_id, r.points, r.reason, r.label, r.reference_id, r.created_at].map(csvEscape).join(','),
+      [r.id, r.userId, r.points, r.reason, r.label ?? '', r.referenceId ?? '', r.createdAt.toISOString()].map(csvEscape).join(','),
     ).join('\n');
     const csv = `${header}\n${body}`;
     return new NextResponse(csv, {

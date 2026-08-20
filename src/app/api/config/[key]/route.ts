@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/shared/supabase/request.client';
+import { eq } from 'drizzle-orm';
+import { db } from '@/shared/db';
+import { siteConfig } from '@/shared/db/schema';
 
-// [SEC-06] Whitelist des clés autorisées en lecture publique.
-// Toute clé absente de cette liste retourne 403 — empêche l'exposition
-// de codes promo, secrets ou config sensible via /api/config/<clé>.
 const PUBLIC_CONFIG_KEYS = new Set([
   'banner_message',
   'banner_enabled',
@@ -13,6 +12,8 @@ const PUBLIC_CONFIG_KEYS = new Set([
   'promo_banner_text',
   'payment_images',
   'payment_methods_active',
+  'branding',
+  'shipping',
 ]);
 
 export async function GET(
@@ -26,18 +27,17 @@ export async function GET(
       return NextResponse.json({ error: 'forbidden' }, { status: 403 });
     }
 
-    const supabase = await db();
-    const { data, error } = await supabase
-      .from('site_config')
-      .select('value')
-      .eq('key', key)
-      .single();
+    const rows = await db
+      .select({ value: siteConfig.value })
+      .from(siteConfig)
+      .where(eq(siteConfig.key, key))
+      .limit(1);
 
-    if (error || !data) {
+    if (!rows.length || !rows[0]) {
       return NextResponse.json({ value: null }, { status: 404 });
     }
 
-    return NextResponse.json({ value: data.value }, {
+    return NextResponse.json({ value: rows[0].value }, {
       headers: { 'Cache-Control': 's-maxage=60, stale-while-revalidate=300' },
     });
   } catch {

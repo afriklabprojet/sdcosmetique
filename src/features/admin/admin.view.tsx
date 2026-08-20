@@ -4,7 +4,6 @@ import Image from 'next/image';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/shared/supabase/browser.client';
 import { formatOrderDate, updateOrderStatus, OrderDraft } from '@/features/orders/order.store';
 import { formatPrice } from '@/features/catalog/product.query';
 import { Product, Category, SkinTone, Review } from '@/shared/types/domain.type';
@@ -440,13 +439,14 @@ type EditableProduct = Product
 // Fonctions utilitaires pour les boutons de sauvegarde
 
 async function applySiteConfigRows(setSiteContent: (cfg: SiteConfig) => void) {
-  const { data: cfgRows } = await createClient().from('site_config').select('key, value');
-  if (cfgRows?.length) {
-    const cfg = structuredClone(DEFAULT_SITE_CONFIG) as SiteConfig;
-    for (const row of cfgRows) {
-      if (row.key in cfg) (cfg as Record<string, unknown>)[row.key] = row.value;
+  try {
+    const res = await fetch('/api/config/full');
+    if (res.ok) {
+      const data = await res.json();
+      if (data) setSiteContent(data);
     }
-    setSiteContent(cfg);
+  } catch {
+    // fallback
   }
 }
 
@@ -553,18 +553,22 @@ export default function AdminPage() { // NOSONAR typescript:S3776
   }, []);
 
   useEffect(() => {
-    createClient().auth.getUser().then(({ data }) => {
-      if (data.user) {
-        void initAfterAuth(data.user);
-      } else {
+    fetch('/api/auth/me')
+      .then(res => res.json())
+      .then(data => {
+        if (data.user && data.user.isAdmin) {
+          void initAfterAuth(data.user);
+        } else {
+          router.replace('/admin/login');
+        }
+      })
+      .catch(() => {
         router.replace('/admin/login');
-      }
-    });
+      });
   }, [router, initAfterAuth]);
 
   const logout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/');
   };
 

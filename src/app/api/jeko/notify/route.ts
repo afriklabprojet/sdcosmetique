@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceClient } from '@/shared/supabase/service.client';
+import { eq } from 'drizzle-orm';
+import { db } from '@/shared/db';
+import { users } from '@/shared/db/schema';
 import { sendJekoPointsNotification } from '@/shared/notifications/email.service';
 import { requireAdmin } from '@/shared/auth/admin.guard';
 
@@ -13,17 +15,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'bad_request' }, { status: 400 });
   }
 
-  // Récup profil cible
-  const sb = createServiceClient();
-  const { data: profile, error } = await sb
-    .from('profiles')
-    .select('email, prenom, points')
-    .eq('id', userId)
-    .single();
+  const rows = await db
+    .select({ email: users.email, prenom: users.prenom, points: users.points })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
 
-  if (error || !profile?.email) {
+  if (!rows.length || !rows[0].email) {
     return NextResponse.json({ error: 'profile_not_found' }, { status: 404 });
   }
+
+  const profile = rows[0];
 
   const res = await sendJekoPointsNotification({
     to: profile.email,
