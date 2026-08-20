@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { Product } from '@/shared/types/domain.type';
 import { formatPrice } from '@/features/catalog/product.query';
-import { resolveJekoTier, type JekoConfig } from '@/features/loyalty/jeko.repository';
+import { resolveJekoTier, type JekoConfig } from '@/features/loyalty/jeko.constant';
 import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
 import { STATUS_CONFIG, type DisplayOrder, type NavItem } from '@/features/account/account.constant';
 

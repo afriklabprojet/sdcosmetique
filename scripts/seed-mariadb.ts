@@ -3,7 +3,7 @@ import { db } from '../src/shared/db';
 import { users, siteConfig, categories, quizConcerns, quizRoutines, jekoConfig, products } from '../src/shared/db/schema';
 import { hashPassword } from '../src/shared/auth/auth.service';
 import { DEFAULT_SITE_CONFIG } from '../src/features/site-config/site-config.constant';
-import { JEKO_TIERS, JEKO_REWARDS } from '../src/features/loyalty/jeko.repository';
+import { JEKO_TIERS, JEKO_REWARDS } from '../src/features/loyalty/jeko.constant';
 import { eq } from 'drizzle-orm';
 
 const PRODUCTS_TO_SEED = [
@@ -281,7 +281,7 @@ async function seed() {
   for (const p of PRODUCTS_TO_SEED) {
     const existing = await db.select().from(products).where(eq(products.id, p.id)).limit(1);
     if (!existing.length) {
-      await db.insert(products).values(p);
+      await db.insert(products).values(p as typeof products.$inferInsert);
       console.log(`  → Added product: ${p.name}`);
     }
   }

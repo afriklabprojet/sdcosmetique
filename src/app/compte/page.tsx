@@ -4,16 +4,19 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { SafeUser } from '@/shared/auth/auth.service';
-import { formatOrderDate, OrderDraft } from '@/features/orders/order.store';
-import { fetchUserOrders } from '@/features/orders/order.repository';
+import { formatOrderDate, type OrderDraft } from '@/features/orders/order.store';
 import { formatPrice } from '@/features/catalog/product.query';
 import { useWishlist } from '@/features/wishlist/wishlist.store';
 import {
-  getJekoHistory, redeemJekoPoints,
-  fetchJekoConfig,
+  getUserOrdersAction,
+  getLoyaltyHistoryAction,
+  getLoyaltyConfigAction,
+  redeemLoyaltyRewardAction,
+} from './actions';
+import {
   JEKO_REWARDS, JEKO_TIERS,
   type JekoTransaction, type JekoReward, type JekoConfig,
-} from '@/features/loyalty/jeko.repository';
+} from '@/features/loyalty/jeko.constant';
 import { fetchSiteConfigSection } from '@/features/site-config/site-config.util';
 import { STATUS_MAP, type Address, type NavItem } from '@/features/account/account.constant';
 import { LockIcon } from '@/features/account/assets/account-icons';
@@ -93,7 +96,7 @@ export default function AccountPage() {
         setUser(data.user);
         setLoading(false);
         if (data.user) {
-          fetchUserOrders(data.user.id).then(setOrders).catch(() => {});
+          getUserOrdersAction(data.user.id).then(setOrders).catch(() => {});
 
           setProfileForm(prev => ({
             ...prev,
@@ -105,8 +108,8 @@ export default function AccountPage() {
           setNewsletter(data.user.newsletter ?? true);
           setUserPoints(data.user.points ?? 0);
 
-          getJekoHistory(data.user.id).then(setJekoHistory).catch(() => {});
-          fetchJekoConfig().then(setJekoConfig).catch(() => {});
+          getLoyaltyHistoryAction(data.user.id).then(setJekoHistory).catch(() => {});
+          getLoyaltyConfigAction().then(setJekoConfig).catch(() => {});
         } else {
           setOrders([]);
         }
@@ -198,7 +201,7 @@ export default function AccountPage() {
   const redeemReward = async () => {
     if (!redeemingReward || !user) return;
     setRedeemMsg(null);
-    const result = await redeemJekoPoints(user.id, redeemingReward);
+    const result = await redeemLoyaltyRewardAction(user.id, redeemingReward);
 
     if (result.ok) {
       setUserPoints(p => p - redeemingReward.pts);

@@ -1,3 +1,5 @@
+'use server';
+
 /**
  * review.repository.ts — Acces aux avis produits avec Drizzle ORM.
  */

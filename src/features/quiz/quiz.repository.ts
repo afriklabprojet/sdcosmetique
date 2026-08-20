@@ -1,3 +1,5 @@
+'use server';
+
 import { eq, asc } from 'drizzle-orm';
 import { db } from '@/shared/db';
 import { quizConcerns, quizRoutines } from '@/shared/db/schema';

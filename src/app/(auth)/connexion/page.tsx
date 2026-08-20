@@ -2,25 +2,20 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Suspense, useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import styles from '../auth.module.css';
 
 function ConnexionContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [showPwd, setShowPwd] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(() => (
+    searchParams.get('lien') === 'expire' ? 'Ce lien a expiré. Veuillez vous reconnecter.' : ''
+  ));
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (searchParams.get('lien') === 'expire') {
-      setError('Ce lien a expiré. Veuillez vous reconnecter.');
-    }
-  }, [searchParams]);
 
   const submitForm = async (e: React.SyntheticEvent) => {
     e.preventDefault();

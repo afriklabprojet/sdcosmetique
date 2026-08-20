@@ -10,7 +10,7 @@
 import {
   resolveJekoTier, formatJekoDate, reasonLabel,
   type JekoConfig, type JekoReward, type JekoTransaction,
-} from '@/features/loyalty/jeko.repository';
+} from '@/features/loyalty/jeko.constant';
 import { getTierGradient, getTransactionIcon, jekoNextLabel } from '@/features/account/account.util';
 
 type Message = { type: 'ok' | 'err'; text: string } | null;

@@ -9,6 +9,7 @@ if (process.env.NODE_ENV === 'production' && !process.env.NEXT_PUBLIC_SITE_URL) 
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  serverExternalPackages: ['mysql2'],
 
   // ── Turbopack : forcer la racine de workspace pour éviter le panic dev-mode ─
   turbopack: {
@@ -17,7 +18,16 @@ const nextConfig: NextConfig = {
 
   // Le MCP Playwright écrit ses snapshots/logs dans .playwright-mcp/ à la
   // racine du repo — sans ce filtre, chaque snapshot déclenche un rebuild.
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve = config.resolve || {};
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        net: false,
+        tls: false,
+        fs: false,
+      };
+    }
     config.watchOptions = {
       ...config.watchOptions,
       ignored: ['**/node_modules/**', '**/.playwright-mcp/**'],

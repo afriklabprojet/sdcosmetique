@@ -3,7 +3,7 @@
  * `app/compte/page.tsx` (F-111). Elles ne gardent rien entre deux appels :
  * un module de fonctions pures suffit.
  */
-import type { JekoTransaction, JEKO_TIERS } from '@/features/loyalty/jeko.repository';
+import type { JekoTransaction, JEKO_TIERS } from '@/features/loyalty/jeko.constant';
 
 export function jekoNextLabel(currentLabel: string, tiers: typeof JEKO_TIERS): string {
   const idx = tiers.findIndex(t => t.label === currentLabel);

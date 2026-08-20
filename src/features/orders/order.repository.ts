@@ -1,3 +1,5 @@
+'use server';
+
 /**
  * order.repository.ts — Acces commandes avec Drizzle ORM.
  */
