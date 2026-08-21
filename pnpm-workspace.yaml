@@ -3,18 +3,27 @@
 #
 # Paquets autorisés à exécuter leurs scripts install/postinstall.
 # Sans ça, pnpm >= 10.16 échoue avec ERR_PNPM_IGNORED_BUILDS pendant le déploiement.
+#
+# esbuild est explicitement REFUSÉ : son postinstall exécute directement
+# node_modules/.pnpm/esbuild@*/node_modules/esbuild/bin/esbuild --version,
+# ce qui échoue en EACCES sur l'hébergeur (le bit +x est perdu dans le store
+# pnpm). esbuild n'arrive ici que via drizzle-kit (devDependency) et n'est
+# jamais utilisé par `next build --webpack` (SWC), donc sauter ce postinstall
+# n'a aucun impact sur le déploiement.
 
 # pnpm 11+
 allowBuilds:
-  esbuild: true
+  esbuild: false
   sharp: true
   unrs-resolver: true
 
 minimumReleaseAgeExclude:
   - mysql2@3.23.4
 
-# pnpm 10 (même liste, ancienne clé — ignorée par pnpm 11)
+# pnpm 10 (mêmes listes, anciennes clés — ignorées par pnpm 11)
 onlyBuiltDependencies:
-  - esbuild
   - sharp
   - unrs-resolver
+
+ignoredBuiltDependencies:
+  - esbuild
