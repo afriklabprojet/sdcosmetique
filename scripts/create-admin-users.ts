@@ -1,62 +1,64 @@
 /**
- * Script de création des comptes admin Supabase
+ * Création / promotion des comptes administrateurs (MariaDB + Drizzle).
+ *
  * Usage :
- *   1. Ajoute SUPABASE_SERVICE_ROLE_KEY dans .env.local
- *   2. npx tsx scripts/create-admin-users.ts
+ *   pnpm setup:admin                                 # lit ADMIN_EMAILS et ADMIN_DEFAULT_PASSWORD
+ *   pnpm setup:admin admin@sdcosmetique.ci 'MotDePasse!'
+ *
+ * Un compte existant est promu au rôle `admin` et son mot de passe est réinitialisé.
  */
 
-import { createClient } from '@supabase/supabase-js';
+import 'dotenv/config';
+import { eq } from 'drizzle-orm';
+import { db } from '../src/shared/db';
+import { users } from '../src/shared/db/schema';
+import { hashPassword } from '../src/shared/auth/auth.service';
 
-const SUPABASE_URL = 'https://spcguwuqqwvjfnfctrzs.supabase.co';
-const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? '';
+const [emailArg, passwordArg] = process.argv.slice(2);
 
-if (!SERVICE_ROLE_KEY) {
-  console.error('❌  Ajoute SUPABASE_SERVICE_ROLE_KEY dans .env.local');
+const emails = (emailArg || process.env.ADMIN_EMAILS || '')
+  .split(',')
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean);
+
+const password = passwordArg || process.env.ADMIN_DEFAULT_PASSWORD;
+
+if (!emails.length) {
+  console.error('❌  Aucune adresse fournie — passe un email en argument ou définis ADMIN_EMAILS.');
   process.exit(1);
 }
 
-const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false },
-});
-
-const ADMINS = [
-  { email: 'admin@sdcosmetique.ci', password: 'Admin@SD2026!' },
-  { email: 'teya@sdcosmetique.ci',  password: 'Teya@SD2026!'  },
-];
+if (!password) {
+  console.error('❌  Aucun mot de passe fourni — passe-le en argument ou définis ADMIN_DEFAULT_PASSWORD.');
+  process.exit(1);
+}
 
 async function main() {
-  for (const admin of ADMINS) {
-    // Tenter de créer — si déjà existant, mettre à jour pour confirmer
-    const { data, error } = await supabase.auth.admin.createUser({
-      email: admin.email,
-      password: admin.password,
-      email_confirm: true,
-    });
+  const passwordHash = await hashPassword(password!);
 
-    if (error) {
-      if (error.message.includes('already been registered') || error.message.includes('already exists')) {
-        // Utilisateur déjà créé → chercher par email et confirmer
-        const { data: list } = await supabase.auth.admin.listUsers();
-        const existing = list?.users.find(u => u.email === admin.email);
-        if (existing) {
-          await supabase.auth.admin.updateUserById(existing.id, { email_confirm: true });
-          console.log(`✅  ${admin.email} — confirmé (existait déjà)`);
-        }
-      } else {
-        console.error(`❌  ${admin.email} :`, error.message);
-      }
+  for (const email of emails) {
+    const [existing] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+
+    if (existing) {
+      await db.update(users).set({ passwordHash, role: 'admin' }).where(eq(users.id, existing.id));
+      console.log(`✅  ${email} — promu admin, mot de passe réinitialisé (id: ${existing.id})`);
     } else {
-      console.log(`✅  ${admin.email} — créé & confirmé (id: ${data.user?.id})`);
+      await db.insert(users).values({
+        email,
+        passwordHash,
+        role: 'admin',
+        prenom: 'Admin',
+        nom: 'SD Cosmétique',
+      });
+      console.log(`✅  ${email} — compte admin créé`);
     }
   }
 
-  console.log('\n─────────────────────────────────');
-  console.log('Identifiants admin :');
-  for (const a of ADMINS) {
-    console.log(`  Email    : ${a.email}`);
-    console.log(`  Password : ${a.password}`);
-    console.log('');
-  }
+  console.log(`\n${emails.length} compte(s) admin prêt(s). Le mot de passe n'est pas affiché.`);
+  process.exit(0);
 }
 
-main().catch(console.error);
+main().catch((err) => {
+  console.error('❌  Échec de la création des comptes admin :', err);
+  process.exit(1);
+});

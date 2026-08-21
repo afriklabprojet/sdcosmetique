@@ -20,7 +20,6 @@
     "start": "next start -p ${PORT:-3000}",
     "lint": "eslint",
     "setup:admin": "dotenv -e .env.local npx tsx scripts/create-admin-users.ts",
-    "seed:products": "dotenv -e .env.local npx tsx scripts/seed-products-from-toml.ts",
     "test": "playwright test",
     "test:ui": "playwright test --ui",
     "test:report": "playwright show-report",
