@@ -43,12 +43,12 @@ no API key, $0).
 ## Workspace Preferences
 
 ### Package Manager
-- **Use `bun`** for package management, installation, and script execution:
-  - Install: `bun install`
-  - Dev server: `bun dev`
-  - Build: `bun run build`
-  - Lint: `bun run lint`
-  - Test: `bun test` or `bunx playwright test`
+- **Use `pnpm`** for package management, installation, and script execution:
+  - Install: `pnpm install`
+  - Dev server: `pnpm dev`
+  - Build: `pnpm build`
+  - Lint: `pnpm lint`
+  - Test: `pnpm test` or `pnpm exec playwright test`
 
 ### Command-line Tools
 - **Prioritize Rust-based alternatives** for performance:
