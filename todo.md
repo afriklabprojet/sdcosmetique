@@ -1,4 +1,5 @@
 - [x] apply the audit fixes
 - [ ] use enum for hardcoded string accross the whole code
 - [x] move the cart data to localstorage
-- [ ] 
+- [ ] fix the upload image previous
+- [ ] clean the old supabase codes

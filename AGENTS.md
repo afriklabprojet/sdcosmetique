@@ -56,3 +56,10 @@ no API key, $0).
   - Use `fd` instead of `find` for finding files.
   - Use `graft` commands (`graft map`, `graft ask`, etc.) for codebase orientation and semantic searches.
 
+### Language
+- **Write everything in English** — code identifiers, comments, commit messages,
+  documentation, logs, tests, branch names, and internal error/debug strings.
+- **The only exception is customer-facing copy**: text actually rendered to the
+  end user (UI labels, page content, emails, user-visible error messages).
+  Keep that in the site's language, and keep it out of identifiers — put it in
+  i18n resources or content files, not hardcoded in logic.
