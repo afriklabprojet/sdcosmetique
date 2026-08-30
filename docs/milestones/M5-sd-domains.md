@@ -1,0 +1,70 @@
+# M5 — SD domains in the API
+
+**Objective:** add the SD-specific domains missing from the KA schema as new modules, per
+the specs already written in [§4](../implementation-plan/04-schema-translation.md). Starts
+only after M4 is done (priority rule).
+
+**Depends on:** M2 structure, M3 conventions, M4 gate. **Priority:** 2 — SD additions.
+
+## Modules and tables (one migration per table, schema-builder only)
+
+### Settings — [§4.9, decision C3](../implementation-plan/04-schema-translation.md)
+
+- Table `settings`: `key` varchar(191) PK, `value` json, `is_public` boolean, `updated_at`.
+- Public `GET /api/settings` + `GET /api/settings/{key}` returning **public rows only**
+  (the `is_public` flag exists to prevent admin-value leaks).
+- Admin `admin/settings` index + update.
+- Seeder from the current `DEFAULT_SITE_CONFIG` shape in `./web` so the storefront has
+  content on a fresh install.
+- Backs the Next admin tabs: hero, contenu, faq, legal, branding, marketing, paiement.
+
+### Quiz — [§4.4, §4.6](../implementation-plan/04-schema-translation.md)
+
+- Tables: `quiz_questions`, `quiz_options`, `quiz_rules`, `quiz_submissions`, `quiz_answers`.
+  Today's `quiz_concerns`/`quiz_routines` become options under `skin_concern` / `routine`
+  questions; enums are strings backed by PHP enums (`quiz_question_type`, `quiz_tier`).
+- Public: `GET /api/quiz-questions` (embeds options), `POST /api/quiz-submissions`,
+  `GET /api/quiz-submissions/{id}`.
+- Admin: `admin/quiz-questions` (+ options), `admin/quiz-submissions` index (analytics feed).
+
+### Loyalty (Jeko) — [§4.4](../implementation-plan/04-schema-translation.md), decision C6
+
+- Tables: `loyalty_accounts` (`current_points`, linked to clients) and `loyalty_ledger`
+  (`points_delta`, `balance_after`, `reason` + `LoyaltyReason` enum, `description`,
+  polymorphic `reference_*`).
+- Signup bonus: `Registered` listener writes a `signup_bonus` ledger row (20 pts).
+- Webhook `POST /webhooks/jeko-pay` in the web routes next to KA's cinetpay handler:
+  unversioned, raw payload preserved, idempotent by gateway reference, CSRF-exempt with a
+  419-regression test — same pattern as the existing cinetpay webhook.
+- Account: `GET /api/loyalty-entries` (authenticated customer's ledger).
+- Admin: `admin/loyalty/accounts` (members), `admin/loyalty/entries` (transactions),
+  `admin/loyalty/adjustments` store (manual point adjustment — a resource, not an RPC),
+  `admin/metrics` extension for loyalty stats; Jeko config keys live in `settings`
+  (non-public rows).
+
+### Testimonials and reviews — decision C11
+
+- Table `testimonials` (site-wide, not product-tied): public `GET /api/testimonials`,
+  admin apiResource.
+- Table `product_reviews`: public `GET /api/reviews` + `POST /api/reviews`,
+  admin index/update/destroy (moderation for the "avis" tab).
+
+## Tests
+
+- Pest Unit + Feature per module, following the existing module test layout
+  (`tests/Feature/<domain>/`). Webhook tests cover idempotency, raw-payload storage, and
+  the 419 regression.
+- End of milestone: `DB_CONNECTION=mariadb php artisan migrate:fresh --seed` once, to catch
+  SQLite-masked schema issues (JSON columns especially).
+
+## Definition of Done
+
+- All new tables migrate cleanly on SQLite and MariaDB; seeders provide working defaults.
+- Public and admin endpoints answer with stable shapes consumed in M6.
+- Full Pest suite green.
+
+## References
+
+- Schema authority: [§4.2–§4.10](../implementation-plan/04-schema-translation.md)
+- Endpoint conventions: [§5.1–§5.2](../implementation-plan/05-api-surface.md), M3
+- Existing webhook pattern: `api/routes/web/index.php` (cinetpay)
