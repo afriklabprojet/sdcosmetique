@@ -1,0 +1,467 @@
+[
+  {
+    "id": "p-001",
+    "slug": "hydraglow-daily-gel-cleanser",
+    "title": "Hydraglow Daily Gel Cleanser",
+    "category": "cleansers",
+    "price": 25,
+    "compareAtPrice": 35,
+    "images": [
+      "assets/images/product/square/product-1.jpg",
+      "assets/images/product/single/detail-1.jpg",
+      "assets/images/product/single/detail-1_2.jpg",
+      "assets/images/product/single/detail-1_3.jpg",
+      "assets/images/product/single/detail-1_4.jpg",
+      "assets/images/product/single/detail-1_5.jpg"
+    ],
+    "badges": [
+      "20% OFF",
+      "BEST SELLER"
+    ],
+    "rating": 4.8,
+    "reviewCount": 225,
+    "stock": 12,
+    "variants": [
+      {
+        "id": "p-001-30",
+        "label": "30ml",
+        "price": 25,
+        "compareAtPrice": 35,
+        "stock": 12
+      },
+      {
+        "id": "p-001-50",
+        "label": "50ml",
+        "price": 38,
+        "compareAtPrice": 48,
+        "stock": 6
+      },
+      {
+        "id": "p-001-100",
+        "label": "100ml",
+        "price": 60,
+        "compareAtPrice": null,
+        "stock": 0
+      }
+    ],
+    "defaultVariantId": "p-001-30",
+    "shortDescription": "A weightless gel-to-foam cleanser that dissolves sunscreen and makeup without that tight, squeaky finish.",
+    "description": "<p>Hydraglow starts as a clear gel and melts into a low-foaming cream the moment it meets water, lifting SPF, sebum and pollution in one pass.</p><p>Built around glycerin and panthenol, it cleans at skin-friendly pH 5.5 so your barrier stays intact — no tightness, no rebound oiliness by midday.</p>",
+    "ingredients": [
+      "Aqua",
+      "Glycerin",
+      "Coco-Glucoside",
+      "Panthenol",
+      "Niacinamide 4%",
+      "Allantoin"
+    ],
+    "howToUse": "Massage a coin-sized amount onto damp skin morning and night. Rinse with lukewarm water and pat dry.",
+    "featured": true,
+    "isNew": false,
+    "createdAt": "2026-02-14"
+  },
+  {
+    "id": "p-002",
+    "slug": "clarifying-cream-cleanser",
+    "title": "Clarifying Cream Cleanser",
+    "category": "cleansers",
+    "price": 28,
+    "compareAtPrice": null,
+    "images": [
+      "assets/images/product/square/product-2.jpg",
+      "assets/images/product/product-13.jpg",
+      "assets/images/product/product-14.jpg"
+    ],
+    "badges": [],
+    "rating": 4.5,
+    "reviewCount": 132,
+    "stock": 8,
+    "variants": [
+      {
+        "id": "p-002-50",
+        "label": "50ml",
+        "price": 28,
+        "compareAtPrice": null,
+        "stock": 8
+      },
+      {
+        "id": "p-002-120",
+        "label": "120ml",
+        "price": 44,
+        "compareAtPrice": null,
+        "stock": 4
+      }
+    ],
+    "defaultVariantId": "p-002-50",
+    "shortDescription": "A cushioning cream wash for dry and reactive skin that cleanses without foaming agents.",
+    "description": "<p>Formulated without sulfates or drying alcohols, this cream cleanser wraps skin in oat lipids and squalane while it works.</p><p>Ideal as the second step of a double cleanse, or as a standalone morning wash for skin that runs tight.</p>",
+    "ingredients": [
+      "Aqua",
+      "Squalane",
+      "Avena Sativa Kernel Oil",
+      "Glycerin",
+      "Bisabolol"
+    ],
+    "howToUse": "Apply to dry or damp skin, massage for 30 seconds, then rinse or remove with a soft cloth.",
+    "featured": false,
+    "isNew": false,
+    "createdAt": "2026-01-20"
+  },
+  {
+    "id": "p-003",
+    "slug": "rose-balance-hydrating-toner",
+    "title": "Rose Balance Hydrating Toner",
+    "category": "toners",
+    "price": 22,
+    "compareAtPrice": 30,
+    "images": [
+      "assets/images/product/square/product-3.jpg",
+      "assets/images/product/product-15.jpg",
+      "assets/images/product/product-15_2.jpg"
+    ],
+    "badges": [
+      "25% OFF"
+    ],
+    "rating": 4.7,
+    "reviewCount": 189,
+    "stock": 20,
+    "variants": [
+      {
+        "id": "p-003-150",
+        "label": "150ml",
+        "price": 22,
+        "compareAtPrice": 30,
+        "stock": 20
+      },
+      {
+        "id": "p-003-250",
+        "label": "250ml",
+        "price": 32,
+        "compareAtPrice": 42,
+        "stock": 9
+      }
+    ],
+    "defaultVariantId": "p-003-150",
+    "shortDescription": "An alcohol-free rose and glycerin toner that rehydrates and preps skin in one swipe.",
+    "description": "<p>A watery-light essence-toner hybrid: damascena rose water calms visible redness while three molecular weights of hyaluronic acid pull moisture into the upper layers.</p><p>Leaves skin plump and slightly tacky — the ideal canvas for a serum.</p>",
+    "ingredients": [
+      "Rosa Damascena Flower Water",
+      "Glycerin",
+      "Sodium Hyaluronate",
+      "Panthenol"
+    ],
+    "howToUse": "Sweep over clean skin with hands or a cotton pad, then follow with serum while still damp.",
+    "featured": true,
+    "isNew": false,
+    "createdAt": "2026-03-02"
+  },
+  {
+    "id": "p-004",
+    "slug": "aha-renewal-serum-10",
+    "title": "AHA Renewal Serum 10%",
+    "category": "serums",
+    "price": 32,
+    "compareAtPrice": 40,
+    "images": [
+      "assets/images/product/square/product-4.jpg",
+      "assets/images/product/product-16.jpg",
+      "assets/images/product/product-16_2.jpg"
+    ],
+    "badges": [
+      "BEST SELLER"
+    ],
+    "rating": 4.9,
+    "reviewCount": 412,
+    "stock": 15,
+    "variants": [
+      {
+        "id": "p-004-30",
+        "label": "30ml",
+        "price": 32,
+        "compareAtPrice": 40,
+        "stock": 15
+      },
+      {
+        "id": "p-004-50",
+        "label": "50ml",
+        "price": 48,
+        "compareAtPrice": 58,
+        "stock": 5
+      }
+    ],
+    "defaultVariantId": "p-004-30",
+    "shortDescription": "A 10% glycolic and lactic blend that resurfaces dullness and unclogs texture overnight.",
+    "description": "<p>Ten percent free acid at pH 3.8 — strong enough to visibly refine texture and fade post-blemish marks, buffered with allantoin so it stays tolerable.</p><p>Use at night, and pair with daily SPF: AHAs increase photosensitivity.</p>",
+    "ingredients": [
+      "Aqua",
+      "Glycolic Acid",
+      "Lactic Acid",
+      "Allantoin",
+      "Sodium Hydroxide"
+    ],
+    "howToUse": "Apply 3–4 drops at night on clean, dry skin. Start twice weekly and build up. Always wear SPF the next morning.",
+    "featured": true,
+    "isNew": false,
+    "createdAt": "2026-02-28"
+  },
+  {
+    "id": "p-005",
+    "slug": "vitamin-c-brightening-serum",
+    "title": "Vitamin C Brightening Serum",
+    "category": "serums",
+    "price": 45,
+    "compareAtPrice": null,
+    "images": [
+      "assets/images/product/square/product-5.jpg",
+      "assets/images/product/product-17.jpg",
+      "assets/images/product/product-18.jpg"
+    ],
+    "badges": [
+      "NEW"
+    ],
+    "rating": 4.6,
+    "reviewCount": 76,
+    "stock": 11,
+    "variants": [
+      {
+        "id": "p-005-30",
+        "label": "30ml",
+        "price": 45,
+        "compareAtPrice": null,
+        "stock": 11
+      }
+    ],
+    "defaultVariantId": "p-005-30",
+    "shortDescription": "15% stabilised vitamin C with ferulic acid for measurably brighter, more even tone.",
+    "description": "<p>A stabilised L-ascorbic acid system at 15%, buffered with ferulic acid and vitamin E to slow oxidation and extend antioxidant protection through the day.</p><p>Expect visibly brighter tone in four weeks and fading of sun-induced pigment by twelve.</p>",
+    "ingredients": [
+      "Aqua",
+      "Ascorbic Acid 15%",
+      "Ferulic Acid",
+      "Tocopherol",
+      "Propanediol"
+    ],
+    "howToUse": "Apply 4 drops each morning to clean skin, before moisturiser and sunscreen.",
+    "featured": true,
+    "isNew": true,
+    "createdAt": "2026-07-18"
+  },
+  {
+    "id": "p-006",
+    "slug": "peptide-firming-concentrate",
+    "title": "Peptide Firming Concentrate",
+    "category": "serums",
+    "price": 58,
+    "compareAtPrice": 72,
+    "images": [
+      "assets/images/product/square/product-6.jpg",
+      "assets/images/product/product-18_2.jpg",
+      "assets/images/product/product-19.jpg"
+    ],
+    "badges": [
+      "20% OFF"
+    ],
+    "rating": 4.4,
+    "reviewCount": 58,
+    "stock": 0,
+    "variants": [
+      {
+        "id": "p-006-30",
+        "label": "30ml",
+        "price": 58,
+        "compareAtPrice": 72,
+        "stock": 0
+      }
+    ],
+    "defaultVariantId": "p-006-30",
+    "shortDescription": "A five-peptide complex that supports firmness and softens the look of fine lines.",
+    "description": "<p>Matrixyl, copper tripeptide and three supporting peptides in a lightweight, silicone-free base.</p><p>A slow performer — this is a twelve-week product, not a twelve-day one.</p>",
+    "ingredients": [
+      "Aqua",
+      "Palmitoyl Tripeptide-1",
+      "Copper Tripeptide-1",
+      "Glycerin",
+      "Panthenol"
+    ],
+    "howToUse": "Press 3 drops into skin morning and night, before heavier creams.",
+    "featured": false,
+    "isNew": false,
+    "createdAt": "2026-04-11"
+  },
+  {
+    "id": "p-007",
+    "slug": "barrier-repair-moisturizer",
+    "title": "Barrier Repair Moisturizer",
+    "category": "moisturizers",
+    "price": 38,
+    "compareAtPrice": null,
+    "images": [
+      "assets/images/product/square/product-7.jpg",
+      "assets/images/product/product-21.jpg",
+      "assets/images/product/product-21_2.jpg"
+    ],
+    "badges": [
+      "BEST SELLER"
+    ],
+    "rating": 4.9,
+    "reviewCount": 501,
+    "stock": 24,
+    "variants": [
+      {
+        "id": "p-007-50",
+        "label": "50ml",
+        "price": 38,
+        "compareAtPrice": null,
+        "stock": 24
+      },
+      {
+        "id": "p-007-100",
+        "label": "100ml",
+        "price": 62,
+        "compareAtPrice": null,
+        "stock": 7
+      }
+    ],
+    "defaultVariantId": "p-007-50",
+    "shortDescription": "A ceramide and cholesterol cream that rebuilds a compromised moisture barrier.",
+    "description": "<p>Three ceramides, cholesterol and free fatty acids in the physiological ratio your skin actually uses to rebuild itself.</p><p>Rich but not occlusive — it settles matte enough to wear under makeup.</p>",
+    "ingredients": [
+      "Aqua",
+      "Ceramide NP",
+      "Ceramide AP",
+      "Cholesterol",
+      "Shea Butter",
+      "Glycerin"
+    ],
+    "howToUse": "Apply as the final step of your evening routine, or under SPF in the morning.",
+    "featured": true,
+    "isNew": false,
+    "createdAt": "2026-01-05"
+  },
+  {
+    "id": "p-008",
+    "slug": "featherlight-gel-cream",
+    "title": "Featherlight Gel Cream",
+    "category": "moisturizers",
+    "price": 34,
+    "compareAtPrice": 42,
+    "images": [
+      "assets/images/product/square/product-8.jpg",
+      "assets/images/product/product-13.jpg",
+      "assets/images/product/product-15.jpg"
+    ],
+    "badges": [
+      "NEW"
+    ],
+    "rating": 4.3,
+    "reviewCount": 64,
+    "stock": 18,
+    "variants": [
+      {
+        "id": "p-008-50",
+        "label": "50ml",
+        "price": 34,
+        "compareAtPrice": 42,
+        "stock": 18
+      }
+    ],
+    "defaultVariantId": "p-008-50",
+    "shortDescription": "An oil-free gel cream for humid days and skin that hates heavy textures.",
+    "description": "<p>Water-gel base with 2% niacinamide and sodium hyaluronate. Absorbs in seconds and leaves no film.</p><p>Built for oily and combination skin, and for anyone whose winter cream stops working in July.</p>",
+    "ingredients": [
+      "Aqua",
+      "Niacinamide 2%",
+      "Sodium Hyaluronate",
+      "Betaine",
+      "Zinc PCA"
+    ],
+    "howToUse": "Smooth over face and neck morning and night after serum.",
+    "featured": false,
+    "isNew": true,
+    "createdAt": "2026-06-30"
+  },
+  {
+    "id": "p-009",
+    "slug": "overnight-recovery-mask",
+    "title": "Overnight Recovery Mask",
+    "category": "masks",
+    "price": 42,
+    "compareAtPrice": null,
+    "images": [
+      "assets/images/product/square/product-12.jpg",
+      "assets/images/product/product-16.jpg",
+      "assets/images/product/product-17.jpg"
+    ],
+    "badges": [],
+    "rating": 4.6,
+    "reviewCount": 143,
+    "stock": 9,
+    "variants": [
+      {
+        "id": "p-009-75",
+        "label": "75ml",
+        "price": 42,
+        "compareAtPrice": null,
+        "stock": 9
+      }
+    ],
+    "defaultVariantId": "p-009-75",
+    "shortDescription": "A leave-on sleeping mask that floods dehydrated skin and seals it in until morning.",
+    "description": "<p>A cushiony gel-balm you apply as the last step twice a week. Urea and glycerin draw water in; a light occlusive veil keeps it there for eight hours.</p><p>You wake up with skin that looks rested rather than merely moisturised.</p>",
+    "ingredients": [
+      "Aqua",
+      "Glycerin",
+      "Urea 5%",
+      "Squalane",
+      "Madecassoside"
+    ],
+    "howToUse": "Apply a generous layer 2–3 nights a week as your final step. No need to rinse.",
+    "featured": false,
+    "isNew": false,
+    "createdAt": "2026-03-22"
+  },
+  {
+    "id": "p-010",
+    "slug": "invisible-daily-sunscreen-spf50",
+    "title": "Invisible Daily Sunscreen SPF50",
+    "category": "sunscreen",
+    "price": 30,
+    "compareAtPrice": 36,
+    "images": [
+      "assets/images/product/square/product-13.jpg",
+      "assets/images/product/product-18.jpg",
+      "assets/images/product/product-19.jpg"
+    ],
+    "badges": [
+      "15% OFF",
+      "BEST SELLER"
+    ],
+    "rating": 4.8,
+    "reviewCount": 327,
+    "stock": 30,
+    "variants": [
+      {
+        "id": "p-010-50",
+        "label": "50ml",
+        "price": 30,
+        "compareAtPrice": 36,
+        "stock": 30
+      }
+    ],
+    "defaultVariantId": "p-010-50",
+    "shortDescription": "Broad-spectrum SPF50 with a weightless finish and genuinely no white cast.",
+    "description": "<p>A modern filter system that spreads like a serum and dries down invisible on every skin tone.</p><p>Photostable for the full day and cosmetically pleasant enough that you will actually reapply it.</p>",
+    "ingredients": [
+      "Aqua",
+      "Tinosorb S",
+      "Uvinul A Plus",
+      "Glycerin",
+      "Niacinamide",
+      "Tocopherol"
+    ],
+    "howToUse": "Apply two finger-lengths as the last step of your morning routine. Reapply every two hours in direct sun.",
+    "featured": true,
+    "isNew": false,
+    "createdAt": "2026-05-09"
+  }
+]

@@ -1,0 +1,44 @@
+[
+  {
+    "slug": "cleansers",
+    "name": "Cleansers",
+    "image": "assets/images/collection/collect-1.jpg",
+    "banner": "assets/images/collection/v2/collect-1.jpg",
+    "description": "Gentle daily cleansers that lift makeup, sunscreen and grime without stripping your barrier."
+  },
+  {
+    "slug": "toners",
+    "name": "Toners",
+    "image": "assets/images/collection/collect-2.jpg",
+    "banner": "assets/images/collection/v2/collect-2.jpg",
+    "description": "Hydrating and balancing toners that prep skin so everything after them absorbs better."
+  },
+  {
+    "slug": "serums",
+    "name": "Serums",
+    "image": "assets/images/collection/collect-3.jpg",
+    "banner": "assets/images/collection/v2/collect-4.jpg",
+    "description": "Concentrated actives — vitamin C, niacinamide, peptides — for targeted, visible change."
+  },
+  {
+    "slug": "moisturizers",
+    "name": "Moisturizers",
+    "image": "assets/images/collection/collect-4.jpg",
+    "banner": "assets/images/collection/v2/collect-5.jpg",
+    "description": "Barrier-supporting creams and gels that seal in hydration for a soft, resilient finish."
+  },
+  {
+    "slug": "masks",
+    "name": "Masks",
+    "image": "assets/images/collection/collect-5.jpg",
+    "banner": "assets/images/collection/v2/collect-6.jpg",
+    "description": "Weekly treatments that reset congested, tired or dehydrated skin in a single session."
+  },
+  {
+    "slug": "sunscreen",
+    "name": "Sunscreen",
+    "image": "assets/images/collection/collect-6.jpg",
+    "banner": "assets/images/collection/v2/collect-7.jpg",
+    "description": "Lightweight broad-spectrum SPF that layers invisibly under makeup, with no white cast."
+  }
+]
