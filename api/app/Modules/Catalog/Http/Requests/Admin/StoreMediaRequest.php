@@ -20,8 +20,9 @@ class StoreMediaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'product_id' => ['required', 'integer', Rule::exists('products', 'id')],
             'file' => ['required', 'file', 'image', 'max:5120'],
+            'product_id' => ['sometimes', 'integer', Rule::exists('products', 'id')],
+            'folder' => ['sometimes', 'string', 'max:64'],
         ];
     }
 }

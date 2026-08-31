@@ -19,6 +19,24 @@ export const DEFAULT_ROUTINES: QuizItem[] = [
   { id: 'intensive', label: 'Programme intensif',   meta: '6 produits & plus — soin sur-mesure',  glyph: '✧' },
 ];
 
+export const DEFAULT_SKIN_TONES: QuizItem[] = [
+  { id: 'ebene',        label: 'Ébène',           meta: 'Peau noire profonde',      glyph: '●' },
+  { id: 'marron',       label: 'Marron foncé',    meta: 'Peau brune soutenue',      glyph: '●' },
+  { id: 'marron_clair', label: 'Marron clair',    meta: 'Peau brune lumineuse',     glyph: '●' },
+  { id: 'claire',       label: 'Métissée / Claire', meta: 'Peau claire à métissée', glyph: '●' },
+];
+
+export const TONE_SWATCH: Record<string, string> = {
+  ebene: '#2C1810',
+  noir: '#2C1810',
+  marron: '#7B4A2D',
+  marron_clair: '#C68642',
+  'marron-clair': '#C68642',
+  claire: '#F5CBA7',
+  clair: '#F5CBA7',
+  metisse: '#A0714F',
+};
+
 export const STEPS: QuizStep[] = ['welcome', 'q1', 'q2', 'q3', 'result'];
 
 // Référence stable : évite de recréer un tableau vide à chaque rendu.

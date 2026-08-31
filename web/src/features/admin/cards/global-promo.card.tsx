@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import type { GlobalPromoConfig } from '@/features/site-config/site-config.type';
-import { saveSiteConfigSection } from '@/features/admin/admin-actions';
+import { patchAdminSetting } from '@/shared/api/settings';
 
 interface Props {
   initialConfig: GlobalPromoConfig;
@@ -38,7 +38,7 @@ export default function GlobalPromoCard({ initialConfig }: Readonly<Props>) {
     setError(null);
     startTransition(async () => {
       try {
-        await saveSiteConfigSection('global_promo', newCfg);
+        await patchAdminSetting('global_promo', newCfg);
         setSaved(true);
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Erreur lors de la sauvegarde');
@@ -50,7 +50,7 @@ export default function GlobalPromoCard({ initialConfig }: Readonly<Props>) {
     setError(null);
     startTransition(async () => {
       try {
-        await saveSiteConfigSection('global_promo', cfg);
+        await patchAdminSetting('global_promo', cfg);
         setSaved(true);
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Erreur lors de la sauvegarde');

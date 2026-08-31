@@ -5,18 +5,15 @@ import Image from 'next/image';
 import Link from 'next/link';
 import styles from './duo.module.css';
 import CategoryBrowser from '@/features/catalog/views/category-browser.view';
+import { fetchSiteConfigSection } from '@/features/site-config/site-config.util';
 import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
 import type { DuoHeroConfig } from '@/features/site-config/site-config.type';
-
 
 export default function DuoCategoryPage() {
   const [hero, setHero] = useState<DuoHeroConfig>(DEFAULT_SITE_CONFIG.hero_duo);
 
   useEffect(() => {
-    fetch('/api/config/hero_duo')
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.value) setHero(d.value as DuoHeroConfig); })
-      .catch(() => {});
+    fetchSiteConfigSection('hero_duo').then(setHero).catch(() => {});
   }, []);
 
   return (

@@ -7,6 +7,7 @@ namespace App\Modules\Catalog\Models;
 use App\Modules\Catalog\Domain\Stock;
 use App\Modules\Catalog\Models\Product\Pricing;
 use App\Shared\Casts\Money as MoneyCast;
+use App\Shared\Storefront\RevalidatesStorefront;
 use App\Shared\Translations\HasTranslations;
 use App\Shared\Translations\Translatable;
 use Database\Factories\Catalog\ProductFactory;
@@ -47,6 +48,7 @@ class Product extends Model
     use HasFactory;
 
     use HasTranslations;
+    use RevalidatesStorefront;
 
     public static function findBySlug(string $slug): ?self
     {
@@ -191,6 +193,14 @@ class Product extends Model
                 ->limit(1),
             'display_price',
         );
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected static function storefrontCacheTags(): array
+    {
+        return ['products'];
     }
 
     protected static function newFactory(): ProductFactory

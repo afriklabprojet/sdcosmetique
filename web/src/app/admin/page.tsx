@@ -1,17 +1,9 @@
 /**
- * page.tsx — Server Component wrapper pour l'interface admin.
- *
- * Responsabilités :
- * 1. Vérification auth côté serveur (défense en profondeur après le middleware).
- * 2. Import dynamique d'AdminDashboard pour séparer son bundle JS du reste de l'app.
+ * page.tsx — Admin dashboard. Auth is enforced by Laravel (`/admin/session`)
+ * inside the client view: Next cannot see `laravel_session` on :8000.
  */
-import { redirect } from 'next/navigation';
-import { requireAdmin } from '@/shared/auth/admin.guard';
 import AdminDashboardClient from '@/features/admin/admin-dashboard-client';
 
-export default async function AdminPage() {
-  const user = await requireAdmin();
-  if (!user) redirect('/admin/login?error=unauthorized');
-
+export default function AdminPage() {
   return <AdminDashboardClient />;
 }

@@ -24,7 +24,7 @@ import {
 import type { LaravelMetricsOverview } from '@/shared/api/types';
 import type { MappedOrder } from '@/shared/api/mappers/order';
 import { apiRoot } from '@/shared/api/client';
-import { saveSiteConfigSection } from '@/features/admin/admin-actions';
+import { fetchAdminSettings, patchAdminSetting } from '@/shared/api/settings';
 import type { AdminTabStatus, ClientRow } from '@/features/admin/admin.type';
 import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
 import type { SiteConfig } from '@/features/site-config/site-config.type';
@@ -432,15 +432,7 @@ type EditableProduct = Product
 // Fonctions utilitaires pour les boutons de sauvegarde
 
 async function applySiteConfigRows(setSiteContent: (cfg: SiteConfig) => void) {
-  try {
-    const res = await fetch('/api/config/full');
-    if (res.ok) {
-      const data = await res.json();
-      if (data) setSiteContent(data);
-    }
-  } catch {
-    // fallback
-  }
+  setSiteContent(await fetchAdminSettings());
 }
 
 
@@ -550,7 +542,6 @@ export default function AdminPage() { // NOSONAR typescript:S3776
 
   const logout = async () => {
     await apiRoot('/logout', { method: 'POST' }).catch(() => undefined);
-    await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/');
   };
 
@@ -577,14 +568,6 @@ export default function AdminPage() { // NOSONAR typescript:S3776
       if (current) await patchAdminOrderStatus(current, status);
     } catch {
       setOrders(previousOrders);
-    }
-    // Email d'expédition (fire & forget)
-    if (status === 'shipped') {
-      fetch('/api/orders/notify-shipped', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderNumber }),
-      }).catch(() => {});
     }
   };
 
@@ -665,7 +648,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
   const saveConfigSection = async (key: string, value: unknown) => {
     setContentSaving(s => ({ ...s, [key]: true }));
     try {
-      await saveSiteConfigSection(key as keyof SiteConfig, value as SiteConfig[keyof SiteConfig]);
+      await patchAdminSetting(key, value);
       setContentSaved(s => ({ ...s, [key]: true }));
       setTimeout(() => clearSectionSaved(key), 2500);
     } catch (err) {
@@ -792,26 +775,17 @@ export default function AdminPage() { // NOSONAR typescript:S3776
     const pts = Number.parseInt(jekoAdjModal.pts, 10);
     if (Number.isNaN(pts) || pts === 0) { setJekoAdjMsg({ ok: false, text: 'Nombre de points invalide' }); return; }
     setJekoAdjSaving(true);
-    const memberId = jekoAdjModal.member.id;
-    const shouldNotify = jekoAdjModal.notify;
-    const labelMsg = jekoAdjModal.label;
-    const res = await manualJekoAdjustment({ userId: memberId, points: pts, label: labelMsg });
+    const res = await manualJekoAdjustment({
+      userId: jekoAdjModal.member.id,
+      points: pts,
+      label: jekoAdjModal.label,
+    });
     setJekoAdjSaving(false);
     if (res.ok) {
       setJekoAdjMsg({ ok: true, text: `${pts > 0 ? '+' : ''}${pts} pts appliqués ✓` });
       getJekoMembers().then(setJekoMembers);
       getAllJekoTransactions().then(setJekoTxns);
       getJekoStats().then(setJekoStats);
-      if (shouldNotify) {
-        fetch('/api/jeko/notify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: memberId, points: pts, message: labelMsg }),
-        })
-          .then(r => r.json())
-          .then(() => {})
-          .catch(() => {});
-      }
       setTimeout(() => { setJekoAdjModal(null); setJekoAdjMsg(null); }, 1800);
     } else {
       setJekoAdjMsg({ ok: false, text: res.error ?? 'Erreur' });

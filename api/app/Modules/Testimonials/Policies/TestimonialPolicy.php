@@ -21,7 +21,7 @@ class TestimonialPolicy
 
     public function create(?User $user): bool
     {
-        return $user?->administrator() ?? false;
+        return true;
     }
 
     public function update(User $user, Testimonial $testimonial): bool

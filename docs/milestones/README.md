@@ -49,9 +49,9 @@ These are deliberate and explicit, not silent drift:
 | M2 | [Remove Filament](M2-remove-filament.md) | Strip every Filament artifact while keeping the `Admin` model, policies, and domain intact. | M1 | 1 — KA spine | Done |
 | M3 | [Admin JSON endpoints](M3-admin-json-endpoints.md) | Replace the deleted Filament resources with authorized `/api/admin/*` endpoints. | M2 | 1 — KA spine | Done |
 | M4 | [Next wiring — KA surfaces](M4-next-wiring-ka-surfaces.md) | API client, admin auth, and rewiring of every admin tab and storefront call site the KA domain already covers. | M3 | 1 — KA spine | Done |
-| M5 | [SD domains in the API](M5-sd-domains.md) | Settings, quiz, loyalty (Jeko), testimonials, and product reviews as new modules. | M2 (M3 conventions) | 2 — SD additions | In progress (settings, testimonials, reviews) |
-| M6 | [Next wiring — SD surfaces](M6-next-wiring-sd-surfaces.md) | Rewire the remaining admin tabs and storefront pages; only `revalidate` and `csp-report` survive as Next routes. | M4, M5 | 2 — SD additions | Pending |
-| M7 | [Cleanup and release validation](M7-cleanup-and-validation.md) | Delete Drizzle/Supabase, rewrite repo docs, run the full manual walk and test gates. | M6 | 3 — cleanup | Pending |
+| M5 | [SD domains in the API](M5-sd-domains.md) | Settings, quiz, loyalty (Jeko), testimonials, and product reviews as new modules. | M2 (M3 conventions) | 2 — SD additions | Done |
+| M6 | [Next wiring — SD surfaces](M6-next-wiring-sd-surfaces.md) | Rewire the remaining admin tabs and storefront pages; only `revalidate` and `csp-report` survive as Next routes. | M4, M5 | 2 — SD additions | Done |
+| M7 | [Cleanup and release validation](M7-cleanup-and-validation.md) | Delete Drizzle/Supabase, rewrite repo docs, run the full manual walk and test gates. | M6 | 3 — cleanup | Done |
 
 ## Execution Order and the Priority Rule
 
@@ -70,12 +70,12 @@ M5 depends on M2 (module layout without Filament) and follows M3's endpoint conv
 must not start before M4 is done, per the priority rule, even though nothing technically
 blocks it earlier.
 
-## Mixed-State Note (M4 → M6)
+## Mixed-State Note (closed)
 
-Between M4 and M6 the app intentionally runs split: KA-covered surfaces read the Laravel
-database, SD surfaces still read MySQL via Drizzle. This is acceptable because A2 discards
-production data anyway (fresh install, no ETL). Do not "fix" the split early by deleting
-Drizzle — that is M7's job, gated on M6.
+Between M4 and M6 the app intentionally ran split: KA-covered surfaces read the Laravel
+database, SD surfaces still read MySQL via Drizzle. M6 closed that split in `./web`. M7
+deleted the unused Drizzle layer, seed scripts, and the `supabase/` tree. Nothing in
+`./web` reaches a database.
 
 ## Global Definition of Done
 

@@ -2,12 +2,11 @@
  * Vocabulaire du diagnostic. Extrait de `app/quiz/page.tsx` (F-116) : la page
  * et les quatre etapes le partagent depuis la vague `split`.
  */
-import type { SkinTone } from '@/shared/types/domain.type';
 
 export type QuizStep = 'welcome' | 'q1' | 'q2' | 'q3' | 'result';
 
 export interface QuizAnswers {
-  skinTone?: SkinTone;
+  skinTone?: string;
   concern?: string;
   routine?: string;
 }

@@ -14,7 +14,7 @@ export function generateStaticParams() {
   return SKIN_TONES.map((t) => ({ slug: t.id }));
 }
 
-// Mapping SkinTone → clé de config Supabase
+// Mapping SkinTone → settings key
 const SKIN_TONE_CONFIG_KEYS: Record<SkinTone, 'hero_teint_noir' | 'hero_teint_marron' | 'hero_teint_marron_clair' | 'hero_teint_clair' | 'hero_teint_metisse'> = {
   'noir':         'hero_teint_noir',
   'marron':       'hero_teint_marron',

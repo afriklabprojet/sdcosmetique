@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Content\Models;
 
+use App\Shared\Storefront\RevalidatesStorefront;
 use App\Shared\Translations\HasTranslations;
 use App\Shared\Translations\Translatable;
 use Database\Factories\Content\PageFactory;
@@ -22,6 +23,7 @@ class Page extends Model
     use HasFactory;
 
     use HasTranslations;
+    use RevalidatesStorefront;
 
     public static function findBySlug(string $slug): ?self
     {
@@ -41,6 +43,14 @@ class Page extends Model
         return [
             'published_at' => 'datetime',
         ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected static function storefrontCacheTags(): array
+    {
+        return ['pages'];
     }
 
     protected static function newFactory(): PageFactory

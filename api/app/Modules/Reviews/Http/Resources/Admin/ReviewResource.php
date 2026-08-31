@@ -32,6 +32,7 @@ class ReviewResource extends JsonResource
             'approved' => $this->approved(),
             'product_id' => $this->product_id,
             'product_slug' => $this->product?->slug,
+            'product' => $this->product?->title,
             'created_at' => $this->created_at,
         ];
     }

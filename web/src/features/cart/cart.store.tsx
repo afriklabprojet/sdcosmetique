@@ -48,8 +48,18 @@ export function CartProvider({ children }: { readonly children: React.ReactNode 
   }, []);
 
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    let active = true;
+    fetchCart()
+      .then((data) => {
+        if (active) setCart(data);
+      })
+      .catch(() => {
+        if (active) setCart(EMPTY);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const addItem = useCallback((product: Product) => {
     void addCartItem(sellableSlug(product), 1)

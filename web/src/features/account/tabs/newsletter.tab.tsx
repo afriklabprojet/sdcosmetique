@@ -1,6 +1,7 @@
 'use client';
 
 import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
+import { subscribeNewsletter } from '@/shared/api/leads';
 
 interface NewsletterTabProps {
   readonly user: { id: string; email: string } | null;
@@ -36,12 +37,8 @@ export default function NewsletterTab({ user, newsletter, setNewsletter, newslet
       {newsletterSaved && <p style={{ marginTop: 16, fontSize: 13, color: '#059669', fontWeight: 600 }}>✅ Préférences enregistrées !</p>}
       <button
         onClick={async () => {
-          if (user) {
-            await fetch('/api/auth/profile', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ newsletter }),
-            });
+          if (newsletter && user?.email) {
+            await subscribeNewsletter(user.email).catch(() => undefined);
           }
           setNewsletterSaved(true);
         }}

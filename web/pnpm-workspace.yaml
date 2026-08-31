@@ -1,29 +1,11 @@
-# Configuration pnpm — les réglages ne sont plus lus depuis package.json ni .npmrc.
-# https://pnpm.io/settings
-#
-# Paquets autorisés à exécuter leurs scripts install/postinstall.
-# Sans ça, pnpm >= 10.16 échoue avec ERR_PNPM_IGNORED_BUILDS pendant le déploiement.
-#
-# esbuild est explicitement REFUSÉ : son postinstall exécute directement
-# node_modules/.pnpm/esbuild@*/node_modules/esbuild/bin/esbuild --version,
-# ce qui échoue en EACCES sur l'hébergeur (le bit +x est perdu dans le store
-# pnpm). esbuild n'arrive ici que via drizzle-kit (devDependency) et n'est
-# jamais utilisé par `next build --webpack` (SWC), donc sauter ce postinstall
-# n'a aucun impact sur le déploiement.
+# pnpm settings for ./web. sharp and unrs-resolver must run postinstall
+# (Next image optimiser and the eslint/next resolver). Without these
+# allowBuilds entries, pnpm >= 10.16 fails with ERR_PNPM_IGNORED_BUILDS.
 
-# pnpm 11+
 allowBuilds:
-  esbuild: false
   sharp: true
   unrs-resolver: true
 
-minimumReleaseAgeExclude:
-  - mysql2@3.23.4
-
-# pnpm 10 (mêmes listes, anciennes clés — ignorées par pnpm 11)
 onlyBuiltDependencies:
   - sharp
   - unrs-resolver
-
-ignoredBuiltDependencies:
-  - esbuild

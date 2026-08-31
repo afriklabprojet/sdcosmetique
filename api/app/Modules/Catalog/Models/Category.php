@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Catalog\Models;
 
+use App\Shared\Storefront\RevalidatesStorefront;
 use App\Shared\Translations\HasTranslations;
 use App\Shared\Translations\Translatable;
 use Database\Factories\Catalog\CategoryFactory;
@@ -23,6 +24,7 @@ class Category extends Model
     use HasFactory;
 
     use HasTranslations;
+    use RevalidatesStorefront;
 
     /**
      * @return BelongsTo<Category, $this>
@@ -51,6 +53,14 @@ class Category extends Model
     public static function findBySlug(string $slug): ?self
     {
         return self::query()->where('slug', $slug)->first();
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected static function storefrontCacheTags(): array
+    {
+        return ['categories', 'products'];
     }
 
     protected static function newFactory(): CategoryFactory

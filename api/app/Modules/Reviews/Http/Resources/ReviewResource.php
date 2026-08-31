@@ -31,6 +31,7 @@ class ReviewResource extends JsonResource
             'verified' => $this->verified(),
             'product_id' => $this->product_id,
             'product_slug' => $this->product?->slug,
+            'product' => $this->product?->title,
             'created_at' => $this->created_at,
         ];
     }

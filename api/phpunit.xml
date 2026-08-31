@@ -37,6 +37,7 @@
         <env name="SANCTUM_STATEFUL_DOMAINS" value="localhost:3000"/>
         <env name="FRONTEND_URL" value="http://localhost:3000"/>
         <env name="PAYMENTS_WEBHOOK_SECRET" value="testing-secret"/>
+        <env name="JEKO_WEBHOOK_SECRET" value="testing-jeko-secret"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>

@@ -6,6 +6,18 @@ import React from 'react';
 import { type JekoMember, type JekoRewardConfig, type JekoSettings, type JekoStats, type JekoTierConfig, type JekoTransactionAdmin } from '@/features/loyalty/jeko-admin.repository';
 import { BG, SURFACE, SURFACE2, BORDER, BORDER2, GOLD, TEXT, TEXT2, TEXT3, GOLD2 } from '@/features/admin/admin.constant';
 
+function downloadCsv(filename: string, header: string[], rows: Array<Array<string | number>>): void {
+  const csv = [header, ...rows]
+    .map((line) => line.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    .join('\n');
+  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 interface JekoTabProps {
   readonly jekoSubTab: 'config' | 'membres' | 'transactions';
   readonly setJekoSubTab: (t: 'config' | 'membres' | 'transactions') => void;
@@ -160,10 +172,25 @@ export default function JekoTab({ jekoSubTab, setJekoSubTab, jekoTiersConf, jeko
                       <input placeholder="Rechercher par nom ou email…" value={jekoMemberSearch}
                         onChange={e => setJekoMemberSearch(e.target.value)}
                         style={{ flex: 1, background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '10px 14px', color: TEXT, fontSize: '13px', outline: 'none' }} />
-                      <a href="/api/jeko/export?type=members" download
-                        style={{ padding: '10px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, border: `1px solid ${BORDER2}`, background: 'rgba(200,151,74,0.08)', color: GOLD, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                      <button
+                        type="button"
+                        onClick={() => downloadCsv(
+                          'jeko-members.csv',
+                          ['Nom', 'Email', 'Points', 'Palier', 'Inscrit'],
+                          filteredMembers.map((m) => {
+                            const tier = jekoGetTierLabel(m.points ?? 0);
+                            return [
+                              [m.prenom, m.nom].filter(Boolean).join(' '),
+                              m.email,
+                              m.points ?? 0,
+                              tier.label,
+                              m.created_at,
+                            ];
+                          }),
+                        )}
+                        style={{ padding: '10px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, border: `1px solid ${BORDER2}`, background: 'rgba(200,151,74,0.08)', color: GOLD, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                         ⬇ Exporter CSV
-                      </a>
+                      </button>
                     </div>
 
                     <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '10px', overflow: 'hidden' }}>
@@ -259,10 +286,22 @@ export default function JekoTab({ jekoSubTab, setJekoSubTab, jekoTiersConf, jeko
                 {jekoSubTab === 'transactions' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                      <a href="/api/jeko/export?type=transactions" download
-                        style={{ padding: '8px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, border: `1px solid ${BORDER2}`, background: 'rgba(200,151,74,0.08)', color: GOLD, textDecoration: 'none' }}>
+                      <button
+                        type="button"
+                        onClick={() => downloadCsv(
+                          'jeko-transactions.csv',
+                          ['Date', 'User ID', 'Points', 'Raison', 'Label'],
+                          jekoTxns.map((tx) => [
+                            tx.created_at,
+                            tx.user_id,
+                            tx.points,
+                            tx.reason,
+                            tx.label ?? '',
+                          ]),
+                        )}
+                        style={{ padding: '8px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, border: `1px solid ${BORDER2}`, background: 'rgba(200,151,74,0.08)', color: GOLD, cursor: 'pointer' }}>
                         ⬇ Exporter CSV
-                      </a>
+                      </button>
                     </div>
                     <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '10px', overflow: 'hidden' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>

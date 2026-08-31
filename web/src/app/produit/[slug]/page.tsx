@@ -42,7 +42,7 @@ export default async function ProductPage({ params }: PageProps) {
 
   const [related, reviews, siteConfig] = await Promise.all([
     fetchRelatedProducts(product.id, product.category),
-    fetchReviewsByProduct(product.id),
+    fetchReviewsByProduct(product.slug),
     getSiteConfig(),
   ]);
 

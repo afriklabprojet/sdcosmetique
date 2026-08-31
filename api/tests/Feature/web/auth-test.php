@@ -94,3 +94,28 @@ it('logs out through Fortify JSON', function (): void {
         ->assertOk()
         ->assertJsonPath('user', null);
 });
+
+it('returns JSON from login and register even without Accept: application/json', function (): void {
+    $user = User::factory()->create();
+
+    $this->withHeaders([
+        'Accept' => '*/*',
+        'Origin' => 'http://localhost:3000',
+    ])->post('/login', [
+        'email' => $user->email,
+        'password' => 'password',
+    ])->assertOk()->assertJson(['two_factor' => false]);
+
+    $this->postJson('/logout')->assertSuccessful();
+
+    $this->withHeaders([
+        'Accept' => '*/*',
+        'Origin' => 'http://localhost:3000',
+    ])->post('/register', [
+        'name' => 'Awa Kone',
+        'email' => 'awa.json@example.com',
+        'password' => 'Password1!',
+        'password_confirmation' => 'Password1!',
+        'terms' => true,
+    ])->assertCreated();
+});

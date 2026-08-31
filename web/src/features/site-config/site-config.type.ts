@@ -290,6 +290,7 @@ export type SiteConfig = {
   marketing: MarketingConfig;
   branding: BrandingConfig;
   payment_methods_active?: string[];
+  payment_images?: Record<string, string>;
   global_promo: GlobalPromoConfig;
 };
 // ─── Resultats du domaine promo ──────────────────────────────────────────────

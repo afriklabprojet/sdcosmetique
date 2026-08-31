@@ -14,7 +14,7 @@ it('lists every on-disk module provider in config and every configured provider 
         ->values()
         ->all();
 
-    expect($configured)->toHaveCount(11)
+    expect($configured)->toHaveCount(13)
         ->and(collect($configured)->sort()->values()->all())->toBe($onDisk);
 });
 

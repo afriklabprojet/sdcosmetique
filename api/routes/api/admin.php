@@ -12,10 +12,15 @@ use App\Modules\Content\Http\Controllers\Admin\PageController;
 use App\Modules\Identity\Http\Controllers\Admin\SessionController;
 use App\Modules\Leads\Http\Controllers\Admin\ContactMessageController;
 use App\Modules\Leads\Http\Controllers\Admin\NewsletterSubscriptionController;
+use App\Modules\Loyalty\Http\Controllers\Admin\AccountController as LoyaltyAccountController;
+use App\Modules\Loyalty\Http\Controllers\Admin\AdjustmentController as LoyaltyAdjustmentController;
+use App\Modules\Loyalty\Http\Controllers\Admin\EntryController as LoyaltyEntryController;
 use App\Modules\Orders\Http\Controllers\Admin\DeliveryMethodController;
 use App\Modules\Orders\Http\Controllers\Admin\OrderController;
 use App\Modules\Payments\Http\Controllers\Admin\NotificationController;
 use App\Modules\Payments\Http\Controllers\Admin\PaymentController;
+use App\Modules\Quiz\Http\Controllers\Admin\QuestionController as QuizQuestionController;
+use App\Modules\Quiz\Http\Controllers\Admin\SubmissionController as QuizSubmissionController;
 use App\Modules\Reviews\Http\Controllers\Admin\ReviewController;
 use App\Modules\Settings\Http\Controllers\Admin\SettingController;
 use App\Modules\Shopping\Http\Controllers\Admin\CouponController;
@@ -72,4 +77,11 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
     Route::get('reviews/{review}', [ReviewController::class, 'show'])->name('reviews.show');
     Route::patch('reviews/{review}', [ReviewController::class, 'update'])->name('reviews.update');
     Route::delete('reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+
+    Route::apiResource('quiz-questions', QuizQuestionController::class)->parameters(['quiz-questions' => 'question']);
+    Route::get('quiz-submissions', [QuizSubmissionController::class, 'index'])->name('quiz-submissions.index');
+
+    Route::get('loyalty/accounts', [LoyaltyAccountController::class, 'index'])->name('loyalty.accounts.index');
+    Route::get('loyalty/entries', [LoyaltyEntryController::class, 'index'])->name('loyalty.entries.index');
+    Route::post('loyalty/adjustments', [LoyaltyAdjustmentController::class, 'store'])->name('loyalty.adjustments.store');
 });

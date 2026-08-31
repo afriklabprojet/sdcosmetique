@@ -1,163 +1,113 @@
-'use server';
+import {
+  fetchAdminQuizQuestions,
+  fetchQuizQuestions,
+  itemsFromQuestion,
+  saveAdminQuizQuestion,
+  type LaravelQuizOption,
+  type LaravelQuizQuestion,
+  type QuizConcern,
+  type QuizRoutine,
+} from '@/shared/api/quiz';
 
-import { eq, asc } from 'drizzle-orm';
-import { db } from '@/shared/db';
-import { quizConcerns, quizRoutines } from '@/shared/db/schema';
+export type { QuizConcern, QuizRoutine };
 
-export interface QuizConcern {
-  id: string;
+const CONCERN_SLUG = 'skin_concern';
+const ROUTINE_SLUG = 'routine';
+const TONE_SLUG = 'skin_tone';
+
+function toPayload(option: LaravelQuizOption): {
+  id?: number;
   label: string;
-  meta: string;
-  glyph: string;
+  description: string | null;
+  value_code: string;
+  glyph: string | null;
   sort_order: number;
-  active: boolean;
+  archived?: boolean;
+} {
+  return {
+    id: option.id,
+    label: option.label,
+    description: option.description,
+    value_code: option.value_code,
+    glyph: option.glyph,
+    sort_order: option.sort_order,
+    archived: option.archived,
+  };
 }
 
-export interface QuizRoutine {
-  id: string;
-  label: string;
-  meta: string;
-  glyph: string;
-  sort_order: number;
-  active: boolean;
+function questionBySlug(questions: LaravelQuizQuestion[], slug: string): LaravelQuizQuestion {
+  const question = questions.find((row) => row.slug === slug);
+  if (!question) {
+    throw new Error(`Quiz question "${slug}" is missing`);
+  }
+  return question;
 }
 
 export async function fetchActiveConcerns(): Promise<QuizConcern[]> {
-  try {
-    const data = await db
-      .select()
-      .from(quizConcerns)
-      .where(eq(quizConcerns.active, true))
-      .orderBy(asc(quizConcerns.sortOrder));
-    return data.map(r => ({
-      id: r.id,
-      label: r.label,
-      meta: r.meta,
-      glyph: r.glyph,
-      sort_order: r.sortOrder,
-      active: r.active,
-    }));
-  } catch {
-    return [];
-  }
+  const questions = await fetchQuizQuestions();
+  return itemsFromQuestion(questions, CONCERN_SLUG).filter((item) => item.active);
 }
 
 export async function fetchActiveRoutines(): Promise<QuizRoutine[]> {
-  try {
-    const data = await db
-      .select()
-      .from(quizRoutines)
-      .where(eq(quizRoutines.active, true))
-      .orderBy(asc(quizRoutines.sortOrder));
-    return data.map(r => ({
-      id: r.id,
-      label: r.label,
-      meta: r.meta,
-      glyph: r.glyph,
-      sort_order: r.sortOrder,
-      active: r.active,
-    }));
-  } catch {
-    return [];
-  }
+  const questions = await fetchQuizQuestions();
+  return itemsFromQuestion(questions, ROUTINE_SLUG).filter((item) => item.active);
+}
+
+export async function fetchActiveSkinTones(): Promise<QuizConcern[]> {
+  const questions = await fetchQuizQuestions();
+  return itemsFromQuestion(questions, TONE_SLUG).filter((item) => item.active);
 }
 
 export async function fetchAllConcernsAdmin(): Promise<QuizConcern[]> {
-  try {
-    const data = await db.select().from(quizConcerns).orderBy(asc(quizConcerns.sortOrder));
-    return data.map(r => ({
-      id: r.id,
-      label: r.label,
-      meta: r.meta,
-      glyph: r.glyph,
-      sort_order: r.sortOrder,
-      active: r.active,
-    }));
-  } catch {
-    return [];
-  }
+  const questions = await fetchAdminQuizQuestions();
+  return itemsFromQuestion(questions, CONCERN_SLUG);
 }
 
 export async function fetchAllRoutinesAdmin(): Promise<QuizRoutine[]> {
-  try {
-    const data = await db.select().from(quizRoutines).orderBy(asc(quizRoutines.sortOrder));
-    return data.map(r => ({
-      id: r.id,
-      label: r.label,
-      meta: r.meta,
-      glyph: r.glyph,
-      sort_order: r.sortOrder,
-      active: r.active,
-    }));
-  } catch {
-    return [];
-  }
+  const questions = await fetchAdminQuizQuestions();
+  return itemsFromQuestion(questions, ROUTINE_SLUG);
 }
 
-export async function upsertConcern(c: QuizConcern): Promise<void> {
-  try {
-    const existing = await db.select().from(quizConcerns).where(eq(quizConcerns.id, c.id)).limit(1);
-    if (existing.length) {
-      await db.update(quizConcerns).set({
-        label: c.label,
-        meta: c.meta,
-        glyph: c.glyph,
-        sortOrder: c.sort_order,
-        active: c.active,
-      }).where(eq(quizConcerns.id, c.id));
-    } else {
-      await db.insert(quizConcerns).values({
-        id: c.id,
-        label: c.label,
-        meta: c.meta,
-        glyph: c.glyph,
-        sortOrder: c.sort_order,
-        active: c.active,
-      });
-    }
-  } catch (err) {
-    console.error('[quiz.repository] upsertConcern error:', err);
+async function persistOption(slug: string, item: QuizConcern): Promise<void> {
+  const question = questionBySlug(await fetchAdminQuizQuestions(), slug);
+  const options = question.options.map(toPayload);
+  const index = options.findIndex((option) => option.value_code === item.id);
+  const next = {
+    label: item.label,
+    description: item.meta,
+    value_code: item.id,
+    glyph: item.glyph,
+    sort_order: item.sort_order,
+    archived: !item.active,
+  };
+  if (index >= 0) {
+    options[index] = { ...options[index], ...next };
+  } else {
+    options.push(next);
   }
+  await saveAdminQuizQuestion(question, options);
 }
 
-export async function upsertRoutine(r: QuizRoutine): Promise<void> {
-  try {
-    const existing = await db.select().from(quizRoutines).where(eq(quizRoutines.id, r.id)).limit(1);
-    if (existing.length) {
-      await db.update(quizRoutines).set({
-        label: r.label,
-        meta: r.meta,
-        glyph: r.glyph,
-        sortOrder: r.sort_order,
-        active: r.active,
-      }).where(eq(quizRoutines.id, r.id));
-    } else {
-      await db.insert(quizRoutines).values({
-        id: r.id,
-        label: r.label,
-        meta: r.meta,
-        glyph: r.glyph,
-        sortOrder: r.sort_order,
-        active: r.active,
-      });
-    }
-  } catch (err) {
-    console.error('[quiz.repository] upsertRoutine error:', err);
-  }
+async function removeOption(slug: string, valueCode: string): Promise<void> {
+  const question = questionBySlug(await fetchAdminQuizQuestions(), slug);
+  await saveAdminQuizQuestion(
+    question,
+    question.options.filter((option) => option.value_code !== valueCode).map(toPayload),
+  );
+}
+
+export async function upsertConcern(concern: QuizConcern): Promise<void> {
+  await persistOption(CONCERN_SLUG, concern);
+}
+
+export async function upsertRoutine(routine: QuizRoutine): Promise<void> {
+  await persistOption(ROUTINE_SLUG, routine);
 }
 
 export async function deleteConcern(id: string): Promise<void> {
-  try {
-    await db.delete(quizConcerns).where(eq(quizConcerns.id, id));
-  } catch (err) {
-    console.error('[quiz.repository] deleteConcern error:', err);
-  }
+  await removeOption(CONCERN_SLUG, id);
 }
 
 export async function deleteRoutine(id: string): Promise<void> {
-  try {
-    await db.delete(quizRoutines).where(eq(quizRoutines.id, id));
-  } catch (err) {
-    console.error('[quiz.repository] deleteRoutine error:', err);
-  }
+  await removeOption(ROUTINE_SLUG, id);
 }

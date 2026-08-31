@@ -35,7 +35,7 @@ it('allows withoutMiddleware only on webhook routes', function (): void {
 it('applies throttle middleware to public mutation endpoints', function (): void {
     $router = app('router');
 
-    foreach (['orders.payments.store', 'webhooks.cinetpay', 'newsletter-subscriptions.store', 'contact-messages.store', 'reviews.store'] as $name) {
+    foreach (['orders.payments.store', 'webhooks.cinetpay', 'webhooks.jeko-pay', 'newsletter-subscriptions.store', 'contact-messages.store', 'reviews.store', 'quiz-submissions.store', 'testimonials.store'] as $name) {
         $route = $router->getRoutes()->getByName($name);
         expect($route)->not->toBeNull();
 

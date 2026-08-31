@@ -15,25 +15,34 @@ class MediaController extends Controller
 {
     public function store(StoreMediaRequest $request): JsonResponse
     {
-        $product = Product::query()->findOrFail($request->integer('product_id'));
-
-        $this->authorize('update', $product);
-
         $upload = $request->file('file');
-        $path = $upload->store('products', 'public');
+        $folder = preg_replace('/[^a-zA-Z0-9_-]/', '', (string) $request->input('folder', 'uploads')) ?: 'uploads';
+        $path = $upload->store($folder, 'public');
+        $url = Storage::disk('public')->url($path);
 
-        $file = $product->files()->create([
-            'disk' => 'public',
-            'path' => $path,
-            'url' => Storage::disk('public')->url($path),
-            'mime_type' => $upload->getClientMimeType(),
-            'size' => $upload->getSize(),
-        ]);
+        if ($request->filled('product_id')) {
+            $product = Product::query()->findOrFail($request->integer('product_id'));
+            $this->authorize('update', $product);
+
+            $file = $product->files()->create([
+                'disk' => 'public',
+                'path' => $path,
+                'url' => $url,
+                'mime_type' => $upload->getClientMimeType(),
+                'size' => $upload->getSize(),
+            ]);
+
+            return response()->json([
+                'data' => [
+                    'id' => $file->id,
+                    'url' => $file->url,
+                ],
+            ], Response::HTTP_CREATED);
+        }
 
         return response()->json([
             'data' => [
-                'id' => $file->id,
-                'url' => $file->url,
+                'url' => $url,
             ],
         ], Response::HTTP_CREATED);
     }

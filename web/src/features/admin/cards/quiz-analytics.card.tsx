@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { fetchAdminQuizSubmissions } from '@/shared/api/quiz';
 
 interface QuizResult {
   skin_tone: string | null;
@@ -38,10 +39,17 @@ export default function QuizAnalyticsCard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/quiz/results')
-      .then(r => r.ok ? r.json() : { results: [] })
-      .then(d => {
-        const results: QuizResult[] = d.results ?? [];
+    fetchAdminQuizSubmissions()
+      .then((rows) => {
+        const results: QuizResult[] = rows.map((row) => {
+          const answers = Object.fromEntries(row.answers.map((answer) => [answer.question, answer.option]));
+          return {
+            skin_tone: answers.skin_tone ?? null,
+            concern: answers.skin_concern ?? null,
+            routine: answers.routine ?? null,
+            created_at: row.created_at,
+          };
+        });
         const now = Date.now();
         setItems(results);
         setLast30(results.filter(i => now - new Date(i.created_at).getTime() < 30 * 86400000).length);

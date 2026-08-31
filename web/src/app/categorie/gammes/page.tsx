@@ -5,18 +5,15 @@ import Image from 'next/image';
 import Link from 'next/link';
 import styles from './gammes.module.css';
 import CategoryBrowser from '@/features/catalog/views/category-browser.view';
+import { fetchSiteConfigSection } from '@/features/site-config/site-config.util';
 import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
 import type { CategoryHeroConfig } from '@/features/site-config/site-config.type';
-
 
 export default function GammesCategoryPage() {
   const [hero, setHero] = useState<CategoryHeroConfig>(DEFAULT_SITE_CONFIG.hero_gammes);
 
   useEffect(() => {
-    fetch('/api/config/hero_gammes')
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.value) setHero(d.value as CategoryHeroConfig); })
-      .catch(() => {});
+    fetchSiteConfigSection('hero_gammes').then(setHero).catch(() => {});
   }, []);
 
   return (

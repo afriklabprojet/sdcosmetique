@@ -75,6 +75,7 @@ async function request<T>(path: string, init: RequestInit | undefined, root: boo
 
   const headers = new Headers(init?.headers);
   headers.set('Accept', 'application/json');
+  headers.set('X-Requested-With', 'XMLHttpRequest');
   if (init?.body !== undefined && !headers.has('Content-Type') && !(init.body instanceof FormData)) {
     headers.set('Content-Type', 'application/json');
   }
@@ -85,11 +86,17 @@ async function request<T>(path: string, init: RequestInit | undefined, root: boo
     ...init,
     method,
     credentials: 'include',
+    redirect: 'manual',
     headers,
   });
 
   if (res.status === 419) {
     csrfPrimed = false;
+  }
+
+  if (res.type === 'opaqueredirect' || (res.status >= 300 && res.status < 400)) {
+    csrfPrimed = false;
+    throw new ApiError(res.status || 0, 'Redirected');
   }
 
   if (!res.ok) {

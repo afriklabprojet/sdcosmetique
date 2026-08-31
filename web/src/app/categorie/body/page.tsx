@@ -5,18 +5,15 @@ import Image from 'next/image';
 import Link from 'next/link';
 import styles from './body.module.css';
 import CategoryBrowser from '@/features/catalog/views/category-browser.view';
+import { fetchSiteConfigSection } from '@/features/site-config/site-config.util';
 import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
 import type { CategoryHeroConfig } from '@/features/site-config/site-config.type';
-
 
 export default function BodyCategoryPage() {
   const [hero, setHero] = useState<CategoryHeroConfig>(DEFAULT_SITE_CONFIG.hero_body);
 
   useEffect(() => {
-    fetch('/api/config/hero_body')
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.value) setHero(d.value as CategoryHeroConfig); })
-      .catch(() => {});
+    fetchSiteConfigSection('hero_body').then(setHero).catch(() => {});
   }, []);
 
   return (

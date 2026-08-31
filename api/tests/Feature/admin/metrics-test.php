@@ -25,5 +25,6 @@ it('returns the metrics overview shape', function (): void {
             'low_stock',
             'pending_payments',
             'unhandled_notifications',
+            'loyalty' => ['members', 'points_issued'],
         ]);
 });

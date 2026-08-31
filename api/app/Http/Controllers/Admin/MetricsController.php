@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Catalog\Models\Product;
+use App\Modules\Loyalty\Models\Account;
+use App\Modules\Loyalty\Models\Entry;
 use App\Modules\Orders\Models\Order;
 use App\Modules\Payments\Models\Payment;
 use App\Modules\Payments\Models\Payment\Notification;
@@ -61,6 +63,10 @@ class MetricsController extends Controller
             'unhandled_notifications' => Notification::query()
                 ->whereNull('handled_at')
                 ->count(),
+            'loyalty' => [
+                'members' => Account::query()->count(),
+                'points_issued' => (int) Entry::query()->where('points_delta', '>', 0)->sum('points_delta'),
+            ],
         ]);
     }
 }

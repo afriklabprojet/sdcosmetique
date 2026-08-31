@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState, useMemo, useEffect } from 'react';
 import styles from '../(static)/static.module.css';
 import TestimonialForm from '@/features/testimonials/testimonial.form';
+import { fetchReviews } from '@/shared/api/reviews';
 
 type Review = {
   id: string;
@@ -18,43 +19,35 @@ type Review = {
   verified: boolean;
 };
 
-const REVIEWS: Review[] = [
-  { id: '1', author: 'Aïssatou D.', city: 'Dakar', product: 'Sérum Éclat Intense', productSlug: 'serum-eclat-intense', rating: 5, date: '12 mars 2026', title: 'Une révélation pour ma peau', text: 'J\'utilise le sérum depuis 6 semaines. Mes taches pigmentaires ont visiblement diminué et mon teint est lumineux. Texture légère, parfum délicat. Je rachèterai sans hésiter.', verified: true },
-  { id: '2', author: 'Marie-Hélène T.', city: 'Paris', product: 'Crème Unifiante Karité', productSlug: 'creme-unifiante-karite', rating: 5, date: '8 mars 2026', title: 'Texture exceptionnelle', text: 'Je suis fan du karité et celui-ci est exceptionnel. Pénètre vite, odeur subtile, peau soyeuse. Mon mari me la prend aussi !', verified: true },
-  { id: '3', author: 'Fatou B.', city: 'Abidjan', product: 'Kit Illuminateur Complet', productSlug: 'kit-illuminateur-complet', rating: 5, date: '5 mars 2026', title: 'Le coffret idéal', text: 'Reçu en cadeau, j\'ai tout adoré. La routine est complète, les produits sont vraiment efficaces. Mes amies me demandent toutes ce que je mets sur ma peau.', verified: true },
-  { id: '4', author: 'Léa M.', city: 'Lyon', product: 'Huile Précieuse 3-en-1', productSlug: 'huile-precieuse-3en1', rating: 5, date: '2 mars 2026', title: 'Multi-usage parfait', text: 'Je l\'utilise sur cheveux, visage et corps. Économique, polyvalente, magnifique parfum. Je viens d\'en commander un deuxième flacon.', verified: true },
-  { id: '5', author: 'Khady N.', city: 'Saint-Louis', product: 'Sérum Éclat Intense', productSlug: 'serum-eclat-intense', rating: 4, date: '28 février 2026', title: 'Très bon mais cher', text: 'Le sérum est excellent, vraiment efficace sur les marques. Petit bémol sur le prix mais la qualité est au rendez-vous.', verified: true },
-  { id: '6', author: 'Camille R.', city: 'Marseille', product: 'Duo Visage Éclat', productSlug: 'duo-visage-eclat', rating: 5, date: '24 février 2026', title: 'Routine complète et efficace', text: 'Le duo nettoyant + sérum est parfait pour ma peau mixte. Plus de boutons hormonaux et un teint lumineux en 3 semaines.', verified: true },
-  { id: '7', author: 'Awa S.', city: 'Thiès', product: 'Crème Unifiante Karité', productSlug: 'creme-unifiante-karite', rating: 5, date: '20 février 2026', title: 'Un classique', text: 'J\'en commande tous les deux mois depuis un an. Indispensable de mon armoire de salle de bain.', verified: true },
-  { id: '8', author: 'Sophie K.', city: 'Bruxelles', product: 'Kit Illuminateur Complet', productSlug: 'kit-illuminateur-complet', rating: 4, date: '15 février 2026', title: 'Très bonne découverte', text: 'Reçu rapidement, emballage soigné. Les produits sentent merveilleusement bon et fonctionnent vraiment.', verified: true },
-];
-
 const FILTERS = [5, 4, 3] as const;
+
+function formatReviewDate(iso: string): string {
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return iso;
+  return parsed.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+}
 
 export default function ReviewsPage() {
   const [ratingFilter, setRatingFilter] = useState<number | null>(null);
-  const [reviews, setReviews] = useState<Review[]>(REVIEWS);
+  const [reviews, setReviews] = useState<Review[]>([]);
 
   useEffect(() => {
-    fetch('/api/reviews')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          setReviews(data.map((r: { id: string; author: string; rating: number; comment?: string; text?: string; date: string; verified?: boolean }) => ({
-            id: r.id,
-            author: r.author,
-            city: '',
-            product: '',
-            productSlug: '',
-            rating: r.rating,
-            date: r.date,
-            title: '',
-            text: r.comment || r.text || '',
-            verified: Boolean(r.verified),
-          })));
-        }
+    fetchReviews()
+      .then((rows) => {
+        setReviews(rows.map((row) => ({
+          id: row.id,
+          author: row.author,
+          city: row.city ?? '',
+          product: row.productName ?? '',
+          productSlug: row.productId ?? '',
+          rating: row.rating,
+          date: formatReviewDate(row.date),
+          title: row.title ?? '',
+          text: row.comment,
+          verified: row.verified,
+        })));
       })
-      .catch(() => {});
+      .catch(() => setReviews([]));
   }, []);
 
   const filtered = useMemo(
@@ -170,7 +163,7 @@ export default function ReviewsPage() {
             onClick={() => setRatingFilter(null)}
             style={chipStyle(ratingFilter === null)}
           >
-            Tous ({REVIEWS.length})
+            Tous ({reviews.length})
           </button>
           {FILTERS.map((n) => (
             <button key={n} onClick={() => setRatingFilter(n)} style={chipStyle(ratingFilter === n)}>

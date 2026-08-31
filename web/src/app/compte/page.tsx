@@ -8,9 +8,11 @@ import {
   deleteAddress as deleteAccountAddress,
   fetchAccountOrders,
   fetchAddresses,
+  fetchLoyaltySnapshot,
   fetchStorefrontIdentity,
   joinPersonName,
   logoutStorefront,
+  redeemLoyalty,
   saveAddress as persistAddress,
   type StorefrontIdentity,
   updateAccount,
@@ -18,11 +20,6 @@ import {
 import { formatOrderDate } from '@/features/orders/order.store';
 import { formatPrice } from '@/features/catalog/product.query';
 import { useWishlist } from '@/features/wishlist/wishlist.store';
-import {
-  getLoyaltyHistoryAction,
-  getLoyaltyConfigAction,
-  redeemLoyaltyRewardAction,
-} from './actions';
 import {
   JEKO_REWARDS, JEKO_TIERS,
   type JekoTransaction, type JekoReward, type JekoConfig,
@@ -48,7 +45,6 @@ export default function AccountPage() {
   const [active, setActive] = useState<NavItem>('dashboard');
   const [user, setUser] = useState<StorefrontIdentity | null>(null);
   const [orders, setOrders] = useState<Awaited<ReturnType<typeof fetchAccountOrders>>>([]);
-  const [nextUserId, setNextUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Profil form
@@ -78,7 +74,7 @@ export default function AccountPage() {
   const [jekoHistory, setJekoHistory] = useState<JekoTransaction[]>([]);
   const [redeemingReward, setRedeemingReward] = useState<JekoReward | null>(null);
   const [redeemMsg, setRedeemMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
-  const [jekoConfig, setJekoConfig] = useState<JekoConfig>({
+  const [jekoConfig] = useState<JekoConfig>({
     settings: { points_per_1000: 10, welcome_bonus: 20 },
     tiers: JEKO_TIERS,
     rewards: JEKO_REWARDS,
@@ -120,19 +116,15 @@ export default function AccountPage() {
 
         fetchAccountOrders().then(setOrders).catch(() => setOrders([]));
         fetchAddresses().then(setAddresses).catch(() => setAddresses([]));
-
-        try {
-          const leftover = await fetch('/api/auth/me').then(res => res.json()) as { user?: { id: string; points?: number; newsletter?: boolean } | null };
-          if (leftover.user) {
-            setNextUserId(leftover.user.id);
-            setUserPoints(leftover.user.points ?? 0);
-            setNewsletter(leftover.user.newsletter ?? true);
-            getLoyaltyHistoryAction(leftover.user.id).then(setJekoHistory).catch(() => {});
-            getLoyaltyConfigAction().then(setJekoConfig).catch(() => {});
-          }
-        } catch {
-          // Jeko stays on Drizzle until M6; a missing Next session is expected for Laravel-only users.
-        }
+        fetchLoyaltySnapshot()
+          .then(({ points, entries }) => {
+            setUserPoints(points);
+            setJekoHistory(entries);
+          })
+          .catch(() => {
+            setUserPoints(0);
+            setJekoHistory([]);
+          });
       })
       .catch(() => {
         setLoading(false);
@@ -218,25 +210,20 @@ export default function AccountPage() {
   };
 
   const redeemReward = async () => {
-    if (!redeemingReward || !nextUserId) return;
+    if (!redeemingReward) return;
     setRedeemMsg(null);
-    const result = await redeemLoyaltyRewardAction(nextUserId, redeemingReward);
-
-    if (result.ok) {
-      setUserPoints(p => p - redeemingReward.pts);
-      setJekoHistory(prev => [{
-        id: Date.now().toString(),
-        points: -redeemingReward.pts,
-        reason: 'redemption',
-        label: `Récompense utilisée : ${redeemingReward.label}`,
-        reference_id: null,
-        created_at: new Date().toISOString(),
-      }, ...prev]);
+    try {
+      const { points, entry } = await redeemLoyalty({
+        points_delta: -redeemingReward.pts,
+        description: `Récompense utilisée : ${redeemingReward.label}`,
+        reference_id: redeemingReward.id,
+      });
+      setUserPoints(points);
+      setJekoHistory(prev => [entry, ...prev]);
       setRedeemMsg({ type: 'ok', text: `✅ Récompense activée : ${redeemingReward.label} ! Un code vous sera envoyé par email.` });
-    } else {
-      setRedeemMsg({ type: 'err', text: result.error ?? 'Erreur lors de la rédemption.' });
+    } catch (err) {
+      setRedeemMsg({ type: 'err', text: apiErrorMessage(err, 'Erreur lors de la rédemption.') });
     }
-
     setRedeemingReward(null);
   };
 

@@ -61,17 +61,15 @@ only after M4 is done (priority rule).
 
 Started after the M4 W8 gate (`pnpm build` green; KA storefront journeys on Laravel).
 
-Shipped so far:
-
 | Module | Public | Admin | Notes |
 | --- | --- | --- | --- |
 | Settings | `GET /settings`, `GET /settings/{key}` (public rows only) | `GET/PATCH /admin/settings/{key}` | `is_public` hides `jeko`; seeder covers SiteConfig keys |
 | Testimonials | `GET /testimonials` (approved) | `admin/testimonials` apiResource | `approved_at` timestamp, not boolean |
 | Reviews | `GET /reviews`, `POST /reviews` (pending) | admin index/show/update/destroy | `product_reviews` FK to KA `products`; store takes child/parent **slug** |
+| Quiz | `GET /quiz-questions`, `POST /quiz-submissions`, `GET /quiz-submissions/{id}` | `admin/quiz-questions` apiResource (nested options via `Question::syncOptions`), `admin/quiz-submissions` index | Questions `skin_tone` / `skin_concern` / `routine`; rules match `{ slug: value_code }` |
+| Loyalty | `GET /loyalty-entries` (auth), `POST /webhooks/jeko-pay` | `admin/loyalty/accounts`, `entries`, `adjustments` store; metrics `loyalty.members` / `points_issued` | Signup bonus 20 pts on `Registered`; HMAC-SHA256 `Jeko-Signature`; extra `loyalty_webhook_logs` table for raw payload + idempotency |
 
-Circular FK migration renamed to `2026_01_01_000032` so it stays last. Full Pest **139** green.
-
-Still to do: Quiz (questions/options/rules/submissions/answers), Loyalty (accounts, ledger, signup bonus, Jeko webhook), MariaDB `migrate:fresh --seed`.
+Circular FK migration is last at `2026_01_01_000041_add_circular_foreign_keys.php` (38 domain files). 13 module providers. Full Pest **155** green. MariaDB `migrate:fresh --seed` ran once (JSON columns + quiz/loyalty FKs).
 
 ## Definition of Done
 

@@ -18,6 +18,7 @@ import type { Address } from '@/features/account/account.constant';
 export type { StorefrontIdentity };
 
 export async function loginStorefront(email: string, password: string, remember = true): Promise<void> {
+  await logoutStorefront();
   await apiRoot('/login', {
     method: 'POST',
     body: JSON.stringify({ email, password, remember }),
@@ -31,6 +32,7 @@ export async function registerStorefront(input: {
   password: string;
   phone?: string;
 }): Promise<void> {
+  await logoutStorefront();
   await apiRoot('/register', {
     method: 'POST',
     body: JSON.stringify({
@@ -69,7 +71,6 @@ export async function resetPassword(input: {
 
 export async function logoutStorefront(): Promise<void> {
   await apiRoot('/logout', { method: 'POST' }).catch(() => undefined);
-  await fetch('/api/auth/logout', { method: 'POST' }).catch(() => undefined);
 }
 
 export async function fetchSession(): Promise<LaravelSession> {
@@ -142,34 +143,4 @@ export async function deleteAddress(id: string): Promise<void> {
 export async function fetchAccountOrders(): Promise<MappedOrder[]> {
   const body = await api<{ data: LaravelOrder[] }>('/account/orders');
   return unwrapData(body).map(mapOrder);
-}
-
-/** Best-effort leftover Next session so M6 loyalty / newsletter routes keep working. */
-export async function mirrorNextLogin(email: string, password: string): Promise<void> {
-  try {
-    await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-  } catch {
-    // Leftover Next user is optional until M6.
-  }
-}
-
-export async function mirrorNextRegister(input: {
-  email: string;
-  password: string;
-  prenom: string;
-  nom: string;
-}): Promise<void> {
-  try {
-    await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(input),
-    });
-  } catch {
-    // Leftover Next user is optional until M6.
-  }
 }

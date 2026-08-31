@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { apiErrorMessage } from '@/shared/api';
-import { loginStorefront, mirrorNextLogin } from '@/shared/api/auth';
+import { loginStorefront } from '@/shared/api/auth';
 import styles from '../auth.module.css';
 
 function ConnexionContent() {
@@ -26,7 +26,6 @@ function ConnexionContent() {
 
     try {
       await loginStorefront(email, password, remember);
-      await mirrorNextLogin(email, password);
       const next = new URLSearchParams(globalThis.location.search).get('next') ?? '/compte';
       globalThis.location.href = next;
     } catch (err) {

@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { apiErrorMessage } from '@/shared/api';
-import { mirrorNextRegister, registerStorefront } from '@/shared/api/auth';
+import { registerStorefront } from '@/shared/api/auth';
 import styles from '../auth.module.css';
 
 export default function InscriptionPage() {
@@ -40,12 +40,6 @@ export default function InscriptionPage() {
         nom: form.nom,
         email: form.email,
         password: form.password,
-      });
-      await mirrorNextRegister({
-        email: form.email,
-        password: form.password,
-        prenom: form.prenom,
-        nom: form.nom,
       });
       setLoading(false);
       setSuccess(true);

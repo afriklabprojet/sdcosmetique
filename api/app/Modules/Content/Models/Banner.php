@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Content\Models;
 
+use App\Shared\Storefront\RevalidatesStorefront;
 use App\Shared\Translations\HasTranslations;
 use App\Shared\Translations\Translatable;
 use Database\Factories\Content\BannerFactory;
@@ -22,10 +23,19 @@ class Banner extends Model
     use HasFactory;
 
     use HasTranslations;
+    use RevalidatesStorefront;
 
     public function visible(): bool
     {
         return $this->visible_at !== null && $this->visible_at->lessThanOrEqualTo(Carbon::now());
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected static function storefrontCacheTags(): array
+    {
+        return ['banners'];
     }
 
     protected static function newFactory(): BannerFactory

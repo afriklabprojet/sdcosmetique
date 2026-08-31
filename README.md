@@ -1,80 +1,50 @@
 # SD Cosmétique
 
-Boutique e-commerce de cosmétiques haut de gamme pour peaux à mélanine, développée avec Next.js 15 App Router.
+Premium cosmetics storefront for melanin-rich skin. Two apps, one repository:
+the Laravel API owns data and sessions; the Next.js app owns the storefront and
+the admin UI.
 
-## Stack
+## Layout
 
-- **Framework** : Next.js 15 (App Router, Server Components)
-- **Langage** : TypeScript
-- **Styling** : Tailwind CSS v4 + CSS custom properties
-- **Base de données** : Supabase (PostgreSQL + Auth + Storage)
-- **Emails** : Resend
-- **Paiement** : Jeko Pay (intégration Africa)
-- **Déploiement** : Hostinger VPS (PM2) / Vercel-ready
+| Path | Role | Toolchain |
+| --- | --- | --- |
+| [`./api`](api/README.md) | Laravel 13 JSON API (Sanctum SPA-cookie + Fortify). SQLite in development, MariaDB in production. | Composer, artisan |
+| [`./web`](web/README.md) | Next.js 16 storefront + `/admin`. No database client. | pnpm |
+| [`./docs`](docs/milestones/README.md) | Migration milestones and schema notes. | — |
 
-## Fonctionnalités
+`./web` never talks to a database. Every read and write goes through `./api`
+over HTTP (`NEXT_PUBLIC_API_URL`). Admin writes hit `/api/admin/*` and are
+gated by an active `admins` row, not an env allow-list.
 
-- Catalogue produits avec filtres par teinte et catégorie
-- Quiz de diagnostic peau → recommandations personnalisées
-- Panier, wishlist, checkout complet
-- Authentification (inscription, connexion, mot de passe oublié)
-- Compte client avec historique commandes
-- Dashboard admin avec analytics, gestion commandes/produits/clients
-- Programme fidélité SDZ Fidélité (tiers Bronze → Or → Platine)
-- Emails transactionnels (confirmation commande, expédition, bienvenue)
-- PWA ready (manifest, offline support)
-- SEO : sitemap.xml, robots.txt, OG images, métadonnées dynamiques
+## Local development
 
-## Lancer en local
+Run both apps. Browse the storefront as **`http://localhost:3000`** (not
+`127.0.0.1`) so the Sanctum session cookie (`SESSION_DOMAIN=localhost`) is
+visible to the browser.
 
 ```bash
-# Installer les dépendances
-npm install
+# API
+cd api
+cp .env.example .env   # then php artisan key:generate
+php artisan migrate --seed
+php artisan serve      # http://127.0.0.1:8000
 
-# Configurer les variables d'environnement
-cp .env.example .env.local
-# Remplir NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY...
-
-# Démarrer le serveur de développement
-npm run dev
+# Storefront (second terminal)
+cd web
+cp .env.example .env   # NEXT_PUBLIC_API_URL + REVALIDATE_SECRET
+pnpm install
+pnpm dev               # http://localhost:3000
 ```
 
-Ouvrir [http://localhost:3000](http://localhost:3000)
+`WEB_REVALIDATE_SECRET` in `api/.env` must match `REVALIDATE_SECRET` in
+`web/.env`. Seeded admin: `admin@ka.ci` / `password`.
 
-## Structure
-
-```
-src/
-├── app/          # Pages (App Router)
-├── components/   # Composants React
-├── lib/          # Services, helpers, config
-├── context/      # CartContext, WishlistContext
-└── utils/        # Supabase client, helpers
-supabase/
-└── migrations/   # Schémas SQL versionnés
-```
-
-## Scripts utiles
+## Tests
 
 ```bash
-npm run build       # Build production
-npm run lint        # ESLint
-npx tsc --noEmit    # Vérification types TypeScript
+cd api && php artisan test    # Pest
+cd web && pnpm build          # production build (API must be up for prerender)
 ```
 
-## Variables d'environnement requises
-
-Voir `.env.example` pour la liste complète.
-
-| Variable | Description |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | URL projet Supabase |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clé publique Supabase |
-| `SUPABASE_SERVICE_ROLE_KEY` | Clé service (server-side uniquement) |
-| `RESEND_API_KEY` | Clé API Resend (emails) |
-| `NEXT_PUBLIC_SITE_URL` | URL du site en production |
-| `JEKO_PAY_SECRET_KEY` | Clé secrète Jeko Pay |
-
-
-
-
+Customer-facing copy is French. Identifiers, comments, and docs in this repo
+are English.

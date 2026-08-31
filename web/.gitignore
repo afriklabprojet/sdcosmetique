@@ -11,11 +11,12 @@ out/
 build/
 next-env.d.ts
 
-# Testing (Playwright / Jest)
+# Testing
 test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
+.playwright-mcp/
 coverage/
 .nyc_output/
 
@@ -24,7 +25,7 @@ coverage/
 .eslintcache
 *.tsbuildinfo
 
-# Environment
+# Environment — the root file already covers .env*, this is belt and braces
 .env
 .env.*
 !.env.example

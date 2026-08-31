@@ -1,7 +1,7 @@
 /**
  * POST /api/revalidate
- * Revalidation ISR on-demand — déclenché par un webhook Supabase,
- * un CMS ou un script de déploiement.
+ * On-demand ISR — Laravel observers POST here after admin writes
+ * (products, categories, banners, pages, settings).
  *
  * Header requis : x-revalidate-secret: <REVALIDATE_SECRET>
  * Body (JSON) : { paths?: string[], tags?: string[] }

@@ -22,6 +22,17 @@ it('guards admin testimonials', function (): void {
     $this->getJson('/api/admin/testimonials')->assertForbidden();
 });
 
+it('accepts a public testimonial store as pending', function (): void {
+    $this->postJson('/api/testimonials', [
+        'name' => 'Fatou',
+        'text' => 'Peau lumineuse après deux semaines.',
+    ])->assertCreated()
+        ->assertJsonPath('data.name', 'Fatou');
+
+    expect(Testimonial::query()->whereNull('approved_at')->count())->toBe(1);
+    $this->getJson('/api/testimonials')->assertJsonCount(0, 'data');
+});
+
 it('lets an admin moderate testimonials', function (): void {
     $row = Testimonial::factory()->pending()->create();
 

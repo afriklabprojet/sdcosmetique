@@ -19,6 +19,15 @@
 /storage/*.key
 /storage/pail
 /vendor
+
+# SQLite development database (B3)
+/database/*.sqlite
+/database/*.sqlite-journal
+
+# Locally stored media (C12)
+/storage/app/public/*
+!/storage/app/public/.gitignore
+
 _ide_helper.php
 Homestead.json
 Homestead.yaml

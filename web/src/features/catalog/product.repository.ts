@@ -1,14 +1,10 @@
 /**
- * Server-component catalog reads. Products and related items come from Laravel.
- * Reviews stay on Drizzle until M6.
+ * Server-component catalog reads from Laravel.
  */
 import { unstable_cache } from 'next/cache';
-import { eq, desc } from 'drizzle-orm';
-import { db } from '@/shared/db';
-import { reviews } from '@/shared/db/schema';
 import { Product, Category, Review } from '@/shared/types/domain.type';
 import { listProducts, showProduct } from '@/shared/api/catalog';
-import { rowToReview } from '@/features/catalog/catalog.mapper';
+import { fetchReviews } from '@/shared/api/reviews';
 
 export const fetchProducts = unstable_cache(
   async (): Promise<Product[]> => listProducts({ perPage: 100 }),
@@ -51,16 +47,6 @@ export const fetchRelatedProducts = unstable_cache(
   { revalidate: 60, tags: ['products'] },
 );
 
-export async function fetchReviewsByProduct(productId: string): Promise<Review[]> {
-  try {
-    const data = await db
-      .select()
-      .from(reviews)
-      .where(eq(reviews.productId, productId))
-      .orderBy(desc(reviews.createdAt));
-    if (!data?.length) return [];
-    return data.map(rowToReview);
-  } catch {
-    return [];
-  }
+export async function fetchReviewsByProduct(productSlug: string): Promise<Review[]> {
+  return fetchReviews(productSlug);
 }

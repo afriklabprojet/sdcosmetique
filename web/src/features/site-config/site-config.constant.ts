@@ -338,6 +338,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   marketing: DEFAULT_MARKETING,
   branding: DEFAULT_BRANDING,
   payment_methods_active: ['orange_money', 'wave', 'mtn_momo', 'moov_money', 'djamo', 'visa_mastercard', 'cash_on_delivery'],
+  payment_images: {},
   global_promo: DEFAULT_GLOBAL_PROMO,
 };
 

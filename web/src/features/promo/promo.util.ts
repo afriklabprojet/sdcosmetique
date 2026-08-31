@@ -94,10 +94,9 @@ export function computeEffectivePrice(
 // ─── Codes promo ──────────────────────────────────────────────────────────────
 
 /*
- * Ces deux fonctions vivaient dans `site-config.util.ts`, aux cotes de l'acces
- * Supabase a la configuration. Elles ne lisent pourtant aucune configuration :
- * elles ne connaissent que la liste de `PromoCode` qu'on leur passe et un
- * total. Leur sujet est la promotion, pas la configuration du site.
+ * These two functions used to live next to site-config loaders. They do not
+ * read configuration: they only know the `PromoCode` list they are given and
+ * a total. Their subject is promotion, not site config.
  */
 
 /**

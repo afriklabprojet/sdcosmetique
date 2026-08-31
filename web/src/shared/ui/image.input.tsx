@@ -1,5 +1,6 @@
 'use client';
 import React, { useCallback, useRef, useState } from 'react';
+import { uploadAdminMedia } from '@/shared/api/admin';
 
 interface ImageUploadProps {
   readonly value: string;           // URL actuelle
@@ -34,13 +35,8 @@ export default function ImageUpload({
     setError(null);
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('folder', folder);
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? 'Erreur upload');
-      selectImage(json.url);
+      const url = await uploadAdminMedia(file, folder);
+      selectImage(url);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Erreur lors de l\'upload.');
     } finally {

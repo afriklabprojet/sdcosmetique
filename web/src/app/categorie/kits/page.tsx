@@ -5,18 +5,15 @@ import Image from 'next/image';
 import Link from 'next/link';
 import styles from './kits.module.css';
 import CategoryBrowser from '@/features/catalog/views/category-browser.view';
+import { fetchSiteConfigSection } from '@/features/site-config/site-config.util';
 import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
 import type { KitsHeroConfig } from '@/features/site-config/site-config.type';
-
 
 export default function KitsCategoryPage() {
   const [hero, setHero] = useState<KitsHeroConfig>(DEFAULT_SITE_CONFIG.hero_kits);
 
   useEffect(() => {
-    fetch('/api/config/hero_kits')
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.value) setHero(d.value as KitsHeroConfig); })
-      .catch(() => {});
+    fetchSiteConfigSection('hero_kits').then(setHero).catch(() => {});
   }, []);
 
   return (

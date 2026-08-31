@@ -7,8 +7,10 @@ use App\Modules\Catalog\Providers\ModuleServiceProvider as CatalogServiceProvide
 use App\Modules\Content\Providers\ModuleServiceProvider as ContentServiceProvider;
 use App\Modules\Identity\Providers\ModuleServiceProvider as IdentityServiceProvider;
 use App\Modules\Leads\Providers\ModuleServiceProvider as LeadsServiceProvider;
+use App\Modules\Loyalty\Providers\ModuleServiceProvider as LoyaltyServiceProvider;
 use App\Modules\Orders\Providers\ModuleServiceProvider as OrdersServiceProvider;
 use App\Modules\Payments\Providers\ModuleServiceProvider as PaymentsServiceProvider;
+use App\Modules\Quiz\Providers\ModuleServiceProvider as QuizServiceProvider;
 use App\Modules\Reviews\Providers\ModuleServiceProvider as ReviewsServiceProvider;
 use App\Modules\Settings\Providers\ModuleServiceProvider as SettingsServiceProvider;
 use App\Modules\Shopping\Providers\ModuleServiceProvider as ShoppingServiceProvider;
@@ -27,5 +29,7 @@ return [
         SettingsServiceProvider::class,
         TestimonialsServiceProvider::class,
         ReviewsServiceProvider::class,
+        QuizServiceProvider::class,
+        LoyaltyServiceProvider::class,
     ],
 ];

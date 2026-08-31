@@ -11,7 +11,6 @@ const apiOrigin = (process.env.NEXT_PUBLIC_API_URL ?? '').replace(/\/api\/?$/, '
 
 const nextConfig: NextConfig = {
   output: 'standalone',
-  serverExternalPackages: ['mysql2'],
 
   // ── Turbopack : forcer la racine de workspace pour éviter le panic dev-mode ─
   turbopack: {
@@ -48,18 +47,12 @@ const nextConfig: NextConfig = {
     // Optimisation server React (Next 16+)
     optimizeServerReact: true,
     optimizePackageImports: [
-      '@supabase/supabase-js',
-      '@supabase/ssr',
-      '@upstash/ratelimit',
-      '@upstash/redis',
+      'framer-motion',
     ],
   },
 
-  // [SEC-01] Variables publiques : plus de fallbacks hardcodés pour les secrets.
-  // Les clés Supabase DOIVENT être définies dans .env.local / env de déploiement.
+  // [SEC-01] Public site URL/name only. API origin comes from NEXT_PUBLIC_API_URL.
   env: {
-    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000',
     NEXT_PUBLIC_SITE_NAME: process.env.NEXT_PUBLIC_SITE_NAME ?? 'SD Cosmétique',
   },
@@ -77,7 +70,20 @@ const nextConfig: NextConfig = {
     contentDispositionType: 'attachment',
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
-      { protocol: "https", hostname: "spcguwuqqwvjfnfctrzs.supabase.co" },
+      ...(() => {
+        if (!apiOrigin) return [];
+        try {
+          const u = new URL(apiOrigin);
+          const pattern: { protocol: "http" | "https"; hostname: string; port?: string } = {
+            protocol: u.protocol.replace(':', '') as 'http' | 'https',
+            hostname: u.hostname,
+          };
+          if (u.port) pattern.port = u.port;
+          return [pattern];
+        } catch {
+          return [];
+        }
+      })(),
     ],
   },
 
@@ -176,8 +182,8 @@ const nextConfig: NextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https://spcguwuqqwvjfnfctrzs.supabase.co https://images.unsplash.com",
-              `connect-src 'self'${apiOrigin ? ` ${apiOrigin}` : ''} https://*.supabase.co wss://*.supabase.co https://graph.facebook.com https://api.resend.com`,
+              "img-src 'self' data: blob: https://images.unsplash.com" + (apiOrigin ? ` ${apiOrigin}` : ''),
+              `connect-src 'self'${apiOrigin ? ` ${apiOrigin}` : ''} https://graph.facebook.com https://api.resend.com`,
               "font-src 'self' data:",
               "frame-ancestors 'none'",
               "object-src 'none'",

@@ -42,6 +42,7 @@ function AdminLoginContent() {
 
     try {
       try {
+        await apiRoot('/logout', { method: 'POST' }).catch(() => undefined);
         await apiRoot('/login', {
           method: 'POST',
           body: JSON.stringify({ email, password }),
@@ -58,20 +59,6 @@ function AdminLoginContent() {
           throw new Error("Cet email n'est pas autorisé à accéder au dashboard admin.");
         }
         throw new Error(loginFailureMessage(err, 'Session administrateur indisponible.'));
-      }
-
-      const nextRes = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-      const nextData = await nextRes.json().catch(() => ({}));
-      if (!nextRes.ok || nextData.error) {
-        await apiRoot('/logout', { method: 'POST' }).catch(() => undefined);
-        throw new Error(
-          nextData.error
-          ?? 'Compte Laravel reconnu, mais cet email n’existe pas côté Next. Créez le même admin dans les deux bases.',
-        );
       }
 
       globalThis.location.href = '/admin';

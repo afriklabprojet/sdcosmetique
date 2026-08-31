@@ -1,5 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
+import { fetchPublicSetting } from '@/shared/api/settings';
 
 /* ─── Fallbacks SVG (affichés si aucune image réelle n'est configurée) ─── */
 const LABELS: Record<string, string> = {
@@ -70,21 +71,15 @@ export default function PaymentBand() {
   const [images, setImages] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    fetch('/api/config/payment_methods_active')
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (data?.value && Array.isArray(data.value) && data.value.length > 0) {
-          setActive(data.value);
-        }
+    fetchPublicSetting('payment_methods_active')
+      .then((value) => {
+        if (Array.isArray(value) && value.length > 0) setActive(value);
       })
       .catch(() => {});
 
-    fetch('/api/config/payment_images')
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (data?.value && typeof data.value === 'object') {
-          setImages(data.value as Record<string, string>);
-        }
+    fetchPublicSetting('payment_images')
+      .then((value) => {
+        if (value && typeof value === 'object') setImages(value);
       })
       .catch(() => {});
   }, []);

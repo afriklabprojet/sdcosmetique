@@ -1,65 +1,34 @@
-'use server';
+import {
+  fetchApprovedTestimonials as fetchApproved,
+  fetchAdminTestimonials,
+  submitTestimonial as postTestimonial,
+  patchAdminTestimonial,
+  deleteAdminTestimonial,
+  type TestimonialRow,
+} from '@/shared/api/testimonials';
 
-import { eq, desc } from 'drizzle-orm';
-import { db } from '@/shared/db';
-import { testimonials } from '@/shared/db/schema';
-import type { WriteResult } from '@/shared/types/operation-result.type';
+export type { TestimonialRow };
 
-export interface TestimonialRow {
-  id: string;
-  name: string;
-  text: string;
-  avatar_url: string;
-  approved: boolean;
-  created_at: string;
+export async function fetchApprovedTestimonials(): Promise<TestimonialRow[]> {
+  return fetchApproved();
+}
+
+export async function fetchAllTestimonialsAdmin(): Promise<TestimonialRow[]> {
+  return fetchAdminTestimonials();
 }
 
 export async function submitTestimonial(data: {
   name: string;
   text: string;
   avatar_url?: string;
-}): Promise<WriteResult> {
-  try {
-    await db.insert(testimonials).values({
-      name: data.name.trim(),
-      text: data.text.trim(),
-      avatarUrl: data.avatar_url ?? '',
-      approved: false,
-    });
-    return {};
-  } catch (e: unknown) {
-    return { error: e instanceof Error ? e.message : String(e) };
-  }
-}
-
-export async function fetchAllTestimonialsAdmin(): Promise<TestimonialRow[]> {
-  try {
-    const data = await db.select().from(testimonials).orderBy(desc(testimonials.createdAt));
-    return data.map(r => ({
-      id: r.id,
-      name: r.name,
-      text: r.text,
-      avatar_url: r.avatarUrl ?? '',
-      approved: Boolean(r.approved),
-      created_at: r.createdAt.toISOString(),
-    }));
-  } catch {
-    return [];
-  }
+}): Promise<{ error?: string }> {
+  return postTestimonial(data);
 }
 
 export async function approveTestimonial(id: string, approved: boolean): Promise<void> {
-  try {
-    await db.update(testimonials).set({ approved }).where(eq(testimonials.id, id));
-  } catch (e) {
-    console.error('[testimonial.repository] approve error:', e);
-  }
+  await patchAdminTestimonial(id, approved);
 }
 
 export async function deleteTestimonial(id: string): Promise<void> {
-  try {
-    await db.delete(testimonials).where(eq(testimonials.id, id));
-  } catch (e) {
-    console.error('[testimonial.repository] delete error:', e);
-  }
+  await deleteAdminTestimonial(id);
 }

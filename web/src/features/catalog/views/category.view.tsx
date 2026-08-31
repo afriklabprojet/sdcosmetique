@@ -4,7 +4,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product, Category, SkinTone, CATEGORIES } from '@/shared/types/domain.type';
-import type { CategoryHeroConfig } from '@/features/site-config/site-config.type';
+import { fetchSiteConfigSection } from '@/features/site-config/site-config.util';
+import type { SiteConfig, CategoryHeroConfig } from '@/features/site-config/site-config.type';
 import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
 import ProductCard from '@/features/catalog/cards/product.card';
 import SkinToneSelector from '@/features/catalog/selects/skin-tone.select';
@@ -37,7 +38,7 @@ const NO_SKIN_FILTER_CATEGORIES = new Set<Category>(['minceur', 'kit-levre']);
 export default function CategoryClient({ initialProducts, slug }: Readonly<Props>) {
   const [skinToneFilter, setSkinToneFilter] = useState<SkinTone | null>(null);
   const [sortBy, setSortBy] = useState('popular');
-  const configKey = `hero_${slug.replace(/-/g, '_')}`;
+  const configKey = `hero_${slug.replace(/-/g, '_')}` as keyof SiteConfig;
   // Le défaut local est dérivé au rendu : évite un flash vide sans passer par un effet.
   const defaultHero = useMemo(() => {
     const defVal = DEFAULT_SITE_CONFIG[configKey as keyof typeof DEFAULT_SITE_CONFIG];
@@ -51,9 +52,12 @@ export default function CategoryClient({ initialProducts, slug }: Readonly<Props
   const heroConfig = remoteHero?.key === configKey ? remoteHero.config : defaultHero;
 
   useEffect(() => {
-    fetch(`/api/config/${configKey}`)
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.value?.eyebrow) setRemoteHero({ key: configKey, config: d.value as CategoryHeroConfig }); })
+    fetchSiteConfigSection(configKey)
+      .then((value) => {
+        if (value && typeof value === 'object' && 'eyebrow' in value) {
+          setRemoteHero({ key: configKey, config: value as CategoryHeroConfig });
+        }
+      })
       .catch(() => {});
   }, [configKey]);
   const showSkinToneFilter = !NO_SKIN_FILTER_CATEGORIES.has(slug);

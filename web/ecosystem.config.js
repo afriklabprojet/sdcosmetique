@@ -9,7 +9,7 @@ module.exports = {
         NODE_ENV: 'production',
         // Ne PAS surcharger PORT ici — Hostinger assigne son propre port via l'env système.
         // next start lit PORT depuis l'environnement (package.json: "next start -p ${PORT:-3000}")
-        // Force IPv4 DNS pour éviter que Next.js bloque les images Supabase (NAT64 → "private ip")
+        // Force IPv4 DNS so Next.js does not treat API image hosts as private (NAT64)
         NODE_OPTIONS: '--dns-result-order=ipv4first',
       },
       instances: 1,

@@ -29,6 +29,16 @@ export {
 } from '@/shared/api/checkout';
 export { subscribeNewsletter, sendContactMessage } from '@/shared/api/leads';
 export {
+  fetchLoyaltySnapshot,
+  redeemLoyalty,
+  fetchAdminLoyaltyAccounts,
+  fetchAdminLoyaltyEntries,
+  storeAdminLoyaltyAdjustment,
+} from '@/shared/api/loyalty';
+export { fetchPublicSetting, fetchPublicSettings, fetchAdminSettings, patchAdminSetting } from '@/shared/api/settings';
+export { fetchReviews, submitReview, fetchAdminReviews } from '@/shared/api/reviews';
+export { fetchQuizQuestions, submitQuiz, fetchAdminQuizSubmissions } from '@/shared/api/quiz';
+export {
   loginStorefront,
   registerStorefront,
   forgotPassword,
@@ -43,6 +53,4 @@ export {
   saveAddress,
   deleteAddress,
   fetchAccountOrders,
-  mirrorNextLogin,
-  mirrorNextRegister,
 } from '@/shared/api/auth';

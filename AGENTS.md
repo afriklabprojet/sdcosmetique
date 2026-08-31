@@ -40,15 +40,46 @@ After big code changes, refresh the graph with `graft build` (deterministic,
 no API key, $0).
 <!-- graft:end -->
 
+## Repository layout
+
+This repository has three parts. They do not share a package manager, a
+dependency tree, or a test runner.
+
+| Path      | What it is                              | Toolchain           |
+| --------- | --------------------------------------- | ------------------- |
+| `./api`   | Laravel 13 JSON API                     | Composer, artisan   |
+| `./web`   | Next.js 16 storefront + `/admin`        | pnpm                |
+| `./`      | AI markdown, `docs/`, root config       | none                |
+
+`./web` has **no database access of any kind** — no driver, no ORM, no
+credentials. Every read and write goes through `./api` over HTTP. If you find
+yourself adding a database client to `./web`, stop: that is the one structural
+rule this repository has.
+
+Administration lives in `./web` at `/admin` and talks to `/api/admin/*`. There
+is no Filament. Admin authorization is an active row in the `admins` table, not
+cookie presence.
+
 ## Workspace Preferences
 
-### Package Manager
-- **Use `pnpm`** for package management, installation, and script execution:
-  - Install: `pnpm install`
-  - Dev server: `pnpm dev`
-  - Build: `pnpm build`
-  - Lint: `pnpm lint`
-  - Test: `pnpm test` or `pnpm exec playwright test`
+### Package managers — two, scoped by directory
+
+Never run a package command from the repository root. There is no root
+package.json and no root composer.json.
+
+**`./api` — Composer + artisan**
+- Install: `composer install`
+- Dev server: `php artisan serve`
+- Migrate: `php artisan migrate`
+- Seed: `php artisan db:seed`
+- Test: `php artisan test` (Pest)
+
+**`./web` — pnpm**
+- Install: `pnpm install`
+- Dev server: `pnpm dev`
+- Build: `pnpm build`
+- Lint: `pnpm lint`
+- Test: `pnpm test`
 
 ### Command-line Tools
 - **Prioritize Rust-based alternatives** for performance:
@@ -63,3 +94,18 @@ no API key, $0).
   end user (UI labels, page content, emails, user-visible error messages).
   Keep that in the site's language, and keep it out of identifiers — put it in
   i18n resources or content files, not hardcoded in logic.
+
+## Conventions
+
+**Routing is CRUDdy by Design.** Controllers expose only `index`, `create`,
+`store`, `show`, `edit`, `update`, `destroy`. If an action does not fit, it is a
+new resource, not a new method. No `XxxService` or `XxxManager` classes.
+
+**Money is integer minor units.** XOF, never a float, never a decimal column.
+
+**Orders snapshot the customer.** `orders` carries `email` and `destination`
+JSON plus `subtotal` and `total` in minor units. There is no `order_customers`
+or `order_adjustments` table.
+
+**Admins, not an allow-list.** There is no `ADMIN_EMAILS` env var. Authorisation
+is an active (non-revoked) row in `admins` for the signed-in user.

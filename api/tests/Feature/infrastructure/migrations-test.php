@@ -27,8 +27,8 @@ it('keeps the circular-pointer migration last among the 2026 domain files', func
         ->sort()
         ->values();
 
-    expect($domain->last())->toBe('2026_01_01_000032_add_circular_foreign_keys.php')
-        ->and($domain)->toHaveCount(30);
+    expect($domain->last())->toBe('2026_01_01_000041_add_circular_foreign_keys.php')
+        ->and($domain)->toHaveCount(38);
 });
 
 it('emits domain schema only through the schema builder', function (): void {

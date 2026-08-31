@@ -1,31 +1,42 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from 'next/server';
+import { RateLimiterMemory } from 'rate-limiter-flexible';
+import { getIp, rateLimitHeaders } from '@/shared/http/rate-limit.guard';
 
-const PUBLIC_PREFIXES = ['/', '/boutique', '/produit', '/categorie', '/quiz', '/teint', '/avis', '/confirmation'];
+const revalidateLimiter = new RateLimiterMemory({ points: 10, duration: 600 });
+const cspLimiter = new RateLimiterMemory({ points: 30, duration: 600 });
 
-function isPublicOnly(pathname: string): boolean {
-  if (pathname === '/') return true;
-  return PUBLIC_PREFIXES.slice(1).some(p => pathname.startsWith(p));
-}
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const limiter = pathname === '/api/revalidate'
+    ? revalidateLimiter
+    : pathname === '/api/csp-report'
+      ? cspLimiter
+      : null;
 
-export function middleware(request: NextRequest) {
-  const isAdminLogin = request.nextUrl.pathname === '/admin/login';
-  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin') && !isAdminLogin;
-
-  if (isPublicOnly(request.nextUrl.pathname)) {
-    return NextResponse.next();
-  }
-
-  const hasSession = Boolean(request.cookies.get('sd_session')?.value);
-
-  if (isAdminRoute && !hasSession) {
-    return NextResponse.redirect(new URL('/admin/login', request.url));
+  if (limiter) {
+    try {
+      await limiter.consume(getIp(request), 1);
+    } catch (rej) {
+      if (rej instanceof Error) throw rej;
+      const retryAfter = Math.max(1, Math.ceil((rej as { msBeforeNext?: number }).msBeforeNext ?? 60000) / 1000);
+      return NextResponse.json(
+        { error: 'rate_limit_exceeded' },
+        {
+          status: 429,
+          headers: rateLimitHeaders({
+            ok: false,
+            limit: pathname === '/api/revalidate' ? 10 : 30,
+            remaining: 0,
+            resetAt: Date.now() + retryAfter * 1000,
+          }),
+        },
+      );
+    }
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: [
-    String.raw`/((?!api|_next/static|_next/image|favicon.ico|.*\.).*)`,
-  ]
+  matcher: ['/admin/:path*', '/api/revalidate', '/api/csp-report'],
 };

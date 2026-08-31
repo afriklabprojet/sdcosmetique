@@ -16,7 +16,7 @@ const TONES = [
 type Tone = typeof TONES[number];
 
 function ToneCard({ tone, override }: Readonly<{ tone: Tone; override?: string }>) {
-  // Cascade: Supabase override -> static local file -> hide (CSS color shows)
+  // Cascade: settings override -> static local file -> hide (CSS color shows)
   const sources = useMemo(
     () => [override, tone.staticImg].filter(Boolean) as string[],
     [override, tone.staticImg]
@@ -93,7 +93,7 @@ interface SkinToneSectionProps {
 export default function SkinToneSection({ images, title }: SkinToneSectionProps = {}) {
   const { ref: sectionRef, visible } = useReveal<HTMLElement>(0.1);
 
-  // Map slug → image URL from Supabase config (fallback to static path)
+  // Map slug → image URL from site settings (fallback to static path)
   const imageMap: Record<string, string> = {
     'noir':         images?.noir        || '',
     'marron':       images?.marron      || '',

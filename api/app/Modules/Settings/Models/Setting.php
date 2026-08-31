@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Settings\Models;
 
+use App\Shared\Storefront\RevalidatesStorefront;
 use Database\Factories\Settings\SettingFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -16,6 +17,8 @@ class Setting extends Model
 {
     /** @use HasFactory<SettingFactory> */
     use HasFactory;
+
+    use RevalidatesStorefront;
 
     public $incrementing = false;
 
@@ -33,6 +36,14 @@ class Setting extends Model
     public function public(): bool
     {
         return (bool) $this->is_public;
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected static function storefrontCacheTags(): array
+    {
+        return ['site-config'];
     }
 
     protected static function newFactory(): SettingFactory

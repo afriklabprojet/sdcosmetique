@@ -1,4 +1,4 @@
-'use server';
+import { listCategories } from '@/shared/api/catalog';
 
 export interface CategoryRow {
   id: string;
@@ -14,12 +14,6 @@ export interface CategoryRow {
   created_at: string;
 }
 
-// ─── Fetch toutes les catégories actives (frontend) ──────────────────────────
 export async function fetchActiveCategories(): Promise<CategoryRow[]> {
-  const { listCategories } = await import('@/shared/api/catalog');
-  try {
-    return await listCategories();
-  } catch {
-    return [];
-  }
+  return listCategories();
 }

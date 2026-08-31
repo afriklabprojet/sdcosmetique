@@ -8,13 +8,15 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { SKIN_TONES, Product } from '@/shared/types/domain.type';
-import { fetchActiveConcerns, fetchActiveRoutines } from '@/features/quiz/quiz.repository';
+import type { Product } from '@/shared/types/domain.type';
+import { fetchActiveConcerns, fetchActiveRoutines, fetchActiveSkinTones } from '@/features/quiz/quiz.repository';
+import { submitQuiz } from '@/shared/api/quiz';
+import { fetchSiteConfigSection } from '@/features/site-config/site-config.util';
 import styles from '@/features/quiz/quiz.module.css';
 import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
 import type { QuizHeroConfig } from '@/features/site-config/site-config.type';
 import type { QuizAnswers, QuizItem, QuizOption, QuizStep } from '@/features/quiz/quiz.type';
-import { DEFAULT_CONCERNS, DEFAULT_ROUTINES, STEPS, EMPTY_RECOMMENDATIONS } from '@/features/quiz/quiz.constant';
+import { DEFAULT_CONCERNS, DEFAULT_ROUTINES, DEFAULT_SKIN_TONES, EMPTY_RECOMMENDATIONS, STEPS, TONE_SWATCH } from '@/features/quiz/quiz.constant';
 import WelcomeStep from '@/features/quiz/steps/welcome.step';
 import QuestionStep from '@/features/quiz/steps/question.step';
 import ResultStep from '@/features/quiz/steps/result.step';
@@ -27,6 +29,7 @@ export default function QuizPage() {
   const [answers, setAnswers] = useState<QuizAnswers>({});
   const [concerns, setConcerns] = useState<QuizItem[]>(DEFAULT_CONCERNS);
   const [routines, setRoutines] = useState<QuizItem[]>(DEFAULT_ROUTINES);
+  const [tones, setTones] = useState<QuizItem[]>(DEFAULT_SKIN_TONES);
   const [hero, setHero] = useState<QuizHeroConfig>(DEFAULT_SITE_CONFIG.hero_quiz);
   // Les recommandations sont mémorisées avec la teinte qui les a produites :
   // hors de l'étape "result" (ou sur un autre teint) on retombe sur [] au rendu,
@@ -38,31 +41,34 @@ export default function QuizPage() {
   useEffect(() => {
     fetchActiveConcerns().then(data => { if (data.length) setConcerns(data); }).catch(() => {});
     fetchActiveRoutines().then(data => { if (data.length) setRoutines(data); }).catch(() => {});
-    fetch('/api/config/hero_quiz')
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.value) setHero(d.value as QuizHeroConfig); })
-      .catch(() => {});
+    fetchActiveSkinTones().then(data => { if (data.length) setTones(data); }).catch(() => {});
+    fetchSiteConfigSection('hero_quiz').then(setHero).catch(() => {});
   }, []);
 
-  // Fetch recommandations via API quand on arrive sur "result"
   useEffect(() => {
-    if (!recoSkinTone) return;
-    const params = new URLSearchParams({ skinTone: recoSkinTone, limit: '4' });
-    fetch(`/api/products?${params}`)
-      .then(r => r.ok ? r.json() : [])
-      .then((data: Product[]) => setReco({ skinTone: recoSkinTone, items: data.slice(0, 4) }))
-      .catch(() => setReco({ skinTone: recoSkinTone, items: [] }));
-  }, [recoSkinTone]);
+    if (step !== 'result' || !recoSkinTone) return;
 
-  useEffect(() => {
-    if (step !== 'result') return;
-    if (!answers.skinTone && !answers.concern && !answers.routine) return;
-    fetch('/api/quiz/submit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ skin_tone: answers.skinTone, concern: answers.concern, routine: answers.routine }),
-    }).catch(() => {});
-  }, [step, answers.skinTone, answers.concern, answers.routine]);
+    const payload = [
+      answers.skinTone ? { question: 'skin_tone', option: answers.skinTone } : null,
+      answers.concern ? { question: 'skin_concern', option: answers.concern } : null,
+      answers.routine ? { question: 'routine', option: answers.routine } : null,
+    ].filter((row): row is { question: string; option: string } => row !== null);
+
+    if (!payload.length) return;
+
+    let active = true;
+    submitQuiz({ answers: payload })
+      .then((result) => {
+        if (active) setReco({ skinTone: recoSkinTone, items: result.recommendations });
+      })
+      .catch(() => {
+        if (active) setReco({ skinTone: recoSkinTone, items: [] });
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [step, recoSkinTone, answers.skinTone, answers.concern, answers.routine]);
 
   const stepIdx = STEPS.indexOf(step);
   const question = step === 'q1' || step === 'q2' || step === 'q3';
@@ -84,16 +90,16 @@ export default function QuizPage() {
     setStep('welcome');
   };
 
-  const toneOptions: QuizOption[] = SKIN_TONES.map(t => ({
+  const toneOptions: QuizOption[] = tones.map(t => ({
     id: t.id,
     label: t.label,
-    meta: t.description,
-    swatchColor: t.color,
+    meta: t.meta,
+    swatchColor: TONE_SWATCH[t.id],
   }));
 
   const concernLabel  = concerns.find(c => c.id === answers.concern)?.label ?? '—';
   const routineLabel  = routines.find(r => r.id === answers.routine)?.label ?? '—';
-  const skinToneLabel = SKIN_TONES.find(t => t.id === answers.skinTone)?.label ?? '—';
+  const skinToneLabel = tones.find(t => t.id === answers.skinTone)?.label ?? '—';
 
   return (
     <div className={styles.page}>
@@ -141,7 +147,7 @@ export default function QuizPage() {
             title={<>Quel est votre teint&nbsp;?</>}
             hint={<>Sélectionnez la nuance la plus proche de votre peau. Cela calibre l&apos;intensité des actifs et la palette de soins recommandée.</>}
             options={toneOptions}
-            selectOption={id => goTo('q2', { skinTone: id as QuizAnswers['skinTone'] })}
+            selectOption={id => goTo('q2', { skinTone: id })}
             grid
           />
         )}

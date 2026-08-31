@@ -49,6 +49,26 @@ settings/testimonials blocks, static legal pages (`GET /settings`), `/quiz`
   → compte → every admin tab.
 - `pnpm build` succeeds.
 
+## Execution (2026-08-31)
+
+Started after the M5 gate (Pest 155 green; quiz/loyalty/settings modules in `./api`).
+
+| Surface | Laravel | Replaces |
+| --- | --- | --- |
+| Admin settings tabs (hero, contenu, faq, legal, branding, marketing, paiement) | `GET/PATCH /admin/settings/{key}` | `saveSiteConfigSection`, `GET /api/config/full` |
+| Quiz tab + analytics + `/quiz` | `admin/quiz-questions`, `admin/quiz-submissions`, `POST /quiz-submissions` | Drizzle `quiz.repository.ts`, `GET /api/quiz/*` |
+| Jeko tab + `/compte` loyalty | `admin/loyalty/*`, `GET/POST /loyalty-entries` | `web/src/app/api/admin/jeko/*`, Drizzle `jeko.repository.ts` |
+| Avis tab + `/avis` | `admin/reviews`, `GET /reviews` | Drizzle `review.repository.ts`, `GET /api/reviews` |
+| Témoignages tab + home | `admin/testimonials`, `GET /testimonials` | leftover Next config fetches |
+| Storefront settings | `GET /settings/{key}` | `GET /api/config/{key}` |
+| Uploads | `POST /admin/media` | `POST /api/upload` |
+
+`web/src/app/api/` now contains only `revalidate/route.ts` and `csp-report/route.ts`. Middleware rate-limits those two with `rate-limiter-flexible@11.2.0`. Laravel observers (`RevalidatesStorefront`) POST storefront tags after product/category/banner/page/setting writes.
+
+`pnpm build` green (43 routes; the two survivors are ƒ). `rg "from '@/shared/db'|drizzle-orm" web/src` hits only `web/src/shared/db/` — `web/scripts/*` stay until M7 per §9.9.
+
+Smoke follow-up (same day): Fortify login/register/logout now always return JSON (browser `fetch` was following a 302 to `GET /` and 404ing). The quiz posts Laravel `value_code`s from `/quiz-questions` instead of hardcoded `SKIN_TONES` ids. `WEB_REVALIDATE_SECRET` is wired to match `web` `REVALIDATE_SECRET` so observers can bust ISR.
+
 ## References
 
 - Rewiring ledger and survivors: [§7.3–§7.8](../implementation-plan/07-web-rewiring.md)

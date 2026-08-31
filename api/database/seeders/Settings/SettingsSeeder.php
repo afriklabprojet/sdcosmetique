@@ -126,10 +126,44 @@ class SettingsSeeder extends Seeder
                 'is_public' => true,
                 'value' => ['orange_money', 'wave', 'mtn_momo', 'moov_money', 'djamo', 'cash_on_delivery'],
             ],
+            'payment_images' => [
+                'is_public' => true,
+                'value' => [],
+            ],
             'global_promo' => ['is_public' => true, 'value' => ['enabled' => false]],
+            'shipping' => [
+                'is_public' => true,
+                'value' => [
+                    'options' => [],
+                    'freeShippingMessage' => '',
+                ],
+            ],
             'jeko' => [
                 'is_public' => false,
-                'value' => ['storeId' => '', 'apiKey' => ''],
+                'value' => [
+                    'storeId' => '',
+                    'apiKey' => '',
+                    'points_per_1000' => 10,
+                    'welcome_bonus' => 20,
+                ],
+            ],
+            'jeko_tiers' => [
+                'is_public' => false,
+                'value' => [
+                    ['label' => 'Bronze', 'min' => 0, 'next' => 50, 'emoji' => '🥉', 'color' => '#CD7F32', 'bg' => '#FDF6EE', 'textColor' => '#92400E'],
+                    ['label' => 'Argent', 'min' => 50, 'next' => 200, 'emoji' => '⭐', 'color' => '#6B7280', 'bg' => '#F9FAFB', 'textColor' => '#374151'],
+                    ['label' => 'Gold', 'min' => 200, 'next' => 500, 'emoji' => '👑', 'color' => '#C8974A', 'bg' => '#FFF7ED', 'textColor' => '#92400E'],
+                    ['label' => 'Platine', 'min' => 500, 'next' => 1000, 'emoji' => '✨', 'color' => '#9333EA', 'bg' => '#FAF5FF', 'textColor' => '#7C3AED'],
+                    ['label' => 'Diamant', 'min' => 1000, 'next' => null, 'emoji' => '💎', 'color' => '#0EA5E9', 'bg' => '#F0F9FF', 'textColor' => '#0369A1'],
+                ],
+            ],
+            'jeko_rewards' => [
+                'is_public' => false,
+                'value' => [
+                    ['id' => 'r100', 'pts' => 100, 'label' => '-1 000 FCFA', 'icon' => '🎁', 'description' => '1 000 FCFA de réduction sur votre prochaine commande', 'active' => true],
+                    ['id' => 'r300', 'pts' => 300, 'label' => '-3 000 FCFA', 'icon' => '💎', 'description' => '3 000 FCFA de réduction sur votre prochaine commande', 'active' => true],
+                    ['id' => 'r500', 'pts' => 500, 'label' => 'Produit offert', 'icon' => '👑', 'description' => 'Un produit au choix jusqu\'à 5 000 FCFA offert', 'active' => true],
+                ],
             ],
         ];
     }

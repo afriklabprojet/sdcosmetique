@@ -15,12 +15,16 @@ export async function listProducts(params?: {
   featured?: boolean;
   perPage?: number;
 }): Promise<Product[]> {
-  const query = new URLSearchParams();
-  if (params?.category) query.set('category', params.category);
-  if (params?.featured) query.set('featured', '1');
-  query.set('perPage', String(params?.perPage ?? 100));
-  const body = await api<Paginated<LaravelStorefrontProduct>>(`/products?${query}`);
-  return body.data.map(mapStorefrontProduct);
+  try {
+    const query = new URLSearchParams();
+    if (params?.category) query.set('category', params.category);
+    if (params?.featured) query.set('featured', '1');
+    query.set('perPage', String(params?.perPage ?? 100));
+    const body = await api<Paginated<LaravelStorefrontProduct>>(`/products?${query}`);
+    return body.data.map(mapStorefrontProduct);
+  } catch {
+    return [];
+  }
 }
 
 export async function showProduct(slug: string): Promise<{ product: Product; related: Product[] } | null> {
@@ -35,11 +39,15 @@ export async function showProduct(slug: string): Promise<{ product: Product; rel
     };
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) return null;
-    throw err;
+    return null;
   }
 }
 
 export async function listCategories(): Promise<CategoryRow[]> {
-  const body = await api<{ data: LaravelStorefrontCategory[] }>('/categories');
-  return unwrapData(body).map(mapStorefrontCategory);
+  try {
+    const body = await api<{ data: LaravelStorefrontCategory[] }>('/categories');
+    return unwrapData(body).map(mapStorefrontCategory);
+  } catch {
+    return [];
+  }
 }

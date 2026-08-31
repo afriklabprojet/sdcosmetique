@@ -132,3 +132,14 @@ export async function deleteAdminDeliveryMethod(id: string): Promise<void> {
 export async function fetchAdminMetrics(): Promise<LaravelMetricsOverview> {
   return api<LaravelMetricsOverview>('/admin/metrics/overview');
 }
+
+export async function uploadAdminMedia(file: File, folder?: string): Promise<string> {
+  const formData = new FormData();
+  formData.append('file', file);
+  if (folder) formData.append('folder', folder);
+  const body = await api<{ data: { url: string } }>('/admin/media', {
+    method: 'POST',
+    body: formData,
+  });
+  return unwrapData(body).url;
+}
