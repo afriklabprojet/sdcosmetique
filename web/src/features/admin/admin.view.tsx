@@ -87,6 +87,7 @@ type ProductEditModalProps = {
   BTN_BG: string;
   S_ERR_BG: string;
   S_ERR_T: string;
+  categories: CategoryRow[];
   saving?: boolean;
   saveError?: string | null;
 };
@@ -101,7 +102,7 @@ type ProductEditModalProps = {
 function ProductEditModal({ 
   initialProduct, saveDraft, close, inputStyle,
   SURFACE, TEXT, TEXT2, TEXT3, BORDER, BG, GOLD2, SURFACE2, BTN_BG, S_ERR_BG, S_ERR_T,
-  saving, saveError
+  categories, saving, saveError
 }: Readonly<ProductEditModalProps>) {
   const [productModal, setProductModal] = useState<ProductModalState | null>(initialProduct);
 
@@ -178,11 +179,9 @@ function ProductEditModal({
             style={{ ...inputStyle, cursor: 'pointer' }}
           >
             <option value="">-- Choisir --</option>
-            <option value="face">Visage</option>
-            <option value="body">Corps</option>
-            <option value="gammes">Gammes</option>
-            <option value="kits">Kits</option>
-            <option value="duo">Duo</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.slug}>{c.label || c.slug}</option>
+            ))}
           </select>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -571,7 +570,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
   // ── product modal helpers ──
   const openEditModal = (p: EditableProduct) => setProductModal({ ...p, _isNew: false });
   const openNewModal = () => setProductModal({
-    _isNew: true, id: `p${Date.now()}`, name: '', slug: '', category: 'face' as CategorySlug,
+    _isNew: true, id: `p${Date.now()}`, name: '', slug: '', category: (categories[0]?.slug ?? 'face') as CategorySlug,
     price: 0, images: [''], skinTones: [], benefits: [], rating: 0, reviewCount: 0,
     shortDescription: '', description: '', usage: '', inStock: true, stockQty: 0, lowStockThreshold: 5, newArrival: false, bestseller: false,
   });
@@ -1196,6 +1195,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
           {tab === 'produits' && (
             <ProductsTab
               editableProducts={editableProducts}
+              categories={categories}
               openNewModal={openNewModal}
               openEditModal={openEditModal}
               requestDelete={setConfirmDelete}
@@ -1350,6 +1350,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
         BTN_BG={BTN_BG}
         S_ERR_BG={S_ERR_BG}
         S_ERR_T={S_ERR_T}
+        categories={categories}
         saving={saving}
         saveError={saveError}
       />}

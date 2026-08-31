@@ -75,9 +75,14 @@ const nextConfig: NextConfig = {
     // Cache CDN 1 an (31 536 000 s) — évite re-optimisation
     minimumCacheTTL: 31536000,
     dangerouslyAllowSVG: true,
+    dangerouslyAllowLocalIP: true,
     contentDispositionType: 'attachment',
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "http", hostname: "localhost", port: "8000", pathname: "/**" },
+      { protocol: "http", hostname: "127.0.0.1", port: "8000", pathname: "/**" },
+      { protocol: "http", hostname: "localhost", pathname: "/**" },
+      { protocol: "http", hostname: "127.0.0.1", pathname: "/**" },
       ...(() => {
         if (!apiOrigin) return [];
         try {

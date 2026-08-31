@@ -10,7 +10,7 @@ export const SKIN_TONES: { id: SkinTone; label: string; color: string; descripti
   { id: 'metisse',      label: 'Métisse',      color: '#A0714F', description: 'Teint mixte' },
 ];
 
-export type Category = 'body' | 'face' | 'gammes' | 'kits' | 'duo' | 'kit-levre' | 'minceur';
+export type Category = 'body' | 'face' | 'gammes' | 'kits' | 'duo' | 'kit-levre' | 'minceur' | (string & {});
 
 export const CATEGORIES: { id: Category; label: string; icon: string; description: string }[] = [
   { id: 'body',   label: 'Corps',   icon: '✦', description: 'Soins du corps' },

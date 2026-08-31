@@ -14,10 +14,12 @@ import { filterProductsData, paginateData } from '@/features/admin/admin-metrics
 import { getProductCountText } from '@/features/admin/admin.util';
 import { formatPrice } from '@/features/catalog/product.query';
 import { type Product } from '@/shared/types/domain.type';
+import type { CategoryRow } from '@/features/catalog/category.repository';
 import { BG, SURFACE2, BORDER, BORDER2, GOLD, TEXT, TEXT2, TEXT3, INFO_C, S_ERR_BG, S_ERR_T, S_OK_T, S_WARN_BG, S_WARN_T, S_INFO_BG, S_INFO_T, PER_PAGE } from '@/features/admin/admin.constant';
 
 interface ProductsTabProps {
   editableProducts: Product[];
+  categories?: CategoryRow[];
   openNewModal: () => void;
   openEditModal: (product: Product) => void;
   requestDelete: (id: string) => void;
@@ -35,7 +37,7 @@ interface ProductsTabProps {
  * l'admin — et vivent donc dans l'onglet, avec le calcul qu'elles nourrissent.
  */
 export const ProductsTab: React.FC<ProductsTabProps> = ({
-  editableProducts, openNewModal, openEditModal, requestDelete, card, inputStyle, thStyle, tdStyle
+  editableProducts, categories, openNewModal, openEditModal, requestDelete, card, inputStyle, thStyle, tdStyle
 }) => {
   const [productSearch, setProductSearch] = useState('');
   const [productCatFilter, setProductCatFilter] = useState('');
@@ -69,11 +71,19 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
           style={{ ...inputStyle, width: '130px', cursor: 'pointer' }}
         >
           <option value="">Toutes catégories</option>
-          <option value="face">Visage</option>
-          <option value="body">Corps</option>
-          <option value="gammes">Gammes</option>
-          <option value="kits">Kits</option>
-          <option value="duo">Duo</option>
+          {categories && categories.length > 0 ? (
+            categories.map(c => (
+              <option key={c.id} value={c.slug}>{c.label || c.slug}</option>
+            ))
+          ) : (
+            <>
+              <option value="face">Visage</option>
+              <option value="body">Corps</option>
+              <option value="gammes">Gammes</option>
+              <option value="kits">Kits</option>
+              <option value="duo">Duo</option>
+            </>
+          )}
         </select>
       </div>
     </div>
@@ -103,7 +113,9 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
                       )}
                     </td>
                     <td style={{ ...tdStyle, fontWeight: 500 }}>{p.name}</td>
-                    <td style={{ ...tdStyle, color: INFO_C }}>{p.category}</td>
+                    <td style={{ ...tdStyle, color: INFO_C }}>
+                      {categories?.find(c => c.slug === p.category)?.label || p.category}
+                    </td>
                     <td style={{ ...tdStyle, fontWeight: 600, color: GOLD }}>
                       {formatPrice(p.price)}
                       {p.originalPrice && (

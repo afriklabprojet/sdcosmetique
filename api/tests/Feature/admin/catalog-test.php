@@ -100,3 +100,36 @@ it('uploads media and attaches it to a product', function (): void {
 
     expect($product->files()->count())->toBe(1);
 });
+
+it('creates and updates a product with images array', function (): void {
+    $category = Category::factory()->create();
+
+    $this->actingAs(admin());
+
+    $response = $this->postJson('/v1/admin/products', [
+        'category_id' => $category->id,
+        'slug' => 'test-product-images',
+        'title' => 'Test Product with Images',
+        'images' => [
+            'http://localhost:8000/storage/products/image1.jpg',
+            'http://localhost:8000/storage/products/image2.jpg',
+        ],
+    ])->assertCreated();
+
+    $id = $response->json('data.id');
+    $product = Product::query()->findOrFail($id);
+    expect($product->files()->count())->toBe(2);
+    expect($response->json('data.images.0.url'))->toBe('http://localhost:8000/storage/products/image1.jpg');
+
+    $this->putJson('/v1/admin/products/'.$id, [
+        'category_id' => $category->id,
+        'slug' => 'test-product-images',
+        'title' => 'Test Product with Images Updated',
+        'images' => [
+            'http://localhost:8000/storage/products/image2.jpg',
+        ],
+    ])->assertOk();
+
+    expect($product->fresh()->files()->count())->toBe(1);
+    expect($product->fresh()->files()->first()->url)->toBe('http://localhost:8000/storage/products/image2.jpg');
+});

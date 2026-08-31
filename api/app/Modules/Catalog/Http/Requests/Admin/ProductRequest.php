@@ -41,6 +41,8 @@ class ProductRequest extends FormRequest
             'stock' => ['sometimes', 'integer', 'min:0'],
             'visible_at' => ['nullable', 'date'],
             'published_at' => ['nullable', 'date'],
+            'images' => ['sometimes', 'array'],
+            'images.*' => ['string'],
             'translations' => ['sometimes', 'array'],
             'translations.*.locale' => ['required_with:translations', 'string', 'max:10'],
             'translations.*.field' => ['required_with:translations', 'string', 'max:64'],

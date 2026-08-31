@@ -1,18 +1,9 @@
 import type { Category, Product } from '@/shared/types/domain.type';
 import type { LaravelAdminProduct, LaravelAdminProductWrite, LaravelStorefrontProduct } from '@/shared/api/types';
 
-const CATEGORY_SLUGS: readonly Category[] = [
-  'body',
-  'face',
-  'gammes',
-  'kits',
-  'duo',
-  'kit-levre',
-  'minceur',
-];
-
 export function asCategory(slug: string | null | undefined): Category {
-  return CATEGORY_SLUGS.includes(slug as Category) ? (slug as Category) : 'face';
+  if (!slug || slug.trim() === '') return 'face';
+  return slug.trim() as Category;
 }
 
 function ingredientsToString(value: string[] | string | null | undefined): string | undefined {
@@ -82,7 +73,7 @@ export function mapAdminProduct(dto: LaravelAdminProduct): Product {
 }
 
 export function toAdminProductPayload(
-  product: Pick<Product, 'name' | 'slug' | 'shortDescription' | 'description' | 'usage' | 'ingredients' | 'price' | 'originalPrice' | 'stockQty' | 'inStock'>,
+  product: Pick<Product, 'name' | 'slug' | 'shortDescription' | 'description' | 'usage' | 'ingredients' | 'price' | 'originalPrice' | 'stockQty' | 'inStock' | 'images'>,
   categoryId: number,
 ): LaravelAdminProductWrite {
   const hasSale = product.originalPrice != null && product.originalPrice > product.price;
@@ -97,5 +88,6 @@ export function toAdminProductPayload(
     regular_price: hasSale ? product.originalPrice ?? product.price : product.price,
     sale_price: hasSale ? product.price : null,
     stock: product.stockQty ?? (product.inStock ? 1 : 0),
+    images: product.images,
   };
 }

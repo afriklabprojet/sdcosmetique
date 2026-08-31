@@ -118,6 +118,7 @@ export type LaravelAdminProductWrite = {
   stock?: number;
   visible_at?: string | null;
   published_at?: string | null;
+  images?: string[];
 };
 
 export type LaravelStorefrontCategory = {

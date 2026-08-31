@@ -12,6 +12,7 @@ use App\Shared\Translations\TranslationSync;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
@@ -39,9 +40,15 @@ class ProductController extends Controller
     {
         $this->authorize('create', Product::class);
 
-        $product = Product::create($request->safe()->except('translations'));
+        $attributes = $request->safe()->except(['translations', 'images']);
+        if (! array_key_exists('published_at', $attributes) || $attributes['published_at'] === null) {
+            $attributes['published_at'] = now();
+        }
+
+        $product = Product::create($attributes);
 
         TranslationSync::apply($product, $request->validated('translations', []));
+        $this->syncImages($product, $request->validated('images', []));
 
         return ProductResource::make($this->loaded($product))
             ->response()
@@ -59,9 +66,12 @@ class ProductController extends Controller
     {
         $this->authorize('update', $product);
 
-        $product->update($request->safe()->except('translations'));
+        $product->update($request->safe()->except(['translations', 'images']));
 
         TranslationSync::apply($product, $request->validated('translations', []));
+        if ($request->has('images')) {
+            $this->syncImages($product, $request->validated('images', []));
+        }
 
         return ProductResource::make($this->loaded($product))->response();
     }
@@ -73,6 +83,29 @@ class ProductController extends Controller
         $product->delete();
 
         return response()->noContent();
+    }
+
+    /**
+     * @param  list<string>  $images
+     */
+    private function syncImages(Product $product, array $images): void
+    {
+        $imageUrls = array_values(array_filter($images, fn ($img) => is_string($img) && trim($img) !== ''));
+        $product->files()->delete();
+
+        foreach ($imageUrls as $url) {
+            $path = str_contains($url, '/storage/')
+                ? (string) Str::after($url, '/storage/')
+                : (string) $url;
+
+            $product->files()->create([
+                'disk' => 'public',
+                'path' => $path,
+                'url' => $url,
+                'mime_type' => 'image/jpeg',
+                'size' => 0,
+            ]);
+        }
     }
 
     private function loaded(Product $product): Product
