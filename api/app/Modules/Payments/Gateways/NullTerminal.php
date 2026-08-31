@@ -5,16 +5,17 @@ declare(strict_types=1);
 namespace App\Modules\Payments\Gateways;
 
 use App\Modules\Orders\Models\Order;
+use App\Modules\Payments\Domain\Terminal;
 use App\Modules\Payments\Models\Payment\Attempt;
 
-class NullGateway implements PaymentGateway
+class NullTerminal implements Terminal
 {
     public function name(): string
     {
         return 'null';
     }
 
-    public function initiate(Attempt $attempt, Order $order): Attempt
+    public function start(Attempt $attempt, Order $order): Attempt
     {
         $attempt->forceFill([
             'gateway' => $this->name(),
@@ -25,7 +26,7 @@ class NullGateway implements PaymentGateway
         return $attempt->refresh();
     }
 
-    public function inquire(Attempt $attempt): string
+    public function check(Attempt $attempt): string
     {
         if ($attempt->confirmed_at !== null) {
             return 'paid';
@@ -38,7 +39,7 @@ class NullGateway implements PaymentGateway
         return 'pending';
     }
 
-    public function signatureValid(string $rawBody, array $headers): bool
+    public function verify(string $body, array $headers): bool
     {
         $secret = config('payments.webhook_secret');
 
@@ -48,7 +49,12 @@ class NullGateway implements PaymentGateway
 
         $provided = $this->header($headers, 'x-webhook-signature');
 
-        return hash_equals(hash_hmac('sha256', $rawBody, $secret), $provided);
+        return hash_equals(hash_hmac('sha256', $body, $secret), $provided);
+    }
+
+    public function parse(array $payload): string
+    {
+        return (string) ($payload['reference'] ?? $payload['transaction_id'] ?? '');
     }
 
     /**

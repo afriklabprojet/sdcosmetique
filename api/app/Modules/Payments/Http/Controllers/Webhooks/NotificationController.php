@@ -5,28 +5,36 @@ declare(strict_types=1);
 namespace App\Modules\Payments\Http\Controllers\Webhooks;
 
 use App\Http\Controllers\Controller;
-use App\Modules\Payments\Gateways\PaymentGateway;
+use App\Modules\Payments\Domain\Terminals;
 use App\Modules\Payments\Models\Payment\Attempt;
 use App\Modules\Payments\Models\Payment\Notification;
 use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class CinetPayNotificationController extends Controller
+class NotificationController extends Controller
 {
-    public function __construct(private readonly PaymentGateway $gateway) {}
+    public function __construct(private readonly Terminals $terminals) {}
 
-    public function store(Request $request): JsonResponse
+    public function store(Request $request, string $terminal): JsonResponse
     {
-        $raw = $request->getContent();
-        $payload = json_decode($raw, true);
+        if (! $this->terminals->has($terminal)) {
+            return response()->json([
+                'status' => 'rejected',
+                'message' => "Unknown payment terminal [{$terminal}].",
+            ], 404);
+        }
+
+        $driver = $this->terminals->get($terminal);
+        $body = $request->getContent();
+        $payload = json_decode($body, true);
 
         if (! is_array($payload)) {
             $payload = $request->all();
         }
 
-        $reference = (string) ($payload['cpm_trans_id'] ?? $payload['transaction_id'] ?? $payload['reference'] ?? '');
-        $gateway = $this->gateway->name();
+        $reference = $driver->parse($payload);
+        $gateway = $driver->name();
 
         $notification = Notification::query()->firstOrCreate(
             ['gateway' => $gateway, 'reference' => $reference],
@@ -39,7 +47,7 @@ class CinetPayNotificationController extends Controller
             return response()->json(['status' => 'replayed']);
         }
 
-        if ($reference === '' || ! $this->gateway->signatureValid($raw !== '' ? $raw : json_encode($payload, JSON_THROW_ON_ERROR), $request->headers->all())) {
+        if ($reference === '' || ! $driver->verify($body !== '' ? $body : json_encode($payload, JSON_THROW_ON_ERROR), $request->headers->all())) {
             $notification->fail('Invalid signature.');
 
             return response()->json(['status' => 'rejected'], 400);
@@ -58,7 +66,7 @@ class CinetPayNotificationController extends Controller
         }
 
         $status = strtoupper((string) ($payload['cpm_result'] ?? $payload['status'] ?? ''));
-        $accepted = in_array($status, ['00', 'ACCEPTED', 'PAID'], true);
+        $accepted = in_array($status, ['00', 'ACCEPTED', 'PAID', 'SUCCESS'], true);
 
         if (! $accepted) {
             $notification->fail('Gateway reported failure.');

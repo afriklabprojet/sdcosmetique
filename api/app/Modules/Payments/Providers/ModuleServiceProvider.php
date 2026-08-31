@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Modules\Payments\Providers;
 
 use App\Modules\Payments\Console\ReconcilePaymentsCommand;
-use App\Modules\Payments\Gateways\CinetPayGateway;
-use App\Modules\Payments\Gateways\NullGateway;
-use App\Modules\Payments\Gateways\PaymentGateway;
+use App\Modules\Payments\Domain\Terminal;
+use App\Modules\Payments\Domain\Terminals;
+use App\Modules\Payments\Gateways\CinetPayTerminal;
+use App\Modules\Payments\Gateways\JekoTerminal;
+use App\Modules\Payments\Gateways\NullTerminal;
 use App\Modules\Payments\Models\Payment;
 use App\Modules\Payments\Models\Payment\Notification;
 use App\Modules\Payments\Policies\NotificationPolicy;
@@ -36,12 +38,18 @@ class ModuleServiceProvider extends BaseModuleServiceProvider
     {
         parent::register();
 
-        $this->app->bind(PaymentGateway::class, function (): PaymentGateway {
-            if (config('payments.driver') === 'cinetpay' && filled(config('payments.cinetpay.api_key'))) {
-                return new CinetPayGateway;
-            }
+        $this->app->singleton(Terminals::class, function (): Terminals {
+            $registry = new Terminals;
+            $registry->register('null', NullTerminal::class);
+            $registry->register('cinetpay', CinetPayTerminal::class);
+            $registry->register('jeko', JekoTerminal::class);
+            $registry->register('jeko-pay', JekoTerminal::class);
 
-            return new NullGateway;
+            return $registry;
+        });
+
+        $this->app->bind(Terminal::class, function ($app): Terminal {
+            return $app->make(Terminals::class)->default();
         });
     }
 

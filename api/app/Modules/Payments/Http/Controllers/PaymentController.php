@@ -6,7 +6,7 @@ namespace App\Modules\Payments\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Orders\Models\Order;
-use App\Modules\Payments\Gateways\PaymentGateway;
+use App\Modules\Payments\Domain\Terminals;
 use App\Modules\Payments\Models\Payment;
 use App\Shared\Money;
 use Illuminate\Http\JsonResponse;
@@ -15,7 +15,7 @@ use Illuminate\Support\Str;
 
 class PaymentController extends Controller
 {
-    public function __construct(private readonly PaymentGateway $gateway) {}
+    public function __construct(private readonly Terminals $terminals) {}
 
     public function store(Request $request, Order $order): JsonResponse
     {
@@ -39,15 +39,20 @@ class PaymentController extends Controller
             ['amount' => $amount->value, 'currency' => $amount->currency],
         );
 
+        $gatewayName = $order->gateway ?: $this->terminals->default()->name();
+        $terminal = $this->terminals->has($gatewayName)
+            ? $this->terminals->get($gatewayName)
+            : $this->terminals->default();
+
         $attempt = $payment->attempts()->create([
-            'gateway' => $order->gateway ?: $this->gateway->name(),
+            'gateway' => $terminal->name(),
             'reference' => strtoupper((string) Str::ulid()),
             'amount' => $amount->value,
             'currency' => $amount->currency,
             'initiated_at' => now(),
         ]);
 
-        $attempt = $this->gateway->initiate($attempt, $order);
+        $attempt = $attempt->start($terminal, $order);
 
         return response()->json([
             'data' => [

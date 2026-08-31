@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Payments\Console;
 
-use App\Modules\Payments\Gateways\PaymentGateway;
+use App\Modules\Payments\Domain\Terminals;
 use App\Modules\Payments\Models\Payment\Attempt;
 use Illuminate\Console\Command;
 
@@ -14,7 +14,7 @@ class ReconcilePaymentsCommand extends Command
 
     protected $description = 'Recover missing payment notifications and expire stale attempts';
 
-    public function handle(PaymentGateway $gateway): int
+    public function handle(Terminals $terminals): int
     {
         $pending = Attempt::query()
             ->whereNull('confirmed_at')
@@ -25,7 +25,12 @@ class ReconcilePaymentsCommand extends Command
             ->get();
 
         foreach ($pending as $attempt) {
-            $status = $gateway->inquire($attempt);
+            if (! $terminals->has($attempt->gateway)) {
+                continue;
+            }
+
+            $terminal = $terminals->get($attempt->gateway);
+            $status = $attempt->check($terminal);
 
             if ($status === 'paid') {
                 $notification = $attempt->notifications()->first() ?? $attempt->notifications()->create([

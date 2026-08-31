@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Payments\Models\Payment;
 
+use App\Modules\Orders\Models\Order;
+use App\Modules\Payments\Domain\Terminal;
 use App\Modules\Payments\Models\Payment;
 use App\Shared\Casts\Money as MoneyCast;
 use Database\Factories\Payments\AttemptFactory;
@@ -48,6 +50,16 @@ class Attempt extends Model
     public function notifications(): HasMany
     {
         return $this->hasMany(Notification::class, 'payment_attempt_id');
+    }
+
+    public function start(Terminal $terminal, Order $order): self
+    {
+        return $terminal->start($this, $order);
+    }
+
+    public function check(Terminal $terminal): string
+    {
+        return $terminal->check($this);
     }
 
     public function confirm(): void

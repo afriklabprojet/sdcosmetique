@@ -5,17 +5,18 @@ declare(strict_types=1);
 namespace App\Modules\Payments\Gateways;
 
 use App\Modules\Orders\Models\Order;
+use App\Modules\Payments\Domain\Terminal;
 use App\Modules\Payments\Models\Payment\Attempt;
 use Illuminate\Support\Facades\Http;
 
-class CinetPayGateway implements PaymentGateway
+class CinetPayTerminal implements Terminal
 {
     public function name(): string
     {
         return 'cinetpay';
     }
 
-    public function initiate(Attempt $attempt, Order $order): Attempt
+    public function start(Attempt $attempt, Order $order): Attempt
     {
         $payload = [
             'apikey' => config('payments.cinetpay.api_key'),
@@ -24,7 +25,7 @@ class CinetPayGateway implements PaymentGateway
             'amount' => $attempt->amount->value,
             'currency' => $attempt->currency,
             'description' => 'Order '.$order->reference,
-            'notify_url' => route('webhooks.cinetpay'),
+            'notify_url' => route('webhooks.terminal', ['terminal' => $this->name()]),
             'return_url' => rtrim((string) config('app.frontend_url'), '/').'/order/'.$order->reference,
             'channels' => 'ALL',
             'customer_email' => $order->email,
@@ -45,7 +46,7 @@ class CinetPayGateway implements PaymentGateway
         return $attempt->refresh();
     }
 
-    public function inquire(Attempt $attempt): string
+    public function check(Attempt $attempt): string
     {
         $response = Http::asJson()->post((string) config('payments.cinetpay.check_url'), [
             'apikey' => config('payments.cinetpay.api_key'),
@@ -62,7 +63,7 @@ class CinetPayGateway implements PaymentGateway
         };
     }
 
-    public function signatureValid(string $rawBody, array $headers): bool
+    public function verify(string $body, array $headers): bool
     {
         $secret = config('payments.webhook_secret');
 
@@ -76,6 +77,11 @@ class CinetPayGateway implements PaymentGateway
             $provided = (string) ($provided[0] ?? '');
         }
 
-        return hash_equals(hash_hmac('sha256', $rawBody, $secret), (string) $provided);
+        return hash_equals(hash_hmac('sha256', $body, $secret), (string) $provided);
+    }
+
+    public function parse(array $payload): string
+    {
+        return (string) ($payload['cpm_trans_id'] ?? $payload['transaction_id'] ?? $payload['reference'] ?? '');
     }
 }
