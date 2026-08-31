@@ -6,16 +6,16 @@ use App\Models\User;
 use App\Modules\Shopping\Models\Coupon;
 
 it('guards coupon endpoints', function (): void {
-    $this->getJson('/api/admin/coupons')->assertUnauthorized();
+    $this->getJson('/v1/admin/coupons')->assertUnauthorized();
 
     $this->actingAs(User::factory()->create());
-    $this->getJson('/api/admin/coupons')->assertForbidden();
+    $this->getJson('/v1/admin/coupons')->assertForbidden();
 });
 
 it('performs the coupon lifecycle', function (): void {
     $this->actingAs(admin());
 
-    $id = $this->postJson('/api/admin/coupons', [
+    $id = $this->postJson('/v1/admin/coupons', [
         'code' => 'WELCOME10',
         'type' => 'percentage',
         'value' => 10,
@@ -26,11 +26,11 @@ it('performs the coupon lifecycle', function (): void {
         ->assertJsonPath('data.type', 'percentage')
         ->json('data.id');
 
-    $this->putJson('/api/admin/coupons/'.$id, ['value' => 15])
+    $this->putJson('/v1/admin/coupons/'.$id, ['value' => 15])
         ->assertOk()
         ->assertJsonPath('data.value', 15);
 
-    $this->deleteJson('/api/admin/coupons/'.$id)->assertNoContent();
+    $this->deleteJson('/v1/admin/coupons/'.$id)->assertNoContent();
 
     expect(Coupon::query()->count())->toBe(0);
 });
@@ -40,7 +40,7 @@ it('rejects a duplicate coupon code', function (): void {
 
     $this->actingAs(admin());
 
-    $this->postJson('/api/admin/coupons', [
+    $this->postJson('/v1/admin/coupons', [
         'code' => 'DUP',
         'type' => 'fixed',
         'value' => 1000,

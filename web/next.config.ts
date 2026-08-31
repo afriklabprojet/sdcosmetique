@@ -7,7 +7,15 @@ if (process.env.NODE_ENV === 'production' && !process.env.NEXT_PUBLIC_SITE_URL) 
   throw new Error('NEXT_PUBLIC_SITE_URL est requise en production (next.config.ts)');
 }
 
-const apiOrigin = (process.env.NEXT_PUBLIC_API_URL ?? '').replace(/\/api\/?$/, '');
+const apiOrigin = (() => {
+  const raw = process.env.NEXT_PUBLIC_API_URL ?? '';
+  if (!raw) return '';
+  try {
+    return new URL(raw).origin;
+  } catch {
+    return raw.replace(/\/(v\d+|api)\/?$/, '');
+  }
+})();
 
 const nextConfig: NextConfig = {
   output: 'standalone',

@@ -101,6 +101,11 @@ package.json and no root composer.json.
 `store`, `show`, `edit`, `update`, `destroy`. If an action does not fit, it is a
 new resource, not a new method. No `XxxService` or `XxxManager` classes.
 
+**No hardcoded magic strings or static lists.** Never hardcode lists of
+methods, gateway identifiers, statuses, or domain values directly into controllers,
+form requests, or business logic. Use backed Enums (PHP backed enums / TypeScript
+enums) or configuration files (`config(...)`).
+
 **Money is integer minor units.** XOF, never a float, never a decimal column.
 
 **Orders snapshot the customer.** `orders` carries `email` and `destination`

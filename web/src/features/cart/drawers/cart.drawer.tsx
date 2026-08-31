@@ -206,11 +206,13 @@ export default function CartDrawer() {
                 )}
               </div>
             )}
-            <Link href="/checkout" onClick={closeCart}>
-              <button className="w-full py-4 text-sm font-medium text-white tracking-widest uppercase transition-all duration-300 hover:opacity-90"
-                style={{ background: 'var(--gold)', letterSpacing: '0.15em' }}>
-                Commander — {formatPrice(totalPrice)}
-              </button>
+            <Link
+              href="/checkout"
+              onClick={closeCart}
+              className="block w-full py-4 text-center text-sm font-medium text-white tracking-widest uppercase transition-all duration-300 hover:opacity-90"
+              style={{ background: 'var(--gold)', letterSpacing: '0.15em' }}
+            >
+              Commander — {formatPrice(totalPrice)}
             </Link>
             <button
               onClick={closeCart}

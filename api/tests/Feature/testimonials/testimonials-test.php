@@ -9,28 +9,28 @@ it('lists only approved testimonials', function (): void {
     Testimonial::factory()->create(['name' => 'Awa']);
     Testimonial::factory()->pending()->create(['name' => 'Hidden']);
 
-    $this->getJson('/api/testimonials')
+    $this->getJson('/v1/testimonials')
         ->assertOk()
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.name', 'Awa');
 });
 
 it('guards admin testimonials', function (): void {
-    $this->getJson('/api/admin/testimonials')->assertUnauthorized();
+    $this->getJson('/v1/admin/testimonials')->assertUnauthorized();
 
     $this->actingAs(User::factory()->create());
-    $this->getJson('/api/admin/testimonials')->assertForbidden();
+    $this->getJson('/v1/admin/testimonials')->assertForbidden();
 });
 
 it('accepts a public testimonial store as pending', function (): void {
-    $this->postJson('/api/testimonials', [
+    $this->postJson('/v1/testimonials', [
         'name' => 'Fatou',
         'text' => 'Peau lumineuse après deux semaines.',
     ])->assertCreated()
         ->assertJsonPath('data.name', 'Fatou');
 
     expect(Testimonial::query()->whereNull('approved_at')->count())->toBe(1);
-    $this->getJson('/api/testimonials')->assertJsonCount(0, 'data');
+    $this->getJson('/v1/testimonials')->assertJsonCount(0, 'data');
 });
 
 it('lets an admin moderate testimonials', function (): void {
@@ -38,16 +38,16 @@ it('lets an admin moderate testimonials', function (): void {
 
     $this->actingAs(admin());
 
-    $this->getJson('/api/admin/testimonials')
+    $this->getJson('/v1/admin/testimonials')
         ->assertOk()
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.approved', false);
 
-    $this->patchJson('/api/admin/testimonials/'.$row->id, ['approved' => true])
+    $this->patchJson('/v1/admin/testimonials/'.$row->id, ['approved' => true])
         ->assertOk()
         ->assertJsonPath('data.approved', true);
 
-    $this->deleteJson('/api/admin/testimonials/'.$row->id)->assertNoContent();
+    $this->deleteJson('/v1/admin/testimonials/'.$row->id)->assertNoContent();
 
     expect(Testimonial::query()->count())->toBe(0);
 });

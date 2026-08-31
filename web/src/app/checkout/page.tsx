@@ -44,12 +44,12 @@ export default function CheckoutPage() {
     firstName: '', lastName: '', email: '', phone: '',
     address: '', city: '', country: "Côte d'Ivoire",
   });
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('orange_money');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.ORANGE_MONEY);
   const [processing, setProcessing] = useState(false);
   const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
   const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(null);
   const [promoError, setPromoError] = useState<string | null>(null);
-  const [activeMethods] = useState<string[]>(['orange_money', 'wave', 'mtn_momo', 'moov_money', 'djamo', 'cash_on_delivery']);
+  const [activeMethods] = useState<PaymentMethod[]>(Object.values(PaymentMethod));
 
   useEffect(() => {
     fetchDeliveryMethods()

@@ -42,6 +42,7 @@
         <env name="SANCTUM_STATEFUL_DOMAINS" value="localhost:3000" force="true"/>
         <env name="FRONTEND_URL" value="http://localhost:3000" force="true"/>
         <env name="PAYMENTS_WEBHOOK_SECRET" value="testing-secret" force="true"/>
+        <env name="CINETPAY_WEBHOOK_SECRET" value="testing-secret" force="true"/>
         <env name="JEKO_WEBHOOK_SECRET" value="testing-jeko-secret" force="true"/>
         <env name="PULSE_ENABLED" value="false" force="true"/>
         <env name="TELESCOPE_ENABLED" value="false" force="true"/>

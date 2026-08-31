@@ -27,10 +27,10 @@ it('settles a placed order through a signed webhook and ignores replay', functio
     ]);
     $method = Method::factory()->create(['amount' => 0, 'cost' => 0]);
 
-    $this->getJson('/api/cart')->assertOk();
-    $this->postJson('/api/cart-items', ['product' => $child->slug, 'quantity' => 1])->assertCreated();
-    $this->putJson('/api/checkout/contact', ['email' => 'guest@example.com'])->assertOk();
-    $this->putJson('/api/checkout/delivery', [
+    $this->getJson('/v1/cart')->assertOk();
+    $this->postJson('/v1/cart-items', ['product' => $child->slug, 'quantity' => 1])->assertCreated();
+    $this->putJson('/v1/checkout/contact', ['email' => 'guest@example.com'])->assertOk();
+    $this->putJson('/v1/checkout/delivery', [
         'delivery_method_id' => $method->id,
         'first_name' => 'Awa',
         'last_name' => 'Kone',
@@ -38,11 +38,11 @@ it('settles a placed order through a signed webhook and ignores replay', functio
         'city' => 'Abidjan',
         'country' => 'CI',
     ])->assertOk();
-    $this->putJson('/api/checkout/payment', ['gateway' => 'cinetpay'])->assertOk();
-    $placed = $this->postJson('/api/orders')->assertCreated();
+    $this->putJson('/v1/checkout/payment', ['gateway' => 'cinetpay'])->assertOk();
+    $placed = $this->postJson('/v1/orders')->assertCreated();
     $reference = $placed->json('data.reference');
 
-    $payment = $this->postJson('/api/orders/'.$reference.'/payments')->assertCreated();
+    $payment = $this->postJson('/v1/orders/'.$reference.'/payments')->assertCreated();
     $attemptReference = $payment->json('data.reference');
 
     $payload = json_encode([
@@ -92,10 +92,10 @@ it('settles a placed order through a null terminal webhook', function (): void {
     ]);
     $method = Method::factory()->create(['amount' => 0, 'cost' => 0]);
 
-    $this->getJson('/api/cart')->assertOk();
-    $this->postJson('/api/cart-items', ['product' => $child->slug, 'quantity' => 1])->assertCreated();
-    $this->putJson('/api/checkout/contact', ['email' => 'guest@example.com'])->assertOk();
-    $this->putJson('/api/checkout/delivery', [
+    $this->getJson('/v1/cart')->assertOk();
+    $this->postJson('/v1/cart-items', ['product' => $child->slug, 'quantity' => 1])->assertCreated();
+    $this->putJson('/v1/checkout/contact', ['email' => 'guest@example.com'])->assertOk();
+    $this->putJson('/v1/checkout/delivery', [
         'delivery_method_id' => $method->id,
         'first_name' => 'Awa',
         'last_name' => 'Kone',
@@ -103,11 +103,11 @@ it('settles a placed order through a null terminal webhook', function (): void {
         'city' => 'Abidjan',
         'country' => 'CI',
     ])->assertOk();
-    $this->putJson('/api/checkout/payment', ['gateway' => 'null'])->assertOk();
-    $placed = $this->postJson('/api/orders')->assertCreated();
+    $this->putJson('/v1/checkout/payment', ['gateway' => 'null'])->assertOk();
+    $placed = $this->postJson('/v1/orders')->assertCreated();
     $reference = $placed->json('data.reference');
 
-    $payment = $this->postJson('/api/orders/'.$reference.'/payments')->assertCreated();
+    $payment = $this->postJson('/v1/orders/'.$reference.'/payments')->assertCreated();
     $attemptReference = $payment->json('data.reference');
 
     $payload = json_encode([

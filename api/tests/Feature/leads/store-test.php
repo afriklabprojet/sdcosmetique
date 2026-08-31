@@ -6,7 +6,7 @@ use App\Modules\Leads\Models\Contact\Message;
 use App\Modules\Leads\Models\Newsletter\Subscription;
 
 it('confirms a newsletter subscription at store', function (): void {
-    $this->postJson('/api/newsletter-subscriptions', ['email' => 'reader@example.com'])
+    $this->postJson('/v1/newsletter-subscriptions', ['email' => 'reader@example.com'])
         ->assertCreated()
         ->assertJsonPath('data.email', 'reader@example.com');
 
@@ -17,7 +17,7 @@ it('confirms a newsletter subscription at store', function (): void {
 });
 
 it('persists a contact message', function (): void {
-    $this->postJson('/api/contact-messages', [
+    $this->postJson('/v1/contact-messages', [
         'name' => 'Awa',
         'email' => 'awa@example.com',
         'subject' => 'Routine',
@@ -28,6 +28,6 @@ it('persists a contact message', function (): void {
 });
 
 it('validates lead payloads', function (): void {
-    $this->postJson('/api/newsletter-subscriptions', ['email' => 'not-an-email'])->assertUnprocessable();
-    $this->postJson('/api/contact-messages', ['name' => 'Awa'])->assertUnprocessable();
+    $this->postJson('/v1/newsletter-subscriptions', ['email' => 'not-an-email'])->assertUnprocessable();
+    $this->postJson('/v1/contact-messages', ['name' => 'Awa'])->assertUnprocessable();
 });

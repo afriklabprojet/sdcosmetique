@@ -11,11 +11,11 @@ it('requires an authenticated client for wishlist and comparison', function (): 
     $parent = Product::factory()->parentProduct()->create();
     Product::factory()->child($parent)->create();
 
-    $this->postJson('/api/wishlist-items', ['product' => $parent->slug])->assertUnauthorized();
-    $this->postJson('/api/comparison-items', ['product' => $parent->slug])->assertUnauthorized();
-    $this->getJson('/api/account/wishlist')->assertUnauthorized();
-    $this->getJson('/api/comparison')->assertUnauthorized();
-    $this->deleteJson('/api/comparison')->assertUnauthorized();
+    $this->postJson('/v1/wishlist-items', ['product' => $parent->slug])->assertUnauthorized();
+    $this->postJson('/v1/comparison-items', ['product' => $parent->slug])->assertUnauthorized();
+    $this->getJson('/v1/account/wishlist')->assertUnauthorized();
+    $this->getJson('/v1/comparison')->assertUnauthorized();
+    $this->deleteJson('/v1/comparison')->assertUnauthorized();
 });
 
 it('stores wishlist and comparison items for a client and caps comparison at four', function (): void {
@@ -29,19 +29,19 @@ it('stores wishlist and comparison items for a client and caps comparison at fou
         $slugs[] = $parent->slug;
     }
 
-    $this->postJson('/api/wishlist-items', ['product' => $slugs[0]])->assertCreated();
-    $this->getJson('/api/account/wishlist')->assertOk()->assertJsonCount(1, 'data');
+    $this->postJson('/v1/wishlist-items', ['product' => $slugs[0]])->assertCreated();
+    $this->getJson('/v1/account/wishlist')->assertOk()->assertJsonCount(1, 'data');
 
     foreach (array_slice($slugs, 0, 4) as $slug) {
-        $this->postJson('/api/comparison-items', ['product' => $slug])->assertSuccessful();
+        $this->postJson('/v1/comparison-items', ['product' => $slug])->assertSuccessful();
     }
 
-    $this->postJson('/api/comparison-items', ['product' => $slugs[4]])
+    $this->postJson('/v1/comparison-items', ['product' => $slugs[4]])
         ->assertUnprocessable();
 
-    $this->getJson('/api/comparison')->assertOk()->assertJsonCount(4, 'data');
+    $this->getJson('/v1/comparison')->assertOk()->assertJsonCount(4, 'data');
 
-    $this->deleteJson('/api/comparison')->assertNoContent();
+    $this->deleteJson('/v1/comparison')->assertNoContent();
     expect(ComparisonItem::query()->where('client_id', $client->id)->count())->toBe(0);
 });
 
@@ -62,8 +62,8 @@ it('scopes wishlist and comparison rows to the authenticated client', function (
 
     $this->actingAs($stranger->user);
 
-    $this->deleteJson('/api/wishlist-items/'.$wishlist->id)->assertNotFound();
-    $this->deleteJson('/api/comparison-items/'.$comparison->id)->assertNotFound();
+    $this->deleteJson('/v1/wishlist-items/'.$wishlist->id)->assertNotFound();
+    $this->deleteJson('/v1/comparison-items/'.$comparison->id)->assertNotFound();
 
     expect(WishlistItem::query()->whereKey($wishlist->id)->exists())->toBeTrue()
         ->and(ComparisonItem::query()->whereKey($comparison->id)->exists())->toBeTrue();

@@ -14,19 +14,19 @@ it('creates a guest cart and adds a sellable child', function (): void {
         'stock' => 5,
     ]);
 
-    $this->getJson('/api/cart')
+    $this->getJson('/v1/cart')
         ->assertOk()
         ->assertJsonPath('data.items', [])
         ->assertCookie('guest_token');
 
-    $this->postJson('/api/cart-items', [
+    $this->postJson('/v1/cart-items', [
         'product' => $child->slug,
         'quantity' => 2,
     ])->assertCreated()
         ->assertJsonPath('data.total', 50)
         ->assertJsonPath('data.items.0.quantity', 2);
 
-    $this->getJson('/api/cart')
+    $this->getJson('/v1/cart')
         ->assertOk()
         ->assertJsonPath('data.total', 50);
 });
@@ -43,17 +43,17 @@ it('applies and removes a valid coupon', function (): void {
         'value' => 10,
     ]);
 
-    $this->postJson('/api/cart-items', [
+    $this->postJson('/v1/cart-items', [
         'product' => $child->slug,
         'quantity' => 1,
     ])->assertCreated();
 
-    $this->postJson('/api/cart-coupon', ['code' => 'SAVE10'])
+    $this->postJson('/v1/cart-coupon', ['code' => 'SAVE10'])
         ->assertOk()
         ->assertJsonPath('data.discount', 10)
         ->assertJsonPath('data.total', 90);
 
-    $this->deleteJson('/api/cart-coupon/current')
+    $this->deleteJson('/v1/cart-coupon/current')
         ->assertOk()
         ->assertJsonPath('data.discount', 0)
         ->assertJsonPath('data.coupon', null);
@@ -66,7 +66,7 @@ it('rejects an inactive coupon', function (): void {
         'ends_at' => now()->subDay(),
     ]);
 
-    $this->postJson('/api/cart-coupon', ['code' => 'OLD'])
+    $this->postJson('/v1/cart-coupon', ['code' => 'OLD'])
         ->assertUnprocessable();
 });
 
@@ -86,11 +86,11 @@ it('rejects a drained coupon', function (): void {
         'order_id' => Order::factory()->create()->id,
     ]);
 
-    $this->postJson('/api/cart-items', [
+    $this->postJson('/v1/cart-items', [
         'product' => $child->slug,
         'quantity' => 1,
     ])->assertCreated();
 
-    $this->postJson('/api/cart-coupon', ['code' => 'GONE'])
+    $this->postJson('/v1/cart-coupon', ['code' => 'GONE'])
         ->assertUnprocessable();
 });

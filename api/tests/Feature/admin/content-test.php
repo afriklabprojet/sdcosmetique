@@ -7,16 +7,16 @@ use App\Modules\Content\Models\Banner;
 use App\Modules\Content\Models\Page;
 
 it('guards the banner admin endpoints', function (): void {
-    $this->getJson('/api/admin/banners')->assertUnauthorized();
+    $this->getJson('/v1/admin/banners')->assertUnauthorized();
 
     $this->actingAs(User::factory()->create());
-    $this->getJson('/api/admin/banners')->assertForbidden();
+    $this->getJson('/v1/admin/banners')->assertForbidden();
 });
 
 it('creates, updates and deletes a banner with translations', function (): void {
     $this->actingAs(admin());
 
-    $created = $this->postJson('/api/admin/banners', [
+    $created = $this->postJson('/v1/admin/banners', [
         'key' => 'homepage-hero',
         'title' => 'Bienvenue',
         'subtitle' => 'Sous-titre',
@@ -31,11 +31,11 @@ it('creates, updates and deletes a banner with translations', function (): void 
         ->assertJsonPath('data.translations.0.value', 'Welcome')
         ->json('data.id');
 
-    $this->putJson('/api/admin/banners/'.$created, [
+    $this->putJson('/v1/admin/banners/'.$created, [
         'title' => 'Bienvenue mis a jour',
     ])->assertOk()->assertJsonPath('data.title', 'Bienvenue mis a jour');
 
-    $this->deleteJson('/api/admin/banners/'.$created)->assertNoContent();
+    $this->deleteJson('/v1/admin/banners/'.$created)->assertNoContent();
 
     expect(Banner::query()->find($created))->toBeNull();
 });
@@ -45,7 +45,7 @@ it('validates banner uniqueness', function (): void {
 
     $this->actingAs(admin());
 
-    $this->postJson('/api/admin/banners', ['key' => 'taken', 'title' => 'x'])
+    $this->postJson('/v1/admin/banners', ['key' => 'taken', 'title' => 'x'])
         ->assertStatus(422)
         ->assertJsonValidationErrors('key');
 });
@@ -53,7 +53,7 @@ it('validates banner uniqueness', function (): void {
 it('creates and updates a page', function (): void {
     $this->actingAs(admin());
 
-    $id = $this->postJson('/api/admin/pages', [
+    $id = $this->postJson('/v1/admin/pages', [
         'slug' => 'about',
         'title' => 'A propos',
         'content' => 'Contenu',
@@ -62,7 +62,7 @@ it('creates and updates a page', function (): void {
         ->assertJsonPath('data.slug', 'about')
         ->json('data.id');
 
-    $this->putJson('/api/admin/pages/'.$id, ['title' => 'A propos v2'])
+    $this->putJson('/v1/admin/pages/'.$id, ['title' => 'A propos v2'])
         ->assertOk()
         ->assertJsonPath('data.title', 'A propos v2');
 

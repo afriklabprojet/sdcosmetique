@@ -65,9 +65,9 @@ class CinetPayTerminal implements Terminal
 
     public function verify(string $body, array $headers): bool
     {
-        $secret = config('payments.webhook_secret');
+        $secret = (string) (config('payments.cinetpay.webhook_secret') ?: config('payments.webhook_secret', ''));
 
-        if (! is_string($secret) || $secret === '') {
+        if ($secret === '') {
             return false;
         }
 

@@ -29,7 +29,12 @@ function apiBase(): string {
 }
 
 function apiOrigin(): string {
-  return apiBase().replace(/\/api\/?$/, '');
+  const base = apiBase();
+  try {
+    return new URL(base).origin;
+  } catch {
+    return base.replace(/\/(v\d+|api)\/?$/, '');
+  }
 }
 
 function readCookie(name: string): string | null {

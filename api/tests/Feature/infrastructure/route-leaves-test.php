@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 it('never adds middleware on a route leaf', function (): void {
     $leaves = array_merge(
-        glob(base_path('routes/api/*.php')) ?: [],
+        glob(base_path('routes/v1/*.php')) ?: [],
         glob(base_path('routes/web/*.php')) ?: [],
     );
 

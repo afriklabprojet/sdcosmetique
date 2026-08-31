@@ -9,18 +9,18 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
 it('guards catalog admin endpoints', function (): void {
-    $this->getJson('/api/admin/products')->assertUnauthorized();
-    $this->getJson('/api/admin/categories')->assertUnauthorized();
+    $this->getJson('/v1/admin/products')->assertUnauthorized();
+    $this->getJson('/v1/admin/categories')->assertUnauthorized();
 
     $this->actingAs(User::factory()->create());
-    $this->getJson('/api/admin/products')->assertForbidden();
-    $this->getJson('/api/admin/categories')->assertForbidden();
+    $this->getJson('/v1/admin/products')->assertForbidden();
+    $this->getJson('/v1/admin/categories')->assertForbidden();
 });
 
 it('performs the category lifecycle with translations', function (): void {
     $this->actingAs(admin());
 
-    $id = $this->postJson('/api/admin/categories', [
+    $id = $this->postJson('/v1/admin/categories', [
         'slug' => 'soins',
         'name' => 'Soins',
         'description' => 'Nos soins',
@@ -33,11 +33,11 @@ it('performs the category lifecycle with translations', function (): void {
         ->assertJsonPath('data.translations.0.value', 'Care')
         ->json('data.id');
 
-    $this->putJson('/api/admin/categories/'.$id, ['name' => 'Soins visage'])
+    $this->putJson('/v1/admin/categories/'.$id, ['name' => 'Soins visage'])
         ->assertOk()
         ->assertJsonPath('data.name', 'Soins visage');
 
-    $this->deleteJson('/api/admin/categories/'.$id)->assertNoContent();
+    $this->deleteJson('/v1/admin/categories/'.$id)->assertNoContent();
 
     expect(Category::query()->count())->toBe(0);
 });
@@ -47,7 +47,7 @@ it('performs the product lifecycle', function (): void {
 
     $this->actingAs(admin());
 
-    $id = $this->postJson('/api/admin/products', [
+    $id = $this->postJson('/v1/admin/products', [
         'category_id' => $category->id,
         'slug' => 'creme-hydratante',
         'title' => 'Creme hydratante',
@@ -61,15 +61,15 @@ it('performs the product lifecycle', function (): void {
         ->assertJsonPath('data.regular_price', 15000)
         ->json('data.id');
 
-    $this->putJson('/api/admin/products/'.$id, ['stock' => 20])
+    $this->putJson('/v1/admin/products/'.$id, ['stock' => 20])
         ->assertOk()
         ->assertJsonPath('data.stock', 20);
 
-    $this->getJson('/api/admin/products/'.$id)
+    $this->getJson('/v1/admin/products/'.$id)
         ->assertOk()
         ->assertJsonStructure(['data' => ['id', 'category_id', 'images', 'badges', 'children', 'translations']]);
 
-    $this->deleteJson('/api/admin/products/'.$id)->assertNoContent();
+    $this->deleteJson('/v1/admin/products/'.$id)->assertNoContent();
 
     expect(Product::query()->count())->toBe(0);
 });
@@ -79,7 +79,7 @@ it('validates duplicate product slug', function (): void {
 
     $this->actingAs(admin());
 
-    $this->postJson('/api/admin/products', [
+    $this->postJson('/v1/admin/products', [
         'category_id' => $product->category_id,
         'slug' => 'existing-slug',
         'title' => 'Dup',
@@ -92,7 +92,7 @@ it('uploads media and attaches it to a product', function (): void {
 
     $this->actingAs(admin());
 
-    $this->postJson('/api/admin/media', [
+    $this->postJson('/v1/admin/media', [
         'product_id' => $product->id,
         'file' => UploadedFile::fake()->image('hero.jpg', 640, 480),
     ])->assertCreated()

@@ -18,7 +18,6 @@
  */
 
 import { test, Page, BrowserContext } from '@playwright/test';
-import { createRequire } from 'node:module';
 import AxeBuilder from '@axe-core/playwright';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -26,8 +25,7 @@ import * as path from 'path';
 // ─── Base ────────────────────────────────────────────────────────────────────
 const BASE = 'http://localhost:3000';
 const SHOT_DIR = path.join(process.cwd(), 'tests', 'mobile-audit-screenshots');
-const REPORT_PATH = path.join(process.cwd(), 'tests', 'RAPPORT-MOBILE-AUDIT.md');
-const playwrightVersion: string = createRequire(import.meta.url)('@playwright/test/package.json').version;
+const playwrightVersion: string = '1.62.1';
 
 function ensureDir(d: string) {
   if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });

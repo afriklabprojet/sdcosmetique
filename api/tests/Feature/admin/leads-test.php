@@ -7,12 +7,12 @@ use App\Modules\Leads\Models\Contact\Message;
 use App\Modules\Leads\Models\Newsletter\Subscription;
 
 it('guards lead endpoints', function (): void {
-    $this->getJson('/api/admin/contact-messages')->assertUnauthorized();
-    $this->getJson('/api/admin/newsletter-subscriptions')->assertUnauthorized();
+    $this->getJson('/v1/admin/contact-messages')->assertUnauthorized();
+    $this->getJson('/v1/admin/newsletter-subscriptions')->assertUnauthorized();
 
     $this->actingAs(User::factory()->create());
-    $this->getJson('/api/admin/contact-messages')->assertForbidden();
-    $this->getJson('/api/admin/newsletter-subscriptions')->assertForbidden();
+    $this->getJson('/v1/admin/contact-messages')->assertForbidden();
+    $this->getJson('/v1/admin/newsletter-subscriptions')->assertForbidden();
 });
 
 it('lists, shows and resolves contact messages', function (): void {
@@ -20,16 +20,16 @@ it('lists, shows and resolves contact messages', function (): void {
 
     $this->actingAs(admin());
 
-    $this->getJson('/api/admin/contact-messages')
+    $this->getJson('/v1/admin/contact-messages')
         ->assertOk()
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.open', true);
 
-    $this->getJson('/api/admin/contact-messages?status=handled')
+    $this->getJson('/v1/admin/contact-messages?status=handled')
         ->assertOk()
         ->assertJsonCount(0, 'data');
 
-    $this->patchJson('/api/admin/contact-messages/'.$message->id, ['handled' => true])
+    $this->patchJson('/v1/admin/contact-messages/'.$message->id, ['handled' => true])
         ->assertOk()
         ->assertJsonPath('data.open', false);
 
@@ -41,11 +41,11 @@ it('lists and deletes newsletter subscriptions', function (): void {
 
     $this->actingAs(admin());
 
-    $this->getJson('/api/admin/newsletter-subscriptions')
+    $this->getJson('/v1/admin/newsletter-subscriptions')
         ->assertOk()
         ->assertJsonCount(1, 'data');
 
-    $this->deleteJson('/api/admin/newsletter-subscriptions/'.$subscription->id)
+    $this->deleteJson('/v1/admin/newsletter-subscriptions/'.$subscription->id)
         ->assertNoContent();
 
     expect(Subscription::query()->count())->toBe(0);

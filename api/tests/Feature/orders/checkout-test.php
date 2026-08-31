@@ -17,13 +17,13 @@ it('rejects skipped checkout steps and places a guest order', function (): void 
     ]);
     $method = Method::factory()->create(['amount' => 20, 'cost' => 10]);
 
-    $this->getJson('/api/cart')->assertOk();
-    $this->postJson('/api/cart-items', [
+    $this->getJson('/v1/cart')->assertOk();
+    $this->postJson('/v1/cart-items', [
         'product' => $child->slug,
         'quantity' => 1,
     ])->assertCreated();
 
-    $this->putJson('/api/checkout/delivery', [
+    $this->putJson('/v1/checkout/delivery', [
         'delivery_method_id' => $method->id,
         'first_name' => 'Awa',
         'last_name' => 'Kone',
@@ -32,11 +32,11 @@ it('rejects skipped checkout steps and places a guest order', function (): void 
         'country' => 'CI',
     ])->assertUnprocessable();
 
-    $this->putJson('/api/checkout/contact', [
+    $this->putJson('/v1/checkout/contact', [
         'email' => 'guest@example.com',
     ])->assertOk()->assertJsonPath('data.step', 'delivery');
 
-    $this->putJson('/api/checkout/delivery', [
+    $this->putJson('/v1/checkout/delivery', [
         'delivery_method_id' => $method->id,
         'first_name' => 'Awa',
         'last_name' => 'Kone',
@@ -46,15 +46,15 @@ it('rejects skipped checkout steps and places a guest order', function (): void 
         'phone' => '+22501020304',
     ])->assertOk()->assertJsonPath('data.step', 'payment');
 
-    $this->getJson('/api/checkout/review')->assertUnprocessable();
+    $this->getJson('/v1/checkout/review')->assertUnprocessable();
 
-    $this->putJson('/api/checkout/payment', [
+    $this->putJson('/v1/checkout/payment', [
         'gateway' => 'null',
     ])->assertOk()->assertJsonPath('data.step', 'review');
 
-    $this->getJson('/api/checkout')->assertOk()->assertJsonPath('data.step', 'review');
+    $this->getJson('/v1/checkout')->assertOk()->assertJsonPath('data.step', 'review');
 
-    $this->postJson('/api/orders')
+    $this->postJson('/v1/orders')
         ->assertCreated()
         ->assertJsonPath('data.status', 'placed')
         ->assertJsonPath('data.email', 'g***t@example.com')
@@ -78,7 +78,7 @@ it('masks guest order PII on the public order endpoint', function (): void {
         ],
     ]);
 
-    $this->getJson('/api/orders/'.$order->reference)
+    $this->getJson('/v1/orders/'.$order->reference)
         ->assertOk()
         ->assertJsonPath('data.email', 'f**********e@gmail.com')
         ->assertJsonPath('data.destination.recipient', 'Fatou T.')
@@ -105,7 +105,7 @@ it('reveals full PII to the authenticated order owner', function (): void {
 
     $this->actingAs($client->user);
 
-    $this->getJson('/api/account/orders/'.$order->reference)
+    $this->getJson('/v1/account/orders/'.$order->reference)
         ->assertOk()
         ->assertJsonPath('data.email', 'fatou.traore@gmail.com')
         ->assertJsonPath('data.destination.line_1', 'Rue des Jardins')

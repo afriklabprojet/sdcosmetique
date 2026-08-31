@@ -4,8 +4,8 @@
     "slug": "hydraglow-daily-gel-cleanser",
     "title": "Hydraglow Daily Gel Cleanser",
     "category": "cleansers",
-    "price": 25,
-    "compareAtPrice": 35,
+    "price": 15000,
+    "compareAtPrice": 18000,
     "images": [
       "assets/images/product/square/product-1.jpg",
       "assets/images/product/single/detail-1.jpg",
@@ -25,21 +25,21 @@
       {
         "id": "p-001-30",
         "label": "30ml",
-        "price": 25,
-        "compareAtPrice": 35,
+        "price": 15000,
+        "compareAtPrice": 18000,
         "stock": 12
       },
       {
         "id": "p-001-50",
         "label": "50ml",
-        "price": 38,
-        "compareAtPrice": 48,
+        "price": 22000,
+        "compareAtPrice": 26000,
         "stock": 6
       },
       {
         "id": "p-001-100",
         "label": "100ml",
-        "price": 60,
+        "price": 35000,
         "compareAtPrice": null,
         "stock": 0
       }
@@ -65,7 +65,7 @@
     "slug": "clarifying-cream-cleanser",
     "title": "Clarifying Cream Cleanser",
     "category": "cleansers",
-    "price": 28,
+    "price": 18000,
     "compareAtPrice": null,
     "images": [
       "assets/images/product/square/product-2.jpg",
@@ -80,14 +80,14 @@
       {
         "id": "p-002-50",
         "label": "50ml",
-        "price": 28,
+        "price": 18000,
         "compareAtPrice": null,
         "stock": 8
       },
       {
         "id": "p-002-120",
         "label": "120ml",
-        "price": 44,
+        "price": 28000,
         "compareAtPrice": null,
         "stock": 4
       }
@@ -112,8 +112,8 @@
     "slug": "rose-balance-hydrating-toner",
     "title": "Rose Balance Hydrating Toner",
     "category": "toners",
-    "price": 22,
-    "compareAtPrice": 30,
+    "price": 14000,
+    "compareAtPrice": 18000,
     "images": [
       "assets/images/product/square/product-3.jpg",
       "assets/images/product/product-15.jpg",
@@ -129,15 +129,15 @@
       {
         "id": "p-003-150",
         "label": "150ml",
-        "price": 22,
-        "compareAtPrice": 30,
+        "price": 14000,
+        "compareAtPrice": 18000,
         "stock": 20
       },
       {
         "id": "p-003-250",
         "label": "250ml",
-        "price": 32,
-        "compareAtPrice": 42,
+        "price": 22000,
+        "compareAtPrice": 28000,
         "stock": 9
       }
     ],
@@ -160,8 +160,8 @@
     "slug": "aha-renewal-serum-10",
     "title": "AHA Renewal Serum 10%",
     "category": "serums",
-    "price": 32,
-    "compareAtPrice": 40,
+    "price": 22000,
+    "compareAtPrice": 26000,
     "images": [
       "assets/images/product/square/product-4.jpg",
       "assets/images/product/product-16.jpg",
@@ -177,15 +177,15 @@
       {
         "id": "p-004-30",
         "label": "30ml",
-        "price": 32,
-        "compareAtPrice": 40,
+        "price": 22000,
+        "compareAtPrice": 26000,
         "stock": 15
       },
       {
         "id": "p-004-50",
         "label": "50ml",
-        "price": 48,
-        "compareAtPrice": 58,
+        "price": 32000,
+        "compareAtPrice": 38000,
         "stock": 5
       }
     ],
@@ -209,7 +209,7 @@
     "slug": "vitamin-c-brightening-serum",
     "title": "Vitamin C Brightening Serum",
     "category": "serums",
-    "price": 45,
+    "price": 25000,
     "compareAtPrice": null,
     "images": [
       "assets/images/product/square/product-5.jpg",
@@ -226,7 +226,7 @@
       {
         "id": "p-005-30",
         "label": "30ml",
-        "price": 45,
+        "price": 25000,
         "compareAtPrice": null,
         "stock": 11
       }
@@ -251,8 +251,8 @@
     "slug": "peptide-firming-concentrate",
     "title": "Peptide Firming Concentrate",
     "category": "serums",
-    "price": 58,
-    "compareAtPrice": 72,
+    "price": 32000,
+    "compareAtPrice": 40000,
     "images": [
       "assets/images/product/square/product-6.jpg",
       "assets/images/product/product-18_2.jpg",
@@ -268,8 +268,8 @@
       {
         "id": "p-006-30",
         "label": "30ml",
-        "price": 58,
-        "compareAtPrice": 72,
+        "price": 32000,
+        "compareAtPrice": 40000,
         "stock": 0
       }
     ],
@@ -293,7 +293,7 @@
     "slug": "barrier-repair-moisturizer",
     "title": "Barrier Repair Moisturizer",
     "category": "moisturizers",
-    "price": 38,
+    "price": 24000,
     "compareAtPrice": null,
     "images": [
       "assets/images/product/square/product-7.jpg",
@@ -310,14 +310,14 @@
       {
         "id": "p-007-50",
         "label": "50ml",
-        "price": 38,
+        "price": 24000,
         "compareAtPrice": null,
         "stock": 24
       },
       {
         "id": "p-007-100",
         "label": "100ml",
-        "price": 62,
+        "price": 38000,
         "compareAtPrice": null,
         "stock": 7
       }
@@ -343,8 +343,8 @@
     "slug": "featherlight-gel-cream",
     "title": "Featherlight Gel Cream",
     "category": "moisturizers",
-    "price": 34,
-    "compareAtPrice": 42,
+    "price": 20000,
+    "compareAtPrice": 25000,
     "images": [
       "assets/images/product/square/product-8.jpg",
       "assets/images/product/product-13.jpg",
@@ -360,8 +360,8 @@
       {
         "id": "p-008-50",
         "label": "50ml",
-        "price": 34,
-        "compareAtPrice": 42,
+        "price": 20000,
+        "compareAtPrice": 25000,
         "stock": 18
       }
     ],
@@ -385,7 +385,7 @@
     "slug": "overnight-recovery-mask",
     "title": "Overnight Recovery Mask",
     "category": "masks",
-    "price": 42,
+    "price": 26000,
     "compareAtPrice": null,
     "images": [
       "assets/images/product/square/product-12.jpg",
@@ -400,7 +400,7 @@
       {
         "id": "p-009-75",
         "label": "75ml",
-        "price": 42,
+        "price": 26000,
         "compareAtPrice": null,
         "stock": 9
       }
@@ -425,8 +425,8 @@
     "slug": "invisible-daily-sunscreen-spf50",
     "title": "Invisible Daily Sunscreen SPF50",
     "category": "sunscreen",
-    "price": 30,
-    "compareAtPrice": 36,
+    "price": 18000,
+    "compareAtPrice": 22000,
     "images": [
       "assets/images/product/square/product-13.jpg",
       "assets/images/product/product-18.jpg",
@@ -443,8 +443,8 @@
       {
         "id": "p-010-50",
         "label": "50ml",
-        "price": 30,
-        "compareAtPrice": 36,
+        "price": 18000,
+        "compareAtPrice": 22000,
         "stock": 30
       }
     ],

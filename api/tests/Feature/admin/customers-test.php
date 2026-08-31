@@ -8,10 +8,10 @@ use App\Modules\Accounts\Models\Client;
 it('rejects guests and non-admins from the customer list', function (): void {
     Client::factory()->count(2)->create();
 
-    $this->getJson('/api/admin/customers')->assertUnauthorized();
+    $this->getJson('/v1/admin/customers')->assertUnauthorized();
 
     $this->actingAs(User::factory()->create());
-    $this->getJson('/api/admin/customers')->assertForbidden();
+    $this->getJson('/v1/admin/customers')->assertForbidden();
 });
 
 it('lists customers for an admin', function (): void {
@@ -19,7 +19,7 @@ it('lists customers for an admin', function (): void {
 
     $this->actingAs(admin());
 
-    $this->getJson('/api/admin/customers')
+    $this->getJson('/v1/admin/customers')
         ->assertOk()
         ->assertJsonCount(3, 'data')
         ->assertJsonStructure(['data' => [['id', 'name', 'email', 'phone', 'orders_count', 'total_value']]]);
@@ -30,7 +30,7 @@ it('shows a single customer for an admin', function (): void {
 
     $this->actingAs(admin());
 
-    $this->getJson('/api/admin/customers/'.$client->id)
+    $this->getJson('/v1/admin/customers/'.$client->id)
         ->assertOk()
         ->assertJsonPath('data.id', $client->id)
         ->assertJsonPath('data.email', $client->user->email);

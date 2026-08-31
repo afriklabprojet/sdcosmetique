@@ -1,28 +1,28 @@
 'use client';
 
 import React, { useState } from 'react';
-import { type PaymentMethod } from '@/shared/types/domain.type';
+import { PaymentMethod } from '@/shared/types/domain.type';
 import { CHECKOUT_PALETTE, CHECKOUT_INPUT_STYLE } from '@/features/checkout/checkout.constant';
 
 const MOBILE_METHODS: { id: PaymentMethod; label: string; desc: string; logo: React.ReactNode; badge?: string }[] = [
   {
-    id: 'orange_money', label: 'Orange Money', desc: 'Paiement mobile Orange', badge: 'Recommandé',
+    id: PaymentMethod.ORANGE_MONEY, label: 'Orange Money', desc: 'Paiement mobile Orange', badge: 'Recommandé',
     logo: <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: '50%', background: '#FF6600', color: '#fff', fontSize: '11px', fontWeight: 800, letterSpacing: '-0.02em', flexShrink: 0 }}>OM</span>,
   },
   {
-    id: 'wave', label: 'Wave', desc: 'Paiement rapide via Wave',
+    id: PaymentMethod.WAVE, label: 'Wave', desc: 'Paiement rapide via Wave',
     logo: <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: '50%', background: '#1A9BE6', color: '#fff', fontSize: '11px', fontWeight: 800, letterSpacing: '-0.02em', flexShrink: 0 }}>W</span>,
   },
   {
-    id: 'mtn_momo', label: 'MTN MoMo', desc: 'Mobile Money MTN',
+    id: PaymentMethod.MTN_MOMO, label: 'MTN MoMo', desc: 'Mobile Money MTN',
     logo: <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: '50%', background: '#FFCC00', color: '#1A1A1A', fontSize: '10px', fontWeight: 800, letterSpacing: '-0.02em', flexShrink: 0 }}>MTN</span>,
   },
   {
-    id: 'moov_money', label: 'Moov Money', desc: 'Paiement Moov Money',
+    id: PaymentMethod.MOOV_MONEY, label: 'Moov Money', desc: 'Paiement Moov Money',
     logo: <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: '50%', background: '#00A651', color: '#fff', fontSize: '10px', fontWeight: 800, letterSpacing: '-0.02em', flexShrink: 0 }}>MOOV</span>,
   },
   {
-    id: 'djamo', label: 'Djamo', desc: 'Paiement par carte Djamo',
+    id: PaymentMethod.DJAMO, label: 'Djamo', desc: 'Paiement par carte Djamo',
     logo: <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: '50%', background: '#6C3CE1', color: '#fff', fontSize: '10px', fontWeight: 800, letterSpacing: '-0.02em', flexShrink: 0 }}>DJA</span>,
   },
 ];
@@ -43,16 +43,16 @@ interface PaymentStepProps {
  * `mobile` etait passe en prop alors que l'etape le rededuisait deja ligne a
  * ligne du meme `paymentMethod` — la prop disparait, le calcul reste.
  */
-export default function PaymentStep({ paymentMethod, selectMethod, placeOrder, processing, back, activeMethods = ['orange_money', 'wave', 'mtn_momo', 'moov_money', 'djamo', 'cash_on_delivery'] }: PaymentStepProps) {
+export default function PaymentStep({ paymentMethod, selectMethod, placeOrder, processing, back, activeMethods = Object.values(PaymentMethod) }: PaymentStepProps) {
   const [mobileNumber, setMobileNumber] = useState('');
-  const showMobileInput = ['orange_money', 'wave', 'mtn_momo', 'moov_money', 'djamo'].includes(paymentMethod);
+  const showMobileInput = paymentMethod !== PaymentMethod.CASH_ON_DELIVERY;
 
   const submitForm = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     await placeOrder(mobileNumber);
   };
   const visibleMobile = MOBILE_METHODS.filter(m => activeMethods.includes(m.id));
-  const showCashOnDelivery = activeMethods.includes('cash_on_delivery');
+  const showCashOnDelivery = activeMethods.includes(PaymentMethod.CASH_ON_DELIVERY);
   return (
     <div style={{ background: 'white', border: `1px solid ${CHECKOUT_PALETTE.border}`, borderRadius: '8px', padding: '24px' }}>
       <h2 style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: CHECKOUT_PALETTE.text, marginBottom: '20px' }}>Mode de paiement</h2>
@@ -92,10 +92,10 @@ export default function PaymentStep({ paymentMethod, selectMethod, placeOrder, p
 
         {/* Cash on delivery — visible uniquement si activé en admin */}
         {showCashOnDelivery && (
-        <div role="radio" aria-checked={paymentMethod === 'cash_on_delivery'} tabIndex={0}
-          onClick={() => selectMethod('cash_on_delivery')}
-          onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); selectMethod('cash_on_delivery'); } }}
-          style={{ padding: '12px 14px', border: `1.5px solid ${paymentMethod === 'cash_on_delivery' ? CHECKOUT_PALETTE.accent : CHECKOUT_PALETTE.border}`, borderRadius: '6px', cursor: 'pointer', background: paymentMethod === 'cash_on_delivery' ? CHECKOUT_PALETTE.rowBackground : 'white', display: 'flex', alignItems: 'center', gap: '12px', transition: 'border-color .15s' }}>
+        <div role="radio" aria-checked={paymentMethod === PaymentMethod.CASH_ON_DELIVERY} tabIndex={0}
+          onClick={() => selectMethod(PaymentMethod.CASH_ON_DELIVERY)}
+          onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); selectMethod(PaymentMethod.CASH_ON_DELIVERY); } }}
+          style={{ padding: '12px 14px', border: `1.5px solid ${paymentMethod === PaymentMethod.CASH_ON_DELIVERY ? CHECKOUT_PALETTE.accent : CHECKOUT_PALETTE.border}`, borderRadius: '6px', cursor: 'pointer', background: paymentMethod === PaymentMethod.CASH_ON_DELIVERY ? CHECKOUT_PALETTE.rowBackground : 'white', display: 'flex', alignItems: 'center', gap: '12px', transition: 'border-color .15s' }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: '50%', background: '#10B981', color: '#fff', fontSize: '18px', flexShrink: 0 }}>💵</span>
           <div>
             <p style={{ fontSize: '13px', fontWeight: 600, color: CHECKOUT_PALETTE.text }}>Paiement à la livraison</p>

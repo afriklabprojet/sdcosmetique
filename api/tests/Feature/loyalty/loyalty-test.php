@@ -19,7 +19,7 @@ it('credits a signup bonus when a client registers', function (): void {
         'terms' => true,
     ])->assertSuccessful();
 
-    $this->getJson('/api/loyalty-entries')
+    $this->getJson('/v1/loyalty-entries')
         ->assertOk()
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.points_delta', 20)
@@ -28,8 +28,8 @@ it('credits a signup bonus when a client registers', function (): void {
 });
 
 it('guards customer loyalty entries', function (): void {
-    $this->getJson('/api/loyalty-entries')->assertUnauthorized();
-    $this->postJson('/api/loyalty-entries', [
+    $this->getJson('/v1/loyalty-entries')->assertUnauthorized();
+    $this->postJson('/v1/loyalty-entries', [
         'points_delta' => -10,
         'description' => 'Reward',
     ])->assertUnauthorized();
@@ -45,7 +45,7 @@ it('lets a customer redeem points from their ledger', function (): void {
         'terms' => true,
     ])->assertSuccessful();
 
-    $this->postJson('/api/loyalty-entries', [
+    $this->postJson('/v1/loyalty-entries', [
         'points_delta' => -20,
         'description' => 'Récompense utilisée : -1 000 FCFA',
         'reference_id' => 'r100',
@@ -54,7 +54,7 @@ it('lets a customer redeem points from their ledger', function (): void {
         ->assertJsonPath('data.reason', LoyaltyReason::PointsRedemption->value)
         ->assertJsonPath('data.balance_after', 0);
 
-    $this->postJson('/api/loyalty-entries', [
+    $this->postJson('/v1/loyalty-entries', [
         'points_delta' => -10,
         'description' => 'Solde insuffisant',
     ])->assertUnprocessable();
@@ -70,18 +70,18 @@ it('rejects a customer credit on the redemption resource', function (): void {
         'terms' => true,
     ])->assertSuccessful();
 
-    $this->postJson('/api/loyalty-entries', [
+    $this->postJson('/v1/loyalty-entries', [
         'points_delta' => 10,
         'description' => 'Not a redemption',
     ])->assertUnprocessable();
 });
 
 it('guards admin loyalty routes', function (): void {
-    $this->getJson('/api/admin/loyalty/accounts')->assertUnauthorized();
+    $this->getJson('/v1/admin/loyalty/accounts')->assertUnauthorized();
 
     $this->actingAs(User::factory()->create());
-    $this->getJson('/api/admin/loyalty/accounts')->assertForbidden();
-    $this->postJson('/api/admin/loyalty/adjustments', [
+    $this->getJson('/v1/admin/loyalty/accounts')->assertForbidden();
+    $this->postJson('/v1/admin/loyalty/adjustments', [
         'client_id' => 1,
         'points_delta' => 10,
         'description' => 'Gift',
@@ -94,16 +94,16 @@ it('lets an admin list accounts and store an adjustment', function (): void {
 
     $this->actingAs(admin());
 
-    $this->getJson('/api/admin/loyalty/accounts')
+    $this->getJson('/v1/admin/loyalty/accounts')
         ->assertOk()
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.current_points', 20);
 
-    $this->getJson('/api/admin/loyalty/entries')
+    $this->getJson('/v1/admin/loyalty/entries')
         ->assertOk()
         ->assertJsonCount(1, 'data');
 
-    $this->postJson('/api/admin/loyalty/adjustments', [
+    $this->postJson('/v1/admin/loyalty/adjustments', [
         'client_id' => $client->id,
         'points_delta' => 15,
         'description' => 'Geste commercial',

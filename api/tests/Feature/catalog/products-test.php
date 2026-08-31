@@ -22,7 +22,7 @@ it('lists published parent products nine per page', function (): void {
         ]);
     }
 
-    $this->getJson('/api/products')
+    $this->getJson('/v1/products')
         ->assertOk()
         ->assertJsonPath('meta.per_page', 9)
         ->assertJsonPath('meta.total', 12)
@@ -39,7 +39,7 @@ it('sorts by name ascending', function (): void {
         Product::factory()->child($parent)->create(['category_id' => $category->id]);
     }
 
-    $this->getJson('/api/products?sort=name-asc')
+    $this->getJson('/v1/products?sort=name-asc')
         ->assertOk()
         ->assertJsonPath('data.0.title', 'Alpha gel')
         ->assertJsonPath('data.1.title', 'Zulu cream');
@@ -62,7 +62,7 @@ it('filters by category slug, search and in-stock', function (): void {
     ]);
     Product::factory()->child($other)->create(['category_id' => $toners->id, 'stock' => 0]);
 
-    $this->getJson('/api/products?category=cleansers&q=hydraglow&availability=in-stock')
+    $this->getJson('/v1/products?category=cleansers&q=hydraglow&availability=in-stock')
         ->assertOk()
         ->assertJsonPath('meta.total', 1)
         ->assertJsonPath('data.0.slug', $match->slug);
@@ -77,12 +77,12 @@ it('returns a product with related items and 404s for missing slugs', function (
     ]);
     Product::factory()->child($parent)->create(['category_id' => $category->id, 'label' => '30ml']);
 
-    $this->getJson('/api/products/hydraglow-daily-gel-cleanser')
+    $this->getJson('/v1/products/hydraglow-daily-gel-cleanser')
         ->assertOk()
         ->assertJsonPath('data.title', 'Hydraglow Daily Gel Cleanser')
         ->assertJsonPath('data.children.0.label', '30ml');
 
-    $this->getJson('/api/products/does-not-exist')->assertNotFound();
+    $this->getJson('/v1/products/does-not-exist')->assertNotFound();
 });
 
 it('accepts every V1 sort key and orders by price', function (): void {
@@ -107,15 +107,15 @@ it('accepts every V1 sort key and orders by price', function (): void {
     ]);
 
     foreach (['featured', 'price-asc', 'price-desc', 'newest', 'rating', 'name-asc'] as $sort) {
-        $this->getJson('/api/products?sort='.$sort)->assertOk();
+        $this->getJson('/v1/products?sort='.$sort)->assertOk();
     }
 
-    $this->getJson('/api/products?sort=price-asc')
+    $this->getJson('/v1/products?sort=price-asc')
         ->assertOk()
         ->assertJsonPath('data.0.title', 'Cheap gel')
         ->assertJsonPath('data.1.title', 'Dear cream');
 
-    $this->getJson('/api/products?sort=price-desc')
+    $this->getJson('/v1/products?sort=price-desc')
         ->assertOk()
         ->assertJsonPath('data.0.title', 'Dear cream');
 });

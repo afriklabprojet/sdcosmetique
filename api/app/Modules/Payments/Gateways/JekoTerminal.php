@@ -6,6 +6,7 @@ namespace App\Modules\Payments\Gateways;
 
 use App\Modules\Orders\Models\Order;
 use App\Modules\Payments\Domain\Terminal;
+use App\Modules\Payments\Enums\PaymentMethod;
 use App\Modules\Payments\Models\Payment\Attempt;
 use Illuminate\Support\Facades\Http;
 
@@ -23,16 +24,26 @@ class JekoTerminal implements Terminal
         $apiKeyId = (string) config('payments.jeko.api_key_id', '');
         $storeId = (string) config('payments.jeko.store_id', '');
 
+        $frontendUrl = rtrim((string) config('app.frontend_url', 'https://sdcosmetique.ci'), '/');
+        if (str_contains($frontendUrl, 'localhost') || ! str_starts_with($frontendUrl, 'http')) {
+            $frontendUrl = 'https://sdcosmetique.ci';
+        }
+
+        $rawMethod = request()->input('payment_method') ?? $order->payment_method;
+        $method = is_string($rawMethod) ? PaymentMethod::tryFrom($rawMethod) : null;
+        $jekoMethod = ($method ?? PaymentMethod::OrangeMoney)->toJeko();
+
         $payload = [
-            'amountCents' => $attempt->amount->value,
+            'amountCents' => $attempt->amount->value * 100,
             'currency' => $attempt->currency,
             'reference' => $attempt->reference,
             'storeId' => $storeId,
             'paymentDetails' => [
                 'type' => 'redirect',
                 'data' => [
-                    'successUrl' => rtrim((string) config('app.frontend_url'), '/').'/order/'.$order->reference,
-                    'errorUrl' => rtrim((string) config('app.frontend_url'), '/').'/order/'.$order->reference,
+                    'paymentMethod' => $jekoMethod,
+                    'successUrl' => $frontendUrl.'/confirmation?ref='.$order->reference,
+                    'errorUrl' => $frontendUrl.'/checkout?error=payment_failed&ref='.$order->reference,
                 ],
             ],
         ];
@@ -48,9 +59,9 @@ class JekoTerminal implements Terminal
         $attempt->forceFill([
             'gateway' => $this->name(),
             'request_payload' => $payload,
-            'redirect_url' => $redirect !== '' ? $redirect : rtrim((string) config('app.frontend_url'), '/').'/order/'.$order->reference,
+            'redirect_url' => $redirect !== '' ? $redirect : $frontendUrl.'/order/'.$order->reference,
             'initiated_at' => $attempt->initiated_at ?? now(),
-            'failure_reason' => $response->successful() ? null : 'Jeko payment request initiation failed.',
+            'failure_reason' => $response->successful() ? null : (string) (data_get($body, 'message') ?? 'Jeko payment request initiation failed.'),
         ])->save();
 
         return $attempt->refresh();

@@ -71,12 +71,19 @@ export interface Review {
   verified: boolean;
 }
 
-export type PaymentMethod = 'orange_money' | 'wave' | 'mtn_momo' | 'moov_money' | 'djamo' | 'cash_on_delivery';
+export enum PaymentMethod {
+  ORANGE_MONEY = 'orange_money',
+  WAVE = 'wave',
+  MTN_MOMO = 'mtn_momo',
+  MOOV_MONEY = 'moov_money',
+  DJAMO = 'djamo',
+  CASH_ON_DELIVERY = 'cash_on_delivery',
+}
 
 export const PAYMENT_METHODS: { id: PaymentMethod; label: string; icon: string }[] = [
-  { id: 'orange_money', label: 'Orange Money', icon: '/icons/orange-money.svg' },
-  { id: 'wave',         label: 'Wave',         icon: '/icons/wave.svg' },
-  { id: 'mtn_momo',     label: 'MTN MoMo',     icon: '/icons/mtn.svg' },
-  { id: 'moov_money',   label: 'Moov Money',   icon: '/icons/moov.svg' },
-  { id: 'djamo',        label: 'Djamo',        icon: '/icons/djamo.svg' },
+  { id: PaymentMethod.ORANGE_MONEY, label: 'Orange Money', icon: '/icons/orange-money.svg' },
+  { id: PaymentMethod.WAVE,         label: 'Wave',         icon: '/icons/wave.svg' },
+  { id: PaymentMethod.MTN_MOMO,     label: 'MTN MoMo',     icon: '/icons/mtn.svg' },
+  { id: PaymentMethod.MOOV_MONEY,   label: 'Moov Money',   icon: '/icons/moov.svg' },
+  { id: PaymentMethod.DJAMO,        label: 'Djamo',        icon: '/icons/djamo.svg' },
 ];

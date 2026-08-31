@@ -6,7 +6,7 @@ use App\Models\User;
 use App\Modules\Identity\Models\Admin;
 
 it('rejects unauthenticated access to the admin session', function (): void {
-    $this->getJson('/api/admin/session')->assertUnauthorized();
+    $this->getJson('/v1/admin/session')->assertUnauthorized();
 });
 
 it('forbids authenticated non-admin users', function (): void {
@@ -14,7 +14,7 @@ it('forbids authenticated non-admin users', function (): void {
 
     $this->actingAs($user);
 
-    $this->getJson('/api/admin/session')->assertForbidden();
+    $this->getJson('/v1/admin/session')->assertForbidden();
 });
 
 it('returns the admin payload for an active admin', function (): void {
@@ -22,7 +22,7 @@ it('returns the admin payload for an active admin', function (): void {
 
     $this->actingAs($admin->user);
 
-    $this->getJson('/api/admin/session')
+    $this->getJson('/v1/admin/session')
         ->assertOk()
         ->assertJsonPath('user.email', $admin->user->email)
         ->assertJsonPath('admin.role', 'admin')
@@ -34,5 +34,5 @@ it('forbids a revoked admin', function (): void {
 
     $this->actingAs($admin->user);
 
-    $this->getJson('/api/admin/session')->assertForbidden();
+    $this->getJson('/v1/admin/session')->assertForbidden();
 });

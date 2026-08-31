@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Orders\Http\Requests;
 
-use App\Modules\Payments\Domain\Terminals;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -20,10 +19,10 @@ class UpdatePaymentMethodRequest extends FormRequest
      */
     public function rules(): array
     {
-        $terminals = app(Terminals::class);
+        $allowedGateways = array_keys((array) config('payments.gateways', []));
 
         return [
-            'gateway' => ['required', 'string', Rule::in($terminals->names())],
+            'gateway' => ['required', 'string', Rule::in($allowedGateways)],
         ];
     }
 }

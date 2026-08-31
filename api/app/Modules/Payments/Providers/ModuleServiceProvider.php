@@ -40,10 +40,9 @@ class ModuleServiceProvider extends BaseModuleServiceProvider
 
         $this->app->singleton(Terminals::class, function (): Terminals {
             $registry = new Terminals;
-            $registry->register('null', NullTerminal::class);
-            $registry->register('cinetpay', CinetPayTerminal::class);
-            $registry->register('jeko', JekoTerminal::class);
-            $registry->register('jeko-pay', JekoTerminal::class);
+            foreach ((array) config('payments.gateways', []) as $name => $terminal) {
+                $registry->register($name, $terminal);
+            }
 
             return $registry;
         });

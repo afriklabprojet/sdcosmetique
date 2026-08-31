@@ -18,7 +18,7 @@ it('registers a client and returns the account payload', function (): void {
         'terms' => true,
     ])->assertSuccessful();
 
-    $this->getJson('/api/account')
+    $this->getJson('/v1/account')
         ->assertOk()
         ->assertJsonPath('data.email', 'awa@example.com')
         ->assertJsonPath('data.phone', '+22501020304');
@@ -28,7 +28,7 @@ it('manages the authenticated address book', function (): void {
     $client = Client::factory()->create();
     $this->actingAs($client->user);
 
-    $this->postJson('/api/account/addresses', [
+    $this->postJson('/v1/account/addresses', [
         'first_name' => 'Awa',
         'last_name' => 'Kone',
         'line_1' => 'Cocody',
@@ -39,8 +39,8 @@ it('manages the authenticated address book', function (): void {
 
     $address = Address::query()->firstOrFail();
 
-    $this->getJson('/api/account/addresses')->assertOk()->assertJsonCount(1, 'data');
-    $this->putJson('/api/account/addresses/'.$address->id, [
+    $this->getJson('/v1/account/addresses')->assertOk()->assertJsonCount(1, 'data');
+    $this->putJson('/v1/account/addresses/'.$address->id, [
         'first_name' => 'Awa',
         'last_name' => 'Kone',
         'line_1' => 'Marcory',
@@ -48,7 +48,7 @@ it('manages the authenticated address book', function (): void {
         'country' => 'CI',
     ])->assertOk()->assertJsonPath('data.line_1', 'Marcory');
 
-    $this->deleteJson('/api/account/addresses/'.$address->id)->assertNoContent();
+    $this->deleteJson('/v1/account/addresses/'.$address->id)->assertNoContent();
 });
 
 it('returns 404 when a client accesses another clients address', function (): void {
@@ -58,15 +58,15 @@ it('returns 404 when a client accesses another clients address', function (): vo
 
     $this->actingAs($intruder->user);
 
-    $this->getJson('/api/account/addresses/'.$address->id)->assertNotFound();
-    $this->putJson('/api/account/addresses/'.$address->id, [
+    $this->getJson('/v1/account/addresses/'.$address->id)->assertNotFound();
+    $this->putJson('/v1/account/addresses/'.$address->id, [
         'first_name' => 'Intruder',
         'last_name' => 'User',
         'line_1' => 'Elsewhere',
         'city' => 'Abidjan',
         'country' => 'CI',
     ])->assertNotFound();
-    $this->deleteJson('/api/account/addresses/'.$address->id)->assertNotFound();
+    $this->deleteJson('/v1/account/addresses/'.$address->id)->assertNotFound();
 });
 
 it('returns 404 when a client accesses another clients order', function (): void {
@@ -79,7 +79,7 @@ it('returns 404 when a client accesses another clients order', function (): void
 
     $this->actingAs($intruder->user);
 
-    $this->getJson('/api/account/orders/'.$order->reference)->assertNotFound();
+    $this->getJson('/v1/account/orders/'.$order->reference)->assertNotFound();
 });
 
 it('points password reset links at the storefront', function (): void {

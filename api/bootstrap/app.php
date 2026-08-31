@@ -12,6 +12,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web/index.php',
         api: __DIR__.'/../routes/api/index.php',
+        apiPrefix: 'v1',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
@@ -26,6 +27,6 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request): bool => $request->is('api/*') || $request->expectsJson(),
+            fn (Request $request): bool => $request->is('v1/*') || $request->expectsJson(),
         );
     })->create();

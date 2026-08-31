@@ -23,7 +23,7 @@ it('lists active questions with their options', function (): void {
     Option::factory()->archived()->create(['question_id' => $question->id]);
     Question::factory()->archived()->create();
 
-    $this->getJson('/api/quiz-questions')
+    $this->getJson('/v1/quiz-questions')
         ->assertOk()
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.slug', 'skin_concern')
@@ -43,7 +43,7 @@ it('stores a submission and returns matching recommendations', function (): void
         'priority' => 10,
     ])->product;
 
-    $response = $this->postJson('/api/quiz-submissions', [
+    $response = $this->postJson('/v1/quiz-submissions', [
         'email' => 'awa@example.com',
         'first_name' => 'Awa',
         'answers' => [
@@ -57,13 +57,13 @@ it('stores a submission and returns matching recommendations', function (): void
     expect($response->json('data.recommendations.0.slug'))->toBe($product->slug)
         ->and(Submission::query()->count())->toBe(1);
 
-    $this->getJson('/api/quiz-submissions/'.$response->json('data.id'))
+    $this->getJson('/v1/quiz-submissions/'.$response->json('data.id'))
         ->assertOk()
         ->assertJsonPath('data.email', 'awa@example.com');
 });
 
 it('rejects unknown answers', function (): void {
-    $this->postJson('/api/quiz-submissions', [
+    $this->postJson('/v1/quiz-submissions', [
         'email' => 'awa@example.com',
         'answers' => [
             ['question' => 'missing', 'option' => 'nope'],
@@ -72,16 +72,16 @@ it('rejects unknown answers', function (): void {
 });
 
 it('guards admin quiz questions', function (): void {
-    $this->getJson('/api/admin/quiz-questions')->assertUnauthorized();
+    $this->getJson('/v1/admin/quiz-questions')->assertUnauthorized();
 
     $this->actingAs(User::factory()->create());
-    $this->getJson('/api/admin/quiz-questions')->assertForbidden();
+    $this->getJson('/v1/admin/quiz-questions')->assertForbidden();
 });
 
 it('lets an admin sync question options', function (): void {
     $this->actingAs(admin());
 
-    $created = $this->postJson('/api/admin/quiz-questions', [
+    $created = $this->postJson('/v1/admin/quiz-questions', [
         'slug' => 'skin_concern',
         'title' => 'Préoccupation',
         'question_type' => QuestionType::SingleChoice->value,
@@ -95,7 +95,7 @@ it('lets an admin sync question options', function (): void {
 
     $id = $created->json('data.id');
 
-    $this->patchJson('/api/admin/quiz-questions/'.$id, [
+    $this->patchJson('/v1/admin/quiz-questions/'.$id, [
         'title' => 'Votre préoccupation',
         'options' => [
             ['id' => $created->json('data.options.0.id'), 'label' => 'Taches', 'value_code' => 'taches'],
@@ -106,5 +106,5 @@ it('lets an admin sync question options', function (): void {
 
     expect(Option::query()->whereNotNull('archived_at')->count())->toBe(1);
 
-    $this->getJson('/api/admin/quiz-submissions')->assertOk()->assertJsonCount(0, 'data');
+    $this->getJson('/v1/admin/quiz-submissions')->assertOk()->assertJsonCount(0, 'data');
 });

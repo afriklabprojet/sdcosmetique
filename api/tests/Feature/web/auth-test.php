@@ -17,7 +17,7 @@ it('merges the guest cart into the client cart on login', function (): void {
     ]);
     $client = Client::factory()->create();
 
-    $this->postJson('/api/cart-items', [
+    $this->postJson('/v1/cart-items', [
         'product' => $child->slug,
         'quantity' => 2,
     ])->assertCreated();
@@ -27,7 +27,7 @@ it('merges the guest cart into the client cart on login', function (): void {
         'password' => 'password',
     ])->assertSuccessful();
 
-    $this->getJson('/api/cart')
+    $this->getJson('/v1/cart')
         ->assertOk()
         ->assertJsonPath('data.items.0.quantity', 2)
         ->assertJsonPath('data.total', 50);
@@ -43,16 +43,16 @@ it('keeps the checkout draft alive when a guest logs in mid-checkout', function 
     $method = Method::factory()->create(['amount' => 0, 'cost' => 0]);
     $client = Client::factory()->create();
 
-    $this->postJson('/api/cart-items', [
+    $this->postJson('/v1/cart-items', [
         'product' => $child->slug,
         'quantity' => 1,
     ])->assertCreated();
 
-    $this->putJson('/api/checkout/contact', [
+    $this->putJson('/v1/checkout/contact', [
         'email' => 'guest-mid-checkout@example.com',
     ])->assertOk();
 
-    $this->putJson('/api/checkout/delivery', [
+    $this->putJson('/v1/checkout/delivery', [
         'delivery_method_id' => $method->id,
         'first_name' => 'Awa',
         'last_name' => 'Kone',
@@ -61,14 +61,14 @@ it('keeps the checkout draft alive when a guest logs in mid-checkout', function 
         'country' => 'CI',
     ])->assertOk()->assertJsonPath('data.step', 'payment');
 
-    $draftReference = $this->getJson('/api/checkout')->assertOk()->json('data.reference');
+    $draftReference = $this->getJson('/v1/checkout')->assertOk()->json('data.reference');
 
     $this->postJson('/login', [
         'email' => $client->user->email,
         'password' => 'password',
     ])->assertSuccessful();
 
-    $this->getJson('/api/checkout')
+    $this->getJson('/v1/checkout')
         ->assertOk()
         ->assertJsonPath('data.reference', $draftReference)
         ->assertJsonPath('data.step', 'payment')
@@ -90,7 +90,7 @@ it('logs out through Fortify JSON', function (): void {
     ])->assertSuccessful();
 
     $this->postJson('/logout')->assertSuccessful();
-    $this->getJson('/api/session')
+    $this->getJson('/v1/session')
         ->assertOk()
         ->assertJsonPath('user', null);
 });

@@ -11,6 +11,7 @@
  */
 
 import 'server-only';
+import { PaymentMethod } from '@/shared/types/domain.type';
 
 // ─── Env ──────────────────────────────────────────────────────────────────────
 
@@ -36,14 +37,13 @@ function authHeaders(): Record<string, string> {
 export type JekoPayProvider = 'wave' | 'orange' | 'mtn' | 'moov' | 'djamo';
 
 /** Mapping depuis le `PaymentMethod` interne vers le provider Jeko. */
-export const PAYMENT_METHOD_TO_JEKO: Record<string, JekoPayProvider | null> = {
-  wave:         'wave',
-  orange_money: 'orange',
-  mtn_momo:     'mtn',
-  moov_money:   'moov',
-  djamo:        'djamo',
-  visa:         null, // non supporté par le flux redirect mobile money
-  mastercard:   null,
+export const PAYMENT_METHOD_TO_JEKO: Record<PaymentMethod, JekoPayProvider | null> = {
+  [PaymentMethod.WAVE]: 'wave',
+  [PaymentMethod.ORANGE_MONEY]: 'orange',
+  [PaymentMethod.MTN_MOMO]: 'mtn',
+  [PaymentMethod.MOOV_MONEY]: 'moov',
+  [PaymentMethod.DJAMO]: 'djamo',
+  [PaymentMethod.CASH_ON_DELIVERY]: null,
 };
 
 export interface JekoMoney {

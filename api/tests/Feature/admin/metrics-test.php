@@ -6,10 +6,10 @@ use App\Models\User;
 use App\Modules\Orders\Models\Order;
 
 it('guards the metrics endpoint', function (): void {
-    $this->getJson('/api/admin/metrics/overview')->assertUnauthorized();
+    $this->getJson('/v1/admin/metrics/overview')->assertUnauthorized();
 
     $this->actingAs(User::factory()->create());
-    $this->getJson('/api/admin/metrics/overview')->assertForbidden();
+    $this->getJson('/v1/admin/metrics/overview')->assertForbidden();
 });
 
 it('returns the metrics overview shape', function (): void {
@@ -17,7 +17,7 @@ it('returns the metrics overview shape', function (): void {
 
     $this->actingAs(admin());
 
-    $this->getJson('/api/admin/metrics/overview')
+    $this->getJson('/v1/admin/metrics/overview')
         ->assertOk()
         ->assertJsonStructure([
             'revenue' => ['today', 'last_7_days', 'last_30_days', 'currency'],

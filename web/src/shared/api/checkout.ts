@@ -9,11 +9,11 @@ import type {
   LaravelStorefrontDeliveryMethod,
 } from '@/shared/api/types';
 import type { DeliveryInfo } from '@/features/checkout/checkout.type';
-import type { PaymentMethod } from '@/shared/types/domain.type';
+import { PaymentMethod } from '@/shared/types/domain.type';
 import type { ShippingOption } from '@/features/site-config/site-config.type';
 
-export function toLaravelGateway(method: PaymentMethod): 'null' | 'cinetpay' {
-  return method === 'cash_on_delivery' ? 'null' : 'cinetpay';
+export function toLaravelGateway(method: PaymentMethod): 'null' | 'jeko' | 'cinetpay' {
+  return method === PaymentMethod.CASH_ON_DELIVERY ? 'null' : 'jeko';
 }
 
 export async function fetchDeliveryMethods(): Promise<ShippingOption[]> {
@@ -51,7 +51,7 @@ export async function putCheckoutDelivery(
   });
 }
 
-export async function putCheckoutPayment(gateway: 'null' | 'cinetpay'): Promise<void> {
+export async function putCheckoutPayment(gateway: 'null' | 'jeko' | 'cinetpay'): Promise<void> {
   await api('/checkout/payment', {
     method: 'PUT',
     body: JSON.stringify({ gateway }),
