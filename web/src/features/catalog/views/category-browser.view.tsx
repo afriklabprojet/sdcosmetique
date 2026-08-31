@@ -19,8 +19,8 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { PRODUCTS, fetchProducts } from '@/features/catalog/product.query';
-import { CATEGORIES, type Category, SkinTone } from '@/shared/types/domain.type';
+import { fetchProducts } from '@/features/catalog/product.query';
+import { CATEGORIES, type Category, type Product, SkinTone } from '@/shared/types/domain.type';
 import ProductCard from '@/features/catalog/cards/product.card';
 import SkinToneSelector from '@/features/catalog/selects/skin-tone.select';
 
@@ -53,7 +53,7 @@ interface CategoryBrowserProps {
 export default function CategoryBrowser({ styles, category, unitLabel, emptyScope }: CategoryBrowserProps) {
   const [skinToneFilter, setSkinToneFilter] = useState<SkinTone | null>(null);
   const [sortBy, setSortBy] = useState('popular');
-  const [allProducts, setAllProducts] = useState(PRODUCTS.filter(p => p.category === category));
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
 
   useEffect(() => { fetchProducts(category).then(setAllProducts).catch(() => {}); }, [category]);
 

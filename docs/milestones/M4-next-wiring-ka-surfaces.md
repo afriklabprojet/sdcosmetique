@@ -67,3 +67,148 @@ subscribe, contact form. Settings-driven and quiz/loyalty call sites wait for M6
 - Call-site ledger: [§7.1–§7.8](../implementation-plan/07-web-rewiring.md) — the 14 admin
   sites listed there as "deleted with admin UI" are rewired instead, per the pivot
 - Env changes: [§7.9](../implementation-plan/07-web-rewiring.md) — add `NEXT_PUBLIC_API_URL`
+
+## Execution (from `web/` inventory, 2026-08-30)
+
+Grounded in the current tree. Do not start coding until this section is accepted.
+§7 still describes Filament and `POST /sessions`; the live KA API uses Fortify
+`POST /login` and `GET /api/session`. Prefer the live routes.
+
+### Current shape of `./web`
+
+- No API client exists. Browser calls are relative `fetch('/api/…')`; RSC and
+  Server Actions import Drizzle repositories.
+- Auth is first-party Next: `sd_session` httpOnly cookie, bcrypt users in MariaDB,
+  `requireAdmin()` = `role === 'admin'` or `ADMIN_EMAILS`. Used from 20 files
+  (admin page, leftover Next admin routes, `admin-actions.ts`).
+- Admin login POSTs `/api/auth/login` then `location.href = '/admin'`. The client
+  dashboard re-checks `/api/auth/me` and hydrates every tab in `initAfterAuth`
+  (`admin.view.tsx`).
+- Cart is `localStorage` (`sd-cosmetique-cart`). KA checkout is a server-side
+  draft built from the Laravel cart — wiring checkout without the cart API will
+  not work.
+- `web/.env.example` has no `NEXT_PUBLIC_API_URL`. Laravel already has
+  `FRONTEND_URL=http://localhost:3000` and `SANCTUM_STATEFUL_DOMAINS=localhost:3000`.
+
+### Cross-origin cookie constraint (locks the auth design)
+
+`localhost:3000` and `localhost:8000` are same-site but **not same-host**.
+Laravel's `laravel_session` is host-only on `:8000`. Next middleware, RSC, and
+Next route handlers on `:3000` never see it. Only browser `fetch` with
+`credentials: 'include'` to the API origin sends it.
+
+Therefore a literal `requireAdmin()` → `GET /api/admin/session` from a Next
+server function cannot work, and leftover M6 routes that still call
+`requireAdmin()` would all 401 if we delete `sd_session`.
+
+**Mixed-state rule (do not break leftover tabs):**
+
+1. Browser talks to Laravel directly (Sanctum SPA). That is the real admin gate.
+2. Admin login also keeps creating `sd_session` via the existing Next
+   `/api/auth/login`, so jeko / quiz / avis / site-config routes keep working.
+3. `requireAdmin()` and `ADMIN_EMAILS` stay until M6 deletes those routes.
+4. `web/middleware.ts` keeps checking `sd_session` for `/admin` and `/compte`
+   presence-only redirects. Laravel's `admin` middleware is the real check on
+   `/api/admin/*`.
+5. Same admin email must exist in both DBs (Laravel `AdminSeeder` + current
+   Next admin user). Document in `web/.env.example`.
+
+This defers the milestone line "requireAdmin becomes a thin Laravel call" to
+M6. The M4 login page itself is Fortify-first: csrf → `POST /login` →
+`GET /api/admin/session` → deny non-admin → then Next `/api/auth/login` for
+the leftover-tab session.
+
+### Schema adapters (the real work)
+
+Laravel JSON is not the Next `Product` / `OrderDraft` shape. Put mappers next
+to the client; do not rewrite every tab to KA field names in this milestone.
+
+| Next field | Laravel field | Notes |
+| --- | --- | --- |
+| `Product.name` | `title` | |
+| `Product.price` / `originalPrice` | `price` / `compare_at_price` | integer minor units (XOF) on both sides today |
+| `Product.category` (string slug) | nested `category.slug` | admin writes `category_id` |
+| `Product.shortDescription` | `summary` | |
+| `Product.newArrival` / `bestseller` | `recent` / `featured` | |
+| `Product.skinTones`, `rating`, `benefits`, `lowStockThreshold` | — | no KA column; omit on write, default on read |
+| `OrderDraft.orderNumber` | `reference` | |
+| `OrderDraft.status` (`pending_payment`…) | `draft` / `placed` / `paid` / `shipped` / `delivered` / `cancelled` | map both ways; paid orders cannot be cancelled (API 422) |
+| `OrderDraft.delivery.*` | `destination` object + `email` | |
+| Clients tab | `GET /api/admin/customers` | replace in-memory derivation from orders |
+| Promos tab | `admin/coupons` (`code`, `type`, `value`, `threshold`, …) | replace `siteConfig.promo_codes` |
+| Livraison tab | `admin/delivery-methods` | replace `siteConfig.shipping` |
+
+### Waves (commit after each)
+
+**W1 — client + env (no UI change)**
+- Add `web/src/shared/api/client.ts` (`api`, `apiMutate`, `ApiError`, csrf prime).
+- Add `web/src/shared/api/mappers/{product,order,category,coupon,delivery,customer}.ts`.
+- Add `NEXT_PUBLIC_API_URL=http://localhost:8000/api` to `web/.env.example`.
+- Confirm Laravel CORS / Sanctum already allow `:3000`.
+
+**W2 — admin login (dual session)**
+- `admin/login/page.tsx`: Fortify path first, Next `/api/auth/login` second.
+- `admin.view.tsx` `useEffect`: `GET /api/admin/session` (via client) instead of
+  `/api/auth/me`. Keep leftover-tab hydration (reviews, jeko, quiz, site-config).
+- Leave `requireAdmin()` and middleware on `sd_session`.
+
+**W3 — admin KA tabs (one tab per change, delete the replaced Next handler with it)**
+
+| Order | Tab | Client calls | Delete with the rewire |
+| --- | --- | --- | --- |
+| 1 | commandes | `GET/PATCH /admin/orders`, `POST /admin/orders/{id}/adjustments` | `web/src/app/api/admin/orders/route.ts` |
+| 2 | produits | `admin/products` CRUD + `POST /admin/media` | `web/src/app/api/admin/products/route.ts`; product functions in `admin-actions.ts` |
+| 3 | categories | `admin/categories` CRUD | `fetchAllCategoriesAdmin` / add / update / delete in `category.repository.ts` if nothing else imports them |
+| 4 | clients | `admin/customers` | in-memory clients list in `admin.view.tsx` |
+| 5 | newsletter (subs list only) | `admin/newsletter-subscriptions` | `web/src/app/api/newsletter/list/route.ts`. Copy block `saveConfigSection('newsletter', …)` stays on Drizzle |
+| 6 | promos | `admin/coupons` | coupon writes in `PromosTab`; `siteConfig.promo_codes` left for marketing tab until M6 |
+| 7 | livraison | `admin/delivery-methods` | shipping writes in `ShippingTab` |
+| 8 | dashboard | `GET /admin/metrics/overview` | client-side totals in `admin-metrics.ts` that only the dashboard uses |
+
+**W4 — storefront catalog (public, no cookie)**
+- RSC pages (`page.tsx`, `boutique`, `categorie/[slug]`, `produit/[slug]`,
+  `teint/[slug]`) call Laravel `GET /products` and `GET /categories` through a
+  server helper that uses the same base URL (no credentials).
+- `product.query.ts` browser fetchers use the API client; **delete the
+  `PRODUCTS` fallback** (§7.6). Split `formatPrice` out so account pages can
+  keep importing it.
+- Delete `web/src/app/api/products/route.ts` and `products/[slug]/route.ts`
+  once nothing relative-fetches them.
+
+**W5 — storefront auth + account**
+- `connexion` / `inscription` / `mot-de-passe-oublie` → Fortify
+  (`POST /login`, `POST /register`, `POST /forgot-password`).
+- `/compte` profile, addresses, orders → `GET /api/session`, Accounts module
+  (`/api/account`, `/api/addresses`, `/api/orders`).
+- Next `/api/auth/{login,register,logout,me,profile,forgot-password}` stay
+  until M6 only if leftover admin routes still need `sd_session`. Storefront
+  pages stop calling them.
+
+**W6 — cart, checkout, payments**
+- Replace `localStorage` cart with KA `/api/cart` (guest cart cookie is
+  Laravel's; confirm `AllowFirstParty` / Sanctum on those routes).
+- Checkout page → KA checkout draft + `POST /api/payments` (CinetPay /
+  NullGateway). Confirmation polls `GET /api/payments/{id}`.
+- Delete `web/src/app/api/orders/create/route.ts` and the jeko-pay checkout /
+  reconcile / status routes **only if** nothing else (loyalty) imports them.
+  Jeko *loyalty* routes stay.
+
+**W7 — leads**
+- Footer subscribe → `POST /api/newsletter-subscriptions`.
+- Contact page → `POST /api/contact-messages`.
+- Delete `web/src/app/api/newsletter/subscribe/route.ts` and
+  `web/src/app/api/contact/route.ts`.
+
+**W8 — gate**
+- `pnpm --filter web build` green.
+- Grep remaining Drizzle usage: only M6 surfaces (site-config, quiz, jeko,
+  reviews, testimonials, leftover Next routes, `requireAdmin`).
+- Browser walk: admin login (non-admin denied, revoked admin denied) → each
+  W3 tab CRUD → storefront browse → product → cart → checkout → account.
+- Commit. Do not start M5.
+
+### Out of scope (leave on Drizzle)
+
+hero, contenu, faq, legal, branding, marketing, paiement config, quiz, jeko,
+avis, temoignages, `saveSiteConfigSection`, `getSiteConfig`, category hero
+`/api/config/*`, `ADMIN_EMAILS` / `requireAdmin` for leftover Next routes.

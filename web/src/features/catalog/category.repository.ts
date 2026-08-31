@@ -37,13 +37,9 @@ function mapRow(r: typeof categories.$inferSelect): CategoryRow {
 
 // ─── Fetch toutes les catégories actives (frontend) ──────────────────────────
 export async function fetchActiveCategories(): Promise<CategoryRow[]> {
+  const { listCategories } = await import('@/shared/api/catalog');
   try {
-    const data = await db
-      .select()
-      .from(categories)
-      .where(eq(categories.active, true))
-      .orderBy(asc(categories.orderIndex));
-    return data.map(mapRow);
+    return await listCategories();
   } catch {
     return [];
   }

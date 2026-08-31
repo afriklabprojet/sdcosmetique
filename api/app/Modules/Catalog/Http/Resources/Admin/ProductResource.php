@@ -22,6 +22,7 @@ class ProductResource extends JsonResource
         return [
             'id' => $this->id,
             'category_id' => $this->category_id,
+            'category_slug' => $this->whenLoaded('category', fn () => $this->category?->slug),
             'parent_id' => $this->parent_id,
             'slug' => $this->slug,
             'title' => $this->getRawOriginal('title'),

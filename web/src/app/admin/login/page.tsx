@@ -2,8 +2,19 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { ApiError, api, apiRoot, type LaravelAdminSession } from '@/shared/api';
 import { fetchSiteConfigSection } from '@/features/site-config/site-config.util';
 import styles from './admin-login.module.css';
+
+function loginFailureMessage(err: unknown, fallback: string): string {
+  if (!(err instanceof ApiError)) return fallback;
+  try {
+    const parsed = JSON.parse(err.body) as { message?: string; error?: string };
+    return parsed.message || parsed.error || fallback;
+  } catch {
+    return err.body || fallback;
+  }
+}
 
 function AdminLoginContent() {
   const searchParams = useSearchParams();
@@ -30,24 +41,43 @@ function AdminLoginContent() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/login', {
+      try {
+        await apiRoot('/login', {
+          method: 'POST',
+          body: JSON.stringify({ email, password }),
+        });
+      } catch (err) {
+        throw new Error(loginFailureMessage(err, 'Email ou mot de passe incorrect.'));
+      }
+
+      try {
+        await api<LaravelAdminSession>('/admin/session');
+      } catch (err) {
+        await apiRoot('/logout', { method: 'POST' }).catch(() => undefined);
+        if (err instanceof ApiError && err.status === 403) {
+          throw new Error("Cet email n'est pas autorisé à accéder au dashboard admin.");
+        }
+        throw new Error(loginFailureMessage(err, 'Session administrateur indisponible.'));
+      }
+
+      const nextRes = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-
-      const data = await res.json();
-      setLoading(false);
-
-      if (!res.ok || data.error) {
-        setError(data.error || 'Email ou mot de passe incorrect.');
-        return;
+      const nextData = await nextRes.json().catch(() => ({}));
+      if (!nextRes.ok || nextData.error) {
+        await apiRoot('/logout', { method: 'POST' }).catch(() => undefined);
+        throw new Error(
+          nextData.error
+          ?? 'Compte Laravel reconnu, mais cet email n’existe pas côté Next. Créez le même admin dans les deux bases.',
+        );
       }
 
       globalThis.location.href = '/admin';
-    } catch {
+    } catch (err) {
       setLoading(false);
-      setError('Erreur de connexion au serveur.');
+      setError(err instanceof Error ? err.message : 'Erreur de connexion au serveur.');
     }
   };
 

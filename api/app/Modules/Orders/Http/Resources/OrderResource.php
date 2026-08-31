@@ -26,6 +26,7 @@ class OrderResource extends JsonResource
         $isPrivileged = $isOwner || $isAdmin;
 
         return [
+            'id' => $this->id,
             'reference' => $this->reference,
             'status' => $this->status()->value,
             'step' => $this->step(),

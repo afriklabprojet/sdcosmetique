@@ -1,14 +1,10 @@
 /*
- * Lecture du catalogue depuis le navigateur, via les routes `/api/products`,
- * avec repli sur PRODUCTS.
- *
- * Vague `lexicon` (F-120) : le suffixe `ForClient` disait ou le code s'execute,
- * pas ce qu'il fait. Il est tombe. `product.repository.ts` expose les memes
- * deux noms pour la lecture serveur : c'est voulu. Ces fonctions font la meme
- * chose, seule la source differe, et aucun fichier n'importe les deux. Leur
- * donner des noms differents reintroduirait dans l'identifiant la contrainte
- * d'execution que ce finding demandait justement d'en sortir.
+ * Lecture du catalogue depuis le navigateur via le client Laravel.
+ * formatPrice stays here so account and admin tabs can import it without
+ * pulling fetchers. The PRODUCTS constant is only leftover for the quiz
+ * Next route (M6); fetchers no longer fall back to it.
  */
+import { listProducts, showProduct } from '@/shared/api/catalog';
 import { Product, SkinTone, Category } from '@/shared/types/domain.type';
 
 // ─── Options de filtrage ──────────────────────────────────────────────────────
@@ -24,38 +20,21 @@ export async function fetchProducts(
   category?: string,
   options?: Omit<FetchProductsOptions, 'category'>
 ): Promise<Product[]> {
-  try {
-    const params = new URLSearchParams();
-    if (category)               params.set('category',    category);
-    if (options?.skinTone)      params.set('skinTone',    options.skinTone);
-    if (options?.bestsellers)   params.set('bestsellers', 'true');
-    if (options?.limit != null) params.set('limit',       String(options.limit));
-
-    const res = await fetch(`/api/products?${params.toString()}`, {
-      cache: 'no-store',
-    });
-    if (!res.ok) throw new Error(`API ${res.status}`);
-    return (await res.json()) as Product[];
-  } catch {
-    let products = category ? PRODUCTS.filter(p => p.category === category) : PRODUCTS;
-    if (options?.skinTone)    products = products.filter(p => p.skinTones.includes(options.skinTone!));
-    if (options?.bestsellers) products = products.filter(p => p.bestseller);
-    if (options?.limit != null) products = products.slice(0, options.limit);
-    return products;
+  let products = await listProducts({
+    category,
+    featured: options?.bestsellers,
+    perPage: options?.limit ?? 100,
+  });
+  if (options?.skinTone) {
+    products = products.filter(p => p.skinTones.includes(options.skinTone!));
   }
+  if (options?.limit != null) products = products.slice(0, options.limit);
+  return products;
 }
 
-// ─── Fetch un produit par slug via API Route ──────────────────────────────────
 export async function fetchProductBySlug(slug: string): Promise<Product | null> {
-  try {
-    const res = await fetch(`/api/products/${encodeURIComponent(slug)}`, {
-      cache: 'no-store',
-    });
-    if (!res.ok) throw new Error(`API ${res.status}`);
-    return (await res.json()) as Product;
-  } catch {
-    return PRODUCTS.find(p => p.slug === slug) ?? null;
-  }
+  const result = await showProduct(slug);
+  return result?.product ?? null;
 }
 
 // ─── Fallback mock products data ─────────────────────────────────────────────

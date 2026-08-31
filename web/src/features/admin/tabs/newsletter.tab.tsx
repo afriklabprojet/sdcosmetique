@@ -4,6 +4,7 @@
 
 import React from 'react';
 import { type NewsletterSub } from '@/features/admin/admin.type';
+import { deleteAdminNewsletter } from '@/shared/api/admin';
 import { getNewsletterFilterText, getSaveButtonText } from '@/features/admin/admin.util';
 import { type SiteConfig } from '@/features/site-config/site-config.type';
 import { BG, SURFACE, SURFACE2, BORDER, BORDER2, GOLD, TEXT, TEXT2, TEXT3, GOLD2, S_SAVE_BG, S_SAVE_T } from '@/features/admin/admin.constant';
@@ -33,20 +34,17 @@ export default function NewsletterTab({ siteContent, setSiteContent, saveConfigS
             const total = newsletterSubs.length;
             const active = newsletterSubs.filter(s => !s.unsubscribed).length;
             const unsubs = total - active;
-            const toggleUnsub = async (s: NewsletterSub) => {
-              const r = await fetch('/api/newsletter/manage', {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: s.id, unsubscribed: !s.unsubscribed }),
-              });
-              if (r.ok) reloadNewsletter();
-              else alert('Erreur lors de la mise à jour');
+            const toggleUnsub = async (_s: NewsletterSub) => {
+              alert('Le changement de statut d’un abonné n’est pas encore exposé par l’API. Supprimez l’abonnement à la place.');
             };
             const remove = async (s: NewsletterSub) => {
               if (!confirm(`Supprimer définitivement ${s.email} ?`)) return;
-              const r = await fetch(`/api/newsletter/manage?id=${encodeURIComponent(s.id)}`, { method: 'DELETE' });
-              if (r.ok) reloadNewsletter();
-              else alert('Erreur lors de la suppression');
+              try {
+                await deleteAdminNewsletter(s.id);
+                reloadNewsletter();
+              } catch {
+                alert('Erreur lors de la suppression');
+              }
             };
             const n = siteContent.newsletter;
             const update = (patch: Partial<typeof n>) => setSiteContent((c: SiteConfig) => ({ ...c, newsletter: { ...c.newsletter, ...patch } }));
@@ -58,10 +56,22 @@ export default function NewsletterTab({ siteContent, setSiteContent, saveConfigS
                     <h1 className="text-lg font-bold" style={{ color: TEXT }}>Newsletter</h1>
                     <p className="text-xs" style={{ color: TEXT3 }}>Gérer les abonnés à la newsletter.</p>
                   </div>
-                  <a href="/api/newsletter/list?format=csv" download
-                    style={{ fontSize: 12, padding: '8px 14px', borderRadius: 8, border: `1px solid ${BORDER2}`, background: 'rgba(200,151,74,0.08)', color: GOLD, textDecoration: 'none', fontWeight: 600 }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const rows = [['email', 'unsubscribed', 'created_at'], ...newsletterSubs.map((s) => [s.email, String(s.unsubscribed), s.created_at])];
+                      const csv = rows.map((row) => row.map((cell) => `"${cell.replaceAll('"', '""')}"`).join(',')).join('\n');
+                      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = 'newsletter.csv';
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                    style={{ fontSize: 12, padding: '8px 14px', borderRadius: 8, border: `1px solid ${BORDER2}`, background: 'rgba(200,151,74,0.08)', color: GOLD, fontWeight: 600, cursor: 'pointer' }}>
                     ⬇ Exporter CSV
-                  </a>
+                  </button>
                 </div>
 
                 {/* ─── Newsletter (configuration affichage) ─── */}

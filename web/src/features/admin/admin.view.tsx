@@ -9,14 +9,28 @@ import { formatPrice } from '@/features/catalog/product.query';
 import { Product, Category, SkinTone, Review } from '@/shared/types/domain.type';
 import { fetchAllReviews, deleteReview, approveReview } from '@/features/catalog/review.repository';
 
-import { deleteProduct, saveSiteConfigSection } from '@/features/admin/admin-actions';
-import type { AdminTabStatus } from '@/features/admin/admin.type';
+import {
+  deleteAdminProduct,
+  fetchAdminCategories,
+  fetchAdminCustomers,
+  fetchAdminMetrics,
+  fetchAdminNewsletter,
+  fetchAdminOrders,
+  fetchAdminProducts,
+  fetchAdminSession,
+  patchAdminOrderStatus,
+  saveAdminProduct,
+} from '@/shared/api/admin';
+import type { LaravelMetricsOverview } from '@/shared/api/types';
+import type { MappedOrder } from '@/shared/api/mappers/order';
+import { apiRoot } from '@/shared/api/client';
+import { saveSiteConfigSection } from '@/features/admin/admin-actions';
+import type { AdminTabStatus, ClientRow } from '@/features/admin/admin.type';
 import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
 import type { SiteConfig } from '@/features/site-config/site-config.type';
 import ImageUpload from '@/shared/ui/image.input';
 import { fetchAllTestimonialsAdmin, approveTestimonial, deleteTestimonial } from '@/features/testimonials/testimonial.repository';
 import type { TestimonialRow } from '@/features/testimonials/testimonial.repository';
-import { fetchAllCategoriesAdmin } from '@/features/catalog/category.repository';
 import type { CategoryRow } from '@/features/catalog/category.repository';
 import { fetchAllConcernsAdmin, fetchAllRoutinesAdmin } from '@/features/quiz/quiz.repository';
 import type { QuizConcern, QuizRoutine } from '@/features/quiz/quiz.repository';
@@ -58,27 +72,6 @@ type ReviewRow = Review & { productId?: string };
 type ProductModalState = Partial<Product> & { _isNew?: boolean };
 type Tab = 'dashboard' | 'commandes' | 'produits' | 'avis' | 'temoignages' | 'categories' | 'quiz' | 'clients' | 'contenu' | 'jeko' | 'newsletter' | 'livraison' | 'marketing' | 'branding' | 'promos' | 'faq' | 'hero' | 'legal' | 'paiement';
 type NewsletterSub = { id: string; email: string; source: string | null; unsubscribed: boolean; created_at: string };
-
-async function fetchAdminOrders(): Promise<OrderDraft[]> {
-  const res = await fetch('/api/admin/orders', { cache: 'no-store' });
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data?.error ?? `Erreur ${res.status}`);
-  }
-  return Array.isArray(data?.orders) ? (data.orders as OrderDraft[]) : [];
-}
-
-async function patchAdminOrderStatus(orderNumber: string, status: OrderDraft['status']): Promise<void> {
-  const res = await fetch('/api/admin/orders', {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ orderNumber, status }),
-  });
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data?.error ?? `Erreur ${res.status}`);
-  }
-}
 
 type ProductEditModalProps = {
   /** Produit ouvert a l'edition. Le brouillon qui en decoule vit dans la modale. */
@@ -450,25 +443,14 @@ async function applySiteConfigRows(setSiteContent: (cfg: SiteConfig) => void) {
   }
 }
 
-function fetchNewsletterSubs(setNewsletterSubs: (subs: NewsletterSub[]) => void) {
-  fetch('/api/newsletter/list')
-    .then(r => r.ok ? r.json() : { subscribers: [] })
-    .then((d: { subscribers?: NewsletterSub[] }) => setNewsletterSubs(d.subscribers ?? []))
-    .catch(() => setNewsletterSubs([]));
-}
-
-function loadEditableProducts(setEditableProducts: (p: Product[]) => void) {
-  fetch('/api/admin/products', { cache: 'no-store' })
-    .then(r => r.ok ? r.json() : Promise.reject(new Error(`${r.status}`)))
-    .then((products: Product[]) => setEditableProducts(products))
-    .catch(() => setEditableProducts([]));
-}
 
 export default function AdminPage() { // NOSONAR typescript:S3776
   const router = useRouter();
   const [tab, setTab] = useState<Tab>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [orders, setOrders] = useState<OrderDraft[]>([]);
+  const [orders, setOrders] = useState<MappedOrder[]>([]);
+  const [clients, setClients] = useState<ClientRow[]>([]);
+  const [metrics, setMetrics] = useState<LaravelMetricsOverview | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [userEmail, setUserEmail] = useState('');
 
@@ -529,19 +511,23 @@ export default function AdminPage() { // NOSONAR typescript:S3776
   const [newsletterSearch, setNewsletterSearch] = useState('');
   const [newsletterFilter, setNewsletterFilter] = useState<'all' | 'active' | 'unsubscribed'>('all');
 
-  const reloadNewsletter = () => fetchNewsletterSubs(setNewsletterSubs);
+  const reloadNewsletter = () => {
+    fetchAdminNewsletter().then(setNewsletterSubs).catch(() => setNewsletterSubs([]));
+  };
 
   const initAfterAuth = useCallback(async (user: { email?: string | null }) => {
     setAuthChecked(true);
     setUserEmail(user.email ?? '');
     fetchAdminOrders().then(setOrders).catch(() => setOrders([]));
-    loadEditableProducts(setEditableProducts);
+    fetchAdminProducts().then(setEditableProducts).catch(() => setEditableProducts([]));
     fetchAllReviews().then(rows => setReviews(rows as ReviewRow[]));
     fetchAllTestimonialsAdmin().then(setTestimonials);
-    fetchAllCategoriesAdmin().then(setCategories);
+    fetchAdminCategories().then(setCategories).catch(() => setCategories([]));
+    fetchAdminCustomers().then(setClients).catch(() => setClients([]));
+    fetchAdminMetrics().then(setMetrics).catch(() => setMetrics(null));
     fetchAllConcernsAdmin().then(setQuizConcerns);
     fetchAllRoutinesAdmin().then(setQuizRoutines);
-    reloadNewsletter();
+    fetchAdminNewsletter().then(setNewsletterSubs).catch(() => setNewsletterSubs([]));
     getJekoSettings().then(s => { setJekoSettingsEdit(s); });
     getJekoTiersConfig().then(setJekoTiersConf);
     getJekoRewardsConfig().then(setJekoRewardsConf);
@@ -553,14 +539,9 @@ export default function AdminPage() { // NOSONAR typescript:S3776
   }, []);
 
   useEffect(() => {
-    fetch('/api/auth/me')
-      .then(res => res.json())
-      .then(data => {
-        if (data.user && data.user.isAdmin) {
-          void initAfterAuth(data.user);
-        } else {
-          router.replace('/admin/login');
-        }
+    fetchAdminSession()
+      .then((session) => {
+        void initAfterAuth({ email: session.user.email });
       })
       .catch(() => {
         router.replace('/admin/login');
@@ -568,6 +549,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
   }, [router, initAfterAuth]);
 
   const logout = async () => {
+    await apiRoot('/logout', { method: 'POST' }).catch(() => undefined);
     await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/');
   };
@@ -582,24 +564,17 @@ export default function AdminPage() { // NOSONAR typescript:S3776
     setOrders(prev => prev.map(o => o.orderNumber === orderNumber
       ? { ...o, paymentStatus: 'paid' as const, status: 'confirmed' as OrderStatus }
       : o));
-    try {
-      const res = await fetch('/api/admin/orders', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderNumber, paymentStatus: 'paid' }),
-      });
-      if (!res.ok) throw new Error(`Erreur ${res.status}`);
-    } catch {
-      setOrders(previousOrders);
-    }
+    // Paying an order is a payment-gateway concern on the API; revert the optimistic UI.
+    setOrders(previousOrders);
   };
 
   const changeStatus = async (orderNumber: string, status: OrderStatus) => {
     const previousOrders = orders;
+    const current = orders.find(o => o.orderNumber === orderNumber);
     updateOrderStatus(orderNumber, status);
     setOrders(prev => prev.map(o => o.orderNumber === orderNumber ? { ...o, status } : o));
     try {
-      await patchAdminOrderStatus(orderNumber, status);
+      if (current) await patchAdminOrderStatus(current, status);
     } catch {
       setOrders(previousOrders);
     }
@@ -651,26 +626,18 @@ export default function AdminPage() { // NOSONAR typescript:S3776
     setIsSaving(true);
     setSaveError(null);
     try {
-      console.log('[admin] POST /api/admin/products payload:', {
-        id: p.id, inStock: p.inStock, badges: p.badges, newArrival: p.newArrival, bestseller: p.bestseller, stockQty: p.stockQty,
-      });
-      const res = await fetch('/api/admin/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(p),
-      });
-      const data = await res.json();
-      console.log('[admin] POST result:', res.status, data);
-      if (!res.ok) {
-        throw new Error(data.error ?? `Erreur ${res.status}`);
+      const categoryId = Number(categories.find(c => c.slug === p.category)?.id);
+      if (!Number.isFinite(categoryId) || categoryId <= 0) {
+        throw new Error('Choisissez une catégorie connue du catalogue Laravel.');
       }
+      await saveAdminProduct(p, categoryId, Boolean(_isNew));
       if (_isNew) {
         setEditableProducts(prev => [...prev, p]);
       } else {
         setEditableProducts(prev => prev.map(x => x.id === p.id ? p : x));
       }
-      // Re-fetch DB pour vérifier la persistance réelle
-      loadEditableProducts(setEditableProducts);
+      const fresh = await fetchAdminProducts();
+      setEditableProducts(fresh);
       setProductModal(null);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -680,7 +647,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
     }
   };
   const removeProduct = async (id: string) => {
-    await deleteProduct(id);
+    await deleteAdminProduct(id);
     setEditableProducts(prev => prev.filter(p => p.id !== id));
     setConfirmDelete(null);
   };
@@ -750,21 +717,6 @@ export default function AdminPage() { // NOSONAR typescript:S3776
     return reviews.filter(r => !q || r.author.toLowerCase().includes(q) || r.comment.toLowerCase().includes(q));
   }, [reviews, reviewSearch]);
 
-  const clients = useMemo(() => {
-    const map = new Map<string, { email: string; name: string; orders: number; total: number; lastDate: string }>();
-    orders.forEach(o => {
-      const email = o.delivery.email;
-      const existing = map.get(email);
-      if (existing) {
-        existing.orders++;
-        existing.total += o.total;
-        if (o.date > existing.lastDate) existing.lastDate = o.date;
-      } else {
-        map.set(email, { email, name: `${o.delivery.firstName} ${o.delivery.lastName}`, orders: 1, total: o.total, lastDate: o.date });
-      }
-    });
-    return Array.from(map.values()).sort((a, b) => b.total - a.total);
-  }, [orders]);
 
   const filteredClients = useMemo(() => {
     const q = clientSearch.toLowerCase();
@@ -777,10 +729,14 @@ export default function AdminPage() { // NOSONAR typescript:S3776
   const pagedClients  = paginateData(filteredClients, clientPage, PER_PAGE).pagedData;
 
   // ── Dashboard metrics avec helper functions ──
-  const { totalRevenue, revenueThisMonth, ordersInProgress, recentOrders } = useMemo(() => 
-    calculateDashboardMetrics(orders, editableProducts, reviews), 
-    [orders, editableProducts, reviews]
+  const computedDashboard = useMemo(() =>
+    calculateDashboardMetrics(orders, editableProducts, reviews),
+    [orders, editableProducts, reviews],
   );
+  const totalRevenue = metrics?.revenue.last_30_days ?? computedDashboard.totalRevenue;
+  const revenueThisMonth = computedDashboard.revenueThisMonth;
+  const ordersInProgress = computedDashboard.ordersInProgress;
+  const recentOrders = computedDashboard.recentOrders;
   
   const { last7Days, maxDay } = useMemo(() => 
     calculateLast7DaysData(orders), 

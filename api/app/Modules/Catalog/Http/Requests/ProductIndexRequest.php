@@ -29,7 +29,7 @@ class ProductIndexRequest extends FormRequest
             'featured' => ['sometimes', 'boolean'],
             'isNew' => ['sometimes', 'boolean'],
             'page' => ['sometimes', 'integer', 'min:1'],
-            'perPage' => ['sometimes', 'integer', 'min:1', 'max:48'],
+            'perPage' => ['sometimes', 'integer', 'min:1', 'max:100'],
         ];
     }
 }

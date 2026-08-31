@@ -2,9 +2,10 @@
 
 /* Onglet «livraison» de la console d'administration. Extrait de `admin.view.tsx` (F-110). */
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { getSaveButtonText } from '@/features/admin/admin.util';
 import { formatPrice } from '@/features/catalog/product.query';
+import { deleteAdminDeliveryMethod, fetchAdminDeliveryMethods, saveAdminDeliveryMethod } from '@/shared/api/admin';
 import { type ShippingOption, type SiteConfig } from '@/features/site-config/site-config.type';
 import { BG, SURFACE, BORDER, GOLD, TEXT, TEXT2, TEXT3, TITLE, GOLD2, S_OK_BG, S_OK_T, S_SAVE_BG, S_SAVE_T } from '@/features/admin/admin.constant';
 
@@ -18,8 +19,17 @@ interface ShippingTabProps {
 
 export default function ShippingTab({ siteContent, setSiteContent, saveConfigSection, contentSaving, contentSaved }: ShippingTabProps) {
             const s = siteContent.shipping;
-            const opts: ShippingOption[] = s.options ?? [];
-            const save = async () => { await saveConfigSection('shipping', siteContent.shipping); };
+            const [opts, setOpts] = useState<ShippingOption[]>([]);
+            useEffect(() => {
+              fetchAdminDeliveryMethods().then(setOpts).catch(() => setOpts([]));
+            }, []);
+            const save = async () => {
+              for (const opt of opts) {
+                await saveAdminDeliveryMethod(opt, opt.id.startsWith('opt-'));
+              }
+              setOpts(await fetchAdminDeliveryMethods());
+              await saveConfigSection('shipping', { ...siteContent.shipping, options: opts });
+            };
             const addOpt = () => {
               const newOpt: ShippingOption = { 
                 id: `opt-${Date.now()}`, 
@@ -29,15 +39,16 @@ export default function ShippingTab({ siteContent, setSiteContent, saveConfigSec
                 freeFrom: 0, 
                 active: true,
               };
-              setSiteContent((c) => ({ ...c, shipping: { ...c.shipping, options: [...(c.shipping.options ?? []), newOpt] } }));
+              setOpts((current) => [...current, newOpt]);
             };
             const updateOpt = (id: string, patch: Partial<ShippingOption>) => {
-              const options = (siteContent.shipping.options ?? []).map((o) => o.id === id ? { ...o, ...patch } : o);
-              setSiteContent((c) => ({ ...c, shipping: { ...c.shipping, options } }));
+              setOpts((current) => current.map((o) => o.id === id ? { ...o, ...patch } : o));
             };
             const removeOpt = (id: string) => {
-              const options = (siteContent.shipping.options ?? []).filter((o) => o.id !== id);
-              setSiteContent((c) => ({ ...c, shipping: { ...c.shipping, options } }));
+              if (!id.startsWith('opt-')) {
+                void deleteAdminDeliveryMethod(id);
+              }
+              setOpts((current) => current.filter((o) => o.id !== id));
             };
             return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>

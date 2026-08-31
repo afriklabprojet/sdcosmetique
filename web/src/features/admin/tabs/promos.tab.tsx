@@ -2,9 +2,10 @@
 
 /* Onglet «promos» de la console d'administration. Extrait de `admin.view.tsx` (F-110). */
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import GlobalPromoCard from '@/features/admin/cards/global-promo.card';
 import { getSaveButtonText } from '@/features/admin/admin.util';
+import { deleteAdminCoupon, fetchAdminCoupons, saveAdminCoupon } from '@/shared/api/admin';
 import { type PromoCode, type SiteConfig } from '@/features/site-config/site-config.type';
 import { BG, SURFACE, SURFACE2, BORDER, GOLD, TEXT, TEXT2, TEXT3, GOLD2, S_ERR_T, S_SAVE_BG, S_SAVE_T } from '@/features/admin/admin.constant';
 
@@ -17,16 +18,34 @@ interface PromosTabProps {
 }
 
 export default function PromosTab({ siteContent, setSiteContent, saveConfigSection, contentSaving, contentSaved }: PromosTabProps) {
-            const codes = siteContent.promo_codes;
-            const setCodes = (next: PromoCode[]) => setSiteContent((c) => ({ ...c, promo_codes: next }));
+            const [codes, setCodes] = useState<(PromoCode & { id?: string })[]>([]);
+            const [codesSaving, setCodesSaving] = useState(false);
+            const [codesSaved, setCodesSaved] = useState(false);
+            useEffect(() => {
+              fetchAdminCoupons().then(setCodes).catch(() => setCodes([]));
+            }, []);
             const addCode = () => setCodes([...codes, { code: '', type: 'percent', value: 10, minSubtotal: 0, active: true, expiresAt: '' }]);
             const updateCode = (i: number, patch: Partial<PromoCode>) =>
               setCodes(codes.map((c, j: number) => j === i ? { ...c, ...patch } : c));
-            const removeCode = (i: number) => setCodes(codes.filter((_, j: number) => j !== i));
+            const removeCode = async (i: number) => {
+              const current = codes[i];
+              if (current?.id) await deleteAdminCoupon(current.id);
+              setCodes(codes.filter((_, j: number) => j !== i));
+            };
             const save = async () => {
-              const normalized = codes.map((c: PromoCode) => ({ ...c, code: c.code.trim().toUpperCase() }));
-              setCodes(normalized);
-              await saveConfigSection('promo_codes', normalized);
+              setCodesSaving(true);
+              try {
+                const normalized = codes.map((c) => ({ ...c, code: c.code.trim().toUpperCase() }));
+                for (const code of normalized) {
+                  if (!code.code) continue;
+                  await saveAdminCoupon(code, !code.id);
+                }
+                setCodes(await fetchAdminCoupons());
+                setCodesSaved(true);
+                setTimeout(() => setCodesSaved(false), 2500);
+              } finally {
+                setCodesSaving(false);
+              }
             };
             return (
               <div className="space-y-6">
@@ -109,9 +128,9 @@ export default function PromosTab({ siteContent, setSiteContent, saveConfigSecti
                       </label>
                     </div>
                   ))}
-                  <button onClick={save} disabled={contentSaving.promo_codes}
-                    style={{ alignSelf: 'flex-end', background: contentSaved.promo_codes ? S_SAVE_BG : GOLD2, color: contentSaved.promo_codes ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                    {getSaveButtonText(contentSaved.promo_codes, contentSaving.promo_codes)}
+                  <button onClick={save} disabled={codesSaving}
+                    style={{ alignSelf: 'flex-end', background: codesSaved ? S_SAVE_BG : GOLD2, color: codesSaved ? S_SAVE_T : BG, border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                    {getSaveButtonText(codesSaved, codesSaving)}
                   </button>
                 </div>
               </div>

@@ -25,7 +25,7 @@ class OrderController extends Controller
             ->whereNotNull('placed_at')
             ->with(['items', 'adjustments', 'deliveryMethod'])
             ->latest('placed_at')
-            ->paginate(30);
+            ->paginate(min((int) $request->integer('perPage', 30), 100));
 
         return OrderResource::collection($orders)->response();
     }

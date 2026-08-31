@@ -18,7 +18,8 @@
 import Image from 'next/image';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { PRODUCTS, fetchProducts } from '@/features/catalog/product.query';
+import { fetchProducts } from '@/features/catalog/product.query';
+import type { Product } from '@/shared/types/domain.type';
 
 interface ProductSearchProps {
   readonly close: () => void;
@@ -26,7 +27,7 @@ interface ProductSearchProps {
 
 export default function ProductSearch({ close }: ProductSearchProps) {
   const [query, setQuery] = useState('');
-  const [searchProducts, setSearchProducts] = useState(PRODUCTS);
+  const [searchProducts, setSearchProducts] = useState<Product[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
