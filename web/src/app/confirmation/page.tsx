@@ -9,7 +9,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { fetchPlacedOrder } from '@/shared/api/checkout';
+import { Order } from '@/shared/api/checkout';
 import { getLastOrder, formatOrderDate, OrderDraft } from '@/features/orders/order.store';
 import { BG, BORDER, DARK, TEXT_BODY } from '@/features/orders/confirmation.constant';
 import OrderConfirmedCard from '@/features/orders/cards/order-confirmed.card';
@@ -36,7 +36,7 @@ export default function ConfirmationPage() {
     if (!ref) return;
 
     let cancelled = false;
-    fetchPlacedOrder(ref)
+    Order.read(ref)
       .then((placed) => {
         if (cancelled) return;
         if (placed.paymentStatus === 'paid') setPaymentState('paid');

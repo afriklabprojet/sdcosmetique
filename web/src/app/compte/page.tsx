@@ -5,18 +5,17 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   apiErrorMessage,
-  deleteAddress as deleteAccountAddress,
-  fetchAccountOrders,
-  fetchAddresses,
-  fetchLoyaltySnapshot,
-  fetchStorefrontIdentity,
   joinPersonName,
-  logoutStorefront,
-  redeemLoyalty,
-  saveAddress as persistAddress,
-  type StorefrontIdentity,
-  updateAccount,
+  type MappedOrder,
 } from '@/shared/api';
+import {
+  Account,
+  AddressBook,
+  Order,
+  Session,
+  type StorefrontIdentity,
+} from '@/shared/api/auth';
+import { Loyalty } from '@/shared/api/loyalty';
 import { formatOrderDate } from '@/features/orders/order.store';
 import { formatPrice } from '@/features/catalog/product.query';
 import { useWishlist } from '@/features/wishlist/wishlist.store';
@@ -44,7 +43,7 @@ export default function AccountPage() {
   const [mobile, setIsMobile] = useState(false);
   const [active, setActive] = useState<NavItem>('dashboard');
   const [user, setUser] = useState<StorefrontIdentity | null>(null);
-  const [orders, setOrders] = useState<Awaited<ReturnType<typeof fetchAccountOrders>>>([]);
+  const [orders, setOrders] = useState<MappedOrder[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Profil form
@@ -97,7 +96,7 @@ export default function AccountPage() {
   }, []);
 
   useEffect(() => {
-    fetchStorefrontIdentity()
+    Account.identify()
       .then(async (identity) => {
         setUser(identity);
         setLoading(false);
@@ -114,9 +113,9 @@ export default function AccountPage() {
           email: identity.email,
         }));
 
-        fetchAccountOrders().then(setOrders).catch(() => setOrders([]));
-        fetchAddresses().then(setAddresses).catch(() => setAddresses([]));
-        fetchLoyaltySnapshot()
+        Order.read().then(setOrders).catch(() => setOrders([]));
+        AddressBook.read().then(setAddresses).catch(() => setAddresses([]));
+        Loyalty.read()
           .then(({ points, entries }) => {
             setUserPoints(points);
             setJekoHistory(entries);
@@ -133,7 +132,7 @@ export default function AccountPage() {
   }, []);
 
   const logout = async () => {
-    await logoutStorefront();
+    await Session.destroy();
     router.push('/');
   };
 
@@ -162,7 +161,7 @@ export default function AccountPage() {
     setProfileMsg(null);
 
     try {
-      const account = await updateAccount({
+      const account = await Account.update({
         name: joinPersonName(profileForm.firstName, profileForm.lastName),
         phone: profileForm.phone || null,
       });
@@ -184,7 +183,9 @@ export default function AccountPage() {
   const saveAddress = async () => {
     if (!addrForm.firstName || !addrForm.street || !addrForm.city) return;
     try {
-      const saved = await persistAddress(addrForm, !editingAddr);
+      const saved = editingAddr
+        ? await AddressBook.update(addrForm)
+        : await AddressBook.create(addrForm);
       setAddresses(prev => {
         const filtered = editingAddr ? prev.filter(a => a.id !== editingAddr) : prev;
         return [...filtered, saved];
@@ -202,7 +203,7 @@ export default function AccountPage() {
 
   const deleteAddress = async (addressId: string) => {
     try {
-      await deleteAccountAddress(addressId);
+      await AddressBook.drop(addressId);
       setAddresses(previous => previous.filter(address => address.id !== addressId));
     } catch {
       // Keep the row visible if the API rejects the delete.
@@ -213,10 +214,10 @@ export default function AccountPage() {
     if (!redeemingReward) return;
     setRedeemMsg(null);
     try {
-      const { points, entry } = await redeemLoyalty({
-        points_delta: -redeemingReward.pts,
-        description: `Récompense utilisée : ${redeemingReward.label}`,
-        reference_id: redeemingReward.id,
+      const { points, entry } = await Loyalty.redeem({
+        delta: -redeemingReward.pts,
+        label: `Récompense utilisée : ${redeemingReward.label}`,
+        reference: redeemingReward.id,
       });
       setUserPoints(points);
       setJekoHistory(prev => [entry, ...prev]);

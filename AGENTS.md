@@ -101,6 +101,10 @@ package.json and no root composer.json.
 `store`, `show`, `edit`, `update`, `destroy`. If an action does not fit, it is a
 new resource, not a new method. No `XxxService` or `XxxManager` classes.
 
+**Strict schema adherence.** Always respect the exact Laravel database schema
+column names and API payload field names. Never rename or alter schema columns
+or payload keys, even if a user prompt or refactoring suggestion proposes different naming.
+
 **No hardcoded magic strings or static lists.** Never hardcode lists of
 methods, gateway identifiers, statuses, or domain values directly into controllers,
 form requests, or business logic. Use backed Enums (PHP backed enums / TypeScript

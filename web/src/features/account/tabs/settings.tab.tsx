@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { logoutStorefront } from '@/shared/api';
+import { Session } from '@/shared/api/auth';
 
 interface SettingsTabProps {
   readonly mobile: boolean;
@@ -68,7 +68,7 @@ export default function SettingsTab({ mobile, deleteConfirm, setDeleteConfirm }:
           disabled={deleteConfirm !== 'SUPPRIMER'}
           onClick={async () => {
             if (deleteConfirm !== 'SUPPRIMER') return;
-            await logoutStorefront();
+            await Session.destroy();
             router.push('/');
           }}
           style={{ padding: '11px 24px', background: deleteConfirm === 'SUPPRIMER' ? '#DC2626' : '#EDE8E0', border: 'none', borderRadius: 10, color: deleteConfirm === 'SUPPRIMER' ? '#fff' : '#9A8A7A', fontSize: 13, fontWeight: 700, cursor: deleteConfirm === 'SUPPRIMER' ? 'pointer' : 'not-allowed' }}

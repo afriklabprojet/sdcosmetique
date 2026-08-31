@@ -1,4 +1,4 @@
-import { listCategories } from '@/shared/api/catalog';
+import { Category as StorefrontCategoryApi } from '@/shared/api/catalog';
 
 export interface CategoryRow {
   id: string;
@@ -15,5 +15,5 @@ export interface CategoryRow {
 }
 
 export async function fetchActiveCategories(): Promise<CategoryRow[]> {
-  return listCategories();
+  return StorefrontCategoryApi.list();
 }

@@ -6,20 +6,17 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { formatOrderDate, updateOrderStatus, OrderDraft } from '@/features/orders/order.store';
 import { formatPrice } from '@/features/catalog/product.query';
-import { Product, Category, SkinTone, Review } from '@/shared/types/domain.type';
+import { Product, type Category as CategorySlug, SkinTone, Review } from '@/shared/types/domain.type';
 import { fetchAllReviews, deleteReview, approveReview } from '@/features/catalog/review.repository';
 
 import {
-  deleteAdminProduct,
-  fetchAdminCategories,
-  fetchAdminCustomers,
-  fetchAdminMetrics,
-  fetchAdminNewsletter,
-  fetchAdminOrders,
-  fetchAdminProducts,
-  fetchAdminSession,
-  patchAdminOrderStatus,
-  saveAdminProduct,
+  Category,
+  Customer,
+  Metric,
+  Newsletter,
+  Order,
+  Product as AdminProductApi,
+  Session,
 } from '@/shared/api/admin';
 import type { LaravelMetricsOverview } from '@/shared/api/types';
 import type { MappedOrder } from '@/shared/api/mappers/order';
@@ -177,7 +174,7 @@ function ProductEditModal({
           <select 
             id="product-category"
             value={productModal.category ?? ''} 
-            onChange={(e) => setProductModal((p) => p ? { ...p, category: e.target.value as Category } : p)} 
+            onChange={(e) => setProductModal((p) => p ? { ...p, category: e.target.value as CategorySlug } : p)} 
             style={{ ...inputStyle, cursor: 'pointer' }}
           >
             <option value="">-- Choisir --</option>
@@ -504,22 +501,22 @@ export default function AdminPage() { // NOSONAR typescript:S3776
   const [newsletterFilter, setNewsletterFilter] = useState<'all' | 'active' | 'unsubscribed'>('all');
 
   const reloadNewsletter = () => {
-    fetchAdminNewsletter().then(setNewsletterSubs).catch(() => setNewsletterSubs([]));
+    Newsletter.list().then(setNewsletterSubs).catch(() => setNewsletterSubs([]));
   };
 
   const initAfterAuth = useCallback(async (user: { email?: string | null }) => {
     setAuthChecked(true);
     setUserEmail(user.email ?? '');
-    fetchAdminOrders().then(setOrders).catch(() => setOrders([]));
-    fetchAdminProducts().then(setEditableProducts).catch(() => setEditableProducts([]));
+    Order.list().then(setOrders).catch(() => setOrders([]));
+    AdminProductApi.list().then(setEditableProducts).catch(() => setEditableProducts([]));
     fetchAllReviews().then(rows => setReviews(rows as ReviewRow[]));
     fetchAllTestimonialsAdmin().then(setTestimonials);
-    fetchAdminCategories().then(setCategories).catch(() => setCategories([]));
-    fetchAdminCustomers().then(setClients).catch(() => setClients([]));
-    fetchAdminMetrics().then(setMetrics).catch(() => setMetrics(null));
+    Category.list().then(setCategories).catch(() => setCategories([]));
+    Customer.list().then(setClients).catch(() => setClients([]));
+    Metric.overview().then(setMetrics).catch(() => setMetrics(null));
     fetchAllConcernsAdmin().then(setQuizConcerns);
     fetchAllRoutinesAdmin().then(setQuizRoutines);
-    fetchAdminNewsletter().then(setNewsletterSubs).catch(() => setNewsletterSubs([]));
+    Newsletter.list().then(setNewsletterSubs).catch(() => setNewsletterSubs([]));
     getJekoSettings().then(s => { setJekoSettingsEdit(s); });
     getJekoTiersConfig().then(setJekoTiersConf);
     getJekoRewardsConfig().then(setJekoRewardsConf);
@@ -531,7 +528,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
   }, []);
 
   useEffect(() => {
-    fetchAdminSession()
+    Session.fetch()
       .then((session) => {
         void initAfterAuth({ email: session.user.email });
       })
@@ -565,7 +562,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
     updateOrderStatus(orderNumber, status);
     setOrders(prev => prev.map(o => o.orderNumber === orderNumber ? { ...o, status } : o));
     try {
-      if (current) await patchAdminOrderStatus(current, status);
+      if (current) await Order.patch(current, status);
     } catch {
       setOrders(previousOrders);
     }
@@ -574,7 +571,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
   // ── product modal helpers ──
   const openEditModal = (p: EditableProduct) => setProductModal({ ...p, _isNew: false });
   const openNewModal = () => setProductModal({
-    _isNew: true, id: `p${Date.now()}`, name: '', slug: '', category: 'face' as Category,
+    _isNew: true, id: `p${Date.now()}`, name: '', slug: '', category: 'face' as CategorySlug,
     price: 0, images: [''], skinTones: [], benefits: [], rating: 0, reviewCount: 0,
     shortDescription: '', description: '', usage: '', inStock: true, stockQty: 0, lowStockThreshold: 5, newArrival: false, bestseller: false,
   });
@@ -613,13 +610,13 @@ export default function AdminPage() { // NOSONAR typescript:S3776
       if (!Number.isFinite(categoryId) || categoryId <= 0) {
         throw new Error('Choisissez une catégorie connue du catalogue Laravel.');
       }
-      await saveAdminProduct(p, categoryId, Boolean(_isNew));
+      await AdminProductApi.save(p, categoryId, Boolean(_isNew));
       if (_isNew) {
         setEditableProducts(prev => [...prev, p]);
       } else {
         setEditableProducts(prev => prev.map(x => x.id === p.id ? p : x));
       }
-      const fresh = await fetchAdminProducts();
+      const fresh = await AdminProductApi.list();
       setEditableProducts(fresh);
       setProductModal(null);
     } catch (err) {
@@ -630,7 +627,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
     }
   };
   const removeProduct = async (id: string) => {
-    await deleteAdminProduct(id);
+    await AdminProductApi.remove(id);
     setEditableProducts(prev => prev.filter(p => p.id !== id));
     setConfirmDelete(null);
   };

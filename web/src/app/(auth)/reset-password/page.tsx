@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { apiErrorMessage } from '@/shared/api';
-import { resetPassword } from '@/shared/api/auth';
+import { Password } from '@/shared/api/auth';
 import styles from '../auth.module.css';
 
 function ResetPasswordContent() {
@@ -28,7 +28,7 @@ function ResetPasswordContent() {
     setError('');
     setLoading(true);
     try {
-      await resetPassword({ token, email, password });
+      await Password.reset({ token, email, password });
       setDone(true);
     } catch (err) {
       setError(apiErrorMessage(err, 'Impossible de réinitialiser le mot de passe.'));

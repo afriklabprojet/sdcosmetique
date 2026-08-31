@@ -5,7 +5,7 @@
 import React, { useEffect, useState } from 'react';
 import { getSaveButtonText } from '@/features/admin/admin.util';
 import { formatPrice } from '@/features/catalog/product.query';
-import { deleteAdminDeliveryMethod, fetchAdminDeliveryMethods, saveAdminDeliveryMethod } from '@/shared/api/admin';
+import { Delivery } from '@/shared/api/admin';
 import { type ShippingOption, type SiteConfig } from '@/features/site-config/site-config.type';
 import { BG, SURFACE, BORDER, GOLD, TEXT, TEXT2, TEXT3, TITLE, GOLD2, S_OK_BG, S_OK_T, S_SAVE_BG, S_SAVE_T } from '@/features/admin/admin.constant';
 
@@ -21,18 +21,18 @@ export default function ShippingTab({ siteContent, setSiteContent, saveConfigSec
             const s = siteContent.shipping;
             const [opts, setOpts] = useState<ShippingOption[]>([]);
             useEffect(() => {
-              fetchAdminDeliveryMethods().then(setOpts).catch(() => setOpts([]));
+              Delivery.list().then(setOpts).catch(() => setOpts([]));
             }, []);
             const save = async () => {
               for (const opt of opts) {
-                await saveAdminDeliveryMethod(opt, opt.id.startsWith('opt-'));
+                await Delivery.save(opt, opt.id.startsWith('opt-'));
               }
-              setOpts(await fetchAdminDeliveryMethods());
+              setOpts(await Delivery.list());
               await saveConfigSection('shipping', { ...siteContent.shipping, options: opts });
             };
             const addOpt = () => {
               const newOpt: ShippingOption = { 
-                id: `opt-${Date.now()}`, 
+                 id: `opt-${Date.now()}`, 
                 label: 'Nouvelle option', 
                 description: '', 
                 cost: 0, 
@@ -46,7 +46,7 @@ export default function ShippingTab({ siteContent, setSiteContent, saveConfigSec
             };
             const removeOpt = (id: string) => {
               if (!id.startsWith('opt-')) {
-                void deleteAdminDeliveryMethod(id);
+                void Delivery.remove(id);
               }
               setOpts((current) => current.filter((o) => o.id !== id));
             };

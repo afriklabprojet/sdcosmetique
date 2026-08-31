@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { apiErrorMessage } from '@/shared/api';
-import { forgotPassword } from '@/shared/api/auth';
+import { Password } from '@/shared/api/auth';
 import styles from '../auth.module.css';
 
 export default function MotDePasseOubliePage() {
@@ -19,7 +19,7 @@ export default function MotDePasseOubliePage() {
     setLoading(true);
 
     try {
-      await forgotPassword(email);
+      await Password.forgot(email);
       setLoading(false);
       setSent(true);
     } catch (err) {

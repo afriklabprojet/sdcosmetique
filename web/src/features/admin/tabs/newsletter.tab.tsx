@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { type NewsletterSub } from '@/features/admin/admin.type';
-import { deleteAdminNewsletter } from '@/shared/api/admin';
+import { Newsletter } from '@/shared/api/admin';
 import { getNewsletterFilterText, getSaveButtonText } from '@/features/admin/admin.util';
 import { type SiteConfig } from '@/features/site-config/site-config.type';
 import { BG, SURFACE, SURFACE2, BORDER, BORDER2, GOLD, TEXT, TEXT2, TEXT3, GOLD2, S_SAVE_BG, S_SAVE_T } from '@/features/admin/admin.constant';
@@ -40,7 +40,7 @@ export default function NewsletterTab({ siteContent, setSiteContent, saveConfigS
             const remove = async (s: NewsletterSub) => {
               if (!confirm(`Supprimer définitivement ${s.email} ?`)) return;
               try {
-                await deleteAdminNewsletter(s.id);
+                await Newsletter.remove(s.id);
                 reloadNewsletter();
               } catch {
                 alert('Erreur lors de la suppression');

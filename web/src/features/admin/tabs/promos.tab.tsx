@@ -5,7 +5,7 @@
 import React, { useEffect, useState } from 'react';
 import GlobalPromoCard from '@/features/admin/cards/global-promo.card';
 import { getSaveButtonText } from '@/features/admin/admin.util';
-import { deleteAdminCoupon, fetchAdminCoupons, saveAdminCoupon } from '@/shared/api/admin';
+import { Coupon } from '@/shared/api/admin';
 import { type PromoCode, type SiteConfig } from '@/features/site-config/site-config.type';
 import { BG, SURFACE, SURFACE2, BORDER, GOLD, TEXT, TEXT2, TEXT3, GOLD2, S_ERR_T, S_SAVE_BG, S_SAVE_T } from '@/features/admin/admin.constant';
 
@@ -22,14 +22,14 @@ export default function PromosTab({ siteContent, setSiteContent, saveConfigSecti
             const [codesSaving, setCodesSaving] = useState(false);
             const [codesSaved, setCodesSaved] = useState(false);
             useEffect(() => {
-              fetchAdminCoupons().then(setCodes).catch(() => setCodes([]));
+              Coupon.list().then(setCodes).catch(() => setCodes([]));
             }, []);
             const addCode = () => setCodes([...codes, { code: '', type: 'percent', value: 10, minSubtotal: 0, active: true, expiresAt: '' }]);
             const updateCode = (i: number, patch: Partial<PromoCode>) =>
               setCodes(codes.map((c, j: number) => j === i ? { ...c, ...patch } : c));
             const removeCode = async (i: number) => {
               const current = codes[i];
-              if (current?.id) await deleteAdminCoupon(current.id);
+              if (current?.id) await Coupon.remove(current.id);
               setCodes(codes.filter((_, j: number) => j !== i));
             };
             const save = async () => {
@@ -38,9 +38,9 @@ export default function PromosTab({ siteContent, setSiteContent, saveConfigSecti
                 const normalized = codes.map((c) => ({ ...c, code: c.code.trim().toUpperCase() }));
                 for (const code of normalized) {
                   if (!code.code) continue;
-                  await saveAdminCoupon(code, !code.id);
+                  await Coupon.save(code, !code.id);
                 }
-                setCodes(await fetchAdminCoupons());
+                setCodes(await Coupon.list());
                 setCodesSaved(true);
                 setTimeout(() => setCodesSaved(false), 2500);
               } finally {

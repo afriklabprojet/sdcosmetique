@@ -6,7 +6,7 @@ import React from 'react';
 import ImageUpload from '@/shared/ui/image.input';
 import Image from 'next/image';
 import type { CategoryRow } from '@/features/catalog/category.repository';
-import { deleteAdminCategory, fetchAdminCategories, saveAdminCategory } from '@/shared/api/admin';
+import { Category } from '@/shared/api/admin';
 import { BG, SURFACE, SURFACE2, BORDER, BORDER2, GOLD, TEXT, TEXT2, TEXT3, TITLE, TEXT_M, INFO_C, S_ERR_BG, S_ERR_T, S_OK_T, thStyle, tdStyle, card, inputStyle } from '@/features/admin/admin.constant';
 
 interface CategoriesTabProps {
@@ -70,7 +70,7 @@ export default function CategoriesTab({ categories, catModal, catSaving, setCatM
                                   style={{ borderColor: BORDER2, color: TEXT2 }}
                                 >Éditer</button>
                                 <button
-                                  onClick={async () => { if (confirm(`Supprimer "${cat.label}" ?`)) { await deleteAdminCategory(cat.id); setCategories(categories.filter(c => c.id !== cat.id)); } }}
+                                  onClick={async () => { if (confirm(`Supprimer "${cat.label}" ?`)) { await Category.remove(cat.id); setCategories(categories.filter(c => c.id !== cat.id)); } }}
                                   className="text-xs px-2 py-1 rounded transition-all hover:opacity-80"
                                   style={{ background: S_ERR_BG, color: S_ERR_T }}
                                 >✕</button>
@@ -169,8 +169,8 @@ export default function CategoriesTab({ categories, catModal, catSaving, setCatM
                               created_at: '',
                               ...fields,
                             } as CategoryRow;
-                            await saveAdminCategory(row, Boolean(_isNew));
-                            setCategories(await fetchAdminCategories());
+                            await Category.save(row, Boolean(_isNew));
+                            setCategories(await Category.list());
                             setCatModal(null);
                             setCatSaving(false);
                           }}

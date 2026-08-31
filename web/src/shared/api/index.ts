@@ -8,49 +8,16 @@ export { mapDeliveryMethod, toDeliveryMethodPayload } from '@/shared/api/mappers
 export { mapCustomer, mapNewsletterSub } from '@/shared/api/mappers/customer';
 export { mapSessionUser, mapAddress, toAddressPayload, joinPersonName, countryToIso, type StorefrontIdentity } from '@/shared/api/mappers/account';
 export { mapCart, mapCartItem, mapStorefrontDeliveryMethod, sellableSlug, type MappedCart } from '@/shared/api/mappers/cart';
-export {
-  fetchCart,
-  addCartItem,
-  updateCartItem,
-  removeCartItem,
-  applyCartCoupon,
-  removeCartCoupon,
-} from '@/shared/api/cart';
-export {
-  toLaravelGateway,
-  fetchDeliveryMethods,
-  fetchCheckoutDraft,
-  putCheckoutContact,
-  putCheckoutDelivery,
-  putCheckoutPayment,
-  commitOrder,
-  startPayment,
-  fetchPlacedOrder,
-} from '@/shared/api/checkout';
+export { Cart } from '@/shared/api/cart';
+export { Gateway, Delivery, Checkout, Order } from '@/shared/api/checkout';
 export { subscribeNewsletter, sendContactMessage } from '@/shared/api/leads';
-export {
-  fetchLoyaltySnapshot,
-  redeemLoyalty,
-  fetchAdminLoyaltyAccounts,
-  fetchAdminLoyaltyEntries,
-  storeAdminLoyaltyAdjustment,
-} from '@/shared/api/loyalty';
+export { Loyalty } from '@/shared/api/loyalty';
 export { fetchPublicSetting, fetchPublicSettings, fetchAdminSettings, patchAdminSetting } from '@/shared/api/settings';
 export { fetchReviews, submitReview, fetchAdminReviews } from '@/shared/api/reviews';
 export { fetchQuizQuestions, submitQuiz, fetchAdminQuizSubmissions } from '@/shared/api/quiz';
 export {
-  loginStorefront,
-  registerStorefront,
-  forgotPassword,
-  resetPassword,
-  logoutStorefront,
-  fetchSession,
-  fetchAccount,
-  fetchStorefrontIdentity,
-  updateAccount,
-  updatePassword,
-  fetchAddresses,
-  saveAddress,
-  deleteAddress,
-  fetchAccountOrders,
+  Session as StorefrontSession,
+  Account,
+  Password,
+  AddressBook,
 } from '@/shared/api/auth';

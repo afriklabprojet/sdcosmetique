@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { apiErrorMessage } from '@/shared/api';
-import { registerStorefront } from '@/shared/api/auth';
+import { Account } from '@/shared/api/auth';
 import styles from '../auth.module.css';
 
 export default function InscriptionPage() {
@@ -35,9 +35,9 @@ export default function InscriptionPage() {
     setLoading(true);
 
     try {
-      await registerStorefront({
-        prenom: form.prenom,
-        nom: form.nom,
+      await Account.create({
+        first: form.prenom,
+        last: form.nom,
         email: form.email,
         password: form.password,
       });

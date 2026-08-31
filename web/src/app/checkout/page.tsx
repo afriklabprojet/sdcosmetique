@@ -4,16 +4,8 @@ import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/features/cart/cart.store';
 import { apiErrorMessage } from '@/shared/api';
-import {
-  commitOrder,
-  fetchDeliveryMethods,
-  putCheckoutContact,
-  putCheckoutDelivery,
-  putCheckoutPayment,
-  startPayment,
-  toLaravelGateway,
-} from '@/shared/api/checkout';
-import { PaymentMethod } from '@/shared/types/domain.type';
+import { Checkout, Delivery, Gateway, Order } from '@/shared/api/checkout';
+import { PaymentGateway, PaymentMethod } from '@/shared/types/domain.type';
 import { cacheOrder } from '@/features/orders/order.store';
 import type { ShippingOption, PromoCode } from '@/features/site-config/site-config.type';
 import { CheckoutStep, DeliveryInfo } from '@/features/checkout/checkout.type';
@@ -52,7 +44,7 @@ export default function CheckoutPage() {
   const [activeMethods] = useState<PaymentMethod[]>(Object.values(PaymentMethod));
 
   useEffect(() => {
-    fetchDeliveryMethods()
+    Delivery.options()
       .then((methods) => {
         setShippingOptions(methods);
         setSelectedShipping((current) => current ?? methods[0] ?? null);
@@ -87,12 +79,12 @@ export default function CheckoutPage() {
       return;
     }
     setProcessing(true);
-    const gateway = toLaravelGateway(paymentMethod);
+    const gateway = Gateway.resolve(paymentMethod);
     try {
-      await putCheckoutContact(delivery.email);
-      await putCheckoutDelivery(delivery, Number(selectedShipping.id));
-      await putCheckoutPayment(gateway);
-      const placed = await commitOrder();
+      await Checkout.contact(delivery.email);
+      await Checkout.route(delivery, Number(selectedShipping.id));
+      await Checkout.pay(gateway);
+      const placed = await Order.commit();
       cacheOrder({
         orderNumber: placed.orderNumber,
         date: placed.date,
@@ -102,20 +94,20 @@ export default function CheckoutPage() {
         total,
         delivery,
         paymentMethod,
-        status: gateway === 'null' ? 'confirmed' : 'pending_payment',
-        paymentStatus: gateway === 'null' ? 'pending' : 'pending',
+        status: gateway === PaymentGateway.NULL ? 'confirmed' : 'pending_payment',
+        paymentStatus: gateway === PaymentGateway.NULL ? 'pending' : 'pending',
         shippingOptionId: selectedShipping.id,
         promoCode: couponCode ?? undefined,
       });
       await refresh();
 
-      if (gateway === 'null') {
+      if (gateway === PaymentGateway.NULL) {
         setProcessing(false);
         router.push(`/confirmation?ref=${encodeURIComponent(placed.orderNumber)}`);
         return;
       }
 
-      const payment = await startPayment(placed.orderNumber);
+      const payment = await Order.initiate(placed.orderNumber);
       if (!payment.redirect_url) {
         throw new Error("Le paiement n'a pas pu être initié.");
       }

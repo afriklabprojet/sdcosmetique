@@ -3,18 +3,18 @@
  */
 import { unstable_cache } from 'next/cache';
 import { Product, Category, Review } from '@/shared/types/domain.type';
-import { listProducts, showProduct } from '@/shared/api/catalog';
+import { Product as StorefrontProductApi } from '@/shared/api/catalog';
 import { fetchReviews } from '@/shared/api/reviews';
 
 export const fetchProducts = unstable_cache(
-  async (): Promise<Product[]> => listProducts({ perPage: 100 }),
+  async (): Promise<Product[]> => StorefrontProductApi.list({ perPage: 100 }),
   ['products-all'],
   { revalidate: 60, tags: ['products'] },
 );
 
 export const fetchProductBySlug = unstable_cache(
   async (slug: string): Promise<Product | null> => {
-    const result = await showProduct(slug);
+    const result = await StorefrontProductApi.find(slug);
     return result?.product ?? null;
   },
   ['products-by-slug'],
@@ -22,14 +22,14 @@ export const fetchProductBySlug = unstable_cache(
 );
 
 export const fetchProductsByCategory = unstable_cache(
-  async (category: string): Promise<Product[]> => listProducts({ category, perPage: 100 }),
+  async (category: string): Promise<Product[]> => StorefrontProductApi.list({ category, perPage: 100 }),
   ['products-by-category'],
   { revalidate: 60, tags: ['products'] },
 );
 
 export const fetchBestsellerProducts = unstable_cache(
   async (limit = 5): Promise<Product[]> => {
-    const products = await listProducts({ featured: true, perPage: 100 });
+    const products = await StorefrontProductApi.list({ featured: true, perPage: 100 });
     return products.slice(0, limit);
   },
   ['products-bestsellers'],
@@ -38,9 +38,9 @@ export const fetchBestsellerProducts = unstable_cache(
 
 export const fetchRelatedProducts = unstable_cache(
   async (productId: string, category: Category, limit = 4): Promise<Product[]> => {
-    const shown = await showProduct(productId);
+    const shown = await StorefrontProductApi.find(productId);
     if (shown?.related.length) return shown.related.slice(0, limit);
-    const products = await listProducts({ category, perPage: 100 });
+    const products = await StorefrontProductApi.list({ category, perPage: 100 });
     return products.filter((item) => item.id !== productId && item.slug !== productId).slice(0, limit);
   },
   ['products-related'],

@@ -1,14 +1,7 @@
 'use client';
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import {
-  addCartItem,
-  applyCartCoupon,
-  fetchCart,
-  removeCartCoupon,
-  removeCartItem,
-  updateCartItem,
-} from '@/shared/api/cart';
+import { Cart } from '@/shared/api/cart';
 import { sellableSlug, type MappedCart } from '@/shared/api/mappers/cart';
 import { CartItem, Product } from '@/shared/types/domain.type';
 
@@ -41,7 +34,7 @@ export function CartProvider({ children }: { readonly children: React.ReactNode 
 
   const refresh = useCallback(async () => {
     try {
-      setCart(await fetchCart());
+      setCart(await Cart.read());
     } catch {
       setCart(EMPTY);
     }
@@ -49,7 +42,7 @@ export function CartProvider({ children }: { readonly children: React.ReactNode 
 
   useEffect(() => {
     let active = true;
-    fetchCart()
+    Cart.read()
       .then((data) => {
         if (active) setCart(data);
       })
@@ -62,7 +55,7 @@ export function CartProvider({ children }: { readonly children: React.ReactNode 
   }, []);
 
   const addItem = useCallback((product: Product) => {
-    void addCartItem(sellableSlug(product), 1)
+    void Cart.Item.add(sellableSlug(product), 1)
       .then(setCart)
       .then(() => setIsOpen(true));
   }, []);
@@ -70,30 +63,30 @@ export function CartProvider({ children }: { readonly children: React.ReactNode 
   const removeItem = useCallback((productId: string) => {
     const line = cart.items.find((item) => item.product.id === productId);
     if (line?.lineId == null) return;
-    void removeCartItem(line.lineId).then(setCart);
+    void Cart.Item.remove(line.lineId).then(setCart);
   }, [cart.items]);
 
   const updateQty = useCallback((productId: string, quantity: number) => {
     const line = cart.items.find((item) => item.product.id === productId);
     if (line?.lineId == null) return;
     if (quantity <= 0) {
-      void removeCartItem(line.lineId).then(setCart);
+      void Cart.Item.remove(line.lineId).then(setCart);
       return;
     }
-    void updateCartItem(line.lineId, quantity).then(setCart);
+    void Cart.Item.update(line.lineId, quantity).then(setCart);
   }, [cart.items]);
 
   const clearCart = useCallback(() => {
     const lines = cart.items.filter((item) => item.lineId != null);
-    void Promise.all(lines.map((item) => removeCartItem(item.lineId as number))).then(() => refresh());
+    void Promise.all(lines.map((item) => Cart.Item.remove(item.lineId as number))).then(() => refresh());
   }, [cart.items, refresh]);
 
   const applyCoupon = useCallback(async (code: string) => {
-    setCart(await applyCartCoupon(code));
+    setCart(await Cart.Coupon.apply(code));
   }, []);
 
   const removeCoupon = useCallback(async () => {
-    setCart(await removeCartCoupon());
+    setCart(await Cart.Coupon.remove());
   }, []);
 
   const toggleCart = useCallback(() => setIsOpen((value) => !value), []);

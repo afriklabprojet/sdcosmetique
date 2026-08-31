@@ -2,16 +2,7 @@
 
 import type { OperationResult } from '@/shared/types/operation-result.type';
 import {
-  fetchAdminLoyaltyAccounts,
-  fetchAdminLoyaltyEntries,
-  fetchJekoRewards,
-  fetchJekoSettings,
-  fetchJekoStats,
-  fetchJekoTiers,
-  saveJekoRewards,
-  saveJekoSettings,
-  saveJekoTiers,
-  storeAdminLoyaltyAdjustment,
+  Loyalty,
   type JekoMember,
   type JekoRewardConfig,
   type JekoSettings,
@@ -44,16 +35,16 @@ export const DEFAULT_JEKO_REWARDS: JekoRewardConfig[] = [
 ];
 
 export async function getJekoSettings(): Promise<JekoSettings> {
-  return fetchJekoSettings();
+  return Loyalty.Config.settings();
 }
 
 export async function getJekoTiersConfig(): Promise<JekoTierConfig[]> {
-  const rows = await fetchJekoTiers();
+  const rows = await Loyalty.Config.tiers();
   return rows.length ? rows : DEFAULT_JEKO_TIERS;
 }
 
 export async function getJekoRewardsConfig(): Promise<JekoRewardConfig[]> {
-  const rows = await fetchJekoRewards();
+  const rows = await Loyalty.Config.rewards();
   return rows.length ? rows : DEFAULT_JEKO_REWARDS;
 }
 
@@ -62,9 +53,9 @@ export async function saveJekoConfig(
   value: unknown,
 ): Promise<OperationResult> {
   try {
-    if (key === 'settings') await saveJekoSettings(value as JekoSettings);
-    else if (key === 'tiers') await saveJekoTiers(value as JekoTierConfig[]);
-    else await saveJekoRewards(value as JekoRewardConfig[]);
+    if (key === 'settings') await Loyalty.Config.saveSettings(value as JekoSettings);
+    else if (key === 'tiers') await Loyalty.Config.saveTiers(value as JekoTierConfig[]);
+    else await Loyalty.Config.saveRewards(value as JekoRewardConfig[]);
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'Erreur réseau' };
@@ -72,11 +63,11 @@ export async function saveJekoConfig(
 }
 
 export async function getJekoMembers(): Promise<JekoMember[]> {
-  return fetchAdminLoyaltyAccounts();
+  return Loyalty.Admin.accounts();
 }
 
 export async function getAllJekoTransactions(userId?: string): Promise<JekoTransactionAdmin[]> {
-  const rows = await fetchAdminLoyaltyEntries();
+  const rows = await Loyalty.Admin.entries();
   return userId ? rows.filter((row) => row.user_id === userId) : rows;
 }
 
@@ -95,10 +86,10 @@ export async function manualJekoAdjustment(adjustment: JekoAdjustment): Promise<
     return { ok: false, error: 'Membre invalide' };
   }
   try {
-    await storeAdminLoyaltyAdjustment({
-      client_id: clientId,
-      points_delta: adjustment.points,
-      description: adjustment.label,
+    await Loyalty.Admin.adjust({
+      client: clientId,
+      delta: adjustment.points,
+      label: adjustment.label,
     });
     return { ok: true };
   } catch (err) {
@@ -107,5 +98,5 @@ export async function manualJekoAdjustment(adjustment: JekoAdjustment): Promise<
 }
 
 export async function getJekoStats(): Promise<JekoStats> {
-  return fetchJekoStats();
+  return Loyalty.Metric.stats();
 }

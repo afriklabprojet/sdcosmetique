@@ -2,7 +2,7 @@
  * Catalogue fetchers go to Laravel. formatPrice stays here so account and
  * admin tabs can import it without pulling fetchers.
  */
-import { listProducts, showProduct } from '@/shared/api/catalog';
+import { Product as StorefrontProductApi } from '@/shared/api/catalog';
 import { Product, SkinTone } from '@/shared/types/domain.type';
 
 export interface FetchProductsOptions {
@@ -16,7 +16,7 @@ export async function fetchProducts(
   category?: string,
   options?: Omit<FetchProductsOptions, 'category'>
 ): Promise<Product[]> {
-  let products = await listProducts({
+  let products = await StorefrontProductApi.list({
     category,
     featured: options?.bestsellers,
     perPage: options?.limit ?? 100,
@@ -29,7 +29,7 @@ export async function fetchProducts(
 }
 
 export async function fetchProductBySlug(slug: string): Promise<Product | null> {
-  const result = await showProduct(slug);
+  const result = await StorefrontProductApi.find(slug);
   return result?.product ?? null;
 }
 

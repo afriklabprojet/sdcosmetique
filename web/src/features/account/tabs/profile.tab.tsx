@@ -1,6 +1,7 @@
 'use client';
 
-import { apiErrorMessage, updatePassword } from '@/shared/api';
+import { apiErrorMessage } from '@/shared/api';
+import { Password } from '@/shared/api/auth';
 
 type Message = { type: 'ok' | 'err'; text: string } | null;
 type ProfileForm = { firstName: string; lastName: string; email: string; phone: string; currentPwd: string; newPwd: string; confirmPwd: string };
@@ -110,7 +111,7 @@ export default function ProfileTab({
             if (pwdForm.next !== pwdForm.confirm) { setPwdMsg({ type: 'err', text: 'Les mots de passe ne correspondent pas.' }); return; }
             if (pwdForm.next.length < 8) { setPwdMsg({ type: 'err', text: 'Le mot de passe doit contenir au moins 8 caractères.' }); return; }
             try {
-              await updatePassword({ current: pwdForm.current, next: pwdForm.next });
+              await Password.update({ current: pwdForm.current, next: pwdForm.next });
               setPwdMsg({ type: 'ok', text: 'Mot de passe modifié avec succès !' });
               setPwdForm({ current: '', next: '', confirm: '' });
             } catch (err) {
