@@ -4,6 +4,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { apiErrorMessage } from '@/shared/api';
+import { loginStorefront, mirrorNextLogin } from '@/shared/api/auth';
 import styles from '../auth.module.css';
 
 function ConnexionContent() {
@@ -23,25 +25,13 @@ function ConnexionContent() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-      setLoading(false);
-
-      if (!res.ok || data.error) {
-        setError(data.error || 'Email ou mot de passe incorrect.');
-        return;
-      }
-
+      await loginStorefront(email, password, remember);
+      await mirrorNextLogin(email, password);
       const next = new URLSearchParams(globalThis.location.search).get('next') ?? '/compte';
       globalThis.location.href = next;
-    } catch {
+    } catch (err) {
       setLoading(false);
-      setError('Erreur réseau. Vérifiez votre connexion et réessayez.');
+      setError(apiErrorMessage(err, 'Email ou mot de passe incorrect.'));
     }
   };
 

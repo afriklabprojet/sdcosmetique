@@ -176,13 +176,17 @@ to the client; do not rewrite every tab to KA field names in this milestone.
   once nothing relative-fetches them.
 
 **W5 — storefront auth + account**
-- `connexion` / `inscription` / `mot-de-passe-oublie` → Fortify
-  (`POST /login`, `POST /register`, `POST /forgot-password`).
+- `connexion` / `inscription` / `mot-de-passe-oublie` / `reset-password` → Fortify
+  (`POST /login`, `POST /register`, `POST /forgot-password`, `POST /reset-password`).
 - `/compte` profile, addresses, orders → `GET /api/session`, Accounts module
-  (`/api/account`, `/api/addresses`, `/api/orders`).
+  (`/api/account`, `/api/account/addresses`, `/api/account/orders`). Password
+  change → `PUT /user/password`.
+- `web/middleware.ts` no longer gates `/compte` on `sd_session`: the Laravel
+  session cookie is host-only on `:8000`, so the page self-gates via
+  `GET /api/session`. Admin routes still use leftover `sd_session`.
 - Next `/api/auth/{login,register,logout,me,profile,forgot-password}` stay
-  until M6 only if leftover admin routes still need `sd_session`. Storefront
-  pages stop calling them.
+  until M6. Storefront login/register still best-effort mirror a Next session
+  so leftover Jeko / newsletter tabs keep working when both DBs have the user.
 
 **W6 — cart, checkout, payments**
 - Replace `localStorage` cart with KA `/api/cart` (guest cart cookie is

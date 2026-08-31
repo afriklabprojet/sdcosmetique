@@ -168,6 +168,50 @@ export type LaravelNewsletterSub = {
   created_at: string;
 };
 
+export type LaravelSessionUser = {
+  id: number;
+  name: string;
+  email: string;
+  email_verified_at: string | null;
+  created_at?: string;
+};
+
+export type LaravelSession = {
+  user: LaravelSessionUser | null;
+};
+
+export type LaravelAccount = {
+  name: string;
+  email: string;
+  phone: string | null;
+  email_verified_at: string | null;
+};
+
+export type LaravelAddress = {
+  id: number;
+  first_name: string;
+  last_name: string;
+  company: string | null;
+  line_1: string;
+  line_2: string | null;
+  city: string;
+  postal_code: string | null;
+  country: string;
+  phone: string | null;
+};
+
+export type LaravelAddressWrite = {
+  first_name: string;
+  last_name: string;
+  company?: string | null;
+  line_1: string;
+  line_2?: string | null;
+  city: string;
+  postal_code?: string | null;
+  country: string;
+  phone?: string | null;
+};
+
 export type LaravelMetricsOverview = {
   revenue: {
     today: number;
