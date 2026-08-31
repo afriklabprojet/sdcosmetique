@@ -16,7 +16,10 @@ use App\Modules\Orders\Http\Controllers\Admin\DeliveryMethodController;
 use App\Modules\Orders\Http\Controllers\Admin\OrderController;
 use App\Modules\Payments\Http\Controllers\Admin\NotificationController;
 use App\Modules\Payments\Http\Controllers\Admin\PaymentController;
+use App\Modules\Reviews\Http\Controllers\Admin\ReviewController;
+use App\Modules\Settings\Http\Controllers\Admin\SettingController;
 use App\Modules\Shopping\Http\Controllers\Admin\CouponController;
+use App\Modules\Testimonials\Http\Controllers\Admin\TestimonialController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')->name('admin.')->group(function (): void {
@@ -55,4 +58,18 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
     Route::get('payment-notifications/{paymentNotification}', [NotificationController::class, 'show'])->name('payment-notifications.show');
 
     Route::apiResource('coupons', CouponController::class);
+
+    Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
+    Route::get('settings/{setting}', [SettingController::class, 'show'])
+        ->where('setting', '[a-z0-9_]+')
+        ->name('settings.show');
+    Route::patch('settings/{setting}', [SettingController::class, 'update'])
+        ->where('setting', '[a-z0-9_]+')
+        ->name('settings.update');
+
+    Route::apiResource('testimonials', TestimonialController::class);
+    Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
+    Route::get('reviews/{review}', [ReviewController::class, 'show'])->name('reviews.show');
+    Route::patch('reviews/{review}', [ReviewController::class, 'update'])->name('reviews.update');
+    Route::delete('reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
 });

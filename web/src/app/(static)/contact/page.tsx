@@ -6,6 +6,7 @@ import styles from '../static.module.css';
 import type { LegalPage } from '@/features/site-config/site-config.type';
 import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
 import { fetchSiteConfigSection } from '@/features/site-config/site-config.util';
+import { sendContactMessage } from '@/shared/api/leads';
 
 const SUBJECTS = [
   'Question sur une commande',
@@ -31,12 +32,12 @@ export default function ContactPage() {
     setSubmitting(true);
     setError(null);
     try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+      await sendContactMessage({
+        name: form.nom,
+        email: form.email,
+        subject: form.sujet,
+        message: form.message,
       });
-      if (!res.ok) throw new Error('send_failed');
       setSent(true);
     } catch {
       setError('Une erreur est survenue. Veuillez réessayer ou nous contacter par email.');

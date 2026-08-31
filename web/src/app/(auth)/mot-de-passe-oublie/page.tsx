@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
+import { apiErrorMessage } from '@/shared/api';
+import { forgotPassword } from '@/shared/api/auth';
 import styles from '../auth.module.css';
 
 export default function MotDePasseOubliePage() {
@@ -17,22 +19,12 @@ export default function MotDePasseOubliePage() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-
+      await forgotPassword(email);
       setLoading(false);
-      if (!res.ok) {
-        setError('Une erreur est survenue. Veuillez réessayer.');
-        return;
-      }
-
       setSent(true);
-    } catch {
+    } catch (err) {
       setLoading(false);
-      setError('Erreur réseau. Vérifiez votre connexion.');
+      setError(apiErrorMessage(err, 'Une erreur est survenue. Veuillez réessayer.'));
     }
   };
 

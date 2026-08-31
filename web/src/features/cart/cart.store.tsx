@@ -1,67 +1,33 @@
 'use client';
 
-import React, { createContext, useCallback, useContext, useMemo, useState, useSyncExternalStore } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  addCartItem,
+  applyCartCoupon,
+  fetchCart,
+  removeCartCoupon,
+  removeCartItem,
+  updateCartItem,
+} from '@/shared/api/cart';
+import { sellableSlug, type MappedCart } from '@/shared/api/mappers/cart';
 import { CartItem, Product } from '@/shared/types/domain.type';
 
-const CART_STORAGE_KEY = 'sd-cosmetique-cart';
-const EMPTY_CART = '[]';
-const cartListeners = new Set<() => void>();
-
-function subscribeCart(listener: () => void) {
-  const browserWindow = globalThis.window;
-  if (browserWindow === undefined) return () => {};
-
-  const syncFromStorage = (event: StorageEvent) => {
-    if (event.key === CART_STORAGE_KEY) listener();
-  };
-
-  cartListeners.add(listener);
-  browserWindow.addEventListener('storage', syncFromStorage);
-
-  return () => {
-    cartListeners.delete(listener);
-    browserWindow.removeEventListener('storage', syncFromStorage);
-  };
-}
-
-function emitCartChange() {
-  cartListeners.forEach(listener => listener());
-}
-
-function readStoredCartRaw() {
-  if (globalThis.window === undefined) return EMPTY_CART;
-  return globalThis.window.localStorage.getItem(CART_STORAGE_KEY) ?? EMPTY_CART;
-}
-
-function parseStoredCart(rawCart: string): CartItem[] {
-  try {
-    const parsedCart = JSON.parse(rawCart) as CartItem[];
-    return Array.isArray(parsedCart) ? parsedCart : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeStoredCart(items: CartItem[]) {
-  const browserWindow = globalThis.window;
-  if (browserWindow === undefined) return;
-  try {
-    browserWindow.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
-    emitCartChange();
-  } catch {
-    // Storage can be unavailable in private browsing; cart still works in memory.
-  }
-}
+const EMPTY: MappedCart = { items: [], subtotal: 0, discount: 0, total: 0, couponCode: null };
 
 interface CartContextValue {
   items: CartItem[];
   open: boolean;
   totalItems: number;
   totalPrice: number;
+  discount: number;
+  couponCode: string | null;
   addItem: (product: Product) => void;
   removeItem: (productId: string) => void;
   updateQty: (productId: string, quantity: number) => void;
   clearCart: () => void;
+  applyCoupon: (code: string) => Promise<void>;
+  removeCoupon: () => Promise<void>;
+  refresh: () => Promise<void>;
   toggleCart: () => void;
   openCart: () => void;
   closeCart: () => void;
@@ -71,61 +37,100 @@ const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { readonly children: React.ReactNode }) {
   const [open, setIsOpen] = useState(false);
-  const rawCart = useSyncExternalStore(subscribeCart, readStoredCartRaw, () => EMPTY_CART);
-  const items = useMemo(() => parseStoredCart(rawCart), [rawCart]);
+  const [cart, setCart] = useState<MappedCart>(EMPTY);
 
-  const updateItems = useCallback((updater: (items: CartItem[]) => CartItem[]) => {
-    writeStoredCart(updater(parseStoredCart(readStoredCartRaw())));
+  const refresh = useCallback(async () => {
+    try {
+      setCart(await fetchCart());
+    } catch {
+      setCart(EMPTY);
+    }
   }, []);
 
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
   const addItem = useCallback((product: Product) => {
-    updateItems(currentItems => {
-      const existingItem = currentItems.find(item => item.product.id === product.id);
-      if (existingItem) {
-        return currentItems.map(item =>
-          item.product.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      }
-      return [...currentItems, { product, quantity: 1 }];
-    });
-    setIsOpen(true);
-  }, [updateItems]);
+    void addCartItem(sellableSlug(product), 1)
+      .then(setCart)
+      .then(() => setIsOpen(true));
+  }, []);
 
   const removeItem = useCallback((productId: string) => {
-    updateItems(currentItems => currentItems.filter(item => item.product.id !== productId));
-  }, [updateItems]);
+    const line = cart.items.find((item) => item.product.id === productId);
+    if (line?.lineId == null) return;
+    void removeCartItem(line.lineId).then(setCart);
+  }, [cart.items]);
 
   const updateQty = useCallback((productId: string, quantity: number) => {
-    updateItems(currentItems => {
-      if (quantity <= 0) return currentItems.filter(item => item.product.id !== productId);
-      return currentItems.map(item => item.product.id === productId ? { ...item, quantity } : item);
-    });
-  }, [updateItems]);
+    const line = cart.items.find((item) => item.product.id === productId);
+    if (line?.lineId == null) return;
+    if (quantity <= 0) {
+      void removeCartItem(line.lineId).then(setCart);
+      return;
+    }
+    void updateCartItem(line.lineId, quantity).then(setCart);
+  }, [cart.items]);
 
-  const clearCart = useCallback(() => writeStoredCart([]), []);
-  const toggleCart = useCallback(() => setIsOpen(open => !open), []);
+  const clearCart = useCallback(() => {
+    const lines = cart.items.filter((item) => item.lineId != null);
+    void Promise.all(lines.map((item) => removeCartItem(item.lineId as number))).then(() => refresh());
+  }, [cart.items, refresh]);
+
+  const applyCoupon = useCallback(async (code: string) => {
+    setCart(await applyCartCoupon(code));
+  }, []);
+
+  const removeCoupon = useCallback(async () => {
+    setCart(await removeCartCoupon());
+  }, []);
+
+  const toggleCart = useCallback(() => setIsOpen((value) => !value), []);
   const openCart = useCallback(() => setIsOpen(true), []);
   const closeCart = useCallback(() => setIsOpen(false), []);
 
-  const totalItems = useMemo(() => items.reduce((sum, item) => sum + item.quantity, 0), [items]);
-  const totalPrice = useMemo(() => items.reduce((sum, item) => sum + item.product.price * item.quantity, 0), [items]);
+  const totalItems = useMemo(
+    () => cart.items.reduce((sum, item) => sum + item.quantity, 0),
+    [cart.items],
+  );
   const contextValue = useMemo(
     () => ({
-      items,
+      items: cart.items,
       open,
       totalItems,
-      totalPrice,
+      totalPrice: cart.subtotal,
+      discount: cart.discount,
+      couponCode: cart.couponCode,
       addItem,
       removeItem,
       updateQty,
       clearCart,
+      applyCoupon,
+      removeCoupon,
+      refresh,
       toggleCart,
       openCart,
       closeCart,
     }),
-    [items, open, totalItems, totalPrice, addItem, removeItem, updateQty, clearCart, toggleCart, openCart, closeCart]
+    [
+      cart.items,
+      cart.subtotal,
+      cart.discount,
+      cart.couponCode,
+      open,
+      totalItems,
+      addItem,
+      removeItem,
+      updateQty,
+      clearCart,
+      applyCoupon,
+      removeCoupon,
+      refresh,
+      toggleCart,
+      openCart,
+      closeCart,
+    ],
   );
 
   return (

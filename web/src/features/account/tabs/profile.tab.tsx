@@ -1,5 +1,7 @@
 'use client';
 
+import { apiErrorMessage, updatePassword } from '@/shared/api';
+
 type Message = { type: 'ok' | 'err'; text: string } | null;
 type ProfileForm = { firstName: string; lastName: string; email: string; phone: string; currentPwd: string; newPwd: string; confirmPwd: string };
 type PwdForm = { current: string; next: string; confirm: string };
@@ -108,20 +110,11 @@ export default function ProfileTab({
             if (pwdForm.next !== pwdForm.confirm) { setPwdMsg({ type: 'err', text: 'Les mots de passe ne correspondent pas.' }); return; }
             if (pwdForm.next.length < 8) { setPwdMsg({ type: 'err', text: 'Le mot de passe doit contenir au moins 8 caractères.' }); return; }
             try {
-              const res = await fetch('/api/auth/profile', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ currentPassword: pwdForm.current, newPassword: pwdForm.next }),
-              });
-              const data = await res.json();
-              if (!res.ok || data.error) {
-                setPwdMsg({ type: 'err', text: data.error || 'Erreur lors du changement de mot de passe.' });
-              } else {
-                setPwdMsg({ type: 'ok', text: 'Mot de passe modifié avec succès !' });
-                setPwdForm({ current: '', next: '', confirm: '' });
-              }
-            } catch {
-              setPwdMsg({ type: 'err', text: 'Erreur réseau.' });
+              await updatePassword({ current: pwdForm.current, next: pwdForm.next });
+              setPwdMsg({ type: 'ok', text: 'Mot de passe modifié avec succès !' });
+              setPwdForm({ current: '', next: '', confirm: '' });
+            } catch (err) {
+              setPwdMsg({ type: 'err', text: apiErrorMessage(err, 'Erreur lors du changement de mot de passe.') });
             }
           }}
           style={{ marginTop: 20, padding: '11px 28px', background: '#3D1400', border: 'none', borderRadius: 10, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}

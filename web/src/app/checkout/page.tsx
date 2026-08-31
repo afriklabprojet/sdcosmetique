@@ -1,14 +1,21 @@
 'use client';
 
-import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/features/cart/cart.store';
+import { apiErrorMessage } from '@/shared/api';
+import {
+  commitOrder,
+  fetchDeliveryMethods,
+  putCheckoutContact,
+  putCheckoutDelivery,
+  putCheckoutPayment,
+  startPayment,
+  toLaravelGateway,
+} from '@/shared/api/checkout';
 import { PaymentMethod } from '@/shared/types/domain.type';
-import { cacheOrder, generateOrderNumber, type OrderDraft } from '@/features/orders/order.store';
-import type { ShippingOption, ShippingConfig, PromoCode } from '@/features/site-config/site-config.type';
-import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
-import { fetchSiteConfigSection } from '@/features/site-config/site-config.util';
-import { applyPromoCode } from '@/features/promo/promo.util';
+import { cacheOrder } from '@/features/orders/order.store';
+import type { ShippingOption, PromoCode } from '@/features/site-config/site-config.type';
 import { CheckoutStep, DeliveryInfo } from '@/features/checkout/checkout.type';
 import { CHECKOUT_PALETTE } from '@/features/checkout/checkout.constant';
 
@@ -31,7 +38,7 @@ const STEP_ORDER: CheckoutStep[] = ['cart', 'delivery', 'payment', 'confirmation
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, totalPrice, clearCart } = useCart();
+  const { items, totalPrice, discount, couponCode, applyCoupon, removeCoupon, refresh } = useCart();
   const [step, setStep] = useState<CheckoutStep>('cart');
   const [delivery, setDelivery] = useState<DeliveryInfo>({
     firstName: '', lastName: '', email: '', phone: '',
@@ -39,165 +46,84 @@ export default function CheckoutPage() {
   });
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('orange_money');
   const [processing, setProcessing] = useState(false);
-  /**
-   * Clé d'idempotence de la tentative de commande en cours.
-   * Générée une seule fois, puis réutilisée par chaque réessai après un
-   * paiement échoué : le serveur met alors à jour la commande `pending`
-   * existante au lieu d'en créer une nouvelle (plus de lignes orphelines).
-   * Remise à zéro uniquement quand le paiement est réellement initié/confirmé.
-   */
-  const attemptOrderNumber = useRef<string | null>(null);
-  const [shippingCfg, setShippingCfg] = useState<ShippingConfig>(DEFAULT_SITE_CONFIG.shipping);
-  const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(
-    DEFAULT_SITE_CONFIG.shipping.options.find(o => o.active) ?? null
-  );
-  const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
-  const [appliedPromo, setAppliedPromo] = useState<{ code: PromoCode; discount: number } | null>(null);
+  const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
+  const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(null);
   const [promoError, setPromoError] = useState<string | null>(null);
-  const [activeMethods, setActiveMethods] = useState<string[]>(['orange_money', 'wave', 'mtn_momo', 'moov_money', 'djamo', 'cash_on_delivery']);
+  const [activeMethods] = useState<string[]>(['orange_money', 'wave', 'mtn_momo', 'moov_money', 'djamo', 'cash_on_delivery']);
+
   useEffect(() => {
-    fetchSiteConfigSection('shipping').then(cfg => {
-      setShippingCfg(cfg);
-      const first = (cfg.options ?? []).find((o: ShippingOption) => o.active);
-      if (first) setSelectedShipping(first);
-    }).catch(() => {});
-    fetchSiteConfigSection('promo_codes').then(setPromoCodes).catch(() => {});
-    fetch('/api/config/payment_methods_active')
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (data?.value && Array.isArray(data.value) && data.value.length > 0) {
-          setActiveMethods(data.value);
-        }
+    fetchDeliveryMethods()
+      .then((methods) => {
+        setShippingOptions(methods);
+        setSelectedShipping((current) => current ?? methods[0] ?? null);
       })
-      .catch(() => {});
+      .catch(() => setShippingOptions([]));
   }, []);
 
-  // Re-valider la promo si le sous-total ou la liste change
-  useEffect(() => {
-    if (!appliedPromo) return;
-    const r = applyPromoCode(totalPrice, appliedPromo.code.code, promoCodes);
-    if (r.valid) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (r.discount !== appliedPromo.discount) setAppliedPromo({ code: appliedPromo.code, discount: r.discount });
-    } else {
-      setAppliedPromo(null);
-      setPromoError(r.error ?? 'Code invalide');
-    }
-  }, [totalPrice, promoCodes, appliedPromo]);
+  const appliedPromo = couponCode
+    ? { code: { code: couponCode, type: 'fixed' as const, value: discount, active: true } satisfies PromoCode, discount }
+    : null;
 
   const applyPromo = (typedCode: string) => {
     setPromoError(null);
-    const r = applyPromoCode(totalPrice, typedCode, promoCodes);
-    if (r.valid) {
-      const codeObj = promoCodes.find(p => p.code.toUpperCase() === typedCode.toUpperCase());
-      if (codeObj) setAppliedPromo({ code: codeObj, discount: r.discount });
-    } else {
-      setAppliedPromo(null);
-      setPromoError(r.error ?? 'Code invalide');
-    }
+    applyCoupon(typedCode).catch((err) => {
+      setPromoError(apiErrorMessage(err, 'Code invalide'));
+    });
   };
-  const removePromo = () => { setAppliedPromo(null); setPromoError(null); };
+  const removePromo = () => {
+    setPromoError(null);
+    void removeCoupon();
+  };
 
-  const discount = appliedPromo?.discount ?? 0;
-  let shippingCost: number;
-  if (!selectedShipping) {
-    shippingCost = 0;
-  } else if (selectedShipping.freeFrom > 0 && totalPrice >= selectedShipping.freeFrom) {
-    shippingCost = 0;
-  } else {
-    shippingCost = selectedShipping.cost;
-  }
+  const shippingCost = selectedShipping?.cost ?? 0;
   const total = Math.max(0, totalPrice + shippingCost - discount);
   const stepIdx = STEP_ORDER.indexOf(step);
-  const mobile = ['orange_money', 'wave', 'mtn_momo', 'moov_money', 'djamo'].includes(paymentMethod);
 
   const submitDelivery = (info: DeliveryInfo) => { setDelivery(info); setStep('payment'); };
 
-  const placeOrder = async (mobileNumber: string) => {
+  const placeOrder = async (_mobileNumber: string) => {
+    if (!selectedShipping) {
+      alert('Choisissez un mode de livraison.');
+      return;
+    }
     setProcessing(true);
+    const gateway = toLaravelGateway(paymentMethod);
+    try {
+      await putCheckoutContact(delivery.email);
+      await putCheckoutDelivery(delivery, Number(selectedShipping.id));
+      await putCheckoutPayment(gateway);
+      const placed = await commitOrder();
+      cacheOrder({
+        orderNumber: placed.orderNumber,
+        date: placed.date,
+        items: [...items],
+        subtotal: totalPrice,
+        shippingCost,
+        total,
+        delivery,
+        paymentMethod,
+        status: gateway === 'null' ? 'confirmed' : 'pending_payment',
+        paymentStatus: gateway === 'null' ? 'pending' : 'pending',
+        shippingOptionId: selectedShipping.id,
+        promoCode: couponCode ?? undefined,
+      });
+      await refresh();
 
-    const num = (attemptOrderNumber.current ??= generateOrderNumber());
-    const orderData = {
-      orderNumber: num, date: new Date().toISOString(), items: [...items],
-      subtotal: totalPrice, shippingCost, total, delivery, paymentMethod,
-      // Mobile money → en attente de confirmation Jeko ; COD → confirmé d'office
-      status: (mobile ? 'pending_payment' : 'confirmed') as OrderDraft['status'],
-      shippingOptionId: selectedShipping?.id,
-      promoCode: appliedPromo?.code.code,
-    };
+      if (gateway === 'null') {
+        setProcessing(false);
+        router.push(`/confirmation?ref=${encodeURIComponent(placed.orderNumber)}`);
+        return;
+      }
 
-        // 1. Création de la commande côté serveur — unique source de vérité [ARCH-01/02]
-    const createRes = await fetch('/api/orders/create', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(orderData),
-    }).catch(() => null);
-
-    if (!createRes?.ok) {
-      // 409 → ce numéro correspond déjà à une commande payée : il ne peut plus
-      // être réutilisé, le prochain essai doit repartir sur un numéro neuf.
-      if (createRes?.status === 409) attemptOrderNumber.current = null;
-      alert('Erreur lors de la création de la commande. Veuillez réessayer.');
+      const payment = await startPayment(placed.orderNumber);
+      if (!payment.redirect_url) {
+        throw new Error("Le paiement n'a pas pu être initié.");
+      }
+      globalThis.window.location.href = payment.redirect_url;
+    } catch (err) {
+      alert(apiErrorMessage(err, 'Erreur lors de la création de la commande. Veuillez réessayer.'));
       setProcessing(false);
-      return;
     }
-
-    // NB : l'email de confirmation est envoyé côté serveur uniquement — par le
-    // webhook Jeko une fois le paiement confirmé (mobile money), ou par
-    // /api/orders/create pour le paiement à la livraison.
-
-    // 2. Mobile money → Jeko Africa (redirect hosted checkout)
-    if (mobile) {
-      let res: Response;
-      try {
-        res = await fetch('/api/jeko-pay/checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            orderNumber:   num,
-            paymentMethod,                 // 'orange_money' | 'wave' | 'mtn_momo' | 'moov_money' | 'djamo'
-            payerPhone:    mobileNumber.trim() || undefined,
-          }),
-        });
-      } catch {
-        // Seul cas où le fetch lui-même a échoué → vraie panne réseau
-        alert('Erreur réseau lors de l\'initialisation du paiement.');
-        setProcessing(false);
-        return;
-      }
-
-      // Ne jamais faire `res.json()` directement : un body vide ou non-JSON
-      // ferait throw et serait à tort présenté comme une erreur réseau.
-      const rawBody = await res.text().catch(() => '');
-      let data: { redirectUrl?: string } | null = null;
-      try {
-        data = rawBody ? (JSON.parse(rawBody) as { redirectUrl?: string }) : null;
-      } catch {
-        data = null;
-      }
-
-      if (!res.ok || !data?.redirectUrl) {
-        console.error('[checkout] Échec init paiement', { status: res.status, body: rawBody.slice(0, 500) });
-        alert('Le paiement n\'a pas pu être initié. Veuillez réessayer.');
-        setProcessing(false);
-        return;
-      }
-
-      // Le paiement est réellement initié → on peut persister et vider le panier
-      cacheOrder(orderData);
-      clearCart();
-      attemptOrderNumber.current = null;
-      // Redirection vers le checkout hébergé Jeko
-      globalThis.window.location.href = data.redirectUrl;
-      return;
-    }
-
-    // Paiement à la livraison : la commande est confirmée dès sa création
-    cacheOrder(orderData);
-    clearCart();
-    attemptOrderNumber.current = null;
-    setProcessing(false);
-    router.push('/confirmation');
   };
 
 
@@ -244,7 +170,7 @@ export default function CheckoutPage() {
           <div className="lg:col-span-2">
             <Suspense fallback={null}>
               {step === 'cart'     && <CartStep next={() => setStep('delivery')} />}
-              {step === 'delivery' && <DeliveryStep initialDelivery={delivery} submitDelivery={submitDelivery} back={() => setStep('cart')} shippingOptions={shippingCfg.options ?? []} selectedShipping={selectedShipping} selectShipping={setSelectedShipping} />}
+              {step === 'delivery' && <DeliveryStep initialDelivery={delivery} submitDelivery={submitDelivery} back={() => setStep('cart')} shippingOptions={shippingOptions} selectedShipping={selectedShipping} selectShipping={setSelectedShipping} />}
               {step === 'payment'  && <PaymentStep paymentMethod={paymentMethod} selectMethod={setPaymentMethod} placeOrder={placeOrder} processing={processing} back={() => setStep('delivery')} activeMethods={activeMethods} />}
             </Suspense>
           </div>

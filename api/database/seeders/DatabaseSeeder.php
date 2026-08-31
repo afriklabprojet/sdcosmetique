@@ -10,6 +10,7 @@ use Database\Seeders\Content\BannerSeeder;
 use Database\Seeders\Content\PageSeeder;
 use Database\Seeders\Identity\AdminSeeder;
 use Database\Seeders\Orders\DeliveryMethodSeeder;
+use Database\Seeders\Settings\SettingsSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -23,6 +24,7 @@ class DatabaseSeeder extends Seeder
             PageSeeder::class,
             BannerSeeder::class,
             DeliveryMethodSeeder::class,
+            SettingsSeeder::class,
         ]);
     }
 }

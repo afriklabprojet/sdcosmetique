@@ -9,6 +9,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { fetchPlacedOrder } from '@/shared/api/checkout';
 import { getLastOrder, formatOrderDate, OrderDraft } from '@/features/orders/order.store';
 import { BG, BORDER, DARK, TEXT_BODY } from '@/features/orders/confirmation.constant';
 import OrderConfirmedCard from '@/features/orders/cards/order-confirmed.card';
@@ -29,30 +30,21 @@ export default function ConfirmationPage() {
     }
   }, [order, router]);
 
-  // [PAY-04] Filet du webhook : au retour du checkout hébergé Jeko, demander au
-  // serveur de vérifier l'état RÉEL du paiement auprès de Jeko. Sans cela, un
-  // webhook manqué laissait la commande « en attente de paiement » indéfiniment
-  // alors que le client avait bien payé.
   useEffect(() => {
     const ref = new URLSearchParams(globalThis.location.search).get('ref')
       ?? order?.orderNumber;
     if (!ref) return;
 
     let cancelled = false;
-    fetch('/api/jeko-pay/reconcile', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderNumber: ref }),
-    })
-      .then(res => (res.ok ? res.json() : null))
-      .then((data: { paymentStatus?: string } | null) => {
-        if (cancelled || !data?.paymentStatus) return;
-        if (data.paymentStatus === 'paid') setPaymentState('paid');
-        else if (data.paymentStatus === 'failed') setPaymentState('failed');
+    fetchPlacedOrder(ref)
+      .then((placed) => {
+        if (cancelled) return;
+        if (placed.paymentStatus === 'paid') setPaymentState('paid');
+        else if (placed.paymentStatus === 'failed') setPaymentState('failed');
         else setPaymentState('pending');
       })
       .catch(() => {
-        // Réseau indisponible : on n'affirme rien sur le paiement.
+        // Guest poll can 403 after the cart is emptied; keep the cached draft.
       });
 
     return () => { cancelled = true; };

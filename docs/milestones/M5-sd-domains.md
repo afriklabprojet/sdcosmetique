@@ -57,6 +57,22 @@ only after M4 is done (priority rule).
 - End of milestone: `DB_CONNECTION=mariadb php artisan migrate:fresh --seed` once, to catch
   SQLite-masked schema issues (JSON columns especially).
 
+## Execution (2026-08-31)
+
+Started after the M4 W8 gate (`pnpm build` green; KA storefront journeys on Laravel).
+
+Shipped so far:
+
+| Module | Public | Admin | Notes |
+| --- | --- | --- | --- |
+| Settings | `GET /settings`, `GET /settings/{key}` (public rows only) | `GET/PATCH /admin/settings/{key}` | `is_public` hides `jeko`; seeder covers SiteConfig keys |
+| Testimonials | `GET /testimonials` (approved) | `admin/testimonials` apiResource | `approved_at` timestamp, not boolean |
+| Reviews | `GET /reviews`, `POST /reviews` (pending) | admin index/show/update/destroy | `product_reviews` FK to KA `products`; store takes child/parent **slug** |
+
+Circular FK migration renamed to `2026_01_01_000032` so it stays last. Full Pest **139** green.
+
+Still to do: Quiz (questions/options/rules/submissions/answers), Loyalty (accounts, ledger, signup bonus, Jeko webhook), MariaDB `migrate:fresh --seed`.
+
 ## Definition of Done
 
 - All new tables migrate cleanly on SQLite and MariaDB; seeders provide working defaults.

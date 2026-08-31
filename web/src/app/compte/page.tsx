@@ -3,12 +3,22 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { SafeUser } from '@/shared/auth/auth.service';
-import { formatOrderDate, type OrderDraft } from '@/features/orders/order.store';
+import {
+  apiErrorMessage,
+  deleteAddress as deleteAccountAddress,
+  fetchAccountOrders,
+  fetchAddresses,
+  fetchStorefrontIdentity,
+  joinPersonName,
+  logoutStorefront,
+  saveAddress as persistAddress,
+  type StorefrontIdentity,
+  updateAccount,
+} from '@/shared/api';
+import { formatOrderDate } from '@/features/orders/order.store';
 import { formatPrice } from '@/features/catalog/product.query';
 import { useWishlist } from '@/features/wishlist/wishlist.store';
 import {
-  getUserOrdersAction,
   getLoyaltyHistoryAction,
   getLoyaltyConfigAction,
   redeemLoyaltyRewardAction,
@@ -36,8 +46,9 @@ export default function AccountPage() {
   const router = useRouter();
   const [mobile, setIsMobile] = useState(false);
   const [active, setActive] = useState<NavItem>('dashboard');
-  const [user, setUser] = useState<SafeUser | null>(null);
-  const [orders, setOrders] = useState<OrderDraft[]>([]);
+  const [user, setUser] = useState<StorefrontIdentity | null>(null);
+  const [orders, setOrders] = useState<Awaited<ReturnType<typeof fetchAccountOrders>>>([]);
+  const [nextUserId, setNextUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Profil form
@@ -90,28 +101,37 @@ export default function AccountPage() {
   }, []);
 
   useEffect(() => {
-    fetch('/api/auth/me')
-      .then(res => res.json())
-      .then(async (data: { user: SafeUser | null }) => {
-        setUser(data.user);
+    fetchStorefrontIdentity()
+      .then(async (identity) => {
+        setUser(identity);
         setLoading(false);
-        if (data.user) {
-          getUserOrdersAction(data.user.id).then(setOrders).catch(() => {});
-
-          setProfileForm(prev => ({
-            ...prev,
-            firstName: data.user?.prenom ?? prev.firstName,
-            lastName: data.user?.nom ?? prev.lastName,
-            phone: data.user?.telephone ?? prev.phone,
-            email: data.user?.email ?? prev.email,
-          }));
-          setNewsletter(data.user.newsletter ?? true);
-          setUserPoints(data.user.points ?? 0);
-
-          getLoyaltyHistoryAction(data.user.id).then(setJekoHistory).catch(() => {});
-          getLoyaltyConfigAction().then(setJekoConfig).catch(() => {});
-        } else {
+        if (!identity) {
           setOrders([]);
+          return;
+        }
+
+        setProfileForm(prev => ({
+          ...prev,
+          firstName: identity.prenom,
+          lastName: identity.nom,
+          phone: identity.telephone ?? '',
+          email: identity.email,
+        }));
+
+        fetchAccountOrders().then(setOrders).catch(() => setOrders([]));
+        fetchAddresses().then(setAddresses).catch(() => setAddresses([]));
+
+        try {
+          const leftover = await fetch('/api/auth/me').then(res => res.json()) as { user?: { id: string; points?: number; newsletter?: boolean } | null };
+          if (leftover.user) {
+            setNextUserId(leftover.user.id);
+            setUserPoints(leftover.user.points ?? 0);
+            setNewsletter(leftover.user.newsletter ?? true);
+            getLoyaltyHistoryAction(leftover.user.id).then(setJekoHistory).catch(() => {});
+            getLoyaltyConfigAction().then(setJekoConfig).catch(() => {});
+          }
+        } catch {
+          // Jeko stays on Drizzle until M6; a missing Next session is expected for Laravel-only users.
         }
       })
       .catch(() => {
@@ -121,7 +141,7 @@ export default function AccountPage() {
   }, []);
 
   const logout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
+    await logoutStorefront();
     router.push('/');
   };
 
@@ -150,58 +170,57 @@ export default function AccountPage() {
     setProfileMsg(null);
 
     try {
-      const res = await fetch('/api/auth/profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prenom: profileForm.firstName,
-          nom: profileForm.lastName,
-          telephone: profileForm.phone,
-          newsletter,
-        }),
+      const account = await updateAccount({
+        name: joinPersonName(profileForm.firstName, profileForm.lastName),
+        phone: profileForm.phone || null,
       });
-
-      const data = await res.json();
       setProfileSaving(false);
-
-      if (!res.ok || data.error) {
-        setProfileMsg({ type: 'err', text: data.error || 'Erreur lors de la mise à jour.' });
-        return;
-      }
-
       setProfileMsg({ type: 'ok', text: 'Profil mis à jour avec succès !' });
-      if (data.user) setUser(data.user);
-    } catch {
+      setUser(prev => prev ? {
+        ...prev,
+        prenom: profileForm.firstName,
+        nom: profileForm.lastName,
+        telephone: account.phone,
+        email: account.email,
+      } : prev);
+    } catch (err) {
       setProfileSaving(false);
-      setProfileMsg({ type: 'err', text: 'Erreur réseau.' });
+      setProfileMsg({ type: 'err', text: apiErrorMessage(err, 'Erreur lors de la mise à jour.') });
     }
   };
 
-  const saveAddress = () => {
+  const saveAddress = async () => {
     if (!addrForm.firstName || !addrForm.street || !addrForm.city) return;
-
-    const newAddr = { ...addrForm, id: editingAddr || Date.now().toString() };
-    setAddresses(prev => {
-      const filtered = editingAddr ? prev.filter(a => a.id !== editingAddr) : prev;
-      const updated = addrForm.preferred ? filtered.map(a => ({ ...a, preferred: false })) : filtered;
-      return [...updated, newAddr];
-    });
-    setShowAddrForm(false);
-    setEditingAddr(null);
+    try {
+      const saved = await persistAddress(addrForm, !editingAddr);
+      setAddresses(prev => {
+        const filtered = editingAddr ? prev.filter(a => a.id !== editingAddr) : prev;
+        return [...filtered, saved];
+      });
+      setShowAddrForm(false);
+      setEditingAddr(null);
+    } catch {
+      // Address tab has no error slot; keep the form open on failure.
+    }
   };
 
   const preferAddress = (addressId: string) => {
     setAddresses(previous => previous.map(address => ({ ...address, preferred: address.id === addressId })));
   };
 
-  const deleteAddress = (addressId: string) => {
-    setAddresses(previous => previous.filter(address => address.id !== addressId));
+  const deleteAddress = async (addressId: string) => {
+    try {
+      await deleteAccountAddress(addressId);
+      setAddresses(previous => previous.filter(address => address.id !== addressId));
+    } catch {
+      // Keep the row visible if the API rejects the delete.
+    }
   };
 
   const redeemReward = async () => {
-    if (!redeemingReward || !user) return;
+    if (!redeemingReward || !nextUserId) return;
     setRedeemMsg(null);
-    const result = await redeemLoyaltyRewardAction(user.id, redeemingReward);
+    const result = await redeemLoyaltyRewardAction(nextUserId, redeemingReward);
 
     if (result.ok) {
       setUserPoints(p => p - redeemingReward.pts);

@@ -7,6 +7,8 @@ if (process.env.NODE_ENV === 'production' && !process.env.NEXT_PUBLIC_SITE_URL) 
   throw new Error('NEXT_PUBLIC_SITE_URL est requise en production (next.config.ts)');
 }
 
+const apiOrigin = (process.env.NEXT_PUBLIC_API_URL ?? '').replace(/\/api\/?$/, '');
+
 const nextConfig: NextConfig = {
   output: 'standalone',
   serverExternalPackages: ['mysql2'],
@@ -175,7 +177,7 @@ const nextConfig: NextConfig = {
               "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob: https://spcguwuqqwvjfnfctrzs.supabase.co https://images.unsplash.com",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://graph.facebook.com https://api.resend.com",
+              `connect-src 'self'${apiOrigin ? ` ${apiOrigin}` : ''} https://*.supabase.co wss://*.supabase.co https://graph.facebook.com https://api.resend.com`,
               "font-src 'self' data:",
               "frame-ancestors 'none'",
               "object-src 'none'",

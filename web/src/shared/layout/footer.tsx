@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { subscribeNewsletter } from '@/shared/api/leads';
 
 const COLS = [
   {
@@ -49,12 +50,7 @@ export default function Footer({ logoUrl, siteName }: Readonly<{ logoUrl?: strin
     if (!email) return;
     setStatus('loading');
     try {
-      const res = await fetch('/api/newsletter/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, source: 'footer' }),
-      });
-      if (!res.ok) throw new Error('Newsletter subscription failed');
+      await subscribeNewsletter(email);
       setStatus('ok');
       setEmail('');
     } catch {

@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
+import { apiErrorMessage } from '@/shared/api';
+import { mirrorNextRegister, registerStorefront } from '@/shared/api/auth';
 import styles from '../auth.module.css';
 
 export default function InscriptionPage() {
@@ -33,29 +35,23 @@ export default function InscriptionPage() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: form.email,
-          password: form.password,
-          prenom: form.prenom,
-          nom: form.nom,
-        }),
+      await registerStorefront({
+        prenom: form.prenom,
+        nom: form.nom,
+        email: form.email,
+        password: form.password,
       });
-
-      const data = await res.json();
+      await mirrorNextRegister({
+        email: form.email,
+        password: form.password,
+        prenom: form.prenom,
+        nom: form.nom,
+      });
       setLoading(false);
-
-      if (!res.ok || data.error) {
-        setError(data.error || 'Erreur lors de l\'inscription.');
-        return;
-      }
-
       setSuccess(true);
-    } catch {
+    } catch (err) {
       setLoading(false);
-      setError('Erreur réseau. Vérifiez votre connexion et réessayez.');
+      setError(apiErrorMessage(err, 'Erreur lors de l\'inscription.'));
     }
   };
 

@@ -176,35 +176,52 @@ to the client; do not rewrite every tab to KA field names in this milestone.
   once nothing relative-fetches them.
 
 **W5 — storefront auth + account**
-- `connexion` / `inscription` / `mot-de-passe-oublie` → Fortify
-  (`POST /login`, `POST /register`, `POST /forgot-password`).
+- `connexion` / `inscription` / `mot-de-passe-oublie` / `reset-password` → Fortify
+  (`POST /login`, `POST /register`, `POST /forgot-password`, `POST /reset-password`).
 - `/compte` profile, addresses, orders → `GET /api/session`, Accounts module
-  (`/api/account`, `/api/addresses`, `/api/orders`).
+  (`/api/account`, `/api/account/addresses`, `/api/account/orders`). Password
+  change → `PUT /user/password`.
+- `web/middleware.ts` no longer gates `/compte` on `sd_session`: the Laravel
+  session cookie is host-only on `:8000`, so the page self-gates via
+  `GET /api/session`. Admin routes still use leftover `sd_session`.
 - Next `/api/auth/{login,register,logout,me,profile,forgot-password}` stay
-  until M6 only if leftover admin routes still need `sd_session`. Storefront
-  pages stop calling them.
+  until M6. Storefront login/register still best-effort mirror a Next session
+  so leftover Jeko / newsletter tabs keep working when both DBs have the user.
 
 **W6 — cart, checkout, payments**
-- Replace `localStorage` cart with KA `/api/cart` (guest cart cookie is
-  Laravel's; confirm `AllowFirstParty` / Sanctum on those routes).
-- Checkout page → KA checkout draft + `POST /api/payments` (CinetPay /
-  NullGateway). Confirmation polls `GET /api/payments/{id}`.
-- Delete `web/src/app/api/orders/create/route.ts` and the jeko-pay checkout /
-  reconcile / status routes **only if** nothing else (loyalty) imports them.
-  Jeko *loyalty* routes stay.
+- Replace `localStorage` cart with KA `/api/cart` (guest `guest_token` cookie
+  is set by Laravel on `:8000`; browser `credentials: 'include'` carries it).
+- Add-to-cart sends the sellable child slug (`Product.variantSlug`).
+- Checkout: `PUT /checkout/contact` → `PUT /checkout/delivery` →
+  `PUT /checkout/payment` (`null` for COD, `cinetpay` for mobile) →
+  `POST /orders` → `POST /orders/{ref}/payments` when not COD.
+- Confirmation polls `GET /api/orders/{reference}` (no `GET /payments/{id}`
+  on the KA API). NullGateway returns `/order/{ref}`; that page redirects to
+  `/confirmation?ref=`.
+- Deleted `web/src/app/api/orders/create/route.ts` and jeko-pay checkout /
+  reconcile / status routes. Jeko *loyalty* routes and the leftover webhook
+  stay until M6.
 
 **W7 — leads**
-- Footer subscribe → `POST /api/newsletter-subscriptions`.
-- Contact page → `POST /api/contact-messages`.
-- Delete `web/src/app/api/newsletter/subscribe/route.ts` and
-  `web/src/app/api/contact/route.ts`.
+- Footer subscribe → `POST /api/newsletter-subscriptions` (`shared/api/leads.ts`).
+- Contact page → `POST /api/contact-messages` (`name`/`email`/`subject`/`message`).
+- Deleted `web/src/app/api/newsletter/subscribe/route.ts` and
+  `web/src/app/api/contact/route.ts`. `newsletter/manage` stays until M6
+  (leftover admin copy block + cron).
 
 **W8 — gate**
 - `pnpm --filter web build` green.
 - Grep remaining Drizzle usage: only M6 surfaces (site-config, quiz, jeko,
   reviews, testimonials, leftover Next routes, `requireAdmin`).
-- Browser walk: admin login (non-admin denied, revoked admin denied) → each
-  W3 tab CRUD → storefront browse → product → cart → checkout → account.
+- Browser walk (2026-08-31, `localhost:3000` — `127.0.0.1` is now also
+  stateful/CORS-allowed): boutique add-to-cart → drawer (`POST /api/cart-items`
+  201) → checkout delivery methods from Laravel → COD
+  (`PUT /checkout/contact|delivery|payment` + `POST /orders` 201) →
+  confirmation polls `GET /api/orders/{ref}` 200. Contact
+  `POST /api/contact-messages` 201; footer
+  `POST /api/newsletter-subscriptions` 201.
+- Dead Drizzle category admin writes removed (`fetchAllCategoriesAdmin` /
+  add / update / delete). `/api/products` stays until M6 (quiz still relative-fetches it).
 - Commit. Do not start M5.
 
 ### Out of scope (leave on Drizzle)

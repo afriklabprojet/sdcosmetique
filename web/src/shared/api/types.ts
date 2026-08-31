@@ -19,6 +19,65 @@ export type LaravelStorefrontProduct = {
   featured: boolean;
   images: string[];
   badges: string[];
+  children?: {
+    slug: string;
+    sku: string | null;
+    label: string | null;
+    price: number;
+    compare_at_price: number | null;
+    stock: number;
+    in_stock: boolean;
+  }[];
+};
+
+export type LaravelCartItem = {
+  id: number;
+  quantity: number;
+  line_total: number;
+  product: LaravelStorefrontProduct;
+  child: {
+    slug: string;
+    sku: string | null;
+    label: string | null;
+    price: number;
+  };
+};
+
+export type LaravelCart = {
+  guest_token: string | null;
+  items: LaravelCartItem[];
+  coupon: { code: string } | null;
+  subtotal: number;
+  discount: number;
+  total: number;
+  currency: string;
+  free_shipping?: {
+    threshold: number;
+    remaining: number;
+    progress: number;
+    unlocked: boolean;
+  };
+};
+
+export type LaravelCheckoutDraft = {
+  reference: string;
+  step: string;
+  email: string | null;
+  status: string;
+};
+
+export type LaravelPaymentInit = {
+  redirect_url: string | null;
+  reference: string;
+  gateway: string;
+};
+
+export type LaravelStorefrontDeliveryMethod = {
+  id: number;
+  slug: string;
+  name: string;
+  zone: string;
+  amount: number;
 };
 
 export type LaravelAdminProduct = {
@@ -103,6 +162,7 @@ export type LaravelOrder = {
   id?: number;
   reference: string;
   status: LaravelOrderStatus;
+  step?: string;
   email: string | null;
   gateway: string | null;
   currency: string;
@@ -166,6 +226,50 @@ export type LaravelNewsletterSub = {
   unsubscribed_at: string | null;
   active: boolean;
   created_at: string;
+};
+
+export type LaravelSessionUser = {
+  id: number;
+  name: string;
+  email: string;
+  email_verified_at: string | null;
+  created_at?: string;
+};
+
+export type LaravelSession = {
+  user: LaravelSessionUser | null;
+};
+
+export type LaravelAccount = {
+  name: string;
+  email: string;
+  phone: string | null;
+  email_verified_at: string | null;
+};
+
+export type LaravelAddress = {
+  id: number;
+  first_name: string;
+  last_name: string;
+  company: string | null;
+  line_1: string;
+  line_2: string | null;
+  city: string;
+  postal_code: string | null;
+  country: string;
+  phone: string | null;
+};
+
+export type LaravelAddressWrite = {
+  first_name: string;
+  last_name: string;
+  company?: string | null;
+  line_1: string;
+  line_2?: string | null;
+  city: string;
+  postal_code?: string | null;
+  country: string;
+  phone?: string | null;
 };
 
 export type LaravelMetricsOverview = {

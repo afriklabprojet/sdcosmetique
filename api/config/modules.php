@@ -9,7 +9,10 @@ use App\Modules\Identity\Providers\ModuleServiceProvider as IdentityServiceProvi
 use App\Modules\Leads\Providers\ModuleServiceProvider as LeadsServiceProvider;
 use App\Modules\Orders\Providers\ModuleServiceProvider as OrdersServiceProvider;
 use App\Modules\Payments\Providers\ModuleServiceProvider as PaymentsServiceProvider;
+use App\Modules\Reviews\Providers\ModuleServiceProvider as ReviewsServiceProvider;
+use App\Modules\Settings\Providers\ModuleServiceProvider as SettingsServiceProvider;
 use App\Modules\Shopping\Providers\ModuleServiceProvider as ShoppingServiceProvider;
+use App\Modules\Testimonials\Providers\ModuleServiceProvider as TestimonialsServiceProvider;
 
 return [
     'enabled' => [
@@ -21,5 +24,8 @@ return [
         ShoppingServiceProvider::class,
         OrdersServiceProvider::class,
         PaymentsServiceProvider::class,
+        SettingsServiceProvider::class,
+        TestimonialsServiceProvider::class,
+        ReviewsServiceProvider::class,
     ],
 ];

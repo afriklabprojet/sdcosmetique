@@ -28,13 +28,14 @@ function ingredientsToArray(value: string | undefined): string[] | undefined {
 }
 
 export function mapStorefrontProduct(dto: LaravelStorefrontProduct): Product {
+  const child = dto.children?.[0];
   return {
     id: dto.slug,
     name: dto.title,
     slug: dto.slug,
     category: asCategory(dto.category?.slug),
-    price: dto.price,
-    originalPrice: dto.compare_at_price ?? undefined,
+    price: child?.price ?? dto.price,
+    originalPrice: (child?.compare_at_price ?? dto.compare_at_price) ?? undefined,
     images: dto.images ?? [],
     skinTones: [],
     badges: dto.badges ?? [],
@@ -45,10 +46,11 @@ export function mapStorefrontProduct(dto: LaravelStorefrontProduct): Product {
     benefits: [],
     usage: dto.usage ?? '',
     ingredients: ingredientsToString(dto.ingredients),
-    inStock: dto.in_stock,
-    stockQty: dto.stock,
+    inStock: child?.in_stock ?? dto.in_stock,
+    stockQty: child?.stock ?? dto.stock,
     newArrival: dto.recent,
     bestseller: dto.featured,
+    variantSlug: child?.slug ?? dto.slug,
   };
 }
 

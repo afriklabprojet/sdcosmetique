@@ -50,11 +50,14 @@ export interface Product {
   resultsTitle?: string;
   /** Sous-titre de l'encart « Résultats » (ex: « Peau plus lumineuse, lisse et unifiée. »). */
   resultsSubtitle?: string;
+  /** Sellable KA child slug; cart writes use this, falling back to `slug`. */
+  variantSlug?: string;
 }
 
 export interface CartItem {
   product: Product;
   quantity: number;
+  lineId?: number;
 }
 
 export interface Review {
