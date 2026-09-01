@@ -29,10 +29,13 @@ export default function BrandingTab({ siteContent, setSiteContent, saveConfigSec
               twitterHandle: '@sdcosmetique', themeColor: '#8F5922',
               instagramUrl: '', tiktokUrl: '', facebookUrl: '', youtubeUrl: '', linkedinUrl: '',
             };
-            const br: BrandingConfig = siteContent.branding ?? DEFAULT_BR;
-            const save = async () => { await saveConfigSection('branding', siteContent.branding ?? DEFAULT_BR); };
+            const br: BrandingConfig = {
+              ...DEFAULT_BR,
+              ...(siteContent.branding ?? {}),
+            };
+            const save = async () => { await saveConfigSection('branding', { ...DEFAULT_BR, ...(siteContent.branding ?? {}) }); };
             const update = (patch: Partial<BrandingConfig>) =>
-              setSiteContent((c: SiteConfig) => ({ ...c, branding: { ...(c.branding ?? DEFAULT_BR), ...patch } }));
+              setSiteContent((c: SiteConfig) => ({ ...c, branding: { ...DEFAULT_BR, ...(c.branding ?? {}), ...patch } }));
 
             // ── Helpers ────────────────────────────────────────────────
             const fieldStyle = { background: BG, border: `1px solid ${BORDER}`, borderRadius: '8px', padding: '10px 12px', color: TEXT, fontSize: '13px', outline: 'none', width: '100%', boxSizing: 'border-box' as const, transition: 'border-color .15s, box-shadow .15s' };
@@ -59,7 +62,7 @@ export default function BrandingTab({ siteContent, setSiteContent, saveConfigSec
             };
 
             // Brand initials
-            const initials = (br.siteName || 'SD').split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+            const initials = (br.siteName || 'SD').split(/\s+/).map(w => w[0] || '').slice(0, 2).join('').toUpperCase() || 'SD';
 
             // Color palette presets (cosmetic / luxury)
             const palette = ['#8F5922', '#D4A25A', '#B8860B', '#C0392B', '#1C1610', '#2C3E50', '#8E44AD', '#27AE60', '#E91E63', '#FF6F00'];
@@ -218,9 +221,9 @@ export default function BrandingTab({ siteContent, setSiteContent, saveConfigSec
                     </div>
                     <label>
                       <span style={labelStyle}>Description courte de la marque</span>
-                      <textarea value={br.description} onChange={e => update({ description: e.target.value })}
+                      <textarea value={br.description ?? ''} onChange={e => update({ description: e.target.value })}
                         style={{ ...fieldStyle, minHeight: '80px', resize: 'vertical' }} placeholder="Soins premium formulés pour les peaux mélanisées..." />
-                      <span style={{ fontSize: '10px', color: counterColor(br.description.length, 200), marginTop: '4px', display: 'block', fontWeight: 600 }}>{br.description.length} caractères</span>
+                      <span style={{ fontSize: '10px', color: counterColor((br.description ?? '').length, 200), marginTop: '4px', display: 'block', fontWeight: 600 }}>{(br.description ?? '').length} caractères</span>
                     </label>
                   </div>
                 </div>
@@ -233,14 +236,14 @@ export default function BrandingTab({ siteContent, setSiteContent, saveConfigSec
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                       <label>
                         <span style={labelStyle}>Titre SEO (balise &lt;title&gt;)</span>
-                        <input type="text" value={br.seoTitle} onChange={e => update({ seoTitle: e.target.value })} style={fieldStyle} />
-                        <span style={{ fontSize: '10px', color: counterColor(br.seoTitle.length, 70), marginTop: '4px', display: 'block', fontWeight: 600 }}>{br.seoTitle.length} / 70 caractères</span>
+                        <input type="text" value={br.seoTitle ?? ''} onChange={e => update({ seoTitle: e.target.value })} style={fieldStyle} />
+                        <span style={{ fontSize: '10px', color: counterColor((br.seoTitle ?? '').length, 70), marginTop: '4px', display: 'block', fontWeight: 600 }}>{(br.seoTitle ?? '').length} / 70 caractères</span>
                       </label>
                       <label>
                         <span style={labelStyle}>Meta description SEO</span>
-                        <textarea value={br.seoDescription} onChange={e => update({ seoDescription: e.target.value })}
+                        <textarea value={br.seoDescription ?? ''} onChange={e => update({ seoDescription: e.target.value })}
                           style={{ ...fieldStyle, minHeight: '90px', resize: 'vertical' }} />
-                        <span style={{ fontSize: '10px', color: counterColor(br.seoDescription.length, 160), marginTop: '4px', display: 'block', fontWeight: 600 }}>{br.seoDescription.length} / 160 caractères</span>
+                        <span style={{ fontSize: '10px', color: counterColor((br.seoDescription ?? '').length, 160), marginTop: '4px', display: 'block', fontWeight: 600 }}>{(br.seoDescription ?? '').length} / 160 caractères</span>
                       </label>
                     </div>
                     {/* Google preview */}

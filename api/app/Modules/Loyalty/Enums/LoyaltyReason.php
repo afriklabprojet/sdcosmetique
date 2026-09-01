@@ -6,6 +6,11 @@ namespace App\Modules\Loyalty\Enums;
 
 enum LoyaltyReason: string
 {
+    use \ArchTech\Enums\InvokableCases;
+    use \ArchTech\Enums\Names;
+    use \ArchTech\Enums\Options;
+    use \ArchTech\Enums\Values;
+
     case OrderReward = 'order_reward';
     case SignupBonus = 'signup_bonus';
     case QuizCompletion = 'quiz_completion';

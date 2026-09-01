@@ -548,11 +548,17 @@ export default function AdminPage() { // NOSONAR typescript:S3776
    */
   const markOrderPaid = async (orderNumber: string) => {
     const previousOrders = orders;
+    const current = orders.find(o => o.orderNumber === orderNumber);
+    if (!current) return;
     setOrders(prev => prev.map(o => o.orderNumber === orderNumber
       ? { ...o, paymentStatus: 'paid' as const, status: 'confirmed' as OrderStatus }
       : o));
-    // Paying an order is a payment-gateway concern on the API; revert the optimistic UI.
-    setOrders(previousOrders);
+    try {
+      await Order.markPaid(current);
+    } catch (err) {
+      console.error('Erreur encaissement commande:', err);
+      setOrders(previousOrders);
+    }
   };
 
   const changeStatus = async (orderNumber: string, status: OrderStatus) => {

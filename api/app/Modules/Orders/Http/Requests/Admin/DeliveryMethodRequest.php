@@ -20,8 +20,8 @@ class DeliveryMethodRequest extends FormRequest
      */
     public function rules(): array
     {
-        $method = $this->route('delivery_method');
-        $id = $method instanceof Method ? $method->id : null;
+        $method = $this->route('deliveryMethod') ?? $this->route('delivery_method');
+        $id = $method instanceof Method ? $method->id : $method;
         $required = $this->isMethod('POST') ? 'required' : 'sometimes';
 
         return [

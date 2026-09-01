@@ -19,6 +19,11 @@ class NewsletterSubscriptionPolicy
         return true;
     }
 
+    public function update(User $user, Subscription $subscription): bool
+    {
+        return $user->administrator();
+    }
+
     public function delete(User $user, Subscription $subscription): bool
     {
         return $user->administrator();

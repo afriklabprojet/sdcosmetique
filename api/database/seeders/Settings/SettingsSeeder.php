@@ -138,6 +138,10 @@ class SettingsSeeder extends Seeder
                     'freeShippingMessage' => '',
                 ],
             ],
+            'promo_codes' => [
+                'is_public' => true,
+                'value' => [],
+            ],
             'jeko' => [
                 'is_public' => false,
                 'value' => [

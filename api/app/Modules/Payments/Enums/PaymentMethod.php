@@ -6,6 +6,11 @@ namespace App\Modules\Payments\Enums;
 
 enum PaymentMethod: string
 {
+    use \ArchTech\Enums\InvokableCases;
+    use \ArchTech\Enums\Names;
+    use \ArchTech\Enums\Options;
+    use \ArchTech\Enums\Values;
+
     case OrangeMoney = 'orange_money';
     case Wave = 'wave';
     case MtnMomo = 'mtn_momo';

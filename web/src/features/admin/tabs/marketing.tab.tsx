@@ -17,17 +17,54 @@ interface MarketingTabProps {
   readonly setMktSubTab: (t: 'banners' | 'popup' | 'promos' | 'upsell' | 'tracking') => void;
 }
 
-export default function MarketingTab({ siteContent, setSiteContent, saveConfigSection, contentSaving, contentSaved, mktSubTab, setMktSubTab }: MarketingTabProps) {
-            const mkt: MarketingConfig = siteContent.marketing ?? { banners: [], welcomePopup: { enabled: false, title: '', subtitle: '', delaySeconds: 5, bgColor: '#1C1610', ctaLabel: "Profiter de l'offre" }, upsellRules: [] };
+export default function MarketingTab({
+  siteContent,
+  setSiteContent,
+  saveConfigSection,
+  contentSaving,
+  contentSaved,
+  mktSubTab,
+  setMktSubTab,
+}: MarketingTabProps) {
+  const DEFAULT_WELCOME_POPUP: WelcomePopup = {
+    enabled: false,
+    title: '',
+    subtitle: '',
+    delaySeconds: 5,
+    bgColor: '#1C1610',
+    ctaLabel: "Profiter de l'offre",
+  };
+            const DEFAULT_MKT: MarketingConfig = {
+              banners: [],
+              welcomePopup: DEFAULT_WELCOME_POPUP,
+              upsellRules: [],
+            };
+            const mkt: MarketingConfig = {
+              ...DEFAULT_MKT,
+              ...(siteContent.marketing ?? {}),
+              welcomePopup: {
+                ...DEFAULT_WELCOME_POPUP,
+                ...(siteContent.marketing?.welcomePopup ?? {}),
+              },
+              banners: siteContent.marketing?.banners ?? DEFAULT_MKT.banners,
+              upsellRules: siteContent.marketing?.upsellRules ?? DEFAULT_MKT.upsellRules,
+            };
 
             const saveMkt = async () => { await saveConfigSection('marketing', mkt); };
 
             const updateMkt = (patch: Partial<MarketingConfig>) =>
-              setSiteContent((c: SiteConfig) => ({ ...c, marketing: { ...c.marketing, ...patch } }));
+              setSiteContent((c: SiteConfig) => ({
+                ...c,
+                marketing: {
+                  ...DEFAULT_MKT,
+                  ...(c.marketing ?? {}),
+                  ...patch,
+                },
+              }));
 
             // Bannières
             const addBanner = () => {
-              const b: PromoBanner = { id: `bn-${Date.now()}`, text: 'Nouvelle bannière', bgColor: '#1C1610', textColor: '#D4A25A', active: false };
+              const b: PromoBanner = { id: `banner-${(mkt.banners ?? []).length + 1}`, text: 'Nouvelle bannière', bgColor: '#1C1610', textColor: '#D4A25A', active: false };
               updateMkt({ banners: [...(mkt.banners ?? []), b] });
             };
             const updBanner = (id: string, patch: Partial<PromoBanner>) =>
@@ -50,7 +87,7 @@ export default function MarketingTab({ siteContent, setSiteContent, saveConfigSe
 
             // Upsell
             const addUpsell = () => {
-              const u: UpsellRule = { id: `up-${Date.now()}`, triggerProductIds: [], suggestedProductIds: [], label: 'Complétez votre routine', active: true };
+              const u: UpsellRule = { id: `upsell-${(mkt.upsellRules ?? []).length + 1}`, triggerProductIds: [], suggestedProductIds: [], label: 'Complétez votre routine', active: true };
               updateMkt({ upsellRules: [...(mkt.upsellRules ?? []), u] });
             };
             const updUpsell = (id: string, patch: Partial<UpsellRule>) =>
@@ -181,7 +218,7 @@ export default function MarketingTab({ siteContent, setSiteContent, saveConfigSe
 
                 {/* ── Pop-up Bienvenue ── */}
                 {mktSubTab === 'popup' && (() => {
-                  const p = mkt.welcomePopup;
+                  const p = mkt.welcomePopup ?? DEFAULT_WELCOME_POPUP;
                   const editPopupField = (e: React.ChangeEvent<HTMLInputElement>) => {
                     updPopup({ [e.currentTarget.dataset.field as keyof WelcomePopup]: e.currentTarget.value });
                   };

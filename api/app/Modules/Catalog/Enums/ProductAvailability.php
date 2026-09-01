@@ -2,16 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Quiz\Enums;
+namespace App\Modules\Catalog\Enums;
 
-enum QuizTier: string
+enum ProductAvailability: string
 {
     use \ArchTech\Enums\InvokableCases;
     use \ArchTech\Enums\Names;
     use \ArchTech\Enums\Options;
     use \ArchTech\Enums\Values;
 
-    case Essential = 'essential';
-    case Complementary = 'complementary';
-    case RoutineKit = 'routine_kit';
+    case InStock = 'in-stock';
+    case OutOfStock = 'out-of-stock';
 }

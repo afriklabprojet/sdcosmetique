@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Settings\Http\Requests\Admin;
+namespace App\Modules\Leads\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class SettingRequest extends FormRequest
+class UpdateNewsletterSubscriptionRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -19,8 +19,8 @@ class SettingRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'value' => ['present'],
-            'is_public' => ['sometimes', 'boolean'],
+            'unsubscribed' => ['sometimes', 'boolean'],
+            'unsubscribed_at' => ['sometimes', 'nullable', 'date'],
         ];
     }
 }

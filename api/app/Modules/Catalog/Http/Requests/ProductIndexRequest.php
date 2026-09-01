@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Catalog\Http\Requests;
 
+use App\Modules\Catalog\Enums\ProductAvailability;
+use App\Modules\Catalog\Enums\ProductSort;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -20,10 +22,10 @@ class ProductIndexRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'sort' => ['sometimes', 'string', Rule::in(['featured', 'price-asc', 'price-desc', 'newest', 'rating', 'name-asc'])],
+            'sort' => ['sometimes', 'string', Rule::enum(ProductSort::class)],
             'q' => ['sometimes', 'string', 'max:255'],
             'category' => ['sometimes', 'string', 'max:255'],
-            'availability' => ['sometimes', 'string', Rule::in(['in-stock', 'out-of-stock'])],
+            'availability' => ['sometimes', 'string', Rule::enum(ProductAvailability::class)],
             'minPrice' => ['sometimes', 'integer', 'min:0'],
             'maxPrice' => ['sometimes', 'integer', 'min:0'],
             'featured' => ['sometimes', 'boolean'],

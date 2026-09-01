@@ -47,6 +47,7 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
     Route::patch('contact-messages/{contactMessage}', [ContactMessageController::class, 'update'])->name('contact-messages.update');
 
     Route::get('newsletter-subscriptions', [NewsletterSubscriptionController::class, 'index'])->name('newsletter-subscriptions.index');
+    Route::patch('newsletter-subscriptions/{newsletterSubscription}', [NewsletterSubscriptionController::class, 'update'])->name('newsletter-subscriptions.update');
     Route::delete('newsletter-subscriptions/{newsletterSubscription}', [NewsletterSubscriptionController::class, 'destroy'])->name('newsletter-subscriptions.destroy');
 
     Route::get('orders', [OrderController::class, 'index'])->name('orders.index');

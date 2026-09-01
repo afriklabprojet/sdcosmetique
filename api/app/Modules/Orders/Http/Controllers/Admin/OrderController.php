@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Orders\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Orders\Data\Settlement;
 use App\Modules\Orders\Enums\AdjustmentType;
+use App\Modules\Orders\Enums\OrderStatus;
 use App\Modules\Orders\Http\Requests\Admin\StoreAdjustmentRequest;
 use App\Modules\Orders\Http\Requests\Admin\UpdateOrderStatusRequest;
 use App\Modules\Orders\Http\Resources\OrderResource;
@@ -41,11 +43,20 @@ class OrderController extends Controller
     {
         $this->authorize('update', $order);
 
+        $status = OrderStatus::from($request->validated('status'));
+
         try {
-            match ($request->validated('status')) {
-                'shipped' => $order->ship(),
-                'delivered' => $order->deliver(),
-                'cancelled' => $order->cancel($request->validated('reason')),
+            match ($status) {
+                OrderStatus::Paid => $order->pay(new Settlement(
+                    gateway: $order->gateway ?? 'manual',
+                    reference: 'manual-'.$order->reference,
+                    amount: $order->total->value,
+                    currency: $order->currency,
+                )),
+                OrderStatus::Shipped => $order->ship(),
+                OrderStatus::Delivered => $order->deliver(),
+                OrderStatus::Cancelled => $order->cancel((string) $request->validated('reason', '')),
+                default => abort(422, 'Cannot transition to '.$status->value),
             };
         } catch (DomainException $e) {
             abort(422, $e->getMessage());

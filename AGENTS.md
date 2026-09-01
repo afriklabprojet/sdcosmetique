@@ -118,3 +118,5 @@ or `order_adjustments` table.
 
 **Admins, not an allow-list.** There is no `ADMIN_EMAILS` env var. Authorisation
 is an active (non-revoked) row in `admins` for the signed-in user.
+
+**Fully qualified namespace for traits and single-use classes.** Always use fully qualified namespace paths for traits (e.g., `use \ArchTech\Enums\Values;`) and single-use class references (such as in `DatabaseSeeder::call(\Database\Seeders\Settings\SettingsSeeder::class)`), rather than adding top-level `use` imports.

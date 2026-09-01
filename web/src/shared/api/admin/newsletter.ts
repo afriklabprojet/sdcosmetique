@@ -10,6 +10,14 @@ export namespace Newsletter {
     return body.data.map(mapNewsletterSub);
   }
 
+  export async function update(id: string, payload: { unsubscribed?: boolean }): Promise<NewsletterSub> {
+    const body = await api<{ data: LaravelNewsletterSub }>(`/admin/newsletter-subscriptions/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+    return mapNewsletterSub(body.data);
+  }
+
   export async function remove(id: string): Promise<void> {
     await api(`/admin/newsletter-subscriptions/${id}`, { method: 'DELETE' });
   }

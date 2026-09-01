@@ -6,6 +6,11 @@ namespace App\Modules\Orders\Enums;
 
 enum AdjustmentType: string
 {
+    use \ArchTech\Enums\InvokableCases;
+    use \ArchTech\Enums\Names;
+    use \ArchTech\Enums\Options;
+    use \ArchTech\Enums\Values;
+
     case Shipping = 'shipping';
     case Discount = 'discount';
     case ShippingDiscount = 'shipping_discount';

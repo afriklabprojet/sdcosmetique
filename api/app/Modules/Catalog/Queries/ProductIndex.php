@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Catalog\Queries;
 
+use App\Modules\Catalog\Enums\ProductAvailability;
+use App\Modules\Catalog\Enums\ProductSort;
 use App\Modules\Catalog\Http\Requests\ProductIndexRequest;
 use App\Modules\Catalog\Models\Product;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -37,11 +39,13 @@ final class ProductIndex
             $query->whereHas('category', fn (Builder $builder): Builder => $builder->where('slug', $request->string('category')));
         }
 
-        if ($request->input('availability') === 'in-stock') {
+        $availability = ProductAvailability::tryFrom((string) $request->input('availability'));
+
+        if ($availability === ProductAvailability::InStock) {
             $query->whereHas('children', fn (Builder $builder): Builder => $builder->where('stock', '>', 0));
         }
 
-        if ($request->input('availability') === 'out-of-stock') {
+        if ($availability === ProductAvailability::OutOfStock) {
             $query->whereDoesntHave('children', fn (Builder $builder): Builder => $builder->where('stock', '>', 0));
         }
 
@@ -82,12 +86,14 @@ final class ProductIndex
      */
     private function applySort(Builder $query, string $sort): void
     {
-        match ($sort) {
-            'price-asc' => $query->orderBy('display_price'),
-            'price-desc' => $query->orderByDesc('display_price'),
-            'newest' => $query->orderByDesc('published_at'),
-            'name-asc' => $query->orderBy('title'),
-            'rating' => $query->orderByDesc('published_at'),
+        $sortOption = ProductSort::tryFrom($sort);
+
+        match ($sortOption) {
+            ProductSort::PriceAsc => $query->orderBy('display_price'),
+            ProductSort::PriceDesc => $query->orderByDesc('display_price'),
+            ProductSort::Newest => $query->orderByDesc('published_at'),
+            ProductSort::NameAsc => $query->orderBy('title'),
+            ProductSort::Rating => $query->orderByDesc('published_at'),
             default => $query
                 ->orderByRaw("(select count(*) from product_badges where product_badges.product_id = products.id and product_badges.type = 'featured') desc")
                 ->orderByDesc('published_at'),

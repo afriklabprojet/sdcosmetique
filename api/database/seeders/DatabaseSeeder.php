@@ -4,14 +4,6 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use Database\Seeders\Catalog\V1CatalogSeeder;
-use Database\Seeders\Catalog\V1CategorySeeder;
-use Database\Seeders\Content\BannerSeeder;
-use Database\Seeders\Content\PageSeeder;
-use Database\Seeders\Identity\AdminSeeder;
-use Database\Seeders\Orders\DeliveryMethodSeeder;
-use Database\Seeders\Quiz\QuizSeeder;
-use Database\Seeders\Settings\SettingsSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -19,14 +11,14 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            AdminSeeder::class,
-            V1CategorySeeder::class,
-            V1CatalogSeeder::class,
-            PageSeeder::class,
-            BannerSeeder::class,
-            DeliveryMethodSeeder::class,
-            SettingsSeeder::class,
-            QuizSeeder::class,
+            \Database\Seeders\Identity\AdminSeeder::class,
+            \Database\Seeders\Catalog\V1CategorySeeder::class,
+            \Database\Seeders\Catalog\V1CatalogSeeder::class,
+            \Database\Seeders\Content\PageSeeder::class,
+            \Database\Seeders\Content\BannerSeeder::class,
+            \Database\Seeders\Orders\DeliveryMethodSeeder::class,
+            \Database\Seeders\Settings\SettingsSeeder::class,
+            \Database\Seeders\Quiz\QuizSeeder::class,
         ]);
     }
 }

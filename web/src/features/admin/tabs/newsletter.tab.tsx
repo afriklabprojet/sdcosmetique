@@ -34,8 +34,14 @@ export default function NewsletterTab({ siteContent, setSiteContent, saveConfigS
             const total = newsletterSubs.length;
             const active = newsletterSubs.filter(s => !s.unsubscribed).length;
             const unsubs = total - active;
-            const toggleUnsub = async (_s: NewsletterSub) => {
-              alert('Le changement de statut d’un abonné n’est pas encore exposé par l’API. Supprimez l’abonnement à la place.');
+            const toggleUnsub = async (s: NewsletterSub) => {
+              try {
+                await Newsletter.update(s.id, { unsubscribed: !s.unsubscribed });
+                reloadNewsletter();
+              } catch (err) {
+                console.error('Erreur mise à jour abonné:', err);
+                alert('Erreur lors de la mise à jour du statut.');
+              }
             };
             const remove = async (s: NewsletterSub) => {
               if (!confirm(`Supprimer définitivement ${s.email} ?`)) return;

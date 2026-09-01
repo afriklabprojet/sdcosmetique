@@ -21,4 +21,13 @@ export namespace Order {
       }),
     });
   }
+
+  export async function markPaid(item: MappedOrder): Promise<void> {
+    await api(`/admin/orders/${item.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        status: 'paid',
+      }),
+    });
+  }
 }
