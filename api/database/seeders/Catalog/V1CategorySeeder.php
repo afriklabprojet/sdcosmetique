@@ -16,18 +16,22 @@ class V1CategorySeeder extends Seeder
         /** @var array<int, array<string, mixed>> $categories */
         $categories = json_decode(File::get($path), true, 512, JSON_THROW_ON_ERROR);
 
-        foreach ($categories as $index => $category) {
-            Category::query()->updateOrCreate(
-                ['slug' => $category['slug']],
-                [
-                    'name' => $category['name'],
-                    'description' => $category['description'],
-                    'image' => self::assetPath((string) $category['image']),
-                    'banner' => self::assetPath((string) $category['banner']),
-                    'order' => $index,
-                ],
-            );
-        }
+        Category::withoutEvents(function () use ($categories): void {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($categories): void {
+                foreach ($categories as $index => $category) {
+                    Category::query()->updateOrCreate(
+                        ['slug' => $category['slug']],
+                        [
+                            'name' => $category['name'],
+                            'description' => $category['description'],
+                            'image' => self::assetPath((string) $category['image']),
+                            'banner' => self::assetPath((string) $category['banner']),
+                            'order' => $index,
+                        ],
+                    );
+                }
+            });
+        });
     }
 
     private static function assetPath(string $path): string

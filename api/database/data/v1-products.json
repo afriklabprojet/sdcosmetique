@@ -3,465 +3,653 @@
     "id": "p-001",
     "slug": "hydraglow-daily-gel-cleanser",
     "title": "Hydraglow Daily Gel Cleanser",
-    "category": "cleansers",
+    "category": "face",
     "price": 15000,
     "compareAtPrice": 18000,
     "images": [
-      "assets/images/product/square/product-1.jpg",
-      "assets/images/product/single/detail-1.jpg",
-      "assets/images/product/single/detail-1_2.jpg",
-      "assets/images/product/single/detail-1_3.jpg",
-      "assets/images/product/single/detail-1_4.jpg",
-      "assets/images/product/single/detail-1_5.jpg"
+      "/assets/images/product/square/product-1.jpg",
+      "/assets/images/product/single/detail-1.jpg"
     ],
-    "badges": [
-      "20% OFF",
-      "BEST SELLER"
-    ],
+    "badges": ["20% OFF", "BEST SELLER"],
     "rating": 4.8,
     "reviewCount": 225,
-    "stock": 12,
+    "stock": 25,
     "variants": [
-      {
-        "id": "p-001-30",
-        "label": "30ml",
-        "price": 15000,
-        "compareAtPrice": 18000,
-        "stock": 12
-      },
-      {
-        "id": "p-001-50",
-        "label": "50ml",
-        "price": 22000,
-        "compareAtPrice": 26000,
-        "stock": 6
-      },
-      {
-        "id": "p-001-100",
-        "label": "100ml",
-        "price": 35000,
-        "compareAtPrice": null,
-        "stock": 0
-      }
+      { "id": "p-001-30", "label": "30ml", "price": 15000, "compareAtPrice": 18000, "stock": 15 },
+      { "id": "p-001-50", "label": "50ml", "price": 22000, "compareAtPrice": 26000, "stock": 10 }
     ],
     "defaultVariantId": "p-001-30",
-    "shortDescription": "A weightless gel-to-foam cleanser that dissolves sunscreen and makeup without that tight, squeaky finish.",
-    "description": "<p>Hydraglow starts as a clear gel and melts into a low-foaming cream the moment it meets water, lifting SPF, sebum and pollution in one pass.</p><p>Built around glycerin and panthenol, it cleans at skin-friendly pH 5.5 so your barrier stays intact — no tightness, no rebound oiliness by midday.</p>",
-    "ingredients": [
-      "Aqua",
-      "Glycerin",
-      "Coco-Glucoside",
-      "Panthenol",
-      "Niacinamide 4%",
-      "Allantoin"
-    ],
-    "howToUse": "Massage a coin-sized amount onto damp skin morning and night. Rinse with lukewarm water and pat dry.",
+    "shortDescription": "Nettoyant doux qui élimine impuretés et excès de sébum sans tirailler la peau.",
+    "description": "Gel nettoyant enrichi en glycérine et extrait d'hibiscus pour préserver l'hydratation tout en purifiant la peau en profondeur.",
+    "ingredients": ["Aqua", "Glycerin", "Coco-Glucoside", "Hibiscus Sabdariffa Extract", "Niacinamide 4%", "Allantoin"],
+    "howToUse": "Appliquer matin et soir sur visage humide. Masser délicatement puis rincer à l'eau tiède.",
     "featured": true,
     "isNew": false,
-    "createdAt": "2026-02-14"
+    "createdAt": "2026-08-01"
   },
   {
     "id": "p-002",
-    "slug": "clarifying-cream-cleanser",
-    "title": "Clarifying Cream Cleanser",
-    "category": "cleansers",
-    "price": 18000,
+    "slug": "vitamin-c-brightening-serum",
+    "title": "Vitamin C Brightening Serum",
+    "category": "face",
+    "price": 25000,
     "compareAtPrice": null,
     "images": [
-      "assets/images/product/square/product-2.jpg",
-      "assets/images/product/product-13.jpg",
-      "assets/images/product/product-14.jpg"
+      "/assets/images/product/square/product-2.jpg",
+      "/assets/images/product/single/detail-2.jpg"
     ],
-    "badges": [],
-    "rating": 4.5,
-    "reviewCount": 132,
-    "stock": 8,
+    "badges": ["NEW", "BEST SELLER"],
+    "rating": 4.9,
+    "reviewCount": 189,
+    "stock": 30,
     "variants": [
-      {
-        "id": "p-002-50",
-        "label": "50ml",
-        "price": 18000,
-        "compareAtPrice": null,
-        "stock": 8
-      },
-      {
-        "id": "p-002-120",
-        "label": "120ml",
-        "price": 28000,
-        "compareAtPrice": null,
-        "stock": 4
-      }
+      { "id": "p-002-30", "label": "30ml", "price": 25000, "compareAtPrice": null, "stock": 20 },
+      { "id": "p-002-50", "label": "50ml", "price": 38000, "compareAtPrice": null, "stock": 10 }
     ],
-    "defaultVariantId": "p-002-50",
-    "shortDescription": "A cushioning cream wash for dry and reactive skin that cleanses without foaming agents.",
-    "description": "<p>Formulated without sulfates or drying alcohols, this cream cleanser wraps skin in oat lipids and squalane while it works.</p><p>Ideal as the second step of a double cleanse, or as a standalone morning wash for skin that runs tight.</p>",
-    "ingredients": [
-      "Aqua",
-      "Squalane",
-      "Avena Sativa Kernel Oil",
-      "Glycerin",
-      "Bisabolol"
-    ],
-    "howToUse": "Apply to dry or damp skin, massage for 30 seconds, then rinse or remove with a soft cloth.",
-    "featured": false,
-    "isNew": false,
-    "createdAt": "2026-01-20"
+    "defaultVariantId": "p-002-30",
+    "shortDescription": "Sérum éclat haute concentration à la vitamine C stabilisée et acide hyaluronique.",
+    "description": "Un sérum puissant qui unifie le teint, estompe les taches d'hyperpigmentation et redonne un éclat radieux aux peaux mélaninées.",
+    "ingredients": ["Aqua", "Sodium Ascorbyl Phosphate 15%", "Hyaluronic Acid", "Ferulic Acid", "Aloe Barbadensis Leaf Juice"],
+    "howToUse": "Appliquer 4 à 5 gouttes le matin sur visage propre avant votre crème hydratante et votre protection solaire.",
+    "featured": true,
+    "isNew": true,
+    "createdAt": "2026-08-20"
   },
   {
     "id": "p-003",
     "slug": "rose-balance-hydrating-toner",
     "title": "Rose Balance Hydrating Toner",
-    "category": "toners",
-    "price": 14000,
-    "compareAtPrice": 18000,
-    "images": [
-      "assets/images/product/square/product-3.jpg",
-      "assets/images/product/product-15.jpg",
-      "assets/images/product/product-15_2.jpg"
-    ],
-    "badges": [
-      "25% OFF"
-    ],
-    "rating": 4.7,
-    "reviewCount": 189,
-    "stock": 20,
-    "variants": [
-      {
-        "id": "p-003-150",
-        "label": "150ml",
-        "price": 14000,
-        "compareAtPrice": 18000,
-        "stock": 20
-      },
-      {
-        "id": "p-003-250",
-        "label": "250ml",
-        "price": 22000,
-        "compareAtPrice": 28000,
-        "stock": 9
-      }
-    ],
-    "defaultVariantId": "p-003-150",
-    "shortDescription": "An alcohol-free rose and glycerin toner that rehydrates and preps skin in one swipe.",
-    "description": "<p>A watery-light essence-toner hybrid: damascena rose water calms visible redness while three molecular weights of hyaluronic acid pull moisture into the upper layers.</p><p>Leaves skin plump and slightly tacky — the ideal canvas for a serum.</p>",
-    "ingredients": [
-      "Rosa Damascena Flower Water",
-      "Glycerin",
-      "Sodium Hyaluronate",
-      "Panthenol"
-    ],
-    "howToUse": "Sweep over clean skin with hands or a cotton pad, then follow with serum while still damp.",
-    "featured": true,
-    "isNew": false,
-    "createdAt": "2026-03-02"
-  },
-  {
-    "id": "p-004",
-    "slug": "aha-renewal-serum-10",
-    "title": "AHA Renewal Serum 10%",
-    "category": "serums",
-    "price": 22000,
-    "compareAtPrice": 26000,
-    "images": [
-      "assets/images/product/square/product-4.jpg",
-      "assets/images/product/product-16.jpg",
-      "assets/images/product/product-16_2.jpg"
-    ],
-    "badges": [
-      "BEST SELLER"
-    ],
-    "rating": 4.9,
-    "reviewCount": 412,
-    "stock": 15,
-    "variants": [
-      {
-        "id": "p-004-30",
-        "label": "30ml",
-        "price": 22000,
-        "compareAtPrice": 26000,
-        "stock": 15
-      },
-      {
-        "id": "p-004-50",
-        "label": "50ml",
-        "price": 32000,
-        "compareAtPrice": 38000,
-        "stock": 5
-      }
-    ],
-    "defaultVariantId": "p-004-30",
-    "shortDescription": "A 10% glycolic and lactic blend that resurfaces dullness and unclogs texture overnight.",
-    "description": "<p>Ten percent free acid at pH 3.8 — strong enough to visibly refine texture and fade post-blemish marks, buffered with allantoin so it stays tolerable.</p><p>Use at night, and pair with daily SPF: AHAs increase photosensitivity.</p>",
-    "ingredients": [
-      "Aqua",
-      "Glycolic Acid",
-      "Lactic Acid",
-      "Allantoin",
-      "Sodium Hydroxide"
-    ],
-    "howToUse": "Apply 3–4 drops at night on clean, dry skin. Start twice weekly and build up. Always wear SPF the next morning.",
-    "featured": true,
-    "isNew": false,
-    "createdAt": "2026-02-28"
-  },
-  {
-    "id": "p-005",
-    "slug": "vitamin-c-brightening-serum",
-    "title": "Vitamin C Brightening Serum",
-    "category": "serums",
-    "price": 25000,
-    "compareAtPrice": null,
-    "images": [
-      "assets/images/product/square/product-5.jpg",
-      "assets/images/product/product-17.jpg",
-      "assets/images/product/product-18.jpg"
-    ],
-    "badges": [
-      "NEW"
-    ],
-    "rating": 4.6,
-    "reviewCount": 76,
-    "stock": 11,
-    "variants": [
-      {
-        "id": "p-005-30",
-        "label": "30ml",
-        "price": 25000,
-        "compareAtPrice": null,
-        "stock": 11
-      }
-    ],
-    "defaultVariantId": "p-005-30",
-    "shortDescription": "15% stabilised vitamin C with ferulic acid for measurably brighter, more even tone.",
-    "description": "<p>A stabilised L-ascorbic acid system at 15%, buffered with ferulic acid and vitamin E to slow oxidation and extend antioxidant protection through the day.</p><p>Expect visibly brighter tone in four weeks and fading of sun-induced pigment by twelve.</p>",
-    "ingredients": [
-      "Aqua",
-      "Ascorbic Acid 15%",
-      "Ferulic Acid",
-      "Tocopherol",
-      "Propanediol"
-    ],
-    "howToUse": "Apply 4 drops each morning to clean skin, before moisturiser and sunscreen.",
-    "featured": true,
-    "isNew": true,
-    "createdAt": "2026-07-18"
-  },
-  {
-    "id": "p-006",
-    "slug": "peptide-firming-concentrate",
-    "title": "Peptide Firming Concentrate",
-    "category": "serums",
-    "price": 32000,
-    "compareAtPrice": 40000,
-    "images": [
-      "assets/images/product/square/product-6.jpg",
-      "assets/images/product/product-18_2.jpg",
-      "assets/images/product/product-19.jpg"
-    ],
-    "badges": [
-      "20% OFF"
-    ],
-    "rating": 4.4,
-    "reviewCount": 58,
-    "stock": 0,
-    "variants": [
-      {
-        "id": "p-006-30",
-        "label": "30ml",
-        "price": 32000,
-        "compareAtPrice": 40000,
-        "stock": 0
-      }
-    ],
-    "defaultVariantId": "p-006-30",
-    "shortDescription": "A five-peptide complex that supports firmness and softens the look of fine lines.",
-    "description": "<p>Matrixyl, copper tripeptide and three supporting peptides in a lightweight, silicone-free base.</p><p>A slow performer — this is a twelve-week product, not a twelve-day one.</p>",
-    "ingredients": [
-      "Aqua",
-      "Palmitoyl Tripeptide-1",
-      "Copper Tripeptide-1",
-      "Glycerin",
-      "Panthenol"
-    ],
-    "howToUse": "Press 3 drops into skin morning and night, before heavier creams.",
-    "featured": false,
-    "isNew": false,
-    "createdAt": "2026-04-11"
-  },
-  {
-    "id": "p-007",
-    "slug": "barrier-repair-moisturizer",
-    "title": "Barrier Repair Moisturizer",
-    "category": "moisturizers",
-    "price": 24000,
-    "compareAtPrice": null,
-    "images": [
-      "assets/images/product/square/product-7.jpg",
-      "assets/images/product/product-21.jpg",
-      "assets/images/product/product-21_2.jpg"
-    ],
-    "badges": [
-      "BEST SELLER"
-    ],
-    "rating": 4.9,
-    "reviewCount": 501,
-    "stock": 24,
-    "variants": [
-      {
-        "id": "p-007-50",
-        "label": "50ml",
-        "price": 24000,
-        "compareAtPrice": null,
-        "stock": 24
-      },
-      {
-        "id": "p-007-100",
-        "label": "100ml",
-        "price": 38000,
-        "compareAtPrice": null,
-        "stock": 7
-      }
-    ],
-    "defaultVariantId": "p-007-50",
-    "shortDescription": "A ceramide and cholesterol cream that rebuilds a compromised moisture barrier.",
-    "description": "<p>Three ceramides, cholesterol and free fatty acids in the physiological ratio your skin actually uses to rebuild itself.</p><p>Rich but not occlusive — it settles matte enough to wear under makeup.</p>",
-    "ingredients": [
-      "Aqua",
-      "Ceramide NP",
-      "Ceramide AP",
-      "Cholesterol",
-      "Shea Butter",
-      "Glycerin"
-    ],
-    "howToUse": "Apply as the final step of your evening routine, or under SPF in the morning.",
-    "featured": true,
-    "isNew": false,
-    "createdAt": "2026-01-05"
-  },
-  {
-    "id": "p-008",
-    "slug": "featherlight-gel-cream",
-    "title": "Featherlight Gel Cream",
-    "category": "moisturizers",
-    "price": 20000,
-    "compareAtPrice": 25000,
-    "images": [
-      "assets/images/product/square/product-8.jpg",
-      "assets/images/product/product-13.jpg",
-      "assets/images/product/product-15.jpg"
-    ],
-    "badges": [
-      "NEW"
-    ],
-    "rating": 4.3,
-    "reviewCount": 64,
-    "stock": 18,
-    "variants": [
-      {
-        "id": "p-008-50",
-        "label": "50ml",
-        "price": 20000,
-        "compareAtPrice": 25000,
-        "stock": 18
-      }
-    ],
-    "defaultVariantId": "p-008-50",
-    "shortDescription": "An oil-free gel cream for humid days and skin that hates heavy textures.",
-    "description": "<p>Water-gel base with 2% niacinamide and sodium hyaluronate. Absorbs in seconds and leaves no film.</p><p>Built for oily and combination skin, and for anyone whose winter cream stops working in July.</p>",
-    "ingredients": [
-      "Aqua",
-      "Niacinamide 2%",
-      "Sodium Hyaluronate",
-      "Betaine",
-      "Zinc PCA"
-    ],
-    "howToUse": "Smooth over face and neck morning and night after serum.",
-    "featured": false,
-    "isNew": true,
-    "createdAt": "2026-06-30"
-  },
-  {
-    "id": "p-009",
-    "slug": "overnight-recovery-mask",
-    "title": "Overnight Recovery Mask",
-    "category": "masks",
-    "price": 26000,
-    "compareAtPrice": null,
-    "images": [
-      "assets/images/product/square/product-12.jpg",
-      "assets/images/product/product-16.jpg",
-      "assets/images/product/product-17.jpg"
-    ],
-    "badges": [],
-    "rating": 4.6,
-    "reviewCount": 143,
-    "stock": 9,
-    "variants": [
-      {
-        "id": "p-009-75",
-        "label": "75ml",
-        "price": 26000,
-        "compareAtPrice": null,
-        "stock": 9
-      }
-    ],
-    "defaultVariantId": "p-009-75",
-    "shortDescription": "A leave-on sleeping mask that floods dehydrated skin and seals it in until morning.",
-    "description": "<p>A cushiony gel-balm you apply as the last step twice a week. Urea and glycerin draw water in; a light occlusive veil keeps it there for eight hours.</p><p>You wake up with skin that looks rested rather than merely moisturised.</p>",
-    "ingredients": [
-      "Aqua",
-      "Glycerin",
-      "Urea 5%",
-      "Squalane",
-      "Madecassoside"
-    ],
-    "howToUse": "Apply a generous layer 2–3 nights a week as your final step. No need to rinse.",
-    "featured": false,
-    "isNew": false,
-    "createdAt": "2026-03-22"
-  },
-  {
-    "id": "p-010",
-    "slug": "invisible-daily-sunscreen-spf50",
-    "title": "Invisible Daily Sunscreen SPF50",
-    "category": "sunscreen",
+    "category": "face",
     "price": 18000,
     "compareAtPrice": 22000,
     "images": [
-      "assets/images/product/square/product-13.jpg",
-      "assets/images/product/product-18.jpg",
-      "assets/images/product/product-19.jpg"
+      "/assets/images/product/square/product-3.jpg",
+      "/assets/images/product/single/detail-3.jpg"
     ],
-    "badges": [
-      "15% OFF",
-      "BEST SELLER"
-    ],
-    "rating": 4.8,
-    "reviewCount": 327,
-    "stock": 30,
+    "badges": ["25% OFF"],
+    "rating": 4.7,
+    "reviewCount": 142,
+    "stock": 18,
     "variants": [
-      {
-        "id": "p-010-50",
-        "label": "50ml",
-        "price": 18000,
-        "compareAtPrice": 22000,
-        "stock": 30
-      }
+      { "id": "p-003-150", "label": "150ml", "price": 18000, "compareAtPrice": 22000, "stock": 18 }
     ],
-    "defaultVariantId": "p-010-50",
-    "shortDescription": "Broad-spectrum SPF50 with a weightless finish and genuinely no white cast.",
-    "description": "<p>A modern filter system that spreads like a serum and dries down invisible on every skin tone.</p><p>Photostable for the full day and cosmetically pleasant enough that you will actually reapply it.</p>",
-    "ingredients": [
-      "Aqua",
-      "Tinosorb S",
-      "Uvinul A Plus",
-      "Glycerin",
-      "Niacinamide",
-      "Tocopherol"
+    "defaultVariantId": "p-003-150",
+    "shortDescription": "Lotion tonique apaisante à l'eau de rose de Damas et à l'aloe vera.",
+    "description": "Prépare la peau à recevoir les soins en rééquilibrant le pH cutané et en apportant une première couche d'hydratation fraîche.",
+    "ingredients": ["Rosa Damascena Flower Water", "Aqua", "Glycerin", "Centella Asiatica Extract", "Panthenol"],
+    "howToUse": "Vaporiser ou appliquer à l'aide d'un coton sur l'ensemble du visage après le nettoyage.",
+    "featured": false,
+    "isNew": false,
+    "createdAt": "2026-07-15"
+  },
+  {
+    "id": "p-004",
+    "slug": "barrier-repair-moisturizer",
+    "title": "Barrier Repair Moisturizer",
+    "category": "face",
+    "price": 28000,
+    "compareAtPrice": null,
+    "images": [
+      "/assets/images/product/square/product-4.jpg",
+      "/assets/images/product/single/detail-4.jpg"
     ],
-    "howToUse": "Apply two finger-lengths as the last step of your morning routine. Reapply every two hours in direct sun.",
+    "badges": ["BEST SELLER"],
+    "rating": 4.9,
+    "reviewCount": 310,
+    "stock": 40,
+    "variants": [
+      { "id": "p-004-50", "label": "50ml", "price": 28000, "compareAtPrice": null, "stock": 25 },
+      { "id": "p-004-100", "label": "100ml", "price": 45000, "compareAtPrice": null, "stock": 15 }
+    ],
+    "defaultVariantId": "p-004-50",
+    "shortDescription": "Crème réparatrice riche en céramides, beurre de karité bio et acide hyaluronique.",
+    "description": "Renforce la barrière cutanée, apaise les tiraillements et maintient une hydratation profonde pendant 48 heures.",
+    "ingredients": ["Aqua", "Butyrospermum Parkii Butter", "Ceramide NP", "Ceramide AP", "Squalane", "Glycerin"],
+    "howToUse": "Appliquer généreusement matin et soir sur le visage et le cou après vos sérums.",
     "featured": true,
     "isNew": false,
-    "createdAt": "2026-05-09"
+    "createdAt": "2026-06-10"
+  },
+  {
+    "id": "p-005",
+    "slug": "aha-renewal-serum-10",
+    "title": "AHA Renewal Serum 10%",
+    "category": "face",
+    "price": 24000,
+    "compareAtPrice": 28000,
+    "images": [
+      "/assets/images/product/square/product-5.jpg",
+      "/assets/images/product/single/detail-5.jpg"
+    ],
+    "badges": ["BEST SELLER", "15% OFF"],
+    "rating": 4.6,
+    "reviewCount": 98,
+    "stock": 14,
+    "variants": [
+      { "id": "p-005-30", "label": "30ml", "price": 24000, "compareAtPrice": 28000, "stock": 14 }
+    ],
+    "defaultVariantId": "p-005-30",
+    "shortDescription": "Sérum exfoliant doux aux acides de fruits pour lisser le grain de peau.",
+    "description": "Formule aux acides glycolique et lactique dosée pour éliminer les cellules mortes sans irriter les peaux sensibles ou foncées.",
+    "ingredients": ["Aqua", "Glycolic Acid 7%", "Lactic Acid 3%", "Aloe Barbadensis Leaf Juice", "Sodium Hydroxide"],
+    "howToUse": "Appliquer 2 à 3 soirs par semaine sur peau sèche. Ne pas rincer. Toujours appliquer un SPF le lendemain matin.",
+    "featured": false,
+    "isNew": false,
+    "createdAt": "2026-07-01"
+  },
+  {
+    "id": "p-006",
+    "slug": "invisible-daily-sunscreen-spf50",
+    "title": "Invisible Daily Sunscreen SPF50",
+    "category": "face",
+    "price": 20000,
+    "compareAtPrice": 24000,
+    "images": [
+      "/assets/images/product/square/product-6.jpg",
+      "/assets/images/product/single/detail-6.jpg"
+    ],
+    "badges": ["15% OFF", "COUP DE COEUR"],
+    "rating": 5.0,
+    "reviewCount": 420,
+    "stock": 50,
+    "variants": [
+      { "id": "p-006-50", "label": "50ml", "price": 20000, "compareAtPrice": 24000, "stock": 35 },
+      { "id": "p-006-100", "label": "100ml", "price": 32000, "compareAtPrice": 38000, "stock": 15 }
+    ],
+    "defaultVariantId": "p-006-50",
+    "shortDescription": "Fluide solaire ultra-léger SPF50+ au fini 100% invisible sans aucune trace blanche.",
+    "description": "Formulé spécifiquement pour les peaux noires et métissées, ce soin solaire protège des UVA/UVB et de la lumière bleue sans effet gras.",
+    "ingredients": ["Aqua", "Ethylhexyl Methoxycinnamate", "Bis-Ethylhexyloxyphenol Methoxyphenyl Triazine", "Niacinamide", "Vitamin E"],
+    "howToUse": "Appliquer généreusement chaque matin en dernière étape de votre rituel de soin, 15 minutes avant l'exposition.",
+    "featured": true,
+    "isNew": false,
+    "createdAt": "2026-05-20"
+  },
+  {
+    "id": "p-007",
+    "slug": "lait-corps-eclat-karite-et-arbutine",
+    "title": "Lait Corps Éclat Karité & Arbutine",
+    "category": "body",
+    "price": 22000,
+    "compareAtPrice": 26000,
+    "images": [
+      "/categories/corps.png",
+      "/assets/images/product/square/product-1.jpg"
+    ],
+    "badges": ["BEST SELLER"],
+    "rating": 4.9,
+    "reviewCount": 167,
+    "stock": 35,
+    "variants": [
+      { "id": "p-007-250", "label": "250ml", "price": 22000, "compareAtPrice": 26000, "stock": 20 },
+      { "id": "p-007-500", "label": "500ml", "price": 36000, "compareAtPrice": 42000, "stock": 15 }
+    ],
+    "defaultVariantId": "p-007-250",
+    "shortDescription": "Lait unifiant et hydratant corps à l'alpha-arbutine et beurre de karité pur.",
+    "description": "Nourrit intensément la peau du corps, élimine les zones sombres (coudes, genoux) et procure un toucher satiné irrésistible.",
+    "ingredients": ["Aqua", "Butyrospermum Parkii Butter", "Alpha-Arbutin 2%", "Niacinamide", "Glycerin", "Tocopherol"],
+    "howToUse": "Appliquer matin et soir sur l'ensemble du corps après la douche en insistant sur les zones sèches.",
+    "featured": true,
+    "isNew": true,
+    "createdAt": "2026-08-15"
+  },
+  {
+    "id": "p-008",
+    "slug": "huile-scintillante-or-divin",
+    "title": "Huile Scintillante Or Divin",
+    "category": "body",
+    "price": 19000,
+    "compareAtPrice": null,
+    "images": [
+      "/categories/corps.png",
+      "/assets/images/product/square/product-2.jpg"
+    ],
+    "badges": ["NOUVEAU"],
+    "rating": 4.8,
+    "reviewCount": 83,
+    "stock": 22,
+    "variants": [
+      { "id": "p-008-100", "label": "100ml", "price": 19000, "compareAtPrice": null, "stock": 22 }
+    ],
+    "defaultVariantId": "p-008-100",
+    "shortDescription": "Huile sèche sublimatrice aux nacres dorées et huiles précieuses de baobab et jojoba.",
+    "description": "Sublime le bronzage et la carnation naturelle de la peau d'un voile doré scintillant au parfum envoûtant de vanille et fleur d'oranger.",
+    "ingredients": ["Caprylic/Capric Triglyceride", "Adansonia Digitata Seed Oil", "Simmondsia Chinensis Seed Oil", "Mica", "Parfum"],
+    "howToUse": "Agiter avant emploi. Vaporiser et faire pénétrer sur le décolleté, les bras et les jambes.",
+    "featured": false,
+    "isNew": true,
+    "createdAt": "2026-08-25"
+  },
+  {
+    "id": "p-009",
+    "slug": "gommage-corps-sucre-de-canne-et-cafe",
+    "title": "Gommage Corps Sucre de Canne & Café",
+    "category": "body",
+    "price": 16000,
+    "compareAtPrice": 19000,
+    "images": [
+      "/categories/corps.png",
+      "/assets/images/product/square/product-3.jpg"
+    ],
+    "badges": ["15% OFF"],
+    "rating": 4.7,
+    "reviewCount": 64,
+    "stock": 19,
+    "variants": [
+      { "id": "p-009-200", "label": "200g", "price": 16000, "compareAtPrice": 19000, "stock": 19 }
+    ],
+    "defaultVariantId": "p-009-200",
+    "shortDescription": "Exfoliant corporel gourmand pour une peau douce, tonifiée et veloutée.",
+    "description": "Associe les grains de sucre brut et la poudre de café robusta pour exfolier les cellules mortes et stimuler la microcirculation.",
+    "ingredients": ["Sucrose", "Coffea Arabica Seed Powder", "Cocos Nucifera Oil", "Prunus Amygdalus Dulcis Oil"],
+    "howToUse": "Masser par mouvements circulaires sur peau humide sous la douche, puis rincer abondamment.",
+    "featured": false,
+    "isNew": false,
+    "createdAt": "2026-07-10"
+  },
+  {
+    "id": "p-010",
+    "slug": "baume-fondant-ultra-nourrissant",
+    "title": "Baume Fondant Ultra-Nourrissant",
+    "category": "body",
+    "price": 17000,
+    "compareAtPrice": null,
+    "images": [
+      "/categories/corps.png",
+      "/assets/images/product/square/product-4.jpg"
+    ],
+    "badges": [],
+    "rating": 4.9,
+    "reviewCount": 112,
+    "stock": 28,
+    "variants": [
+      { "id": "p-010-150", "label": "150ml", "price": 17000, "compareAtPrice": null, "stock": 28 }
+    ],
+    "defaultVariantId": "p-010-150",
+    "shortDescription": "Baume riche au beurre de karité brut et huile de coco vierge pour peaux très sèches.",
+    "description": "Formule réconfortante qui fond instantanément au contact de la peau pour soulager les tiraillements et réparer les zones rugueuses.",
+    "ingredients": ["Butyrospermum Parkii Butter", "Cocos Nucifera Oil", "Theobroma Cacao Seed Butter", "Tocopheryl Acetate"],
+    "howToUse": "Chauffer une noisette au creux des mains et masser délicatement sur tout le corps.",
+    "featured": false,
+    "isNew": false,
+    "createdAt": "2026-06-25"
+  },
+  {
+    "id": "p-011",
+    "slug": "gamme-eclat-royal-rituel-complet",
+    "title": "Gamme Éclat Royal — Rituel Complet",
+    "category": "gammes",
+    "price": 75000,
+    "compareAtPrice": 95000,
+    "images": [
+      "/categories/gammes.png",
+      "/assets/images/product/square/product-5.jpg"
+    ],
+    "badges": ["20% OFF", "BEST SELLER"],
+    "rating": 5.0,
+    "reviewCount": 158,
+    "stock": 15,
+    "variants": [
+      { "id": "p-011-full", "label": "Coffret 4 Produits", "price": 75000, "compareAtPrice": 95000, "stock": 15 }
+    ],
+    "defaultVariantId": "p-011-full",
+    "shortDescription": "Le rituel signature 4 soins pour un teint unifié, lumineux et sans taches.",
+    "description": "Comprend le Nettoyant Hydraglow, la Lotion Rose Balance, le Sérum Vitamine C et la Crème Barrier Repair dans un coffret prestige.",
+    "ingredients": ["Voir fiches produits individuelles"],
+    "howToUse": "Suivre l'ordre du rituel : 1. Nettoyer, 2. Tonifier, 3. Traiter, 4. Hydrater & Protéger.",
+    "featured": true,
+    "isNew": false,
+    "createdAt": "2026-08-10"
+  },
+  {
+    "id": "p-012",
+    "slug": "gamme-purete-africaine",
+    "title": "Gamme Pureté Africaine — Anti-Imperfections",
+    "category": "gammes",
+    "price": 68000,
+    "compareAtPrice": 82000,
+    "images": [
+      "/categories/gammes.png",
+      "/assets/images/product/square/product-6.jpg"
+    ],
+    "badges": ["15% OFF"],
+    "rating": 4.8,
+    "reviewCount": 94,
+    "stock": 12,
+    "variants": [
+      { "id": "p-012-full", "label": "Coffret 3 Produits", "price": 68000, "compareAtPrice": 82000, "stock": 12 }
+    ],
+    "defaultVariantId": "p-012-full",
+    "shortDescription": "Gamme purifiante et sébo-régulatrice pour peaux mixtes à grasses sujettes aux boutons.",
+    "description": "Régule la production de sébum, resserre les pores et prévient l'apparition des boutons sans assécher la peau.",
+    "ingredients": ["Acide salicylique", "Niacinamide", "Huile essentielle d'arbre à thé", "Extrait de moringa"],
+    "howToUse": "Routine quotidienne matin et soir pour une peau nette et matifiée.",
+    "featured": true,
+    "isNew": true,
+    "createdAt": "2026-08-22"
+  },
+  {
+    "id": "p-013",
+    "slug": "gamme-jeunesse-sublime",
+    "title": "Gamme Jeunesse Sublime — Anti-Âge Global",
+    "category": "gammes",
+    "price": 89000,
+    "compareAtPrice": 110000,
+    "images": [
+      "/categories/gammes.png",
+      "/assets/images/product/square/product-1.jpg"
+    ],
+    "badges": ["PRESTIGE"],
+    "rating": 4.9,
+    "reviewCount": 76,
+    "stock": 8,
+    "variants": [
+      { "id": "p-013-full", "label": "Coffret Prestige 4 Produits", "price": 89000, "compareAtPrice": 110000, "stock": 8 }
+    ],
+    "defaultVariantId": "p-013-full",
+    "shortDescription": "Soin anti-âge d'exception aux peptides et rétinol végétal pour lisser et raffermir.",
+    "description": "Stimule le renouvellement cellulaire et la production naturelle de collagène pour une peau repulpée et raffermie.",
+    "ingredients": ["Bakuchiol 2%", "Matrixyl 3000", "Acide Hyaluronique Multi-Poids", "Huile de Marula"],
+    "howToUse": "Appliquer chaque soir sur peau parfaitement démaquillée.",
+    "featured": false,
+    "isNew": true,
+    "createdAt": "2026-08-28"
+  },
+  {
+    "id": "p-014",
+    "slug": "kit-initiation-eclat-express",
+    "title": "Kit Initiation Éclat Express",
+    "category": "kits",
+    "price": 32000,
+    "compareAtPrice": 38000,
+    "images": [
+      "/categories/kits.png",
+      "/assets/images/product/square/product-2.jpg"
+    ],
+    "badges": ["COUP DE COEUR"],
+    "rating": 4.9,
+    "reviewCount": 115,
+    "stock": 20,
+    "variants": [
+      { "id": "p-014-box", "label": "Taille Voyage (3x15ml)", "price": 32000, "compareAtPrice": 38000, "stock": 20 }
+    ],
+    "defaultVariantId": "p-014-box",
+    "shortDescription": "Trio nomade pour découvrir notre rituel éclat où que vous soyez.",
+    "description": "Format pratique voyage comprenant le gel nettoyant, le sérum vitamine C et le fluide solaire SPF50.",
+    "ingredients": ["Voir packagings individuels"],
+    "howToUse": "Parfait pour 3 à 4 semaines de soin lors de vos déplacements.",
+    "featured": true,
+    "isNew": false,
+    "createdAt": "2026-07-20"
+  },
+  {
+    "id": "p-015",
+    "slug": "kit-routine-nuit-regenerante",
+    "title": "Kit Routine Nuit Régénérante",
+    "category": "kits",
+    "price": 45000,
+    "compareAtPrice": 52000,
+    "images": [
+      "/categories/kits.png",
+      "/assets/images/product/square/product-3.jpg"
+    ],
+    "badges": ["15% OFF"],
+    "rating": 4.8,
+    "reviewCount": 89,
+    "stock": 16,
+    "variants": [
+      { "id": "p-015-box", "label": "Coffret Nuit", "price": 45000, "compareAtPrice": 52000, "stock": 16 }
+    ],
+    "defaultVariantId": "p-015-box",
+    "shortDescription": "Duo sérum exfoliant AHA et crème réparatrice céramides pour un réveil éclatant.",
+    "description": "Agit pendant votre sommeil pour renouveler l'épiderme et restaurer le film hydrolipidique en profondeur.",
+    "ingredients": ["AHA 10%", "Céramides 3 & 6", "Beurre de Karité", "Squalane"],
+    "howToUse": "Appliquer le sérum puis la crème 3 soirs par semaine.",
+    "featured": false,
+    "isNew": false,
+    "createdAt": "2026-06-15"
+  },
+  {
+    "id": "p-016",
+    "slug": "duo-double-nettoyage-parfait",
+    "title": "Duo Double Nettoyage Parfait",
+    "category": "duo",
+    "price": 28000,
+    "compareAtPrice": 33000,
+    "images": [
+      "/assets/images/product/square/product-4.jpg",
+      "/assets/images/product/single/detail-1.jpg"
+    ],
+    "badges": ["15% OFF"],
+    "rating": 4.9,
+    "reviewCount": 134,
+    "stock": 24,
+    "variants": [
+      { "id": "p-016-duo", "label": "Pack Duo", "price": 28000, "compareAtPrice": 33000, "stock": 24 }
+    ],
+    "defaultVariantId": "p-016-duo",
+    "shortDescription": "Huile démaquillante soyeuse et gel nettoyant hydratant pour une peau zéro impureté.",
+    "description": "Le secret coréen adapté aux peaux mélanisées : dissout le maquillage tenace et le sébum sans obstruer les pores.",
+    "ingredients": ["Huile de Jojoba", "Huile de Riz", "Coco-Glucoside", "Niacinamide"],
+    "howToUse": "Étape 1 : masser l'huile sur peau sèche. Étape 2 : faire mousser le gel nettoyant par-dessus puis rincer.",
+    "featured": true,
+    "isNew": false,
+    "createdAt": "2026-07-25"
+  },
+  {
+    "id": "p-017",
+    "slug": "duo-glow-and-protect",
+    "title": "Duo Glow & Protect — Vitamine C + SPF50",
+    "category": "duo",
+    "price": 42000,
+    "compareAtPrice": 49000,
+    "images": [
+      "/assets/images/product/square/product-5.jpg",
+      "/assets/images/product/single/detail-2.jpg"
+    ],
+    "badges": ["BEST SELLER"],
+    "rating": 5.0,
+    "reviewCount": 210,
+    "stock": 30,
+    "variants": [
+      { "id": "p-017-duo", "label": "Pack Duo 30ml + 50ml", "price": 42000, "compareAtPrice": 49000, "stock": 30 }
+    ],
+    "defaultVariantId": "p-017-duo",
+    "shortDescription": "L'association ultime pour prévenir les taches et booster l'éclat du matin.",
+    "description": "La vitamine C neutralise les radicaux libres tandis que le fluide SPF50 bloque les rayons UV responsables des taches pigmentaires.",
+    "ingredients": ["Vitamine C 15%", "Filtres solaires photostables SPF50+", "Acide Hyaluronique"],
+    "howToUse": "Appliquer le sérum Vitamine C puis le fluide solaire chaque matin.",
+    "featured": true,
+    "isNew": true,
+    "createdAt": "2026-08-18"
+  },
+  {
+    "id": "p-018",
+    "slug": "kit-soin-levres-gourmand-karite-et-miel",
+    "title": "Kit Soin Lèvres Karité & Miel",
+    "category": "kit-levre",
+    "price": 12000,
+    "compareAtPrice": 15000,
+    "images": [
+      "/assets/images/product/square/product-6.jpg",
+      "/assets/images/product/single/detail-3.jpg"
+    ],
+    "badges": ["20% OFF"],
+    "rating": 4.8,
+    "reviewCount": 88,
+    "stock": 40,
+    "variants": [
+      { "id": "p-018-kit", "label": "Duo Gommage + Baume", "price": 12000, "compareAtPrice": 15000, "stock": 40 }
+    ],
+    "defaultVariantId": "p-018-kit",
+    "shortDescription": "Gommage fondant au sucre et baume nourrissant pour des lèvres douces et repulpées.",
+    "description": "Élimine les petites peaux mortes et hydrate intensément les lèvres gercées grâce au beurre de karité et à la cire d'abeille bio.",
+    "ingredients": ["Sucrose", "Cera Alba", "Butyrospermum Parkii Butter", "Mel Extract", "Aroma"],
+    "howToUse": "Gommer doucement 1 à 2 fois par semaine puis appliquer le baume réparateur généreusement.",
+    "featured": false,
+    "isNew": false,
+    "createdAt": "2026-06-30"
+  },
+  {
+    "id": "p-019",
+    "slug": "huile-levres-teintee-eclat-nude",
+    "title": "Huile Lèvres Teintée Éclat Nude",
+    "category": "kit-levre",
+    "price": 9500,
+    "compareAtPrice": null,
+    "images": [
+      "/assets/images/product/square/product-1.jpg",
+      "/assets/images/product/single/detail-4.jpg"
+    ],
+    "badges": ["NOUVEAU"],
+    "rating": 4.7,
+    "reviewCount": 52,
+    "stock": 35,
+    "variants": [
+      { "id": "p-019-oil", "label": "Flacon 8ml", "price": 9500, "compareAtPrice": null, "stock": 35 }
+    ],
+    "defaultVariantId": "p-019-oil",
+    "shortDescription": "Huile à lèvres brillante non collante infusée d'huile de jojoba et de vitamine E.",
+    "description": "Apporte une brillance miroir et une touche de couleur caramel délicate adaptée à toutes les carnations.",
+    "ingredients": ["Polybutene", "Simmondsia Chinensis Seed Oil", "Tocopheryl Acetate", "CI 77491"],
+    "howToUse": "Appliquer au cours de la journée pour une touche d'hydratation et de brillance naturelle.",
+    "featured": false,
+    "isNew": true,
+    "createdAt": "2026-08-27"
+  },
+  {
+    "id": "p-020",
+    "slug": "gel-sculptant-minceur-et-fermete",
+    "title": "Gel Sculptant Minceur & Fermeté",
+    "category": "minceur",
+    "price": 26000,
+    "compareAtPrice": 32000,
+    "images": [
+      "/categories/corps.png",
+      "/assets/images/product/square/product-2.jpg"
+    ],
+    "badges": ["18% OFF"],
+    "rating": 4.6,
+    "reviewCount": 73,
+    "stock": 18,
+    "variants": [
+      { "id": "p-020-200", "label": "200ml", "price": 26000, "compareAtPrice": 32000, "stock": 18 }
+    ],
+    "defaultVariantId": "p-020-200",
+    "shortDescription": "Gel frais tonifiant à la caféine pure et extrait de lierre pour raffermir la silhouette.",
+    "description": "Cible les zones rebelles (ventre, cuisses, hanches) pour drainer les tissus et améliorer visiblement la texture de la peau.",
+    "ingredients": ["Aqua", "Caffeine 5%", "Hedera Helix Extract", "Centella Asiatica", "Menthol"],
+    "howToUse": "Masser vigoureusement de bas en haut chaque matin sur peau sèche.",
+    "featured": true,
+    "isNew": false,
+    "createdAt": "2026-07-05"
+  },
+  {
+    "id": "p-021",
+    "slug": "huile-anti-vergetures-au-baobab",
+    "title": "Huile Anti-Vergetures au Baobab",
+    "category": "minceur",
+    "price": 21000,
+    "compareAtPrice": null,
+    "images": [
+      "/categories/corps.png",
+      "/assets/images/product/square/product-3.jpg"
+    ],
+    "badges": ["COUP DE COEUR"],
+    "rating": 4.9,
+    "reviewCount": 145,
+    "stock": 25,
+    "variants": [
+      { "id": "p-021-100", "label": "100ml", "price": 21000, "compareAtPrice": null, "stock": 25 }
+    ],
+    "defaultVariantId": "p-021-100",
+    "shortDescription": "Huile végétale 100% naturelle pour améliorer l'élasticité et estomper les vergetures.",
+    "description": "Formulée à base d'huile de baobab bio et de rose musquée pour renforcer la résistance de la peau aux variations de poids.",
+    "ingredients": ["Adansonia Digitata Seed Oil", "Rosa Moschata Seed Oil", "Argania Spinosa Kernel Oil", "Tocopherol"],
+    "howToUse": "Appliquer 2 fois par jour en mouvements circulaires sur les zones ciblées.",
+    "featured": false,
+    "isNew": false,
+    "createdAt": "2026-06-01"
+  },
+  {
+    "id": "p-022",
+    "slug": "masque-argile-rose-detox-purifiant",
+    "title": "Masque Argile Rose Détox & Éclat",
+    "category": "face",
+    "price": 19500,
+    "compareAtPrice": 23000,
+    "images": [
+      "/assets/images/product/square/product-4.jpg",
+      "/assets/images/product/single/detail-5.jpg"
+    ],
+    "badges": ["15% OFF"],
+    "rating": 4.8,
+    "reviewCount": 92,
+    "stock": 20,
+    "variants": [
+      { "id": "p-022-75", "label": "75ml", "price": 19500, "compareAtPrice": 23000, "stock": 20 }
+    ],
+    "defaultVariantId": "p-022-75",
+    "shortDescription": "Masque purifiant onctueux qui resserre les pores sans assécher.",
+    "description": "L'argile rose absorbe les impuretés et toxines tout en apaisant les peaux sensibles ou réactives.",
+    "ingredients": ["Kaolin", "Montmorillonite", "Aqua", "Aloe Barbadensis Leaf Juice", "Centella Asiatica Extract"],
+    "howToUse": "Appliquer en couche moyenne sur le visage, laisser poser 10 minutes puis rincer avant séchage complet.",
+    "featured": false,
+    "isNew": false,
+    "createdAt": "2026-07-12"
+  },
+  {
+    "id": "p-023",
+    "slug": "serum-peptides-anti-rides-repulpant",
+    "title": "Sérum Peptides Anti-Rides & Repulpant",
+    "category": "face",
+    "price": 29000,
+    "compareAtPrice": null,
+    "images": [
+      "/assets/images/product/square/product-5.jpg",
+      "/assets/images/product/single/detail-1.jpg"
+    ],
+    "badges": ["NOUVEAU"],
+    "rating": 4.9,
+    "reviewCount": 48,
+    "stock": 16,
+    "variants": [
+      { "id": "p-023-30", "label": "30ml", "price": 29000, "compareAtPrice": null, "stock": 16 }
+    ],
+    "defaultVariantId": "p-023-30",
+    "shortDescription": "Complexe multi-peptides concentré pour combler les ridules et booster l'élasticité.",
+    "description": "Associe 5 peptides biomimétiques et du collagène végétal pour un effet tenseur et repulpant immédiat.",
+    "ingredients": ["Aqua", "Palmitoyl Tripeptide-1", "Palmitoyl Tetrapeptide-7", "Hyaluronic Acid", "Glycerin"],
+    "howToUse": "Appliquer quelques gouttes matin et soir sur le visage et le cou avant votre crème.",
+    "featured": false,
+    "isNew": true,
+    "createdAt": "2026-08-26"
+  },
+  {
+    "id": "p-024",
+    "slug": "creme-mains-veloutee-au-karite",
+    "title": "Crème Mains Veloutée au Karité",
+    "category": "body",
+    "price": 8500,
+    "compareAtPrice": null,
+    "images": [
+      "/categories/corps.png",
+      "/assets/images/product/square/product-6.jpg"
+    ],
+    "badges": [],
+    "rating": 4.8,
+    "reviewCount": 118,
+    "stock": 45,
+    "variants": [
+      { "id": "p-024-50", "label": "50ml", "price": 8500, "compareAtPrice": null, "stock": 45 }
+    ],
+    "defaultVariantId": "p-024-50",
+    "shortDescription": "Soin des mains hydratant et non gras au parfum doux de fleur de coton.",
+    "description": "Répare les mains sèches et abîmées par les lavages fréquents et protège les ongles.",
+    "ingredients": ["Aqua", "Butyrospermum Parkii Butter 20%", "Glycerin", "Cetearyl Alcohol", "Panthenol"],
+    "howToUse": "Appliquer aussi souvent que nécessaire en massant les mains et les cuticules.",
+    "featured": false,
+    "isNew": false,
+    "createdAt": "2026-05-15"
   }
 ]

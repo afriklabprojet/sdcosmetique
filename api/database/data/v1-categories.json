@@ -1,44 +1,93 @@
 [
   {
+    "slug": "face",
+    "name": "Visage",
+    "image": "categories/visage.png",
+    "banner": "categories/visage.png",
+    "description": "Sérums, crèmes, lotions et soins ciblés formulés pour sublimer l'éclat du visage."
+  },
+  {
+    "slug": "body",
+    "name": "Corps",
+    "image": "categories/corps.png",
+    "banner": "categories/corps.png",
+    "description": "Laits hydratants, huiles scintillantes, baumes riches et gommages exfoliants."
+  },
+  {
+    "slug": "gammes",
+    "name": "Gammes",
+    "image": "categories/gammes.png",
+    "banner": "categories/gammes.png",
+    "description": "Rituels de soins complets pensés pour agir en synergie parfaite."
+  },
+  {
+    "slug": "kits",
+    "name": "Kits",
+    "image": "categories/kits.png",
+    "banner": "categories/kits.png",
+    "description": "Coffrets cadeaux et kits d'initiation beauté."
+  },
+  {
+    "slug": "duo",
+    "name": "Duo",
+    "image": "categories/visage.png",
+    "banner": "categories/visage.png",
+    "description": "Associations complémentaires de deux soins essentiels pour booster vos résultats."
+  },
+  {
+    "slug": "kit-levre",
+    "name": "Kit Lèvre",
+    "image": "categories/visage.png",
+    "banner": "categories/visage.png",
+    "description": "Baumes nourrissants, gommages lèvres et gloss hydratants."
+  },
+  {
+    "slug": "minceur",
+    "name": "Minceur",
+    "image": "categories/corps.png",
+    "banner": "categories/corps.png",
+    "description": "Soins drainants, raffermissants et remodelants pour le corps."
+  },
+  {
     "slug": "cleansers",
-    "name": "Cleansers",
+    "name": "Nettoyants",
     "image": "assets/images/collection/collect-1.jpg",
     "banner": "assets/images/collection/v2/collect-1.jpg",
-    "description": "Gentle daily cleansers that lift makeup, sunscreen and grime without stripping your barrier."
+    "description": "Nettoyants doux et mousses purifiantes respectueux de la barrière cutanée."
   },
   {
     "slug": "toners",
-    "name": "Toners",
+    "name": "Lotions Toniques",
     "image": "assets/images/collection/collect-2.jpg",
     "banner": "assets/images/collection/v2/collect-2.jpg",
-    "description": "Hydrating and balancing toners that prep skin so everything after them absorbs better."
+    "description": "Lotions équilibrantes et toniques hydratants préparateurs de soin."
   },
   {
     "slug": "serums",
-    "name": "Serums",
+    "name": "Sérums",
     "image": "assets/images/collection/collect-3.jpg",
     "banner": "assets/images/collection/v2/collect-4.jpg",
-    "description": "Concentrated actives — vitamin C, niacinamide, peptides — for targeted, visible change."
+    "description": "Actifs concentrés anti-taches, éclat, fermeté et hydratation intense."
   },
   {
     "slug": "moisturizers",
-    "name": "Moisturizers",
+    "name": "Hydratants",
     "image": "assets/images/collection/collect-4.jpg",
     "banner": "assets/images/collection/v2/collect-5.jpg",
-    "description": "Barrier-supporting creams and gels that seal in hydration for a soft, resilient finish."
+    "description": "Crèmes barrière et gels hydratants protecteurs."
   },
   {
     "slug": "masks",
-    "name": "Masks",
+    "name": "Masques",
     "image": "assets/images/collection/collect-5.jpg",
     "banner": "assets/images/collection/v2/collect-6.jpg",
-    "description": "Weekly treatments that reset congested, tired or dehydrated skin in a single session."
+    "description": "Masques éclat et soins hebdomadaires intensifs."
   },
   {
     "slug": "sunscreen",
-    "name": "Sunscreen",
+    "name": "Protections Solaires",
     "image": "assets/images/collection/collect-6.jpg",
     "banner": "assets/images/collection/v2/collect-7.jpg",
-    "description": "Lightweight broad-spectrum SPF that layers invisibly under makeup, with no white cast."
+    "description": "Protections solaires invisibles SPF50 sans traces blanches."
   }
 ]
