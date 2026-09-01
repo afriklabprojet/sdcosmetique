@@ -51,6 +51,10 @@ function readCookie(name: string): string | null {
 
 let csrfPrimed = false;
 
+export function resetCsrf(): void {
+  csrfPrimed = false;
+}
+
 async function primeCsrf(): Promise<void> {
   if (csrfPrimed || typeof document === 'undefined') return;
   const res = await fetch(`${apiOrigin()}/sanctum/csrf-cookie`, {
@@ -139,6 +143,9 @@ const FORTIFY_FR: Record<string, string> = {
   'The email has already been taken.': 'Un compte existe déjà avec cette adresse email.',
   'The password field confirmation does not match.': 'Les mots de passe ne correspondent pas.',
   'The provided password does not match your current password.': 'Le mot de passe actuel est incorrect.',
+  'This coupon is not valid.': "Ce code promo n'est pas valide.",
+  'This coupon does not apply to the current cart.': "Ce code promo ne s'applique pas au panier actuel.",
+  'Unauthenticated.': 'Session expirée. Veuillez vous reconnecter.',
 };
 
 export function apiErrorMessage(err: unknown, fallback: string): string {

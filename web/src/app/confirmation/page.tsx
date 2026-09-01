@@ -19,16 +19,19 @@ import SupportContactCard from '@/features/orders/cards/support-contact.card';
 
 export default function ConfirmationPage() {
   const router = useRouter();
-  const [order] = useState<OrderDraft | null>(() => getLastOrder());
+  const [order, setOrder] = useState<OrderDraft | null>(null);
   const [paymentState, setPaymentState] = useState<'unknown' | 'paid' | 'pending' | 'failed'>('unknown');
 
-  // SEC-04 : si aucune commande en localStorage, l'utilisateur n'arrive pas du checkout
-  // → rediriger vers la boutique pour éviter l'affichage d'une fausse "confirmation"
   useEffect(() => {
-    if (order === null) {
+    const cached = getLastOrder();
+    if (cached === null) {
       router.replace('/boutique');
+      return;
     }
-  }, [order, router]);
+    queueMicrotask(() => {
+      setOrder(cached);
+    });
+  }, [router]);
 
   useEffect(() => {
     const ref = new URLSearchParams(globalThis.location.search).get('ref')
@@ -91,19 +94,31 @@ export default function ConfirmationPage() {
             <OrderStepsCard />
 
             {/* ── Back to home button ── */}
-            <Link href="/" style={{ display: 'block' }}>
-              <button style={{
-                width: '100%', padding: '16px', background: DARK, color: 'white',
-                border: 'none', fontSize: '13px', fontWeight: 700, letterSpacing: '0.18em',
-                textTransform: 'uppercase', cursor: 'pointer', borderRadius: '3px',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-              }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                  <polyline points="9 22 9 12 15 12 15 22"/>
-                </svg>
-                Retourner à l&apos;accueil
-              </button>
+            <Link
+              href="/"
+              style={{
+                width: '100%',
+                padding: '16px',
+                background: DARK,
+                color: 'white',
+                border: 'none',
+                fontSize: '13px',
+                fontWeight: 700,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                borderRadius: '3px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+                textDecoration: 'none',
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+              Retourner à l&apos;accueil
             </Link>
           </div>
 
@@ -122,18 +137,30 @@ export default function ConfirmationPage() {
               <p style={{ fontSize: '12px', color: TEXT_BODY, marginBottom: '16px', lineHeight: 1.5 }}>
                 Donnez votre avis et gagnez des points fidélité&nbsp;!
               </p>
-              <Link href="/avis">
-                <button style={{
-                  width: '100%', padding: '12px', background: DARK, color: 'white', border: 'none',
-                  fontSize: '12px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase',
-                  cursor: 'pointer', borderRadius: '3px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFCC00" stroke="#FFCC00" strokeWidth="1">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                  </svg>
-                  Donner mon avis
-                </button>
+              <Link
+                href="/avis"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  background: DARK,
+                  color: 'white',
+                  border: 'none',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  borderRadius: '3px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  textDecoration: 'none',
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFCC00" stroke="#FFCC00" strokeWidth="1">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+                Donner mon avis
               </Link>
             </div>
 

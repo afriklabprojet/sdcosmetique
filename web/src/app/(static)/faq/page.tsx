@@ -10,7 +10,15 @@ import type { FaqCategory } from '@/features/site-config/site-config.type';
 export default function FAQPage() {
   const [open, setOpen] = useState<string | null>('cat0-q0');
   const [faq, setFaq] = useState<FaqCategory[]>(DEFAULT_SITE_CONFIG.faq);
-  useEffect(() => { fetchSiteConfigSection('faq').then(setFaq).catch(() => {}); }, []);
+  useEffect(() => {
+    fetchSiteConfigSection('faq')
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setFaq(data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <div className={styles.page}>

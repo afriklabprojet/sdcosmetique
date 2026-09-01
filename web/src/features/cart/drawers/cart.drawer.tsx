@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useCart } from '@/features/cart/cart.store';
 import { formatPrice } from '@/features/catalog/product.query';
 import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
@@ -10,6 +11,7 @@ import { fetchSiteConfigSection } from '@/features/site-config/site-config.util'
 import type { ShippingConfig, ShippingOption } from '@/features/site-config/site-config.type';
 
 export default function CartDrawer() {
+  const router = useRouter();
   const { items, open, closeCart, removeItem, updateQty, totalPrice, totalItems } = useCart();
   const [shippingCfg, setShippingCfg] = useState<ShippingConfig>(DEFAULT_SITE_CONFIG.shipping);
   useEffect(() => { fetchSiteConfigSection('shipping').then(setShippingCfg).catch(() => {}); }, []);
@@ -208,7 +210,11 @@ export default function CartDrawer() {
             )}
             <Link
               href="/checkout"
-              onClick={closeCart}
+              onClick={(e) => {
+                e.preventDefault();
+                closeCart();
+                router.push('/checkout');
+              }}
               className="block w-full py-4 text-center text-sm font-medium text-white tracking-widest uppercase transition-all duration-300 hover:opacity-90"
               style={{ background: 'var(--gold)', letterSpacing: '0.15em' }}
             >

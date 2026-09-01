@@ -16,9 +16,10 @@
  */
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { fetchProducts } from '@/features/catalog/product.query';
+import { fetchProducts, formatPrice } from '@/features/catalog/product.query';
 import type { Product } from '@/shared/types/domain.type';
 
 interface ProductSearchProps {
@@ -54,12 +55,12 @@ export default function ProductSearch({ close }: ProductSearchProps) {
   };
 
   return (
-    <button
-      type="button"
+    <div
+      role="presentation"
       aria-label="Fermer la recherche"
       className="search-overlay"
       onClick={close}
-      style={{ border: 'none', padding: 0, background: 'transparent', cursor: 'default' }}
+      style={{ border: 'none', padding: 0, background: 'rgba(26, 14, 5, 0.55)', cursor: 'default' }}
     >
       <dialog
         open
@@ -91,7 +92,15 @@ export default function ProductSearch({ close }: ProductSearchProps) {
               <div className="search-empty">Aucun résultat pour « {query} »</div>
             ) : (
               results.map(p => (
-                <button key={p.id} className="search-result" onClick={() => goToProduct(p.slug)}>
+                <Link
+                  key={p.id}
+                  href={`/produit/${p.slug}`}
+                  className="search-result"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    goToProduct(p.slug);
+                  }}
+                >
                   <div className="search-result-img">
                     {p.images[0] && (
                       <Image src={p.images[0]} alt={p.name} fill sizes="56px" style={{ objectFit: 'cover' }} />
@@ -101,8 +110,8 @@ export default function ProductSearch({ close }: ProductSearchProps) {
                     <div className="search-result-name">{p.name}</div>
                     <div className="search-result-meta">{p.category}</div>
                   </div>
-                  <div className="search-result-price">{(p.price / 100).toFixed(2).replace('.', ',')} €</div>
-                </button>
+                  <div className="search-result-price">{formatPrice(p.price)}</div>
+                </Link>
               ))
             )}
           </div>
@@ -229,6 +238,6 @@ export default function ProductSearch({ close }: ProductSearchProps) {
         @keyframes searchFade { from { opacity: 0; } to { opacity: 1; } }
         @keyframes searchSlide { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
-    </button>
+    </div>
   );
 }

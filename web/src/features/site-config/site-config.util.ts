@@ -13,8 +13,8 @@ export async function fetchSiteConfigSection<K extends keyof SiteConfig>(
 export function formatConfigPrice(amount: number): string {
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
-    currency: 'EUR',
-    minimumFractionDigits: 2,
+    currency: 'XOF',
+    maximumFractionDigits: 0,
   }).format(amount);
 }
 

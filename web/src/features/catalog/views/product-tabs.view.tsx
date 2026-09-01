@@ -47,7 +47,10 @@ export default function ProductTabs({ product, reviews, keyIngredients, activeTa
 
             <div style={{ paddingTop: 20 }}>
               {activeTab === 'description' && (
-                <p style={{ fontSize: 13, color: TEXT_BODY, lineHeight: 1.75 }}>{product.description}</p>
+                <div
+                  style={{ fontSize: 13, color: TEXT_BODY, lineHeight: 1.75 }}
+                  dangerouslySetInnerHTML={{ __html: product.description }}
+                />
               )}
 
               {activeTab === 'usage' && (
