@@ -74,7 +74,7 @@ export default function NavActions({ menuOpen, openSearch, toggleMenu }: NavActi
 
           {/* Hamburger — mobile only */}
           <button
-            className="hamburger-btn"
+            className="hamburger-btn hidden max-[900px]:inline-flex"
             aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
             onClick={toggleMenu}
             style={{ background: 'transparent', border: 'none', cursor: 'pointer', alignItems: 'center', justifyContent: 'center', padding: 12, color: '#1A0E05' }}
@@ -89,13 +89,6 @@ export default function NavActions({ menuOpen, openSearch, toggleMenu }: NavActi
               </svg>
             )}
           </button>
-
-          <style jsx>{`
-            .hamburger-btn { display: none; }
-            @media (max-width: 900px) {
-              .hamburger-btn { display: inline-flex; }
-            }
-          `}</style>
         </div>
   );
 }
