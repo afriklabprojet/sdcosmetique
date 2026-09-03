@@ -273,7 +273,7 @@ export default function ShopView({ products }: Readonly<{ products: Product[] }>
           gap: 24px;
         }
         @media (max-width: 1024px) { .boutique-grid { grid-template-columns: repeat(3, 1fr); } }
-        @media (max-width: 640px)  { .boutique-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; } }
+        @media (max-width: 640px)  { .boutique-grid { grid-template-columns: repeat(1, 1fr); gap: 16px; } }
       `}</style>
     </div>
   );

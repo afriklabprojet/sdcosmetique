@@ -46,6 +46,7 @@ class ProductResource extends JsonResource
                 'label' => $badge->label,
                 'type' => $badge->type,
             ])->values()),
+            'skin_tones' => $this->whenLoaded('tones', fn () => $this->tones->pluck('slug')->toArray()),
             'children' => $this->whenLoaded('children', fn () => $this->children->map(fn (Product $child): array => [
                 'id' => $child->id,
                 'slug' => $child->slug,

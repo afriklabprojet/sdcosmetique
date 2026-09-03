@@ -169,7 +169,11 @@ export default function Navbar({ logoUrl, logoCaption, siteName }: Readonly<{ lo
         }
         @media (max-width: 900px) {
           .nav-list { display: none !important; }
-          .nav-bar { gap: 16px !important; }
+          .nav-bar { 
+            display: flex !important; 
+            justify-content: space-between !important; 
+            gap: 16px !important; 
+          }
         }
         @media (max-width: 480px) {
           .nav-bar { padding: 10px 16px !important; }

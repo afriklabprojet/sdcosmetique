@@ -55,7 +55,7 @@ export default function TrendingProducts({ products }: Readonly<{ products: Prod
       </div>
       <style jsx>{`
         @media (max-width: 1024px) { .prod-grid { grid-template-columns: repeat(3, 1fr) !important; } }
-        @media (max-width: 640px)  { .prod-grid { grid-template-columns: repeat(2, 1fr) !important; } }
+        @media (max-width: 640px)  { .prod-grid { grid-template-columns: repeat(1, 1fr) !important; } }
         .scroll-arrows { display: none !important; }
       `}</style>
     </section>

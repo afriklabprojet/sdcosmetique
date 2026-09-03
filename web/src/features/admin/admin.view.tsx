@@ -371,7 +371,7 @@ function ProductEditModal({
         <fieldset>
           <legend style={{ fontSize: '11px', color: TEXT2, marginBottom: '6px' }}>Badges</legend>
           <div style={{ display: 'flex', gap: '20px' }}>
-            {([{ key: 'inStock', label: 'En stock' }, { key: 'newArrival', label: 'Nouveau' }, { key: 'bestseller', label: 'Bestseller' }]).map(({ key, label }) => (
+            {([{ key: 'bestseller', label: 'Bestseller' }]).map(({ key, label }) => (
               <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                 <input type="checkbox" checked={!!((productModal as Record<string, unknown>)[key])} onChange={(e) => setProductModal((p) => p ? { ...p, [key]: e.target.checked } : p)} style={{ accentColor: GOLD2 }} />
                 <span style={{ fontSize: '12px', color: TEXT }}>{label}</span>

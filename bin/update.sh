@@ -15,6 +15,7 @@ SKIP_PULL=false
 UPDATE_API=true
 UPDATE_WEB=true
 BUILD_WEB=true
+DEPS_ACTION="install"
 
 # Helper logging functions
 log_info() {
@@ -35,7 +36,7 @@ log_error() {
 
 show_help() {
   cat << EOF
-Usage: $(basename "$0") [options]
+Usage: \$(basename "\$0") [options]
 
 Updates the SD Cosmétique monorepo (API and Web applications).
 
@@ -44,13 +45,14 @@ Options:
   --api-only, --skip-web   Update only the Laravel API (./api)
   --web-only, --skip-api   Update only the Next.js Web storefront (./web)
   --skip-build, --no-build Skip running 'pnpm build' in ./web
+  --update-deps            Run 'update' instead of 'install' for dependencies
   -h, --help               Show this help message and exit
 
 Examples:
   ./bin/update.sh                  # Full update (git pull + api + web)
   ./bin/update.sh --skip-pull      # Update dependencies and build without git pull
   ./bin/update.sh --api-only       # Update only the API
-  ./bin/update.sh --web-only       # Update only the Web application
+  ./bin/update.sh --update-deps    # Bump dependencies to newer versions
 EOF
 }
 
@@ -71,6 +73,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --skip-build|--no-build)
       BUILD_WEB=false
+      shift
+      ;;
+    --update-deps)
+      DEPS_ACTION="update"
       shift
       ;;
     -h|--help)
@@ -128,29 +134,28 @@ if [ "${UPDATE_API}" = true ]; then
 
     cd "${API_DIR}"
 
-    # Install / update Composer packages
-    log_info "Installing PHP dependencies (composer install)..."
-    composer install --no-interaction --prefer-dist --optimize-autoloader
+    if [ "${DEPS_ACTION}" = "update" ]; then
+      log_info "Updating PHP dependencies (composer update)..."
+      composer update --no-interaction --prefer-dist --optimize-autoloader
+    else
+      log_info "Installing PHP dependencies (composer install)..."
+      composer install --no-interaction --prefer-dist --optimize-autoloader
+    fi
 
-    # Ensure storage link is created
     log_info "Ensuring storage symlink..."
     php artisan storage:link --quiet || true
 
-    # Run database migrations
     log_info "Running database migrations..."
     php artisan migrate --force
 
-    # Clear and optimize Laravel caches
     log_info "Optimizing Laravel caches..."
     php artisan optimize:clear
 
-    # If in production, warm up optimized caches
     APP_ENV=$(php -r "echo config('app.env', 'production');" 2>/dev/null || echo "local")
     if [ "${APP_ENV}" = "production" ]; then
       php artisan optimize
     fi
 
-    # Restart background queue workers if any are running
     php artisan queue:restart || true
 
     log_success "API updated successfully."
@@ -176,11 +181,14 @@ if [ "${UPDATE_WEB}" = true ]; then
 
     cd "${WEB_DIR}"
 
-    # Install Node dependencies
-    log_info "Installing Node dependencies (pnpm install)..."
-    pnpm install
+    if [ "${DEPS_ACTION}" = "update" ]; then
+      log_info "Updating Node dependencies (pnpm update)..."
+      pnpm update
+    else
+      log_info "Installing Node dependencies (pnpm install)..."
+      pnpm install
+    fi
 
-    # Build Next.js application
     if [ "${BUILD_WEB}" = true ]; then
       log_info "Building Next.js application (pnpm build)..."
       pnpm build
@@ -188,7 +196,6 @@ if [ "${UPDATE_WEB}" = true ]; then
       log_info "Skipping Next.js build (--skip-build requested)."
     fi
 
-    # Reload PM2 application if PM2 is running and manages 'sd-cosmetique'
     if command -v pm2 >/dev/null 2>&1 && pm2 describe sd-cosmetique >/dev/null 2>&1; then
       log_info "Reloading PM2 process 'sd-cosmetique'..."
       pm2 reload sd-cosmetique

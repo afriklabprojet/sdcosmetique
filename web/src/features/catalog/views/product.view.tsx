@@ -265,7 +265,7 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
             <h3 style={{ fontSize: 22, fontWeight: 800, color: TEXT, fontFamily: 'Georgia,serif', marginBottom: 24 }}>
               Plus de soins {category?.label.toLowerCase() ?? 'similaires'}
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
               {related.map(p => <ProductCard key={p.id} product={p} />)}
             </div>
           </div>

@@ -18,7 +18,9 @@ export type LaravelStorefrontProduct = {
   recent: boolean;
   featured: boolean;
   images: string[];
+  skin_tones?: string[] | null;
   badges: string[];
+  skin_tones?: string[] | null;
   children?: {
     slug: string;
     sku: string | null;
@@ -100,6 +102,7 @@ export type LaravelAdminProduct = {
   published_at: string | null;
   images?: { id: number; url: string }[];
   badges?: { id: number; label: string; type: string }[];
+  skin_tones?: string[] | null;
 };
 
 export type LaravelAdminProductWrite = {
@@ -119,6 +122,9 @@ export type LaravelAdminProductWrite = {
   visible_at?: string | null;
   published_at?: string | null;
   images?: string[];
+  bestseller?: boolean;
+  skin_tones?: string[];
+  badges?: string[];
 };
 
 export type LaravelStorefrontCategory = {

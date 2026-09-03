@@ -28,7 +28,7 @@ export function mapStorefrontProduct(dto: LaravelStorefrontProduct): Product {
     price: child?.price ?? dto.price,
     originalPrice: (child?.compare_at_price ?? dto.compare_at_price) ?? undefined,
     images: dto.images ?? [],
-    skinTones: ['noir', 'marron', 'marron-clair', 'clair', 'metisse'],
+    skinTones: dto.skin_tones ?? [],
     badges: dto.badges ?? [],
     rating: 4.8,
     reviewCount: 24,
@@ -56,8 +56,8 @@ export function mapAdminProduct(dto: LaravelAdminProduct): Product {
     price: sale ?? regular,
     originalPrice: sale != null ? regular : undefined,
     images: (dto.images ?? []).map((file) => file.url),
-    skinTones: ['noir', 'marron', 'marron-clair', 'clair', 'metisse'],
-    badges: (dto.badges ?? []).map((badge) => badge.label),
+    skinTones: dto.skin_tones ?? [],
+    badges: (dto.badges ?? []).filter((b) => b.type !== 'featured').map((badge) => badge.label),
     rating: 0,
     reviewCount: 0,
     shortDescription: dto.summary ?? '',
@@ -73,7 +73,7 @@ export function mapAdminProduct(dto: LaravelAdminProduct): Product {
 }
 
 export function toAdminProductPayload(
-  product: Pick<Product, 'name' | 'slug' | 'shortDescription' | 'description' | 'usage' | 'ingredients' | 'price' | 'originalPrice' | 'stockQty' | 'inStock' | 'images'>,
+  product: Pick<Product, 'name' | 'slug' | 'shortDescription' | 'description' | 'usage' | 'ingredients' | 'price' | 'originalPrice' | 'stockQty' | 'inStock' | 'images' | 'skinTones' | 'bestseller' | 'badges'>,
   categoryId: number,
 ): LaravelAdminProductWrite {
   const hasSale = product.originalPrice != null && product.originalPrice > product.price;
@@ -89,5 +89,8 @@ export function toAdminProductPayload(
     sale_price: hasSale ? product.price : null,
     stock: product.stockQty ?? (product.inStock ? 1 : 0),
     images: product.images,
+    skin_tones: product.skinTones ?? [],
+    bestseller: product.bestseller ?? false,
+    badges: product.badges ?? [],
   };
 }

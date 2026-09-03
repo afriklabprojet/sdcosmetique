@@ -58,6 +58,15 @@ class Product extends Model
     /**
      * @return BelongsTo<Category, $this>
      */
+    
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<Tone, $this>
+     */
+    public function tones(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Tone::class, 'product_skin_tone', 'product_id', 'tone_id');
+    }
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);

@@ -28,14 +28,17 @@ const CATEGORY_IMAGES: Record<Category, string> = {
   minceur: '/categories/corps.png',
 };
 
+import type { CategoryRow } from '@/features/catalog/category.repository';
+
 interface Props {
   initialProducts: Product[];
   slug: Category;
+  categoryRow?: CategoryRow;
 }
 
 const NO_SKIN_FILTER_CATEGORIES = new Set<Category>(['minceur', 'kit-levre']);
 
-export default function CategoryClient({ initialProducts, slug }: Readonly<Props>) {
+export default function CategoryClient({ initialProducts, slug, categoryRow }: Readonly<Props>) {
   const [skinToneFilter, setSkinToneFilter] = useState<SkinTone | null>(null);
   const [sortBy, setSortBy] = useState('popular');
   const configKey = `hero_${slug.replace(/-/g, '_')}` as keyof SiteConfig;
@@ -134,7 +137,7 @@ export default function CategoryClient({ initialProducts, slug }: Readonly<Props
 
           {/* Lead */}
           <p className="mt-4 text-sm max-w-xs lg:max-w-sm" style={{ color: 'var(--grey-600)', lineHeight: '1.8' }}>
-            {heroConfig?.lead || category.description}
+            {heroConfig?.lead || categoryRow?.sub_label || category.description}
           </p>
 
           {/* CTA discret */}
@@ -218,7 +221,7 @@ export default function CategoryClient({ initialProducts, slug }: Readonly<Props
 
         {/* Products grid */}
         {products.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
             {products.map(product => (
               <ProductCard key={product.id} product={product} />
             ))}

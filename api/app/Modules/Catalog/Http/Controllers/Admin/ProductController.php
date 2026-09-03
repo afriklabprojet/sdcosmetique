@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Catalog\Http\Requests\Admin\ProductRequest;
 use App\Modules\Catalog\Http\Resources\Admin\ProductResource;
 use App\Modules\Catalog\Models\Product;
+use App\Modules\Catalog\Models\Tone;
 use App\Shared\Translations\TranslationSync;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,7 +22,7 @@ class ProductController extends Controller
         $this->authorize('viewAny', Product::class);
 
         $products = Product::query()
-            ->with(['category', 'files'])
+            ->with(['category', 'files', 'tones'])
             ->when(
                 $request->boolean('parents_only'),
                 fn ($q) => $q->whereNull('parent_id'),
@@ -49,6 +50,15 @@ class ProductController extends Controller
 
         TranslationSync::apply($product, $request->validated('translations', []));
         $this->syncImages($product, $request->validated('images', []));
+        if ($request->has('skin_tones')) {
+            $this->syncTones($product, $request->validated('skin_tones', []));
+        }
+        if ($request->has('bestseller')) {
+            $this->syncBestseller($product, $request->boolean('bestseller'));
+        }
+        if ($request->has('badges')) {
+            $this->syncCustomBadges($product, $request->validated('badges', []));
+        }
 
         return ProductResource::make($this->loaded($product))
             ->response()
@@ -71,6 +81,15 @@ class ProductController extends Controller
         TranslationSync::apply($product, $request->validated('translations', []));
         if ($request->has('images')) {
             $this->syncImages($product, $request->validated('images', []));
+        }
+        if ($request->has('skin_tones')) {
+            $this->syncTones($product, $request->validated('skin_tones', []));
+        }
+        if ($request->has('bestseller')) {
+            $this->syncBestseller($product, $request->boolean('bestseller'));
+        }
+        if ($request->has('badges')) {
+            $this->syncCustomBadges($product, $request->validated('badges', []));
         }
 
         return ProductResource::make($this->loaded($product))->response();
@@ -108,8 +127,34 @@ class ProductController extends Controller
         }
     }
 
+        private function syncTones(Product $product, array $tones): void
+    {
+        $toneIds = Tone::whereIn('slug', $tones)->pluck('id');
+        $product->tones()->sync($toneIds);
+    }
+
+    private function syncBestseller(Product $product, bool $isBestseller): void
+    {
+        if ($isBestseller) {
+            $product->badges()->firstOrCreate(['type' => 'featured'], ['label' => 'Bestseller']);
+        } else {
+            $product->badges()->where('type', 'featured')->delete();
+        }
+    }
+
+    private function syncCustomBadges(Product $product, array $badges): void
+    {
+        $product->badges()->where('type', 'custom')->delete();
+        foreach ($badges as $badge) {
+            $product->badges()->create([
+                'type' => 'custom',
+                'label' => $badge,
+            ]);
+        }
+    }
+
     private function loaded(Product $product): Product
     {
-        return $product->load(['category', 'children', 'badges', 'files', 'translations']);
+        return $product->load(['category', 'children', 'badges', 'files', 'translations', 'tones']);
     }
 }

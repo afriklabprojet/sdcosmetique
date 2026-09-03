@@ -18,7 +18,7 @@ class ProductResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $this->loadMissing(['category', 'children', 'badges', 'files']);
+        $this->loadMissing(['category', 'children', 'badges', 'files', 'tones']);
 
         return [
             'slug' => $this->slug,
@@ -35,6 +35,7 @@ class ProductResource extends JsonResource
             'recent' => $this->recent(),
             'featured' => $this->featured(),
             'images' => $this->files->pluck('url')->values(),
+            'skin_tones' => $this->tones->pluck('slug')->values(),
             'badges' => $this->badges
                 ->reject(fn ($badge): bool => $badge->type === 'featured')
                 ->pluck('label')

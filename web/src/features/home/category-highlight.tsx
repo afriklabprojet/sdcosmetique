@@ -64,9 +64,6 @@ export default function CategoryHighlight({ categories }: Readonly<Props>) {
               {/* Textes */}
               <div style={{ textAlign: 'center', marginTop: '10px' }}>
                 <span className="cat-label">{cat.label}</span>
-                {cat.sub_label && (
-                  <span className="cat-sub">{cat.sub_label}</span>
-                )}
               </div>
             </Link>
           ))}
