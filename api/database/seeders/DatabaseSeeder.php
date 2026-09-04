@@ -13,12 +13,16 @@ class DatabaseSeeder extends Seeder
         $this->call([
             \Database\Seeders\Identity\AdminSeeder::class,
             \Database\Seeders\Catalog\V1CategorySeeder::class,
-            \Database\Seeders\Catalog\V1CatalogSeeder::class,
+            \Database\Seeders\Catalog\ToneSeeder::class,
             \Database\Seeders\Content\PageSeeder::class,
             \Database\Seeders\Content\BannerSeeder::class,
             \Database\Seeders\Orders\DeliveryMethodSeeder::class,
             \Database\Seeders\Settings\SettingsSeeder::class,
             \Database\Seeders\Quiz\QuizSeeder::class,
         ]);
+
+        if (! app()->isProduction()) {
+            $this->call(\Database\Seeders\Catalog\V1CatalogSeeder::class);
+        }
     }
 }

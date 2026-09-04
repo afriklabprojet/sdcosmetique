@@ -55,10 +55,11 @@ export default defineConfig({
     },
   ],
 
-  /* Run your local dev server before starting the tests */
+  /* Run standalone server before starting the tests */
   webServer: {
-    command: 'pnpm dev',
+    command: 'node .next/standalone/server.js',
     port: 3000,
     reuseExistingServer: !process.env.CI,
+    timeout: 30000,
   },
 });

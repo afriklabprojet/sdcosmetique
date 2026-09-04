@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { fetchProducts } from '@/features/catalog/product.repository';
+import { fetchActiveCategories } from '@/features/catalog/category.query';
 import ShopView from '@/features/catalog/views/boutique.view';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sdcosmetique.ci';
@@ -18,6 +19,9 @@ export const metadata: Metadata = {
 };
 
 export default async function ShopPage() {
-  const products = await fetchProducts();
-  return <ShopView products={products} />;
+  const [products, categories] = await Promise.all([
+    fetchProducts(),
+    fetchActiveCategories(),
+  ]);
+  return <ShopView products={products} categories={categories} />;
 }

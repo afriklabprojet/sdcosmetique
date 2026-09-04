@@ -39,7 +39,7 @@ export const DEFAULT_HERO: HeroConfig = {
   titleAccent: 'naturelle de votre\u00a0teint',
   lead: "Des produits d'exception, formulés pour sublimer chaque type de peau.",
   ctaText: 'DÉCOUVRIR NOS PRODUITS',
-  ctaHref: '/categorie/gammes',
+  ctaHref: '/boutique',
   image: '/hero/generated-skincare-hero-3.jpg',
   imageAlt: 'Modèle aux soins SD Cosmétique',
 };

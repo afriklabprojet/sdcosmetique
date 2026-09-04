@@ -18,7 +18,7 @@ export async function fetchProducts(
 ): Promise<Product[]> {
   let products = await StorefrontProductApi.list({
     category,
-    featured: options?.bestsellers,
+    bestseller: options?.bestsellers,
     perPage: options?.limit ?? 100,
   });
   if (options?.skinTone) {

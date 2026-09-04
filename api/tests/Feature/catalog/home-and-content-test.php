@@ -21,12 +21,12 @@ it('lists featured products via the products index', function (): void {
     $category = Category::factory()->create();
     $parent = Product::factory()->parentProduct()->create(['category_id' => $category->id]);
     Product::factory()->child($parent)->create(['category_id' => $category->id]);
-    $parent->badges()->create(['label' => 'FEATURED', 'type' => 'featured']);
+    $parent->badges()->create(['label' => 'Bestseller', 'type' => 'bestseller']);
 
     $plain = Product::factory()->parentProduct()->create(['category_id' => $category->id]);
     Product::factory()->child($plain)->create(['category_id' => $category->id]);
 
-    $this->getJson('/v1/products?featured=1&perPage=8')
+    $this->getJson('/v1/products?bestseller=1&perPage=8')
         ->assertOk()
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.slug', $parent->slug);

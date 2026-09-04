@@ -14,6 +14,10 @@ class V1CatalogSeeder extends Seeder
 {
     public function run(): void
     {
+        if (app()->isProduction()) {
+            return;
+        }
+
         $path = database_path('data/v1-products.json');
         /** @var array<int, array<string, mixed>> $products */
         $products = json_decode(File::get($path), true, 512, JSON_THROW_ON_ERROR);
@@ -54,8 +58,8 @@ class V1CatalogSeeder extends Seeder
 
                     if (($record['featured'] ?? false) === true) {
                         $parent->badges()->create([
-                            'label' => 'FEATURED',
-                            'type' => 'featured',
+                            'label' => 'Bestseller',
+                            'type' => 'bestseller',
                         ]);
                     }
 

@@ -5,6 +5,7 @@
  */
 export const NAV = [
   { label: 'ACCUEIL', href: '/' },
+  { label: 'BOUTIQUE', href: '/boutique' },
   { label: 'VISAGE', href: '/categorie/face' },
   { label: 'CORPS', href: '/categorie/body' },
   { label: 'GAMMES', href: '/categorie/gammes' },

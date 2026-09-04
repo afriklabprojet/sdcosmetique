@@ -10,5 +10,5 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
     fetchActiveCategories()
   ]);
   const categoryRow = categories.find(c => c.slug === slug);
-  return <CategoryClient initialProducts={products} slug={slug as Category} categoryRow={categoryRow} />;
+  return <CategoryClient initialProducts={products} slug={slug as Category} categoryRow={categoryRow} allCategories={categories} />;
 }

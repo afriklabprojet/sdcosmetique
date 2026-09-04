@@ -22,6 +22,11 @@ export const CATEGORIES: { id: Category; label: string; icon: string; descriptio
   { id: 'minceur',   label: 'Minceur',   icon: '◇', description: 'Soins minceur & remodelants' },
 ];
 
+export const BADGE_LABELS = {
+  NEW: 'Nouveauté',
+  BESTSELLER: 'Bestseller',
+} as const;
+
 export interface Product {
   id: string;
   name: string;

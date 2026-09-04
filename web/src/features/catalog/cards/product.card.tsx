@@ -10,7 +10,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { CATEGORIES, Product } from '@/shared/types/domain.type';
+import { BADGE_LABELS, CATEGORIES, Product } from '@/shared/types/domain.type';
 import { useCart } from '@/features/cart/cart.store';
 import { useWishlist } from '@/features/wishlist/wishlist.store';
 import { useGlobalPromo } from '@/features/promo/promo.store';
@@ -24,9 +24,9 @@ interface ProductCardProps {
 
 // Helpers extraits pour réduire la complexité cognitive
 function getPrimaryBadge(product: Product): string | null {
+  if (product.newArrival) return BADGE_LABELS.NEW;
+  if (product.bestseller) return BADGE_LABELS.BESTSELLER;
   if (product.badges?.[0]) return product.badges[0];
-  if (product.newArrival) return 'Nouveau';
-  if (product.bestseller) return 'Best Seller';
   return null;
 }
 

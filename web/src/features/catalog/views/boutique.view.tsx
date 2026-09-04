@@ -6,6 +6,8 @@ import ProductCard from '@/features/catalog/cards/product.card';
 import SkinToneSelector from '@/features/catalog/selects/skin-tone.select';
 import Link from 'next/link';
 
+import type { CategoryRow } from '@/features/catalog/category.repository';
+
 const SORT_OPTIONS = [
   { id: 'popular',    label: 'Populaires' },
   { id: 'newest',     label: 'Nouveautés' },
@@ -16,7 +18,12 @@ const SORT_OPTIONS = [
 
 const ITEMS_PER_PAGE = 8;
 
-export default function ShopView({ products }: Readonly<{ products: Product[] }>) {
+interface ShopViewProps {
+  products: Product[];
+  categories?: CategoryRow[];
+}
+
+export default function ShopView({ products, categories }: Readonly<ShopViewProps>) {
   const [skinToneFilter, setSkinToneFilter] = useState<SkinTone | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState('popular');
@@ -68,38 +75,61 @@ export default function ShopView({ products }: Readonly<{ products: Product[] }>
     globalThis.window?.scrollTo({ top: 300, behavior: 'smooth' });
   };
 
+  const filterCategories = (categories && categories.length > 0)
+    ? categories.map(c => ({ id: c.slug, label: c.label }))
+    : CATEGORIES.map(c => ({ id: c.id, label: c.label }));
+
   return (
-    <div>
-      {/* Hero */}
+    <div style={{ background: 'var(--cream)', minHeight: '100vh', paddingBottom: '80px' }}>
+      {/* Hero simple */}
       <div style={{
-        background: 'linear-gradient(135deg, var(--cream) 0%, var(--off-white) 60%, var(--gold-pale) 100%)',
-        padding: '56px 24px 48px',
+        background: 'var(--white)',
+        borderBottom: '1px solid var(--border-gold)',
+        padding: 'clamp(24px, 4vw, 48px) clamp(16px, 4vw, 48px)',
         textAlign: 'center',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '12px' }}>
-          <Link href="/" style={{ fontSize: '0.65rem', color: 'var(--gold)', textDecoration: 'none', letterSpacing: '0.15em', textTransform: 'uppercase' }}>Accueil</Link>
-          <span style={{ color: 'var(--grey-700)' }}>›</span>
-          <span style={{ fontSize: '0.65rem', color: 'var(--grey-700)', letterSpacing: '0.15em', textTransform: 'uppercase' }}>Boutique</span>
-        </div>
+        {/* Fil d'Ariane */}
+        <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '12px', fontSize: '0.7rem', color: 'var(--grey-500)' }} aria-label="Fil d'Ariane">
+          <Link href="/" style={{ color: 'var(--gold)', textDecoration: 'none' }}>Accueil</Link>
+          <span>›</span>
+          <span>Boutique</span>
+        </nav>
         <h1 style={{
           fontFamily: 'var(--font-heading)',
-          fontSize: 'clamp(2rem, 4vw, 3rem)',
+          fontSize: 'clamp(1.5rem, 3.5vw, 2.5rem)',
           fontWeight: 700,
           color: 'var(--charcoal)',
-          marginBottom: '12px',
-          letterSpacing: '-0.02em',
+          margin: '0 0 8px',
         }}>Notre Boutique</h1>
-        <p style={{ color: 'var(--warm-grey)', maxWidth: '480px', margin: '0 auto', fontSize: '0.9rem', lineHeight: 1.7 }}>
-          Tous nos soins conçus pour sublimer les peaux africaines et métissées.
-        </p>
+        <p style={{
+          fontSize: '0.85rem',
+          color: 'var(--grey-600)',
+          maxWidth: '480px',
+          margin: '0 auto',
+        }}>Tous nos soins conçus pour sublimer les peaux africaines et métissées.</p>
       </div>
 
-      {/* Filtres & tri */}
-      <div style={{ background: 'var(--white)', borderBottom: '1px solid var(--border-gold)', position: 'sticky', top: 67, zIndex: 10 }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px' }}>
-
-          {/* Onglets catégories */}
-          <nav style={{ display: 'flex', gap: '4px', overflowX: 'auto', padding: '12px 0 0' }} aria-label="Filtrer par catégorie">
+      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 clamp(16px, 3vw, 32px)' }}>
+        {/* Barre de filtres */}
+        <div style={{
+          background: 'var(--white)',
+          borderRadius: '4px',
+          border: '1px solid var(--border-gold)',
+          margin: '24px 0 32px',
+          padding: '4px 16px',
+        }}>
+          {/* Catégories */}
+          <nav
+            style={{
+              display: 'flex',
+              gap: '6px',
+              overflowX: 'auto',
+              padding: '12px 0 8px',
+              borderBottom: '1px solid var(--grey-100)',
+              scrollbarWidth: 'none',
+            }}
+            aria-label="Filtrer par catégorie"
+          >
             <button
               onClick={() => changeCategory('all')}
               style={{
@@ -118,7 +148,7 @@ export default function ShopView({ products }: Readonly<{ products: Product[] }>
                 transition: 'all 0.2s',
               }}
             >Tout</button>
-            {CATEGORIES.map(cat => (
+            {filterCategories.map(cat => (
               <button
                 key={cat.id}
                 onClick={() => changeCategory(cat.id)}

@@ -10,7 +10,7 @@
  * chaque variante reste identique a ce qu'il etait.
  */
 
-import type { Product } from '@/shared/types/domain.type';
+import { BADGE_LABELS, type Product } from '@/shared/types/domain.type';
 import { formatPrice } from '@/features/catalog/product.query';
 import StarRating from '@/features/catalog/star-rating';
 import { GOLD, GOLD2, BORDER, TEXT, TEXT_MUTED, TEXT_BODY } from '@/features/catalog/product-detail.constant';
@@ -34,9 +34,26 @@ export default function ProductSummary({ product, categoryLabel, selectedToneLab
   const s = compact ? SIZES.compact : SIZES.wide;
   return (
     <div style={compact ? undefined : { paddingTop: 4 }}>
-      <span style={{ display: 'inline-block', padding: s.badgePadding, background: GOLD, color: 'white', fontSize: 10, fontWeight: 800, letterSpacing: s.badgeSpacing, textTransform: 'uppercase', borderRadius: 2, marginBottom: s.badgeMargin }}>
-        {categoryLabel}
-      </span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: s.badgeMargin }}>
+        <span style={{ display: 'inline-block', padding: s.badgePadding, background: GOLD, color: 'white', fontSize: 10, fontWeight: 800, letterSpacing: s.badgeSpacing, textTransform: 'uppercase', borderRadius: 2 }}>
+          {categoryLabel}
+        </span>
+        {product.newArrival && (
+          <span style={{ display: 'inline-block', padding: s.badgePadding, background: '#1E3A5F', color: '#93C5FD', fontSize: 10, fontWeight: 800, letterSpacing: s.badgeSpacing, textTransform: 'uppercase', borderRadius: 2 }}>
+            {BADGE_LABELS.NEW}
+          </span>
+        )}
+        {product.bestseller && (
+          <span style={{ display: 'inline-block', padding: s.badgePadding, background: '#4A1D1D', color: '#FCA5A5', fontSize: 10, fontWeight: 800, letterSpacing: s.badgeSpacing, textTransform: 'uppercase', borderRadius: 2 }}>
+            {BADGE_LABELS.BESTSELLER}
+          </span>
+        )}
+        {(product.badges ?? []).map((b) => (
+          <span key={b} style={{ display: 'inline-block', padding: s.badgePadding, background: '#F4EBE1', color: '#8F5922', fontSize: 10, fontWeight: 800, letterSpacing: s.badgeSpacing, textTransform: 'uppercase', borderRadius: 2, border: '1px solid #E5D5C5' }}>
+            {b}
+          </span>
+        ))}
+      </div>
       <h1 style={{ fontSize: s.title, fontWeight: 800, color: TEXT, fontFamily: 'Georgia,serif', lineHeight: 1.2, marginBottom: 4 }}>
         {product.name}
       </h1>

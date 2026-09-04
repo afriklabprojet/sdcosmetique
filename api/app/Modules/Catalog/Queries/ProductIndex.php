@@ -62,8 +62,9 @@ final class ProductIndex
                 [$request->integer('maxPrice')],
             );
         }
-
-
+        if ($request->boolean('bestseller') || $request->boolean('featured')) {
+            $query->whereHas('badges', fn (Builder $builder): Builder => $builder->where('type', 'bestseller'));
+        }
 
         if ($request->boolean('isNew')) {
             $query->where('published_at', '>=', now()->subDays(30));
@@ -93,7 +94,7 @@ final class ProductIndex
             ProductSort::NameAsc => $query->orderBy('title'),
             ProductSort::Rating => $query->orderByDesc('published_at'),
             default => $query
-                ->orderByRaw("(select count(*) from product_badges where product_badges.product_id = products.id and product_badges.type = 'featured') desc")
+                ->orderByRaw("(select count(*) from product_badges where product_badges.product_id = products.id and product_badges.type = 'bestseller') desc")
                 ->orderByRaw("(select coalesce(sum(quantity), 0) from order_items where order_items.product_id = products.id) desc")
                 ->orderByDesc('published_at'),
         };

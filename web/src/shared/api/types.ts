@@ -16,11 +16,11 @@ export type LaravelStorefrontProduct = {
   stock: number;
   in_stock: boolean;
   recent: boolean;
-  featured: boolean;
+  featured?: boolean;
+  bestseller: boolean;
   images: string[];
   skin_tones?: string[] | null;
   badges: string[];
-  skin_tones?: string[] | null;
   children?: {
     slug: string;
     sku: string | null;
@@ -100,6 +100,7 @@ export type LaravelAdminProduct = {
   stock: number;
   visible_at: string | null;
   published_at: string | null;
+  recent?: boolean;
   images?: { id: number; url: string }[];
   badges?: { id: number; label: string; type: string }[];
   skin_tones?: string[] | null;

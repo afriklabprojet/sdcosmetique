@@ -29,7 +29,7 @@ export const fetchProductsByCategory = unstable_cache(
 
 export const fetchBestsellerProducts = unstable_cache(
   async (limit = 5): Promise<Product[]> => {
-    const products = await StorefrontProductApi.list({ featured: true, perPage: 100 });
+    const products = await StorefrontProductApi.list({ bestseller: true, perPage: 100 });
     return products.slice(0, limit);
   },
   ['products-bestsellers'],

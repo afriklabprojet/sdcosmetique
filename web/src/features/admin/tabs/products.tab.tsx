@@ -13,7 +13,7 @@ import Image from 'next/image';
 import { filterProductsData, paginateData } from '@/features/admin/admin-metrics';
 import { getProductCountText } from '@/features/admin/admin.util';
 import { formatPrice } from '@/features/catalog/product.query';
-import { type Product } from '@/shared/types/domain.type';
+import { BADGE_LABELS, type Product } from '@/shared/types/domain.type';
 import type { CategoryRow } from '@/features/catalog/category.repository';
 import { BG, SURFACE2, BORDER, BORDER2, GOLD, TEXT, TEXT2, TEXT3, INFO_C, S_ERR_BG, S_ERR_T, S_OK_T, S_WARN_BG, S_WARN_T, S_INFO_BG, S_INFO_T, PER_PAGE } from '@/features/admin/admin.constant';
 
@@ -136,8 +136,8 @@ export const ProductsTab: React.FC<ProductsTabProps> = ({
                     </td>
                     <td style={tdStyle}>
                       <div className="flex flex-wrap gap-1">
-                        {p.newArrival && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: S_INFO_BG, color: S_INFO_T }}>Nouveau</span>}
-                        {p.bestseller && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: S_ERR_BG, color: S_ERR_T }}>Bestseller</span>}
+                        {p.newArrival && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: S_INFO_BG, color: S_INFO_T }}>{BADGE_LABELS.NEW}</span>}
+                        {p.bestseller && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: S_ERR_BG, color: S_ERR_T }}>{BADGE_LABELS.BESTSELLER}</span>}
                         {p.originalPrice && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: S_WARN_BG, color: S_WARN_T }}>Promo</span>}
                         {(p.badges ?? []).map((b) => (
                           <span key={b} className="text-xs px-2 py-0.5 rounded-full" style={{ background: SURFACE2, color: TEXT2, border: `1px solid ${BORDER2}` }}>{b}</span>

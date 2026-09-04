@@ -1,5 +1,1 @@
-- [x] apply the audit fixes
-- [ ] use enum for hardcoded string accross the whole code
-- [x] move the cart data to localstorage
-- [ ] fix the upload image previous
-- [x] clean the old supabase codes
+/home/llyam/lab/temp/todos/details/clients/sd-cosmetics.md

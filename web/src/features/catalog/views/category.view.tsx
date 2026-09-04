@@ -34,11 +34,12 @@ interface Props {
   initialProducts: Product[];
   slug: Category;
   categoryRow?: CategoryRow;
+  allCategories?: CategoryRow[];
 }
 
 const NO_SKIN_FILTER_CATEGORIES = new Set<Category>(['minceur', 'kit-levre']);
 
-export default function CategoryClient({ initialProducts, slug, categoryRow }: Readonly<Props>) {
+export default function CategoryClient({ initialProducts, slug, categoryRow, allCategories }: Readonly<Props>) {
   const [skinToneFilter, setSkinToneFilter] = useState<SkinTone | null>(null);
   const [sortBy, setSortBy] = useState('popular');
   const configKey = `hero_${slug.replace(/-/g, '_')}` as keyof SiteConfig;
@@ -65,7 +66,10 @@ export default function CategoryClient({ initialProducts, slug, categoryRow }: R
   }, [configKey]);
   const showSkinToneFilter = !NO_SKIN_FILTER_CATEGORIES.has(slug);
 
-  const category = CATEGORIES.find(c => c.id === slug);
+  const category = categoryRow
+    ? { id: categoryRow.slug as Category, label: categoryRow.label, icon: categoryRow.icon || '◇', description: categoryRow.sub_label }
+    : CATEGORIES.find(c => c.id === slug);
+
   const activeSkinTone = skinToneFilter
     ? { noir: 'Noir', marron: 'Marron', 'marron-clair': 'Marron clair', clair: 'Clair', metisse: 'Métisse' }[skinToneFilter]
     : null;
@@ -91,12 +95,17 @@ export default function CategoryClient({ initialProducts, slug, categoryRow }: R
     );
   }
 
+  const categoryImage = heroConfig?.image || categoryRow?.image || (slug in CATEGORY_IMAGES ? CATEGORY_IMAGES[slug as keyof typeof CATEGORY_IMAGES] : '/categories/visage.png');
+  const displayCategories = (allCategories && allCategories.length > 0)
+    ? allCategories.map(c => ({ id: c.slug, label: c.label }))
+    : CATEGORIES.map(c => ({ id: c.id, label: c.label }));
+
   return (
     <div>
       {/* Hero banner */}
       <div className="relative h-80 lg:h-[26rem] overflow-hidden flex items-center" style={{ background: 'linear-gradient(135deg, #fbf7f0 0%, #fff 55%, #f4eadb 100%)' }}>
         <Image
-          src={heroConfig?.image || CATEGORY_IMAGES[slug] || CATEGORY_IMAGES.gammes}
+          src={categoryImage}
           alt={heroConfig?.title || category.label}
           fill
           priority
@@ -158,7 +167,7 @@ export default function CategoryClient({ initialProducts, slug, categoryRow }: R
       <div id="catalogue" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
         <nav className="flex gap-2 overflow-x-auto pb-2 mb-8" aria-label="Toutes les catégories">
-          {CATEGORIES.map(item => {
+          {displayCategories.map(item => {
             const active = item.id === slug;
             return (
               <Link

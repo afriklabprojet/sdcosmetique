@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { formatOrderDate, updateOrderStatus, OrderDraft } from '@/features/orders/order.store';
 import { formatPrice } from '@/features/catalog/product.query';
-import { Product, type Category as CategorySlug, SkinTone, Review } from '@/shared/types/domain.type';
+import { BADGE_LABELS, Product, type Category as CategorySlug, SkinTone, Review } from '@/shared/types/domain.type';
 import { fetchAllReviews, deleteReview, approveReview } from '@/features/catalog/review.repository';
 
 import {
@@ -26,6 +26,7 @@ import type { AdminTabStatus, ClientRow } from '@/features/admin/admin.type';
 import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
 import type { SiteConfig } from '@/features/site-config/site-config.type';
 import ImageUpload from '@/shared/ui/image.input';
+import ChipsInput from '@/shared/ui/chips.input';
 import { fetchAllTestimonialsAdmin, approveTestimonial, deleteTestimonial } from '@/features/testimonials/testimonial.repository';
 import type { TestimonialRow } from '@/features/testimonials/testimonial.repository';
 import type { CategoryRow } from '@/features/catalog/category.repository';
@@ -88,6 +89,7 @@ type ProductEditModalProps = {
   S_ERR_BG: string;
   S_ERR_T: string;
   categories: CategoryRow[];
+  availableBadges?: string[];
   saving?: boolean;
   saveError?: string | null;
 };
@@ -102,7 +104,7 @@ type ProductEditModalProps = {
 function ProductEditModal({ 
   initialProduct, saveDraft, close, inputStyle,
   SURFACE, TEXT, TEXT2, TEXT3, BORDER, BG, GOLD2, SURFACE2, BTN_BG, S_ERR_BG, S_ERR_T,
-  categories, saving, saveError
+  categories, availableBadges, saving, saveError
 }: Readonly<ProductEditModalProps>) {
   const [productModal, setProductModal] = useState<ProductModalState | null>(initialProduct);
 
@@ -371,27 +373,27 @@ function ProductEditModal({
         <fieldset>
           <legend style={{ fontSize: '11px', color: TEXT2, marginBottom: '6px' }}>Badges</legend>
           <div style={{ display: 'flex', gap: '20px' }}>
-            {([{ key: 'bestseller', label: 'Bestseller' }]).map(({ key, label }) => (
+            {([
+              { key: 'newArrival', label: BADGE_LABELS.NEW },
+              { key: 'bestseller', label: BADGE_LABELS.BESTSELLER },
+            ]).map(({ key, label }) => (
               <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                 <input type="checkbox" checked={!!((productModal as Record<string, unknown>)[key])} onChange={(e) => setProductModal((p) => p ? { ...p, [key]: e.target.checked } : p)} style={{ accentColor: GOLD2 }} />
                 <span style={{ fontSize: '12px', color: TEXT }}>{label}</span>
               </label>
             ))}
           </div>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '10px' }}>
-            <span style={{ fontSize: '11px', color: TEXT2 }}>Badges personnalisés <span style={{ color: TEXT3 }}>(séparés par virgule, ex: &quot;Bestseller, -22%&quot;)</span></span>
-            <input
-              type="text"
-              value={(productModal.badges ?? []).join(', ')}
-              onChange={(e) => {
-                const val = e.target.value;
-                const arr = val.split(',').map(s => s.trim()).filter(Boolean);
-                setProductModal((p) => p ? { ...p, badges: arr } : p);
-              }}
-              placeholder="Bestseller, -22%, Nouveau"
-              style={inputStyle}
+          <div style={{ marginTop: '10px' }}>
+            <ChipsInput
+              values={productModal.badges ?? []}
+              onChange={(badges) => setProductModal((p) => p ? { ...p, badges } : p)}
+              suggestions={availableBadges}
+              placeholder="ex: Bio, 100% Naturel, -20%..."
+              label="Badges personnalisés"
+              helperText="(séparés par virgule ou Entrée)"
+              inputStyle={inputStyle}
             />
-          </label>
+          </div>
         </fieldset>
         {saveError && (
           <div style={{ background: S_ERR_BG, color: S_ERR_T, borderRadius: '6px', padding: '10px 12px', fontSize: '12px', lineHeight: '1.4' }}>
@@ -574,6 +576,19 @@ export default function AdminPage() { // NOSONAR typescript:S3776
   };
 
   // ── product modal helpers ──
+  const availableBadges = useMemo(() => {
+    const set = new Set<string>();
+    ['Bio', '100% Naturel', 'Édition Limitée', 'Sans Sulfates', 'Sans Parfum', 'Duo Offre', 'Nouveau format'].forEach((b) => set.add(b));
+    editableProducts.forEach((p) => {
+      (p.badges ?? []).forEach((b) => {
+        if (b && typeof b === 'string' && b.trim()) {
+          set.add(b.trim());
+        }
+      });
+    });
+    return Array.from(set).sort();
+  }, [editableProducts]);
+
   const openEditModal = (p: EditableProduct) => setProductModal({ ...p, _isNew: false });
   const openNewModal = () => setProductModal({
     _isNew: true, id: `p${Date.now()}`, name: '', slug: '', category: (categories[0]?.slug ?? 'face') as CategorySlug,
@@ -1357,6 +1372,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
         S_ERR_BG={S_ERR_BG}
         S_ERR_T={S_ERR_T}
         categories={categories}
+        availableBadges={availableBadges}
         saving={saving}
         saveError={saveError}
       />}

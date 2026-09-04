@@ -172,10 +172,10 @@ class Product extends Model
         return new Pricing($this);
     }
 
-    public function featured(): bool
+    public function bestseller(): bool
     {
         return $this->badges->contains(
-            fn (Product\Badge $badge): bool => $badge->type === 'featured',
+            fn (Product\Badge $badge): bool => $badge->type === 'bestseller',
         );
     }
 

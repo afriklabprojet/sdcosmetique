@@ -22,7 +22,7 @@ class ProductController extends Controller
         $this->authorize('viewAny', Product::class);
 
         $products = Product::query()
-            ->with(['category', 'files', 'tones'])
+            ->with(['category', 'files', 'tones', 'badges'])
             ->when(
                 $request->boolean('parents_only'),
                 fn ($q) => $q->whereNull('parent_id'),
@@ -136,9 +136,9 @@ class ProductController extends Controller
     private function syncBestseller(Product $product, bool $isBestseller): void
     {
         if ($isBestseller) {
-            $product->badges()->firstOrCreate(['type' => 'featured'], ['label' => 'Bestseller']);
+            $product->badges()->firstOrCreate(['type' => 'bestseller'], ['label' => 'Bestseller']);
         } else {
-            $product->badges()->where('type', 'featured')->delete();
+            $product->badges()->where('type', 'bestseller')->delete();
         }
     }
 

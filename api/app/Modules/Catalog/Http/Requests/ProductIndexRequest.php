@@ -29,6 +29,7 @@ class ProductIndexRequest extends FormRequest
             'minPrice' => ['sometimes', 'integer', 'min:0'],
             'maxPrice' => ['sometimes', 'integer', 'min:0'],
             'featured' => ['sometimes', 'boolean'],
+            'bestseller' => ['sometimes', 'boolean'],
             'isNew' => ['sometimes', 'boolean'],
             'page' => ['sometimes', 'integer', 'min:1'],
             'perPage' => ['sometimes', 'integer', 'min:1', 'max:100'],

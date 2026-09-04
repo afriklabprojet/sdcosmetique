@@ -1,4 +1,4 @@
-import type { Category, Product } from '@/shared/types/domain.type';
+import type { Category, Product, SkinTone } from '@/shared/types/domain.type';
 import type { LaravelAdminProduct, LaravelAdminProductWrite, LaravelStorefrontProduct } from '@/shared/api/types';
 
 export function asCategory(slug: string | null | undefined): Category {
@@ -28,7 +28,7 @@ export function mapStorefrontProduct(dto: LaravelStorefrontProduct): Product {
     price: child?.price ?? dto.price,
     originalPrice: (child?.compare_at_price ?? dto.compare_at_price) ?? undefined,
     images: dto.images ?? [],
-    skinTones: dto.skin_tones ?? [],
+    skinTones: (dto.skin_tones ?? []) as SkinTone[],
     badges: dto.badges ?? [],
     rating: 4.8,
     reviewCount: 24,
@@ -40,7 +40,7 @@ export function mapStorefrontProduct(dto: LaravelStorefrontProduct): Product {
     inStock: child?.in_stock ?? dto.in_stock,
     stockQty: child?.stock ?? dto.stock,
     newArrival: dto.recent,
-    bestseller: dto.featured,
+    bestseller: dto.bestseller ?? dto.featured ?? false,
     variantSlug: child?.slug ?? dto.slug,
   };
 }
@@ -56,8 +56,8 @@ export function mapAdminProduct(dto: LaravelAdminProduct): Product {
     price: sale ?? regular,
     originalPrice: sale != null ? regular : undefined,
     images: (dto.images ?? []).map((file) => file.url),
-    skinTones: dto.skin_tones ?? [],
-    badges: (dto.badges ?? []).filter((b) => b.type !== 'featured').map((badge) => badge.label),
+    skinTones: (dto.skin_tones ?? []) as SkinTone[],
+    badges: (dto.badges ?? []).filter((b) => b.type !== 'bestseller').map((badge) => badge.label),
     rating: 0,
     reviewCount: 0,
     shortDescription: dto.summary ?? '',
@@ -67,16 +67,23 @@ export function mapAdminProduct(dto: LaravelAdminProduct): Product {
     ingredients: ingredientsToString(dto.ingredients),
     inStock: dto.stock > 0,
     stockQty: dto.stock,
-    newArrival: dto.published_at != null,
-    bestseller: (dto.badges ?? []).some((badge) => badge.type === 'featured'),
+    newArrival: dto.recent ?? (dto.published_at != null ? (Date.now() - new Date(dto.published_at).getTime() < 30 * 24 * 3600 * 1000) : false),
+    bestseller: (dto.badges ?? []).some((badge) => badge.type === 'bestseller'),
   };
 }
 
 export function toAdminProductPayload(
-  product: Pick<Product, 'name' | 'slug' | 'shortDescription' | 'description' | 'usage' | 'ingredients' | 'price' | 'originalPrice' | 'stockQty' | 'inStock' | 'images' | 'skinTones' | 'bestseller' | 'badges'>,
+  product: Pick<Product, 'name' | 'slug' | 'shortDescription' | 'description' | 'usage' | 'ingredients' | 'price' | 'originalPrice' | 'stockQty' | 'inStock' | 'images' | 'skinTones' | 'bestseller' | 'badges' | 'newArrival'>,
   categoryId: number,
 ): LaravelAdminProductWrite {
   const hasSale = product.originalPrice != null && product.originalPrice > product.price;
+  let publishedAt: string | null | undefined = undefined;
+  if (product.newArrival === true) {
+    publishedAt = new Date().toISOString();
+  } else if (product.newArrival === false) {
+    publishedAt = new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString();
+  }
+
   return {
     category_id: categoryId,
     slug: product.slug,
@@ -92,5 +99,6 @@ export function toAdminProductPayload(
     skin_tones: product.skinTones ?? [],
     bestseller: product.bestseller ?? false,
     badges: product.badges ?? [],
+    ...(publishedAt !== undefined ? { published_at: publishedAt } : {}),
   };
 }

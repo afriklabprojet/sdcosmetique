@@ -37,6 +37,7 @@ class ProductResource extends JsonResource
             'stock' => (int) $this->stock,
             'visible_at' => $this->visible_at,
             'published_at' => $this->published_at,
+            'recent' => $this->recent(),
             'images' => $this->whenLoaded('files', fn () => $this->files->map(fn ($file): array => [
                 'id' => $file->id,
                 'url' => $file->url,

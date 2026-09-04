@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { CategoryRow } from '@/features/catalog/category.repository';
@@ -22,126 +21,39 @@ export default function CategoryHighlight({ categories }: Readonly<Props>) {
   const display = raw.filter(c => !c.is_quiz);
 
   return (
-    <section
-      style={{ background: 'transparent', padding: '0', position: 'relative', zIndex: 10, marginTop: 'clamp(-80px, -6vw, -8px)' }}
-    >
-      <div
-        className="cat-card"
-        style={{
-          width: '90%', marginLeft: 'auto', marginRight: 'auto',
-          background: '#FFFFFF', borderRadius: '20px',
-          boxShadow: '0 14px 50px rgba(0,0,0,0.08)',
-          position: 'relative', zIndex: 10,
-          padding: '0', overflow: 'hidden',
-        }}
-      >
-        <div className="cat-scroll">
+    <section className="relative z-10 bg-transparent p-0 -mt-2 sm:-mt-12 md:-mt-16 lg:-mt-20">
+      <div className="w-[90%] mx-auto bg-white rounded-[20px] shadow-[0_14px_50px_rgba(0,0,0,0.08)] relative z-10 p-0 overflow-hidden">
+        <div className="flex w-full justify-evenly max-sm:justify-start max-sm:overflow-x-auto max-sm:snap-x max-sm:snap-mandatory scrollbar-none">
           {display.map((cat, idx) => (
             <Link
               key={cat.id}
               href={cat.href}
-              className="cat-item"
-              style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center',
-                textDecoration: 'none', cursor: 'pointer', flexShrink: 0,
-                padding: '16px 10px 14px',
-                borderRight: idx < display.length - 1 ? '1px solid #F0EBE0' : 'none',
-              }}
+              className={`flex flex-col items-center shrink-0 min-w-0 max-sm:min-w-[90px] max-sm:snap-start py-4 px-2.5 max-sm:py-3 max-sm:px-2 no-underline cursor-pointer group transition-colors duration-200 hover:bg-[#FDFAF6] max-sm:hover:bg-transparent ${
+                idx < display.length - 1 ? 'border-r border-[#F0EBE0] max-sm:border-r-0' : ''
+              }`}
             >
               {/* Ovale beige avec image produit */}
-              <div className="cat-oval" style={{ position: 'relative' }}>
+              <div className="relative w-[80px] h-[95px] max-sm:w-[62px] max-sm:h-[74px] bg-[#F5EDE2] rounded-full overflow-hidden shrink-0 flex items-center justify-center">
                 <Image
                   src={cat.image}
                   alt={cat.label}
                   fill
                   sizes="80px"
-                  className="cat-img"
-                  style={{ objectFit: 'cover', objectPosition: 'center top' }}
+                  className="object-cover object-top transition-transform duration-400 ease-out group-hover:scale-105"
                   onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 />
               </div>
 
               {/* Textes */}
-              <div style={{ textAlign: 'center', marginTop: '10px' }}>
-                <span className="cat-label">{cat.label}</span>
+              <div className="text-center mt-2.5">
+                <span className="block font-sans font-bold text-[0.72rem] tracking-[0.14em] text-[#1A0E05] uppercase mb-1">
+                  {cat.label}
+                </span>
               </div>
             </Link>
           ))}
         </div>
       </div>
-
-      <style jsx>{`
-        .cat-scroll {
-          display: flex;
-          width: 100%;
-          justify-content: space-evenly;
-        }
-        .cat-item {
-          flex: 0 0 auto;
-          min-width: 0;
-          transition: background 0.25s ease;
-        }
-        .cat-item:hover {
-          background: #FDFAF6;
-        }
-
-        /* Ovale beige centré */
-        .cat-oval {
-          width: 80px;
-          height: 95px;
-          background: #F5EDE2;
-          border-radius: 50%;
-          overflow: hidden;
-          flex-shrink: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .cat-img {
-          transition: transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94);
-        }
-        .cat-item:hover .cat-img {
-          transform: scale(1.07);
-        }
-
-        .cat-label {
-          display: block;
-          font-family: var(--font-inter), Inter, sans-serif;
-          font-weight: 700;
-          font-size: 0.72rem;
-          letter-spacing: 0.14em;
-          color: #1A0E05;
-          text-transform: uppercase;
-          margin-bottom: 5px;
-        }
-        .cat-sub {
-          display: block;
-          font-family: var(--font-inter), Inter, sans-serif;
-          font-size: 0.68rem;
-          color: #9A8A7A;
-          line-height: 1.5;
-          white-space: pre-line;
-        }
-
-        @media (max-width: 640px) {
-          .cat-scroll {
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            scrollbar-width: none;
-            justify-content: flex-start;
-          }
-          .cat-scroll::-webkit-scrollbar { display: none; }
-          .cat-item {
-            flex: 0 0 auto;
-            min-width: 90px;
-            scroll-snap-align: start;
-            border-right: none !important;
-            padding: 12px 8px 10px;
-          }
-          .cat-item:hover { background: transparent; }
-          .cat-oval { width: 62px; height: 74px; }
-        }
-      `}</style>
     </section>
   );
 }

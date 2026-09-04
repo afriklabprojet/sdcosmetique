@@ -33,11 +33,12 @@ class ProductResource extends JsonResource
             'stock' => $this->inventory()->effective(),
             'in_stock' => $this->inventory()->available(),
             'recent' => $this->recent(),
-            'featured' => $this->featured(),
+            'featured' => $this->bestseller(),
+            'bestseller' => $this->bestseller(),
             'images' => $this->files->pluck('url')->values(),
             'skin_tones' => $this->tones->pluck('slug')->values(),
             'badges' => $this->badges
-                ->reject(fn ($badge): bool => $badge->type === 'featured')
+                ->reject(fn ($badge): bool => $badge->type === 'bestseller')
                 ->pluck('label')
                 ->values(),
             'children' => $this->children->map(fn (Product $child): array => [

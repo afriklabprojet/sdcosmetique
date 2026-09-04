@@ -12,13 +12,14 @@ function relatedList(related: LaravelStorefrontProduct[] | { data: LaravelStoref
 export namespace Product {
   export async function list(options?: {
     category?: string;
+    bestseller?: boolean;
     featured?: boolean;
     perPage?: number;
   }): Promise<ProductType[]> {
     try {
       const query = new URLSearchParams();
       if (options?.category) query.set('category', options.category);
-      if (options?.featured) query.set('featured', '1');
+      if (options?.bestseller || options?.featured) query.set('bestseller', '1');
       query.set('perPage', String(options?.perPage ?? 100));
       const body = await api<Paginated<LaravelStorefrontProduct>>(`/products?${query}`);
       return body.data.map(mapStorefrontProduct);
