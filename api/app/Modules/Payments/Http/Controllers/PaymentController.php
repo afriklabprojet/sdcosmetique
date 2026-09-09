@@ -7,17 +7,17 @@ namespace App\Modules\Payments\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Orders\Models\Order;
 use App\Modules\Payments\Domain\Terminals;
+use App\Modules\Payments\Http\Requests\StorePaymentRequest;
 use App\Modules\Payments\Models\Payment;
 use App\Shared\Money;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class PaymentController extends Controller
 {
     public function __construct(private readonly Terminals $terminals) {}
 
-    public function store(Request $request, Order $order): JsonResponse
+    public function store(StorePaymentRequest $request, Order $order): JsonResponse
     {
         $this->authorize('view', $order);
 
@@ -53,6 +53,10 @@ class PaymentController extends Controller
         ]);
 
         $attempt = $attempt->start($terminal, $order);
+
+        if ($attempt->failed_at !== null || $attempt->redirect_url === null) {
+            return response()->json(['message' => 'Payment provider unavailable.'], 502);
+        }
 
         return response()->json([
             'data' => [

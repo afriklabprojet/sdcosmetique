@@ -21,6 +21,7 @@ class OrderController extends Controller
 
         $orders = $client->orders()
             ->whereNotNull('placed_at')
+            ->with(['items', 'adjustments', 'deliveryMethod'])
             ->latest('placed_at')
             ->get();
 

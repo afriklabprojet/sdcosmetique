@@ -36,8 +36,8 @@
         <env name="SESSION_DOMAIN" value="localhost"/>
         <env name="SANCTUM_STATEFUL_DOMAINS" value="localhost:3000"/>
         <env name="FRONTEND_URL" value="http://localhost:3000"/>
+        <env name="JEKO_REDIRECT_FALLBACK_URL" value="https://testing.invalid"/>
         <env name="PAYMENTS_WEBHOOK_SECRET" value="testing-secret"/>
-        <env name="CINETPAY_WEBHOOK_SECRET" value="testing-secret"/>
         <env name="JEKO_WEBHOOK_SECRET" value="testing-jeko-secret"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>

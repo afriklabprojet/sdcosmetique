@@ -15,6 +15,8 @@ class DeliveryMethodController extends Controller
 {
     public function index(): JsonResponse
     {
+        $this->authorize('viewAny', Method::class);
+
         $methods = Method::query()->orderBy('position')->get();
 
         return DeliveryMethodResource::collection($methods)->response();
@@ -22,6 +24,8 @@ class DeliveryMethodController extends Controller
 
     public function store(DeliveryMethodRequest $request): JsonResponse
     {
+        $this->authorize('create', Method::class);
+
         $method = Method::create($request->validated());
 
         return DeliveryMethodResource::make($method)
@@ -31,11 +35,15 @@ class DeliveryMethodController extends Controller
 
     public function show(Method $deliveryMethod): JsonResponse
     {
+        $this->authorize('view', $deliveryMethod);
+
         return DeliveryMethodResource::make($deliveryMethod)->response();
     }
 
     public function update(DeliveryMethodRequest $request, Method $deliveryMethod): JsonResponse
     {
+        $this->authorize('update', $deliveryMethod);
+
         $deliveryMethod->update($request->validated());
 
         return DeliveryMethodResource::make($deliveryMethod)->response();
@@ -43,6 +51,8 @@ class DeliveryMethodController extends Controller
 
     public function destroy(Method $deliveryMethod): Response
     {
+        $this->authorize('delete', $deliveryMethod);
+
         $deliveryMethod->delete();
 
         return response()->noContent();

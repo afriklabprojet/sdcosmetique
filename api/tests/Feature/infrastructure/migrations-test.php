@@ -7,7 +7,10 @@ it('creates each domain table in exactly one migration', function (): void {
 
     foreach (glob(database_path('migrations/*.php')) as $file) {
         $contents = file_get_contents($file) ?: '';
-        if (preg_match_all("/Schema::create\\('([^']+)'/", $contents, $matches) === 0) {
+        // Only the up() body counts as a "creation" — a down() may legitimately
+        // recreate a table to reverse a later drop migration.
+        $upOnly = strstr($contents, 'function down', true) ?: $contents;
+        if (preg_match_all("/Schema::create\\('([^']+)'/", $upOnly, $matches) === 0) {
             continue;
         }
 

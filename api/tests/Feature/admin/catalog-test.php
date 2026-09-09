@@ -74,6 +74,49 @@ it('performs the product lifecycle', function (): void {
     expect(Product::query()->count())->toBe(0);
 });
 
+it('never marks a freshly created product as "new" unless the admin asks for it', function (): void {
+    $category = Category::factory()->create();
+
+    $this->actingAs(admin());
+
+    // Aucun `new_arrival` envoyé : le badge "Nouveau" ne doit jamais apparaître
+    // tout seul, même si le produit vient d'être publié à l'instant.
+    $id = $this->postJson('/v1/admin/products', [
+        'category_id' => $category->id,
+        'slug' => 'sans-badge-nouveau',
+        'title' => 'Sans badge nouveau',
+        'regular_price' => 9000,
+    ])->assertCreated()
+        ->assertJsonPath('data.recent', false)
+        ->json('data.id');
+
+    expect(Product::find($id)->badges()->where('type', 'new')->exists())->toBeFalse();
+});
+
+it('lets the admin toggle the "new" badge explicitly', function (): void {
+    $category = Category::factory()->create();
+
+    $this->actingAs(admin());
+
+    $id = $this->postJson('/v1/admin/products', [
+        'category_id' => $category->id,
+        'slug' => 'avec-badge-nouveau',
+        'title' => 'Avec badge nouveau',
+        'regular_price' => 9000,
+        'new_arrival' => true,
+    ])->assertCreated()
+        ->assertJsonPath('data.recent', true)
+        ->json('data.id');
+
+    expect(Product::find($id)->badges()->where('type', 'new')->count())->toBe(1);
+
+    $this->putJson('/v1/admin/products/'.$id, ['new_arrival' => false])
+        ->assertOk()
+        ->assertJsonPath('data.recent', false);
+
+    expect(Product::find($id)->badges()->where('type', 'new')->exists())->toBeFalse();
+});
+
 it('validates duplicate product slug', function (): void {
     $product = Product::factory()->create(['slug' => 'existing-slug']);
 

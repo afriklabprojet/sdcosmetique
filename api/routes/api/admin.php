@@ -7,7 +7,6 @@ use App\Modules\Accounts\Http\Controllers\Admin\CustomerController;
 use App\Modules\Catalog\Http\Controllers\Admin\CategoryController;
 use App\Modules\Catalog\Http\Controllers\Admin\MediaController;
 use App\Modules\Catalog\Http\Controllers\Admin\ProductController;
-use App\Modules\Content\Http\Controllers\Admin\BannerController;
 use App\Modules\Content\Http\Controllers\Admin\PageController;
 use App\Modules\Identity\Http\Controllers\Admin\SessionController;
 use App\Modules\Leads\Http\Controllers\Admin\ContactMessageController;
@@ -39,7 +38,6 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
     Route::apiResource('products', ProductController::class);
     Route::post('media', [MediaController::class, 'store'])->name('media.store');
 
-    Route::apiResource('banners', BannerController::class);
     Route::apiResource('pages', PageController::class);
 
     Route::get('contact-messages', [ContactMessageController::class, 'index'])->name('contact-messages.index');

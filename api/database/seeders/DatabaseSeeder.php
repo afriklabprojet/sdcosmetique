@@ -15,7 +15,6 @@ class DatabaseSeeder extends Seeder
             \Database\Seeders\Catalog\V1CategorySeeder::class,
             \Database\Seeders\Catalog\ToneSeeder::class,
             \Database\Seeders\Content\PageSeeder::class,
-            \Database\Seeders\Content\BannerSeeder::class,
             \Database\Seeders\Orders\DeliveryMethodSeeder::class,
             \Database\Seeders\Settings\SettingsSeeder::class,
             \Database\Seeders\Quiz\QuizSeeder::class,

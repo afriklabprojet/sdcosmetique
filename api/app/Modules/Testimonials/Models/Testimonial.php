@@ -12,6 +12,12 @@ use Illuminate\Database\Eloquent\Model;
 
 #[Table('testimonials')]
 #[Fillable(['name', 'text', 'avatar_url', 'approved_at'])]
+/**
+ * Témoignage de marque, sans produit ni note — affiché sur /avis et
+ * l'accueil. À distinguer de App\Modules\Reviews\Models\Review : ce dernier
+ * est un avis noté (1-5 étoiles) rattaché à un produit précis, qui alimente
+ * la note moyenne et le JSON-LD AggregateRating de la fiche produit.
+ */
 class Testimonial extends Model
 {
     /** @use HasFactory<TestimonialFactory> */

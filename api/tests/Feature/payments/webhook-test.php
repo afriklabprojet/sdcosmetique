@@ -5,17 +5,112 @@ declare(strict_types=1);
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Orders\Models\Delivery\Method;
 use App\Modules\Orders\Models\Order;
+use App\Modules\Payments\Gateways\JekoTerminal;
 use App\Modules\Payments\Models\Payment;
 use App\Modules\Payments\Models\Payment\Attempt;
 use App\Modules\Payments\Models\Payment\Notification;
 use Illuminate\Support\Facades\Http;
 
+it('rejects a local Jeko redirect fallback before calling the provider', function (): void {
+    config()->set('app.frontend_url', 'http://localhost:3000');
+    config()->set('payments.jeko.redirect_fallback_url', 'http://127.0.0.1:3000');
+
+    $order = Order::factory()->placed()->create();
+    $payment = Payment::factory()->create([
+        'order_id' => $order->id,
+        'amount' => $order->total->value,
+        'currency' => $order->currency,
+    ]);
+    $attempt = Attempt::factory()->create([
+        'payment_id' => $payment->id,
+        'amount' => $order->total->value,
+        'currency' => $order->currency,
+    ]);
+
+    expect(fn () => app(JekoTerminal::class)->start($attempt, $order))
+        ->toThrow(RuntimeException::class, 'JEKO_REDIRECT_FALLBACK_URL');
+
+    Http::assertNothingSent();
+});
+
+it('stores and uses the Jeko request id for reconciliation', function (): void {
+    Http::fake([
+        'https://api.jeko.africa/partner_api/payment_requests' => Http::response([
+            'id' => 'jeko-request-123',
+            'redirectUrl' => 'https://pay.jeko.africa/abc',
+            'status' => 'pending',
+        ]),
+        'https://api.jeko.africa/partner_api/payment_requests/jeko-request-123' => Http::response([
+            'id' => 'jeko-request-123',
+            'status' => 'success',
+        ]),
+    ]);
+
+    $order = Order::factory()->placed()->create();
+    $payment = Payment::factory()->create([
+        'order_id' => $order->id,
+        'amount' => $order->total->value,
+        'currency' => $order->currency,
+    ]);
+    $attempt = Attempt::factory()->create([
+        'payment_id' => $payment->id,
+        'amount' => $order->total->value,
+        'currency' => $order->currency,
+        'reference' => 'MERCHANT-REFERENCE-123',
+    ]);
+    $terminal = app(JekoTerminal::class);
+
+    $attempt = $terminal->start($attempt, $order);
+
+    expect($attempt->request_payload['jeko_request_id'])->toBe('jeko-request-123')
+        ->and($terminal->check($attempt))->toBe('paid');
+
+    Http::assertSent(fn ($request): bool => $request->method() === 'GET'
+        && $request->url() === 'https://api.jeko.africa/partner_api/payment_requests/jeko-request-123'
+    );
+});
+
+it('does not query Jeko when a legacy attempt has no provider request id', function (): void {
+    Http::fake();
+
+    $attempt = Attempt::factory()->create(['request_payload' => ['reference' => 'legacy']]);
+
+    expect(app(JekoTerminal::class)->check($attempt))->toBe('pending');
+
+    Http::assertNothingSent();
+});
+
+it('marks the attempt failed when Jeko rejects payment initiation', function (): void {
+    Http::fake([
+        'https://api.jeko.africa/partner_api/payment_requests' => Http::response([
+            'message' => 'Invalid payment request.',
+        ], 422),
+    ]);
+
+    $order = Order::factory()->placed()->create();
+    $payment = Payment::factory()->create([
+        'order_id' => $order->id,
+        'amount' => $order->total->value,
+        'currency' => $order->currency,
+    ]);
+    $attempt = Attempt::factory()->create([
+        'payment_id' => $payment->id,
+        'amount' => $order->total->value,
+        'currency' => $order->currency,
+    ]);
+
+    $attempt = app(JekoTerminal::class)->start($attempt, $order);
+
+    expect($attempt->failure_reason)->toBe('Invalid payment request.')
+        ->and($attempt->failed_at)->not->toBeNull()
+        ->and($attempt->redirect_url)->toBeNull();
+});
+
 it('settles a placed order through a signed webhook and ignores replay', function (): void {
     Http::fake([
-        'https://api-checkout.cinetpay.com/*' => Http::response([
-            'code' => '201',
-            'message' => 'CREATED',
-            'data' => ['payment_url' => 'https://checkout.cinetpay.com/pay/abc'],
+        'https://api.jeko.africa/*' => Http::response([
+            'id' => 'jeko-request-webhook-123',
+            'redirectUrl' => 'https://pay.jeko.africa/abc',
         ], 200),
     ]);
 
@@ -38,29 +133,33 @@ it('settles a placed order through a signed webhook and ignores replay', functio
         'city' => 'Abidjan',
         'country' => 'CI',
     ])->assertOk();
-    $this->putJson('/v1/checkout/payment', ['gateway' => 'cinetpay'])->assertOk();
+    $this->putJson('/v1/checkout/payment', ['gateway' => 'jeko'])->assertOk();
     $placed = $this->postJson('/v1/orders')->assertCreated();
     $reference = $placed->json('data.reference');
 
-    $payment = $this->postJson('/v1/orders/'.$reference.'/payments')->assertCreated();
+    $payment = $this->postJson('/v1/orders/'.$reference.'/payments', [
+        'payment_method' => 'wave',
+    ])->assertCreated();
     $attemptReference = $payment->json('data.reference');
+
+    Http::assertSent(fn ($request): bool => data_get($request->data(), 'paymentDetails.data.paymentMethod') === 'wave');
 
     $payload = json_encode([
         'reference' => $attemptReference,
         'status' => 'PAID',
     ], JSON_THROW_ON_ERROR);
-    $signature = hash_hmac('sha256', $payload, 'testing-secret');
+    $signature = hash_hmac('sha256', $payload, 'testing-jeko-secret');
 
     $this->call(
         'POST',
-        '/webhooks/cinetpay',
+        '/webhooks/jeko',
         [],
         [],
         [],
         [
             'CONTENT_TYPE' => 'application/json',
             'HTTP_ACCEPT' => 'application/json',
-            'HTTP_X_WEBHOOK_SIGNATURE' => $signature,
+            'HTTP_JEKO_SIGNATURE' => $signature,
         ],
         $payload,
     )->assertOk()->assertJsonPath('status', 'settled');
@@ -70,14 +169,14 @@ it('settles a placed order through a signed webhook and ignores replay', functio
 
     $this->call(
         'POST',
-        '/webhooks/cinetpay',
+        '/webhooks/jeko',
         [],
         [],
         [],
         [
             'CONTENT_TYPE' => 'application/json',
             'HTTP_ACCEPT' => 'application/json',
-            'HTTP_X_WEBHOOK_SIGNATURE' => $signature,
+            'HTTP_JEKO_SIGNATURE' => $signature,
         ],
         $payload,
     )->assertOk()->assertJsonPath('status', 'replayed');
@@ -139,7 +238,7 @@ it('rejects an unsigned webhook without returning 419', function (): void {
 
     $this->call(
         'POST',
-        '/webhooks/cinetpay',
+        '/webhooks/jeko',
         [],
         [],
         [],
@@ -185,7 +284,7 @@ it('rolls back a mid-settle failure and returns 422', function (): void {
     ]);
     $originalPayload = ['reference' => 'DRAFT-SETTLE-1', 'status' => 'PENDING', 'raw' => 'original'];
     $notification = Notification::factory()->create([
-        'gateway' => 'cinetpay',
+        'gateway' => 'jeko',
         'reference' => 'DRAFT-SETTLE-1',
         'payment_attempt_id' => $attempt->id,
         'payload' => $originalPayload,
@@ -196,18 +295,18 @@ it('rolls back a mid-settle failure and returns 422', function (): void {
         'status' => 'PAID',
         'raw' => 'signed-retry',
     ], JSON_THROW_ON_ERROR);
-    $signature = hash_hmac('sha256', $payload, 'testing-secret');
+    $signature = hash_hmac('sha256', $payload, 'testing-jeko-secret');
 
     $this->call(
         'POST',
-        '/webhooks/cinetpay',
+        '/webhooks/jeko',
         [],
         [],
         [],
         [
             'CONTENT_TYPE' => 'application/json',
             'HTTP_ACCEPT' => 'application/json',
-            'HTTP_X_WEBHOOK_SIGNATURE' => $signature,
+            'HTTP_JEKO_SIGNATURE' => $signature,
         ],
         $payload,
     )->assertStatus(422)->assertJsonPath('status', 'failed');
@@ -228,7 +327,7 @@ it('rolls back a mid-settle failure and returns 422', function (): void {
 it('does not overwrite a handled notification payload on unsigned replay', function (): void {
     $original = ['reference' => 'HANDLED-1', 'status' => 'PAID', 'raw' => 'authentic'];
     Notification::factory()->create([
-        'gateway' => 'cinetpay',
+        'gateway' => 'jeko',
         'reference' => 'HANDLED-1',
         'payload' => $original,
         'handled_at' => now(),
@@ -242,7 +341,7 @@ it('does not overwrite a handled notification payload on unsigned replay', funct
 
     $this->call(
         'POST',
-        '/webhooks/cinetpay',
+        '/webhooks/jeko',
         [],
         [],
         [],

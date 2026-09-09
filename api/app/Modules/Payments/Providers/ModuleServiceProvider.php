@@ -7,7 +7,6 @@ namespace App\Modules\Payments\Providers;
 use App\Modules\Payments\Console\ReconcilePaymentsCommand;
 use App\Modules\Payments\Domain\Terminal;
 use App\Modules\Payments\Domain\Terminals;
-use App\Modules\Payments\Gateways\CinetPayTerminal;
 use App\Modules\Payments\Gateways\JekoTerminal;
 use App\Modules\Payments\Gateways\NullTerminal;
 use App\Modules\Payments\Models\Payment;

@@ -7,6 +7,7 @@ namespace App\Modules\Orders\Models;
 use App\Modules\Accounts\Models\Client;
 use App\Modules\Orders\Data\Settlement;
 use App\Modules\Orders\Domain\Checkout;
+use App\Modules\Orders\Domain\ClientLinker;
 use App\Modules\Orders\Enums\AdjustmentType;
 use App\Modules\Orders\Enums\Operation;
 use App\Modules\Orders\Enums\OrderStatus;
@@ -165,6 +166,11 @@ class Order extends Model
     public function checkout(): Checkout
     {
         return new Checkout($this);
+    }
+
+    public function linker(): ClientLinker
+    {
+        return new ClientLinker($this);
     }
 
     public function place(): void

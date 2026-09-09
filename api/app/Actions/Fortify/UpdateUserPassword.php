@@ -23,8 +23,14 @@ class UpdateUserPassword implements UpdatesUserPasswords
      */
     public function update(User $user, array $input): void
     {
+        // Un compte créé automatiquement après une commande n'a pas encore
+        // de mot de passe : rien à confirmer pour en définir un premier.
+        $currentPasswordRules = $user->password === null
+            ? ['sometimes']
+            : ['required', 'string', 'current_password:web'];
+
         Validator::make($input, [
-            'current_password' => ['required', 'string', 'current_password:web'],
+            'current_password' => $currentPasswordRules,
             'password' => $this->passwordRules(),
         ], [
             'current_password.current_password' => __('The provided password does not match your current password.'),

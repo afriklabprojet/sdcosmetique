@@ -78,12 +78,11 @@ class NotificationController extends Controller
         try {
             $notification->settle();
         } catch (DomainException $exception) {
+            // Le message réel reste consultable par l'équipe via `notification.failure_reason` —
+            // il ne doit pas fuiter tel quel vers l'appelant externe (la passerelle de paiement).
             $notification->fail($exception->getMessage());
 
-            return response()->json([
-                'status' => 'failed',
-                'message' => $exception->getMessage(),
-            ], 422);
+            return response()->json(['status' => 'failed'], 422);
         }
 
         return response()->json(['status' => 'settled']);

@@ -38,7 +38,7 @@ class ProductResource extends JsonResource
             'images' => $this->files->pluck('url')->values(),
             'skin_tones' => $this->tones->pluck('slug')->values(),
             'badges' => $this->badges
-                ->reject(fn ($badge): bool => $badge->type === 'bestseller')
+                ->reject(fn ($badge): bool => in_array($badge->type, ['bestseller', 'new'], true))
                 ->pluck('label')
                 ->values(),
             'children' => $this->children->map(fn (Product $child): array => [

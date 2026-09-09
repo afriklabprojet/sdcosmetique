@@ -56,6 +56,9 @@ class ProductController extends Controller
         if ($request->has('bestseller')) {
             $this->syncBestseller($product, $request->boolean('bestseller'));
         }
+        if ($request->has('new_arrival')) {
+            $this->syncNewArrival($product, $request->boolean('new_arrival'));
+        }
         if ($request->has('badges')) {
             $this->syncCustomBadges($product, $request->validated('badges', []));
         }
@@ -87,6 +90,9 @@ class ProductController extends Controller
         }
         if ($request->has('bestseller')) {
             $this->syncBestseller($product, $request->boolean('bestseller'));
+        }
+        if ($request->has('new_arrival')) {
+            $this->syncNewArrival($product, $request->boolean('new_arrival'));
         }
         if ($request->has('badges')) {
             $this->syncCustomBadges($product, $request->validated('badges', []));
@@ -127,7 +133,7 @@ class ProductController extends Controller
         }
     }
 
-        private function syncTones(Product $product, array $tones): void
+    private function syncTones(Product $product, array $tones): void
     {
         $toneIds = Tone::whereIn('slug', $tones)->pluck('id');
         $product->tones()->sync($toneIds);
@@ -139,6 +145,15 @@ class ProductController extends Controller
             $product->badges()->firstOrCreate(['type' => 'bestseller'], ['label' => 'Bestseller']);
         } else {
             $product->badges()->where('type', 'bestseller')->delete();
+        }
+    }
+
+    private function syncNewArrival(Product $product, bool $isNewArrival): void
+    {
+        if ($isNewArrival) {
+            $product->badges()->firstOrCreate(['type' => 'new'], ['label' => 'Nouveau']);
+        } else {
+            $product->badges()->where('type', 'new')->delete();
         }
     }
 

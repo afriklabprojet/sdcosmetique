@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Accounts\Providers;
 
 use App\Modules\Accounts\Models\Address;
+use App\Modules\Accounts\Models\Client;
 use App\Modules\Accounts\Policies\AddressPolicy;
+use App\Modules\Accounts\Policies\ClientPolicy;
 use App\Shared\Modules\ModuleServiceProvider as BaseModuleServiceProvider;
 
 class ModuleServiceProvider extends BaseModuleServiceProvider
@@ -22,6 +24,7 @@ class ModuleServiceProvider extends BaseModuleServiceProvider
     {
         return [
             Address::class => AddressPolicy::class,
+            Client::class => ClientPolicy::class,
         ];
     }
 }

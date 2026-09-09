@@ -23,6 +23,7 @@ class AccountResource extends JsonResource
             'email' => $this->email,
             'phone' => $this->client?->phone,
             'email_verified_at' => $this->email_verified_at,
+            'has_password' => $this->password !== null,
         ];
     }
 }

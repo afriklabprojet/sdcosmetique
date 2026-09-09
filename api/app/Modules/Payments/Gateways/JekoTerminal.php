@@ -9,6 +9,7 @@ use App\Modules\Payments\Domain\Terminal;
 use App\Modules\Payments\Enums\PaymentMethod;
 use App\Modules\Payments\Models\Payment\Attempt;
 use Illuminate\Support\Facades\Http;
+use RuntimeException;
 
 class JekoTerminal implements Terminal
 {
@@ -24,9 +25,21 @@ class JekoTerminal implements Terminal
         $apiKeyId = (string) config('payments.jeko.api_key_id', '');
         $storeId = (string) config('payments.jeko.store_id', '');
 
-        $frontendUrl = rtrim((string) config('app.frontend_url', 'https://sdcosmetique.ci'), '/');
-        if (str_contains($frontendUrl, 'localhost') || ! str_starts_with($frontendUrl, 'http')) {
-            $frontendUrl = 'https://sdcosmetique.ci';
+        $frontendUrl = rtrim((string) config('app.frontend_url', ''), '/');
+        if (! $this->isPublicUrl($frontendUrl)) {
+            // Jeko rejette les URLs de redirection non publiques (localhost).
+            // Le repli n'est utilisé que s'il est explicitement configuré —
+            // sinon on échoue bruyamment plutôt que de rediriger en silence
+            // un environnement mal configuré (FRONTEND_URL absent) vers une
+            // URL en dur qui pourrait être celle d'un autre environnement.
+            $fallback = config('payments.jeko.redirect_fallback_url');
+            if (! is_string($fallback) || ! $this->isPublicUrl($fallback)) {
+                throw new RuntimeException(
+                    'JekoTerminal: FRONTEND_URL n\'est pas une URL publique utilisable ("'.$frontendUrl.'") '
+                    .'et JEKO_REDIRECT_FALLBACK_URL n\'est pas une URL publique valide.',
+                );
+            }
+            $frontendUrl = rtrim($fallback, '/');
         }
 
         $rawMethod = request()->input('payment_method') ?? $order->payment_method;
@@ -55,13 +68,20 @@ class JekoTerminal implements Terminal
 
         $body = $response->json();
         $redirect = is_array($body) ? (string) data_get($body, 'redirectUrl', '') : '';
+        $requestId = is_array($body) ? (string) data_get($body, 'id', '') : '';
+        $failureReason = match (true) {
+            ! $response->successful() => (string) (data_get($body, 'message') ?? 'Jeko payment request initiation failed.'),
+            $redirect === '', $requestId === '' => 'Jeko returned an incomplete payment response.',
+            default => null,
+        };
 
         $attempt->forceFill([
             'gateway' => $this->name(),
-            'request_payload' => $payload,
-            'redirect_url' => $redirect !== '' ? $redirect : $frontendUrl.'/order/'.$order->reference,
+            'request_payload' => [...$payload, 'jeko_request_id' => $requestId],
+            'redirect_url' => $failureReason === null ? $redirect : null,
             'initiated_at' => $attempt->initiated_at ?? now(),
-            'failure_reason' => $response->successful() ? null : (string) (data_get($body, 'message') ?? 'Jeko payment request initiation failed.'),
+            'failure_reason' => $failureReason,
+            'failed_at' => $failureReason === null ? null : now(),
         ])->save();
 
         return $attempt->refresh();
@@ -72,11 +92,16 @@ class JekoTerminal implements Terminal
         $baseUrl = (string) config('payments.jeko.base_url', 'https://api.jeko.africa');
         $apiKey = (string) config('payments.jeko.api_key', '');
         $apiKeyId = (string) config('payments.jeko.api_key_id', '');
+        $requestId = (string) data_get($attempt->request_payload, 'jeko_request_id', '');
+
+        if ($requestId === '') {
+            return 'pending';
+        }
 
         $response = Http::withHeaders([
             'X-API-KEY' => $apiKey,
             'X-API-KEY-ID' => $apiKeyId,
-        ])->get($baseUrl.'/partner_api/payment_requests/'.urlencode($attempt->reference));
+        ])->get($baseUrl.'/partner_api/payment_requests/'.urlencode($requestId));
 
         $status = strtolower((string) data_get($response->json(), 'status', ''));
 
@@ -127,5 +152,25 @@ class JekoTerminal implements Terminal
         }
 
         return (string) $value;
+    }
+
+    private function isPublicUrl(string $url): bool
+    {
+        if (filter_var($url, FILTER_VALIDATE_URL) === false) {
+            return false;
+        }
+
+        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+        $host = trim(strtolower((string) parse_url($url, PHP_URL_HOST)), '[]');
+
+        if (! in_array($scheme, ['http', 'https'], true) || $host === '' || $host === 'localhost') {
+            return false;
+        }
+
+        if (filter_var($host, FILTER_VALIDATE_IP) === false) {
+            return true;
+        }
+
+        return filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false;
     }
 }

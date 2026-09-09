@@ -8,6 +8,7 @@ use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
+use App\Http\Responses\JsonFailedPasswordResetLinkRequestResponse;
 use App\Http\Responses\JsonLoginResponse;
 use App\Http\Responses\JsonLogoutResponse;
 use App\Http\Responses\JsonRegisterResponse;
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable;
+use Laravel\Fortify\Contracts\FailedPasswordResetLinkRequestResponse as FailedPasswordResetLinkRequestResponseContract;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use Laravel\Fortify\Contracts\LogoutResponse as LogoutResponseContract;
 use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
@@ -32,6 +34,7 @@ class FortifyServiceProvider extends ServiceProvider
         $this->app->singleton(LoginResponseContract::class, JsonLoginResponse::class);
         $this->app->singleton(RegisterResponseContract::class, JsonRegisterResponse::class);
         $this->app->singleton(LogoutResponseContract::class, JsonLogoutResponse::class);
+        $this->app->bind(FailedPasswordResetLinkRequestResponseContract::class, JsonFailedPasswordResetLinkRequestResponse::class);
     }
 
     /**

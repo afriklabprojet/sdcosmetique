@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Orders\Providers;
 
 use App\Modules\Orders\Domain\Drafts;
+use App\Modules\Orders\Models\Delivery\Method;
 use App\Modules\Orders\Models\Order;
+use App\Modules\Orders\Policies\MethodPolicy;
 use App\Modules\Orders\Policies\OrderPolicy;
 use App\Modules\Shopping\Events\GuestCartMerged;
 use App\Shared\Modules\ModuleServiceProvider as BaseModuleServiceProvider;
@@ -25,6 +27,7 @@ class ModuleServiceProvider extends BaseModuleServiceProvider
     {
         return [
             Order::class => OrderPolicy::class,
+            Method::class => MethodPolicy::class,
         ];
     }
 

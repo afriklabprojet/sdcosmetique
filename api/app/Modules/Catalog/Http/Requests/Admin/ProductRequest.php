@@ -44,6 +44,7 @@ class ProductRequest extends FormRequest
             'images' => ['sometimes', 'array'],
             'images.*' => ['string'],
             'bestseller' => ['sometimes', 'boolean'],
+            'new_arrival' => ['sometimes', 'boolean'],
             'badges' => ['sometimes', 'array'],
             'badges.*' => ['string', 'max:255'],
             'skin_tones' => ['sometimes', 'array'],

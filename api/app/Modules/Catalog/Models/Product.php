@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Carbon;
@@ -58,11 +59,11 @@ class Product extends Model
     /**
      * @return BelongsTo<Category, $this>
      */
-    
+
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<Tone, $this>
+     * @return BelongsToMany<Tone, $this>
      */
-    public function tones(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function tones(): BelongsToMany
     {
         return $this->belongsToMany(Tone::class, 'product_skin_tone', 'product_id', 'tone_id');
     }
@@ -132,13 +133,15 @@ class Product extends Model
             ->get();
     }
 
+    /**
+     * Badge « Nouveau » — choix manuel de l'admin (badge explicite), jamais
+     * déduit automatiquement de la date de publication.
+     */
     public function recent(): bool
     {
-        if ($this->published_at === null) {
-            return false;
-        }
-
-        return $this->published_at->greaterThanOrEqualTo(Carbon::now()->subDays(30));
+        return $this->badges->contains(
+            fn (Product\Badge $badge): bool => $badge->type === 'new',
+        );
     }
 
     public function visible(): bool

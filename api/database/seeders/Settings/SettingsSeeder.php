@@ -46,7 +46,7 @@ class SettingsSeeder extends Seeder
             'hero' => [
                 'is_public' => true,
                 'value' => [
-                    'eyebrow' => 'SOINS PREMIUM POUR TOUS LES TEINTS',
+                    'eyebrow' => '',
                     'title' => 'Révélez la beauté',
                     'titleAccent' => 'naturelle de votre teint',
                     'lead' => "Des produits d'exception, formulés pour sublimer chaque type de peau.",

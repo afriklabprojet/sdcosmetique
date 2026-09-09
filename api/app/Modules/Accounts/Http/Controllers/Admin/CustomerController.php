@@ -14,6 +14,8 @@ class CustomerController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', Client::class);
+
         $clients = Client::query()
             ->with('user')
             ->withCount('orders')
@@ -25,6 +27,8 @@ class CustomerController extends Controller
 
     public function show(Client $client): JsonResponse
     {
+        $this->authorize('view', $client);
+
         $client->load('user')->loadCount('orders');
 
         return CustomerResource::make($client)->response();

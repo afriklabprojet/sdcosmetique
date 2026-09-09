@@ -58,6 +58,7 @@ class Notification extends Model
             $attempt->confirm();
             $payment->confirm();
             $payment->order->pay($payment->settlement());
+            $payment->order->linker()->attach();
 
             $this->forceFill([
                 'handled_at' => now(),

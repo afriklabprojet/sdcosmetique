@@ -24,6 +24,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'verified_at',
     'approved_at',
 ])]
+/**
+ * Avis noté (1-5 étoiles) rattaché à un produit précis — alimente la note
+ * moyenne et le JSON-LD AggregateRating de la fiche produit. À distinguer de
+ * App\Modules\Testimonials\Models\Testimonial : ce dernier est un témoignage
+ * de marque sans produit ni note, affiché sur la page /avis et l'accueil.
+ */
 class Review extends Model
 {
     /** @use HasFactory<ReviewFactory> */

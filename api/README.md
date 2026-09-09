@@ -31,7 +31,7 @@ DB_CONNECTION=mariadb php artisan migrate:fresh --seed
 
 See `.env.example`. The keys `web` must share are `FRONTEND_URL` (storefront
 origin) and `WEB_REVALIDATE_SECRET` (must equal `web/.env` `REVALIDATE_SECRET`).
-Jeko, CinetPay, Resend, and mail credentials live here — never in `../web`.
+Jeko, Resend, and mail credentials live here — never in `../web`.
 
 Admin JSON is under `/api/admin/*`. An active row in `admins` is required;
 there is no Filament panel.

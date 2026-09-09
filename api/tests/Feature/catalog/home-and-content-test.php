@@ -4,18 +4,7 @@ declare(strict_types=1);
 
 use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\Product;
-use App\Modules\Content\Models\Banner;
 use App\Modules\Content\Models\Page;
-
-it('lists visible banners', function (): void {
-    Banner::factory()->create(['key' => 'home-slide-1', 'visible_at' => now(), 'order' => 1]);
-    Banner::factory()->create(['key' => 'hidden', 'visible_at' => null, 'order' => 2]);
-
-    $this->getJson('/v1/banners')
-        ->assertOk()
-        ->assertJsonCount(1, 'data')
-        ->assertJsonPath('data.0.key', 'home-slide-1');
-});
 
 it('lists featured products via the products index', function (): void {
     $category = Category::factory()->create();
