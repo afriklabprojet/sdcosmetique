@@ -97,6 +97,12 @@ it('does not create any account when the cart is only started, never paid', func
 
 it('does not create an account when the payment fails', function (): void {
     Mail::fake();
+    Http::fake([
+        'https://api.jeko.africa/*' => Http::response([
+            'id' => 'jeko-failed-payment',
+            'redirectUrl' => 'https://pay.jeko.africa/failed-payment',
+        ], 200),
+    ]);
 
     $parent = Product::factory()->parentProduct()->create();
     $child = Product::factory()->child($parent)->create(['regular_price' => 100, 'sale_price' => null, 'stock' => 3]);
