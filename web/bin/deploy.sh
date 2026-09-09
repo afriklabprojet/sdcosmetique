@@ -15,7 +15,7 @@ echo "🚀 Déploiement en cours..."
 # 1. Build local EN PREMIER (avant le push git pour éviter que le CI Hostinger
 #    ne déploie ses fichiers PENDANT notre rsync)
 echo "🔨 Build local..."
-npm run build
+pnpm build
 
 # 2. Push git
 echo "📦 Push git..."
@@ -90,25 +90,6 @@ rsync -az --checksum --delete \
   -e "ssh -p $PORT" \
   .next/standalone/ \
   $SERVER:$REMOTE_PATH/
-
-# 6d. Garantir que le preload-timestamp.js garde le bloc de chargement des env JEKO
-#     (protection contre tout écrasement accidentel par le CI Hostinger)
-echo "🔐 Vérification preload env vars (JEKO)..."
-ssh -p $PORT $SERVER 'PRELOAD="/home/u799662826/domains/sdcosmetique.ci/public_html/.builds/config/preload-timestamp.js"; if ! grep -q "JEKO_API_KEY" "$PRELOAD" 2>/dev/null; then cat >> "$PRELOAD" << '"'"'ENVBLOCK'"'"'
-// Load missing env vars from .env file
-(function() {
-  const fs = require("fs");
-  const envPath = "/home/u799662826/domains/sdcosmetique.ci/public_html/.builds/config/.env";
-  try {
-    const lines = fs.readFileSync(envPath, "utf8").split("\n");
-    for (const line of lines) {
-      const m = line.match(/^([A-Z0-9_]+)=(.*)$/);
-      if (m && !process.env[m[1]]) { process.env[m[1]] = m[2].replace(/^'"'"'|'"'"'$/g, "").replace(/^"|"$/g, ""); }
-    }
-  } catch(e) {}
-})();
-ENVBLOCK
-echo "✅ Preload env block re-ajouté"; else echo "✅ Preload env block OK (déjà présent)"; fi'
 
 # 6d. Restart final après les overrides
 echo "♻️  Restart final..."

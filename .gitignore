@@ -35,3 +35,6 @@ ehthumbs.db
 .claude/
 .gemini/
 trash/
+
+# Generated audit reports
+web/tests/RAPPORT-AUDIT-UX.md

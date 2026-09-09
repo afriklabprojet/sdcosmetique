@@ -151,8 +151,7 @@ if [ "${UPDATE_API}" = true ]; then
     log_info "Optimizing Laravel caches..."
     php artisan optimize:clear
 
-    APP_ENV=$(php -r "echo config('app.env', 'production');" 2>/dev/null || echo "local")
-    if [ "${APP_ENV}" = "production" ]; then
+    if php artisan env --no-ansi 2>/dev/null | grep -q '\[production\]'; then
       php artisan optimize
     fi
 
