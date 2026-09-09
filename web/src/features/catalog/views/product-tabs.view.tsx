@@ -110,26 +110,30 @@ export default function ProductTabs({ product, reviews, keyIngredients, activeTa
           </div>
 
           {/* Right : Résultats avec image */}
-          <div className="lg:col-span-3" style={{ border: `1px solid ${BORDER}`, borderRadius: 6, background: BG, overflow: 'hidden', display: 'flex', alignItems: 'stretch' }}>
-            <div style={{ position: 'relative', width: '45%', flexShrink: 0, background: '#E8DFD0' }}>
+          <div className="lg:col-span-3" style={{ border: `1px solid ${BORDER}`, borderRadius: 6, background: BG, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ position: 'relative', width: '100%', aspectRatio: '4/3', flexShrink: 0, background: '#E8DFD0' }}>
               {product.images?.[0] ? (
                 <Image
                   src={product.images[0]}
                   alt={product.name}
                   fill
                   style={{ objectFit: 'cover' }}
-                  sizes="180px"
+                  sizes="280px"
                   onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 />
               ) : null}
+              <span style={{ position: 'absolute', top: 10, left: 10, display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 20, background: 'rgba(255,255,255,0.92)', fontSize: 10, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: GOLD }}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                Résultat constaté
+              </span>
             </div>
-            <div style={{ padding: '20px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <p style={{ fontSize: 18, fontWeight: 800, color: TEXT, fontFamily: 'Georgia,serif', lineHeight: 1.2, marginBottom: 8 }}>
+            <div style={{ padding: '18px 18px 20px', display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'center' }}>
+              <p style={{ fontSize: 18, fontWeight: 800, color: TEXT, fontFamily: 'Georgia,serif', lineHeight: 1.25, marginBottom: 8 }}>
                 {(product.resultsTitle ?? "Résultats visibles dès 7 jours d'utilisation")
                   .split(/\n|<br\s*\/?>/i)
                   .flatMap((line, i, arr) => i < arr.length - 1 ? [line, <br key={line} />] : [line])}
               </p>
-              <p style={{ fontSize: 12, color: TEXT_BODY, lineHeight: 1.5 }}>
+              <p style={{ fontSize: 12, color: TEXT_BODY, lineHeight: 1.6 }}>
                 {product.resultsSubtitle ?? 'Peau plus lumineuse, lisse et unifiée.'}
               </p>
             </div>

@@ -47,15 +47,16 @@ export default function TrendingProducts({ products }: Readonly<{ products: Prod
           ref={scrollRef}
           className={`prod-grid reveal-stagger${visible ? ' visible' : ''}`}
           style={{
-            display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '20px',
+            display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '14px',
           }}
         >
-          {products.map(product => <ProductCard key={product.id} product={product} />)}
+          {products.map(product => <ProductCard key={product.id} product={product} showRating={false} hideBestsellerBadge />)}
         </div>
       </div>
       <style jsx>{`
-        @media (max-width: 1024px) { .prod-grid { grid-template-columns: repeat(3, 1fr) !important; } }
-        @media (max-width: 640px)  { .prod-grid { grid-template-columns: repeat(1, 1fr) !important; } }
+        /* Mobile-first : 2 colonnes par défaut, puis 3 dès la tablette, 5 en desktop. */
+        @media (min-width: 641px)  { .prod-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 20px !important; } }
+        @media (min-width: 1025px) { .prod-grid { grid-template-columns: repeat(5, 1fr) !important; } }
         .scroll-arrows { display: none !important; }
       `}</style>
     </section>

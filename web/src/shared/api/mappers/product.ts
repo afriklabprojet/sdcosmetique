@@ -57,7 +57,7 @@ export function mapAdminProduct(dto: LaravelAdminProduct): Product {
     originalPrice: sale != null ? regular : undefined,
     images: (dto.images ?? []).map((file) => file.url),
     skinTones: (dto.skin_tones ?? []) as SkinTone[],
-    badges: (dto.badges ?? []).filter((b) => b.type !== 'bestseller').map((badge) => badge.label),
+    badges: (dto.badges ?? []).filter((b) => b.type !== 'bestseller' && b.type !== 'new').map((badge) => badge.label),
     rating: 0,
     reviewCount: 0,
     shortDescription: dto.summary ?? '',
@@ -67,7 +67,7 @@ export function mapAdminProduct(dto: LaravelAdminProduct): Product {
     ingredients: ingredientsToString(dto.ingredients),
     inStock: dto.stock > 0,
     stockQty: dto.stock,
-    newArrival: dto.recent ?? (dto.published_at != null ? (Date.now() - new Date(dto.published_at).getTime() < 30 * 24 * 3600 * 1000) : false),
+    newArrival: (dto.badges ?? []).some((badge) => badge.type === 'new'),
     bestseller: (dto.badges ?? []).some((badge) => badge.type === 'bestseller'),
   };
 }
@@ -77,12 +77,6 @@ export function toAdminProductPayload(
   categoryId: number,
 ): LaravelAdminProductWrite {
   const hasSale = product.originalPrice != null && product.originalPrice > product.price;
-  let publishedAt: string | null | undefined = undefined;
-  if (product.newArrival === true) {
-    publishedAt = new Date().toISOString();
-  } else if (product.newArrival === false) {
-    publishedAt = new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString();
-  }
 
   return {
     category_id: categoryId,
@@ -98,7 +92,7 @@ export function toAdminProductPayload(
     images: product.images,
     skin_tones: product.skinTones ?? [],
     bestseller: product.bestseller ?? false,
+    new_arrival: product.newArrival ?? false,
     badges: product.badges ?? [],
-    ...(publishedAt !== undefined ? { published_at: publishedAt } : {}),
   };
 }

@@ -2,6 +2,7 @@
 import { api, unwrapData } from '@/shared/api/client';
 import { mapOrder, type MappedOrder } from '@/shared/api/mappers/order';
 import type { LaravelOrder, LaravelPaymentInit } from '@/shared/api/types';
+import type { PaymentMethod } from '@/shared/types/domain.type';
 
 export namespace Order {
   export async function commit(): Promise<MappedOrder> {
@@ -9,10 +10,10 @@ export namespace Order {
     return mapOrder(unwrapData(body));
   }
 
-  export async function initiate(reference: string): Promise<LaravelPaymentInit> {
+  export async function initiate(reference: string, paymentMethod: PaymentMethod): Promise<LaravelPaymentInit> {
     const body = await api<{ data: LaravelPaymentInit }>(
       `/orders/${encodeURIComponent(reference)}/payments`,
-      { method: 'POST' },
+      { method: 'POST', body: JSON.stringify({ payment_method: paymentMethod }) },
     );
     return unwrapData(body);
   }

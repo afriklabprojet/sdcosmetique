@@ -39,4 +39,10 @@ export namespace Checkout {
       body: JSON.stringify({ gateway }),
     });
   }
+
+  /** Confirme que le brouillon a bien atteint l'étape "review" côté API avant de le facturer. */
+  export async function review(): Promise<LaravelCheckoutDraft> {
+    const body = await api<{ data: LaravelCheckoutDraft }>('/checkout/review');
+    return unwrapData(body);
+  }
 }

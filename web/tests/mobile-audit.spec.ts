@@ -278,7 +278,7 @@ function captureConsoleErrors(page: Page): string[] {
 
 test.describe('📱 Suite 1 — Responsive & Overflow Horizontal', () => {
 
-  for (const [devKey, device] of Object.entries(DEVICES)) {
+  for (const device of Object.values(DEVICES)) {
     test(`[${device.label}] Overflow horizontal — toutes pages`, async ({ page }) => {
       await setDevice(page, device);
 
@@ -349,7 +349,7 @@ test.describe('👆 Suite 2 — Touch Targets & Accessibilité Tactile', () => {
     test(`[${device.label}] Touch targets WCAG 2.5.5 — toutes pages`, async ({ page }) => {
       await setDevice(page, device);
 
-      for (const [routeKey, route] of Object.entries(ROUTES)) {
+      for (const route of Object.values(ROUTES)) {
         try {
           await page.goto(`${BASE}${route}`, { waitUntil: 'domcontentloaded', timeout: 20_000 });
           await page.waitForTimeout(600);
@@ -693,7 +693,7 @@ test.describe('♿ Suite 5 — Accessibilité Mobile (axe-core)', () => {
     const device = DEVICES.iPhone13;
     await setDevice(page, device);
 
-    for (const [routeKey, route] of Object.entries(ROUTES)) {
+    for (const route of Object.values(ROUTES)) {
       try {
         await page.goto(`${BASE}${route}`, { waitUntil: 'domcontentloaded', timeout: 20_000 });
         await page.waitForTimeout(400);

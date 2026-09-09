@@ -1,9 +1,29 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { subscribeNewsletter } from '@/shared/api/leads';
+
+/*
+ * Côté mobile, les listes sont repliées par défaut (accordéon) pour ne pas
+ * transformer le footer en défilement sans fin. `<details>` natif semblait
+ * plus simple, mais les navigateurs récents masquent son contenu fermé à un
+ * niveau que `display:block!important` ne peut pas contourner — impossible
+ * de forcer visuellement l'ouverture au palier desktop sans JS. D'où ce hook,
+ * même principe que le `canHover` de product.card.tsx.
+ */
+function useIsFooterDesktop(): boolean {
+  const [isDesktop, setIsDesktop] = useState(false);
+  useEffect(() => {
+    const mediaQuery = globalThis.window.matchMedia('(min-width: 901px)');
+    const update = () => setIsDesktop(mediaQuery.matches);
+    update();
+    mediaQuery.addEventListener('change', update);
+    return () => mediaQuery.removeEventListener('change', update);
+  }, []);
+  return isDesktop;
+}
 
 const COLS = [
   {
@@ -44,6 +64,12 @@ const COLS = [
 export default function Footer({ logoUrl, siteName }: Readonly<{ logoUrl?: string; siteName?: string }>) {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
+  const [openCols, setOpenCols] = useState<Record<string, boolean>>({});
+  const isDesktop = useIsFooterDesktop();
+
+  const toggleCol = (title: string) => {
+    setOpenCols((current) => ({ ...current, [title]: !current[title] }));
+  };
 
   const submitNewsletter = async (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -60,28 +86,12 @@ export default function Footer({ logoUrl, siteName }: Readonly<{ logoUrl?: strin
 
   return (
     <footer style={{ background: '#8f5922', color: '#fff', padding: '48px 24px 24px' }}>
-      <style>{`
-        .footer-grid {
-          grid-template-columns: 1.3fr 1fr 1fr 1fr 1.5fr;
-        }
-        @media (max-width: 900px) {
-          .footer-grid {
-            grid-template-columns: 1fr 1fr !important;
-          }
-        }
-        @media (max-width: 520px) {
-          .footer-grid {
-            grid-template-columns: 1fr !important;
-          }
-        }
-      `}</style>
       <div className="footer-grid" style={{
         maxWidth: '1200px', margin: '0 auto',
         display: 'grid',
-        gap: '32px',
       }}>
         {/* Colonne logo */}
-        <div>
+        <div className="footer-logo-col">
           <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginBottom: '14px', gap: 10 }}>
             <Image src={logoUrl || '/logo.svg'} alt={siteName || 'SD Cosmetique'} width={40} height={40} style={{ height: 40, width: 'auto', filter: 'brightness(0) invert(1) sepia(1) saturate(2) hue-rotate(5deg)', flexShrink: 0 }} />
             {siteName && (
@@ -126,31 +136,42 @@ export default function Footer({ logoUrl, siteName }: Readonly<{ logoUrl?: strin
           </div>
         </div>
 
-        {/* 3 colonnes liens */}
-        {COLS.map((col) => (
-          <div key={col.title}>
-            <h4 style={{
-              fontFamily: 'var(--font-inter), Inter, sans-serif',
-              fontSize: '0.78rem', fontWeight: 700,
-              color: '#D4A24E', letterSpacing: '0.14em',
-              textTransform: 'uppercase', marginBottom: '16px',
-            }}>{col.title}</h4>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              {col.links.map((link) => (
-                <li key={link.label} style={{ marginBottom: '8px' }}>
-                  <Link href={link.href} style={{
-                    fontFamily: 'var(--font-inter), Inter, sans-serif',
-                    fontSize: '0.8rem', color: '#E5D4B8',
-                    textDecoration: 'none', transition: 'color 0.2s',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = '#fff'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = '#E5D4B8'; }}
-                  >{link.label}</Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+        {/* 3 colonnes liens — accordéon côté mobile (fermé par défaut, pour
+            ne pas transformer le footer en défilement interminable), grille
+            toujours dépliée dès le palier desktop (voir <style jsx>). */}
+        {COLS.map((col) => {
+          const expanded = isDesktop || Boolean(openCols[col.title]);
+          return (
+            <div key={col.title} className="footer-col">
+              <button
+                type="button"
+                className="footer-col-summary"
+                onClick={() => toggleCol(col.title)}
+                aria-expanded={expanded}
+                disabled={isDesktop}
+              >
+                {col.title}
+                <svg className="footer-col-chevron" style={{ transform: expanded ? 'rotate(180deg)' : 'none' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: expanded ? 'block' : 'none' }}>
+                {col.links.map((link) => (
+                  <li key={link.label} style={{ marginBottom: '8px' }}>
+                    <Link href={link.href} style={{
+                      fontFamily: 'var(--font-inter), Inter, sans-serif',
+                      fontSize: '0.8rem', color: '#E5D4B8',
+                      textDecoration: 'none', transition: 'color 0.2s',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = '#fff'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = '#E5D4B8'; }}
+                    >{link.label}</Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
 
         {/* Newsletter */}
         <div>
@@ -208,17 +229,70 @@ export default function Footer({ logoUrl, siteName }: Readonly<{ logoUrl?: strin
       </div>
 
       <style jsx>{`
-        @media (max-width: 900px) {
-          .footer-grid { grid-template-columns: 1fr 1fr !important; }
+        /* Mobile-first : base = téléphone (2 colonnes, logo pleine largeur,
+           3 colonnes de liens en accordéon fermé — sinon le footer devient un
+           défilement sans fin), puis 901px pour la grille 5 colonnes desktop
+           avec toutes les listes toujours dépliées. */
+        .footer-grid {
+          grid-template-columns: 1fr 1fr;
+          gap: 24px 16px;
         }
-        @media (max-width: 540px) {
+        .footer-logo-col {
+          grid-column: 1 / -1;
+        }
+        .footer-col {
+          grid-column: 1 / -1;
+          border-top: 1px solid rgba(255, 255, 255, 0.12);
+          padding-top: 14px;
+        }
+        .footer-col-summary {
+          display: flex;
+          width: 100%;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          cursor: pointer;
+          background: none;
+          border: none;
+          padding: 0 0 14px;
+          margin: 0;
+          font-family: var(--font-inter), Inter, sans-serif;
+          font-size: 0.78rem;
+          font-weight: 700;
+          color: #d4a24e;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          text-align: left;
+        }
+        .footer-col-chevron {
+          flex-shrink: 0;
+          transition: transform 0.25s ease;
+        }
+        .footer-col ul {
+          padding-bottom: 4px;
+        }
+        @media (min-width: 901px) {
           .footer-grid {
-            grid-template-columns: 1fr 1fr !important;
-            gap: 24px 16px !important;
+            grid-template-columns: 1.3fr 1fr 1fr 1fr 1.5fr;
+            gap: 32px;
           }
-          /* Logo + description : pleine largeur */
-          .footer-grid > div:first-child {
-            grid-column: 1 / -1;
+          .footer-logo-col {
+            grid-column: auto;
+          }
+          .footer-col {
+            grid-column: auto;
+            border-top: none;
+            padding-top: 0;
+          }
+          .footer-col-summary {
+            cursor: default;
+            padding-bottom: 16px;
+          }
+          .footer-col-summary:disabled {
+            opacity: 1;
+          }
+          .footer-col-chevron {
+            display: none;
           }
         }
       `}</style>

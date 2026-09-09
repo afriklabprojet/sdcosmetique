@@ -7,7 +7,9 @@ import type { CategoryRow } from '@/features/catalog/category.repository';
 export namespace Category {
   export async function list(): Promise<CategoryRow[]> {
     try {
-      const body = await api<{ data: LaravelStorefrontCategory[] }>('/categories');
+      const body = await api<{ data: LaravelStorefrontCategory[] }>('/categories', {
+        next: { revalidate: 300, tags: ['categories'] },
+      } as RequestInit);
       return unwrapData(body).map(mapStorefrontCategory);
     } catch {
       return [];

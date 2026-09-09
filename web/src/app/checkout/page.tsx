@@ -4,6 +4,9 @@ import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/features/cart/cart.store';
 import { apiErrorMessage } from '@/shared/api';
+import { toast } from '@/shared/ui/toast';
+import { Account } from '@/shared/api/auth/account';
+import { AddressBook } from '@/shared/api/auth/address';
 import { Checkout, Delivery, Gateway, Order } from '@/shared/api/checkout';
 import { PaymentGateway, PaymentMethod } from '@/shared/types/domain.type';
 import { cacheOrder } from '@/features/orders/order.store';
@@ -16,16 +19,18 @@ import CartStep from '@/features/checkout/steps/cart.step';
 const Sidebar      = lazy(() => import('@/features/checkout/sidebars/checkout.sidebar'));
 const DeliveryStep = lazy(() => import('@/features/checkout/steps/delivery.step'));
 const PaymentStep  = lazy(() => import('@/features/checkout/steps/payment.step'));
+const ReviewStep   = lazy(() => import('@/features/checkout/steps/review.step'));
 
 // ── Stepper config ────────────────────────────────────────────────────────────
 const STEPS = [
   { key: 'cart',         label: 'Panier',       sub: 'Vérification' },
   { key: 'delivery',     label: 'Informations', sub: 'Adresse & contact' },
   { key: 'payment',      label: 'Paiement',     sub: 'Mode de paiement' },
+  { key: 'review',       label: 'Récapitulatif', sub: 'Vérifiez et confirmez' },
   { key: 'confirmation', label: 'Confirmation', sub: 'Commande validée' },
 ] as const;
 
-const STEP_ORDER: CheckoutStep[] = ['cart', 'delivery', 'payment', 'confirmation'];
+const STEP_ORDER: CheckoutStep[] = ['cart', 'delivery', 'payment', 'review', 'confirmation'];
 
 
 export default function CheckoutPage() {
@@ -36,12 +41,15 @@ export default function CheckoutPage() {
     firstName: '', lastName: '', email: '', phone: '',
     address: '', city: '', country: "Côte d'Ivoire",
   });
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.ORANGE_MONEY);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.WAVE);
   const [processing, setProcessing] = useState(false);
   const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
   const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(null);
   const [promoError, setPromoError] = useState<string | null>(null);
-  const [activeMethods] = useState<PaymentMethod[]>(Object.values(PaymentMethod));
+  // Paiement à la livraison désactivé — tous les paiements passent par mobile money.
+  const [activeMethods] = useState<PaymentMethod[]>(
+    Object.values(PaymentMethod).filter(m => m !== PaymentMethod.CASH_ON_DELIVERY)
+  );
 
   useEffect(() => {
     Delivery.options()
@@ -50,6 +58,31 @@ export default function CheckoutPage() {
         setSelectedShipping((current) => current ?? methods[0] ?? null);
       })
       .catch(() => setShippingOptions([]));
+  }, []);
+
+  // §15 — un client déjà connecté voit ses informations préremplies (nom,
+  // e-mail, adresse) ; il peut toujours les modifier pour cette commande.
+  useEffect(() => {
+    Account.identify()
+      .then((identity) => {
+        if (!identity) return;
+        return AddressBook.read()
+          .then((addresses) => addresses[0])
+          .catch(() => undefined)
+          .then((address) => {
+            setDelivery((current) => ({
+              ...current,
+              firstName: current.firstName || identity.prenom,
+              lastName: current.lastName || identity.nom,
+              email: current.email || identity.email,
+              phone: current.phone || identity.telephone || address?.phone || '',
+              address: current.address || address?.street || '',
+              city: current.city || address?.city || '',
+              country: address?.country || current.country,
+            }));
+          });
+      })
+      .catch(() => undefined);
   }, []);
 
   const appliedPromo = couponCode
@@ -64,7 +97,9 @@ export default function CheckoutPage() {
   };
   const removePromo = () => {
     setPromoError(null);
-    void removeCoupon();
+    removeCoupon().catch((err) => {
+      setPromoError(apiErrorMessage(err, 'Impossible de retirer le code promo.'));
+    });
   };
 
   const shippingCost = selectedShipping?.cost ?? 0;
@@ -73,17 +108,33 @@ export default function CheckoutPage() {
 
   const submitDelivery = (info: DeliveryInfo) => { setDelivery(info); setStep('payment'); };
 
-  const placeOrder = async (_mobileNumber: string) => {
+  const proceedToReview = async (_mobileNumber: string) => {
     if (!selectedShipping) {
-      alert('Choisissez un mode de livraison.');
+      toast.error('Choisissez un mode de livraison.');
+      return;
+    }
+    setProcessing(true);
+    try {
+      await Checkout.contact(delivery.email);
+      await Checkout.route(delivery, Number(selectedShipping.id));
+      await Checkout.pay(Gateway.resolve(paymentMethod));
+      await Checkout.review();
+      setStep('review');
+    } catch (err) {
+      toast.error(apiErrorMessage(err, "Impossible de préparer le récapitulatif. Veuillez réessayer."));
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const confirmOrder = async () => {
+    if (!selectedShipping) {
+      toast.error('Choisissez un mode de livraison.');
       return;
     }
     setProcessing(true);
     const gateway = Gateway.resolve(paymentMethod);
     try {
-      await Checkout.contact(delivery.email);
-      await Checkout.route(delivery, Number(selectedShipping.id));
-      await Checkout.pay(gateway);
       const placed = await Order.commit();
       cacheOrder({
         orderNumber: placed.orderNumber,
@@ -107,13 +158,13 @@ export default function CheckoutPage() {
         return;
       }
 
-      const payment = await Order.initiate(placed.orderNumber);
+      const payment = await Order.initiate(placed.orderNumber, paymentMethod);
       if (!payment.redirect_url) {
         throw new Error("Le paiement n'a pas pu être initié.");
       }
       globalThis.window.location.href = payment.redirect_url;
     } catch (err) {
-      alert(apiErrorMessage(err, 'Erreur lors de la création de la commande. Veuillez réessayer.'));
+      toast.error(apiErrorMessage(err, 'Erreur lors de la création de la commande. Veuillez réessayer.'));
       setProcessing(false);
     }
   };
@@ -163,7 +214,8 @@ export default function CheckoutPage() {
             <Suspense fallback={null}>
               {step === 'cart'     && <CartStep next={() => setStep('delivery')} />}
               {step === 'delivery' && <DeliveryStep initialDelivery={delivery} submitDelivery={submitDelivery} back={() => setStep('cart')} shippingOptions={shippingOptions} selectedShipping={selectedShipping} selectShipping={setSelectedShipping} />}
-              {step === 'payment'  && <PaymentStep paymentMethod={paymentMethod} selectMethod={setPaymentMethod} placeOrder={placeOrder} processing={processing} back={() => setStep('delivery')} activeMethods={activeMethods} />}
+              {step === 'payment'  && <PaymentStep paymentMethod={paymentMethod} selectMethod={setPaymentMethod} placeOrder={proceedToReview} processing={processing} back={() => setStep('delivery')} activeMethods={activeMethods} />}
+              {step === 'review'   && <ReviewStep delivery={delivery} selectedShipping={selectedShipping} paymentMethod={paymentMethod} editDelivery={() => setStep('delivery')} editPayment={() => setStep('payment')} confirmOrder={confirmOrder} processing={processing} />}
             </Suspense>
           </div>
 

@@ -39,16 +39,35 @@ export default function ConfirmationPage() {
     if (!ref) return;
 
     let cancelled = false;
-    Order.read(ref)
-      .then((placed) => {
-        if (cancelled) return;
-        if (placed.paymentStatus === 'paid') setPaymentState('paid');
-        else if (placed.paymentStatus === 'failed') setPaymentState('failed');
-        else setPaymentState('pending');
-      })
-      .catch(() => {
-        // Guest poll can 403 after the cart is emptied; keep the cached draft.
-      });
+    let attempts = 0;
+    // Le webhook du fournisseur de paiement peut arriver après le chargement
+    // de cette page : on re-vérifie régulièrement tant que le paiement reste
+    // en attente, plutôt que de figer l'utilisateur sur un état obsolète.
+    const MAX_ATTEMPTS = 20;
+    const POLL_INTERVAL_MS = 6000;
+
+    const check = () => {
+      Order.read(ref)
+        .then((placed) => {
+          if (cancelled) return;
+          if (placed.paymentStatus === 'paid') {
+            setPaymentState('paid');
+          } else if (placed.paymentStatus === 'failed') {
+            setPaymentState('failed');
+          } else {
+            setPaymentState('pending');
+            attempts += 1;
+            if (attempts < MAX_ATTEMPTS) {
+              globalThis.setTimeout(() => { if (!cancelled) check(); }, POLL_INTERVAL_MS);
+            }
+          }
+        })
+        .catch(() => {
+          // Guest poll can 403 after the cart is emptied; keep the cached draft.
+        });
+    };
+
+    check();
 
     return () => { cancelled = true; };
   }, [order?.orderNumber]);

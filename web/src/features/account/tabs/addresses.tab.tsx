@@ -5,7 +5,6 @@
 import type { Address } from '@/features/account/account.constant';
 
 interface AddressesTabProps {
-  readonly mobile: boolean;
   readonly addresses: Address[];
   readonly addrForm: Address;
   readonly setAddrForm: React.Dispatch<React.SetStateAction<Address>>;
@@ -19,7 +18,7 @@ interface AddressesTabProps {
 }
 
 export default function AddressesTab({
-  mobile, addresses, addrForm, setAddrForm, showAddrForm, setShowAddrForm,
+  addresses, addrForm, setAddrForm, showAddrForm, setShowAddrForm,
   editingAddr, setEditingAddr, saveAddress, preferAddress, deleteAddress,
 }: AddressesTabProps) {
   return (
@@ -66,7 +65,7 @@ export default function AddressesTab({
                 {showAddrForm && (
                   <div style={{ background: '#fff', borderRadius: 16, border: '2px solid #C8974A', padding: '24px 28px' }}>
                     <h3 style={{ fontSize: 14, fontWeight: 800, color: '#1A1A1A', marginBottom: 20 }}>{editingAddr ? 'Modifier l\'adresse' : 'Nouvelle adresse'}</h3>
-                    <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: 14 }}>
+                    <div className="dash-2col" style={{ gap: 14 }}>
                       <div style={{ gridColumn: '1/-1' }}>
                         <label htmlFor="addr-label" style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6B3D14', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Libellé (ex: Domicile, Bureau…)</label>
                         <select id="addr-label" value={addrForm.label} onChange={e => setAddrForm(f => ({ ...f, label: e.target.value }))} style={{ width: '100%', padding: '10px 14px', border: '1px solid #EDE8E0', borderRadius: 10, fontSize: 13, background: '#FAFAF8', boxSizing: 'border-box' }}>

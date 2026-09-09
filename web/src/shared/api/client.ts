@@ -146,6 +146,7 @@ const FORTIFY_FR: Record<string, string> = {
   'This coupon is not valid.': "Ce code promo n'est pas valide.",
   'This coupon does not apply to the current cart.': "Ce code promo ne s'applique pas au panier actuel.",
   'Unauthenticated.': 'Session expirée. Veuillez vous reconnecter.',
+  'Payment provider unavailable.': 'Le service de paiement est temporairement indisponible. Veuillez réessayer.',
 };
 
 export function apiErrorMessage(err: unknown, fallback: string): string {

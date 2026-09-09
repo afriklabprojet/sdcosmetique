@@ -22,13 +22,14 @@ function lowStock(product: Product): boolean {
 
 interface ProductInfoProps {
   readonly product: Product;
-  readonly category: { label: string } | undefined;
   readonly effectivePrice: EffectivePrice;
   readonly adding: boolean;
   readonly addToCart: () => void;
+  /** Masque la note/avis — utilisé là où la carte doit rester compacte (ex: accueil). */
+  readonly showRating?: boolean;
 }
 
-export default function ProductInfo({ product, category, effectivePrice, adding, addToCart }: ProductInfoProps) {
+export default function ProductInfo({ product, effectivePrice, adding, addToCart, showRating = true }: ProductInfoProps) {
   return (
       <div style={{ padding: '12px 13px 14px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px' }}>
@@ -59,9 +60,11 @@ export default function ProductInfo({ product, category, effectivePrice, adding,
             )}
 
             {/* Étoiles + avis */}
-            <div style={{ marginBottom: 10 }}>
-              <StarRating rating={product.rating} count={product.reviewCount} showCount size={11} />
-            </div>
+            {showRating && (
+              <div style={{ marginBottom: 10 }}>
+                <StarRating rating={product.rating} count={product.reviewCount} showCount size={11} />
+              </div>
+            )}
 
             {/* Stock faible */}
             {lowStock(product) && (

@@ -10,7 +10,7 @@ export default function HeroBanner({ config = DEFAULT_SITE_CONFIG.hero }: Readon
       <div className={styles.container}>
       <div className={styles.grid}>
         <div className={styles.left}>
-          <p className={styles.eyebrow}>{config.eyebrow}</p>
+          {config.eyebrow && <p className={styles.eyebrow}>{config.eyebrow}</p>}
 
           <h1 id="hero-title" className={styles.title}>
             {config.title}

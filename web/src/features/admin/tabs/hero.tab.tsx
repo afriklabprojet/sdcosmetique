@@ -5,7 +5,6 @@
 import React from 'react';
 import ImageUpload from '@/shared/ui/image.input';
 import { getSaveButtonText } from '@/features/admin/admin.util';
-import { type CategoryRow } from '@/features/catalog/category.repository';
 import { type SiteConfig } from '@/features/site-config/site-config.type';
 import { BG, SURFACE, BORDER, GOLD, TEXT, TEXT2, TEXT3, GOLD2, S_SAVE_BG, S_SAVE_T } from '@/features/admin/admin.constant';
 
@@ -15,11 +14,10 @@ interface HeroTabProps {
   readonly saveConfigSection: (key: string, value: unknown) => Promise<void>;
   readonly contentSaving: Record<string, boolean>;
   readonly contentSaved: Record<string, boolean>;
-  readonly categories: CategoryRow[];
   readonly heroSectionBlock: React.ReactNode;
 }
 
-export default function HeroTab({ siteContent, setSiteContent, saveConfigSection, contentSaving, contentSaved, categories, heroSectionBlock }: HeroTabProps) {
+export default function HeroTab({ siteContent, setSiteContent, saveConfigSection, contentSaving, contentSaved, heroSectionBlock }: HeroTabProps) {
   return (
             <div className="space-y-6">
               <h1 className="text-lg font-bold" style={{ color: TEXT }}>🖼 Bannière Hero</h1>

@@ -191,7 +191,7 @@ export default function CartDrawer() {
                     <p style={{ fontSize: '11px', color: 'var(--grey-500)', marginBottom: 5 }}>
                       Plus que{' '}
                       <strong style={{ color: 'var(--gold-dark)' }}>
-                        {(firstOptWithFree.freeFrom - totalPrice).toLocaleString('fr-FR')} FCFA
+                        {formatPrice(firstOptWithFree.freeFrom - totalPrice)}
                       </strong>{' '}
                       pour la livraison gratuite ({firstOptWithFree.label})
                     </p>

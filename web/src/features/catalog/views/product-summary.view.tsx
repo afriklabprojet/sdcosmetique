@@ -12,8 +12,9 @@
 
 import { BADGE_LABELS, type Product } from '@/shared/types/domain.type';
 import { formatPrice } from '@/features/catalog/product.query';
+import { CURRENCY_LABEL } from '@/shared/format/price';
 import StarRating from '@/features/catalog/star-rating';
-import { GOLD, GOLD2, BORDER, TEXT, TEXT_MUTED, TEXT_BODY } from '@/features/catalog/product-detail.constant';
+import { DARK, GOLD2, BORDER, TEXT, TEXT_MUTED, TEXT_BODY } from '@/features/catalog/product-detail.constant';
 import { BenefitIcon } from '@/features/catalog/assets/product-detail-icons';
 
 /** Les seules differences entre la colonne desktop et le bloc mobile. */
@@ -28,28 +29,31 @@ interface ProductSummaryProps {
   readonly selectedToneLabel: string;
   /** Variante mobile : memes elements, jetons de taille reduits. */
   readonly compact?: boolean;
+  /** Fait défiler vers l'onglet Avis clients — la note doit mener quelque part. */
+  readonly onRatingClick?: () => void;
 }
 
-export default function ProductSummary({ product, categoryLabel, selectedToneLabel, compact = false }: ProductSummaryProps) {
+export default function ProductSummary({ product, categoryLabel, selectedToneLabel, compact = false, onRatingClick }: ProductSummaryProps) {
   const s = compact ? SIZES.compact : SIZES.wide;
   return (
     <div style={compact ? undefined : { paddingTop: 4 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: s.badgeMargin }}>
-        <span style={{ display: 'inline-block', padding: s.badgePadding, background: GOLD, color: 'white', fontSize: 10, fontWeight: 800, letterSpacing: s.badgeSpacing, textTransform: 'uppercase', borderRadius: 2 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: s.badgeMargin }}>
+        <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: s.badgeSpacing, textTransform: 'uppercase', color: TEXT_MUTED }}>
           {categoryLabel}
         </span>
-        {product.newArrival && (
-          <span style={{ display: 'inline-block', padding: s.badgePadding, background: '#1E3A5F', color: '#93C5FD', fontSize: 10, fontWeight: 800, letterSpacing: s.badgeSpacing, textTransform: 'uppercase', borderRadius: 2 }}>
-            {BADGE_LABELS.NEW}
-          </span>
-        )}
         {product.bestseller && (
-          <span style={{ display: 'inline-block', padding: s.badgePadding, background: '#4A1D1D', color: '#FCA5A5', fontSize: 10, fontWeight: 800, letterSpacing: s.badgeSpacing, textTransform: 'uppercase', borderRadius: 2 }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: s.badgePadding, background: DARK, color: '#F5CBA7', fontSize: 10, fontWeight: 800, letterSpacing: s.badgeSpacing, textTransform: 'uppercase', borderRadius: 20 }}>
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.5 7.1.7-5.4 4.9 1.6 7-6.2-3.6L5.8 21l1.6-7L2 9.2l7.1-.7L12 2z" /></svg>
             {BADGE_LABELS.BESTSELLER}
           </span>
         )}
+        {product.newArrival && (
+          <span style={{ display: 'inline-block', padding: s.badgePadding, background: '#1E3A5F', color: '#93C5FD', fontSize: 10, fontWeight: 800, letterSpacing: s.badgeSpacing, textTransform: 'uppercase', borderRadius: 20 }}>
+            {BADGE_LABELS.NEW}
+          </span>
+        )}
         {(product.badges ?? []).map((b) => (
-          <span key={b} style={{ display: 'inline-block', padding: s.badgePadding, background: '#F4EBE1', color: '#8F5922', fontSize: 10, fontWeight: 800, letterSpacing: s.badgeSpacing, textTransform: 'uppercase', borderRadius: 2, border: '1px solid #E5D5C5' }}>
+          <span key={b} style={{ display: 'inline-block', padding: s.badgePadding, background: '#F4EBE1', color: '#8F5922', fontSize: 10, fontWeight: 800, letterSpacing: s.badgeSpacing, textTransform: 'uppercase', borderRadius: 20, border: '1px solid #E5D5C5' }}>
             {b}
           </span>
         ))}
@@ -61,13 +65,25 @@ export default function ProductSummary({ product, categoryLabel, selectedToneLab
         Teint {selectedToneLabel}
       </p>
       <div style={{ marginBottom: s.ratingMargin }}>
-        <StarRating rating={product.rating} count={product.reviewCount} size={s.star} />
+        {onRatingClick ? (
+          <button
+            onClick={onRatingClick}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+          >
+            <StarRating rating={product.rating} size={s.star + 2} showCount={false} />
+            <span style={{ fontSize: 13, fontWeight: 700, color: TEXT, textDecoration: 'underline', textUnderlineOffset: 3, textDecorationColor: BORDER }}>
+              {product.reviewCount} avis
+            </span>
+          </button>
+        ) : (
+          <StarRating rating={product.rating} count={product.reviewCount} size={s.star} />
+        )}
       </div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: s.priceMargin }}>
         <span style={{ fontSize: s.price, fontWeight: 800, color: TEXT, fontFamily: 'Georgia,serif' }}>
           {product.price.toLocaleString('fr-FR')}
         </span>
-        <span style={{ fontSize: s.currency, fontWeight: 700, color: TEXT_MUTED }}>FCFA</span>
+        <span style={{ fontSize: s.currency, fontWeight: 700, color: TEXT_MUTED }}>{CURRENCY_LABEL}</span>
         {product.originalPrice && (
           <span style={{ fontSize: s.strike, textDecoration: 'line-through', color: TEXT_MUTED, marginLeft: s.strikeMarginLeft }}>
             {formatPrice(product.originalPrice)}

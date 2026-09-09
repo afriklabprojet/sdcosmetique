@@ -19,13 +19,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Product, Review, CATEGORIES, SKIN_TONES, SkinTone } from '@/shared/types/domain.type';
-import type { ProductTrustItem, PaymentBadge, ProductToneImages } from '@/features/site-config/site-config.type';
+import type { ProductTrustItem, ProductToneImages } from '@/features/site-config/site-config.type';
 import ProductCard from '@/features/catalog/cards/product.card';
 import { useCart } from '@/features/cart/cart.store';
 import { useWishlist } from '@/features/wishlist/wishlist.store';
 import {
   DARK, GOLD, GOLD2, BORDER, TEXT, TEXT_MUTED, BG,
-  toneImage, DEFAULT_TRUST, DEFAULT_PAYMENT_BADGES,
+  toneImage, DEFAULT_TRUST,
 } from '@/features/catalog/product-detail.constant';
 import { TRUST_ICONS, ProductWishlistIcon } from '@/features/catalog/assets/product-detail-icons';
 import ProductSummary from '@/features/catalog/views/product-summary.view';
@@ -39,19 +39,16 @@ interface Props {
   readonly reviews: Review[];
   /** Garanties affichées sous la sidebar (depuis site_config). */
   readonly trustItems?: ProductTrustItem[];
-  /** Badges paiement (depuis site_config). */
-  readonly paymentBadges?: PaymentBadge[];
   /** Images cercles teint (depuis site_config). */
   readonly toneImages?: ProductToneImages;
 }
 
-export default function ProductDetail({ product, related, reviews, trustItems, paymentBadges, toneImages }: Props) {
+export default function ProductDetail({ product, related, reviews, trustItems, toneImages }: Props) {
   const router               = useRouter();
   const { addItem }          = useCart();
   const { toggle, wishlistContains } = useWishlist();
 
   const trust    = trustItems    ?? DEFAULT_TRUST;
-  const payments = paymentBadges ?? DEFAULT_PAYMENT_BADGES;
 
   /** Images teint admin-configurables — mappe marron_clair → 'marron-clair' */
   const customToneImages: Record<string, string> | undefined = toneImages ? {
@@ -68,6 +65,12 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
   const changeQty = (q: number) => setQty(Math.max(1, q));
   const [activeTab,    setActiveTab]    = useState<ProductTabId>('description');
   const [adding,       setAdding]       = useState(false);
+  const tabsRef = useRef<HTMLDivElement>(null);
+
+  const jumpToReviews = () => {
+    setActiveTab('reviews');
+    tabsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   /* ── Sticky CTA mobile ───────────────────────────────────────── */
   const mobilePurchaseRef                = useRef<HTMLDivElement>(null);
@@ -111,7 +114,6 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
     selectTone: setSelectedTone,
     qty,
     changeQuantity: changeQty,
-    payments,
     addProductToCart,
     buyNow,
     adding,
@@ -178,6 +180,7 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
             product={product}
             categoryLabel={categoryLabel}
             selectedToneLabel={selectedToneInfo?.label ?? ''}
+            onRatingClick={jumpToReviews}
           />
 
           {/* Col 4 – Purchase sidebar */}
@@ -223,6 +226,7 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
             product={product}
             categoryLabel={categoryLabel}
             selectedToneLabel={selectedToneInfo?.label ?? ''}
+            onRatingClick={jumpToReviews}
             compact
           />
 
@@ -251,13 +255,15 @@ export default function ProductDetail({ product, related, reviews, trustItems, p
         </div>
 
         {/* ── Tabs + side panels (Ingrédients clés / Résultats) ──────── */}
-        <ProductTabs
-          product={product}
-          reviews={reviews}
-          keyIngredients={keyIngredients}
-          activeTab={activeTab}
-          selectTab={setActiveTab}
-        />
+        <div ref={tabsRef} style={{ scrollMarginTop: 84 }}>
+          <ProductTabs
+            product={product}
+            reviews={reviews}
+            keyIngredients={keyIngredients}
+            activeTab={activeTab}
+            selectTab={setActiveTab}
+          />
+        </div>
 
         {/* ── Related products ───────────────────────────────────────── */}
         {related.length > 0 && (

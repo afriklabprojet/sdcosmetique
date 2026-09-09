@@ -40,7 +40,6 @@ import SettingsTab from '@/features/account/tabs/settings.tab';
 
 export default function AccountPage() {
   const router = useRouter();
-  const [mobile, setIsMobile] = useState(false);
   const [active, setActive] = useState<NavItem>('dashboard');
   const [user, setUser] = useState<StorefrontIdentity | null>(null);
   const [orders, setOrders] = useState<MappedOrder[]>([]);
@@ -84,15 +83,6 @@ export default function AccountPage() {
       if (br?.compteHeroBg) setCompteHeroBg(br.compteHeroBg);
       if (br?.parrainageHeroBg) setParrainageHeroBg(br.parrainageHeroBg);
     }).catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    const updateViewport = () => {
-      setIsMobile(globalThis.window.innerWidth <= 900);
-    };
-    updateViewport();
-    globalThis.window.addEventListener('resize', updateViewport);
-    return () => globalThis.window.removeEventListener('resize', updateViewport);
   }, []);
 
   useEffect(() => {
@@ -255,7 +245,7 @@ export default function AccountPage() {
 
   return (
     <div style={{ background: '#F5F2EE', minHeight: '100vh' }}>
-      <div style={{ maxWidth: 1440, margin: '0 auto', padding: mobile ? '18px 12px 0' : '28px 40px 0' }}>
+      <div className="account-shell" style={{ maxWidth: 1440, margin: '0 auto' }}>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#9A8A7A', marginBottom: 20 }}>
           <Link href="/" style={{ color: '#9A8A7A', textDecoration: 'none' }}>Accueil</Link>
@@ -263,10 +253,9 @@ export default function AccountPage() {
           <span style={{ color: '#1A1A1A' }}>Mon compte</span>
         </div>
 
-        <div style={{ display: 'flex', gap: mobile ? 14 : 24, alignItems: 'flex-start', flexDirection: mobile ? 'column' : 'row' }}>
+        <div className="account-layout">
 
           <AccountSidebar
-            mobile={mobile}
             active={active}
             navigate={setActive}
             initial={initial}
@@ -281,7 +270,6 @@ export default function AccountPage() {
 
             {active === 'dashboard' && (
               <DashboardTab
-                mobile={mobile}
                 navigate={setActive}
                 ordersForDisplay={ordersForDisplay}
                 displayName={displayName}
@@ -300,7 +288,6 @@ export default function AccountPage() {
 
             {active === 'profil' && (
               <ProfileTab
-                mobile={mobile}
                 displayEmail={displayEmail}
                 displayPhone={displayPhone}
                 firstName={firstName}
@@ -314,12 +301,13 @@ export default function AccountPage() {
                 setPwdForm={setPwdForm}
                 pwdMsg={pwdMsg}
                 setPwdMsg={setPwdMsg}
+                hasPassword={user.hasPassword}
+                onPasswordDefined={() => setUser(prev => prev ? { ...prev, hasPassword: true } : prev)}
               />
             )}
 
             {active === 'adresses' && (
               <AddressesTab
-                mobile={mobile}
                 addresses={addresses}
                 addrForm={addrForm}
                 setAddrForm={setAddrForm}
@@ -336,14 +324,13 @@ export default function AccountPage() {
             {active === 'paiements' && <PaymentsTab displayName={displayName} />}
 
             {active === 'favoris' && (
-              <WishlistTab mobile={mobile} wishlistItems={wishlistItems} removeFromWishlist={removeFromWishlist} />
+              <WishlistTab wishlistItems={wishlistItems} removeFromWishlist={removeFromWishlist} />
             )}
 
-            {active === 'avis' && <ReviewsTab mobile={mobile} ordersForDisplay={ordersForDisplay} />}
+            {active === 'avis' && <ReviewsTab ordersForDisplay={ordersForDisplay} />}
 
             {active === 'points' && (
               <LoyaltyTab
-                mobile={mobile}
                 displayEmail={displayEmail}
                 memberName={`${profileForm.firstName} ${profileForm.lastName}`.trim()}
                 userPoints={userPoints}
@@ -368,13 +355,12 @@ export default function AccountPage() {
             )}
 
             {active === 'parametres' && (
-              <SettingsTab mobile={mobile} deleteConfirm={deleteConfirm} setDeleteConfirm={setDeleteConfirm} />
+              <SettingsTab deleteConfirm={deleteConfirm} setDeleteConfirm={setDeleteConfirm} />
             )}
           </main>
         </div>
 
-        <div style={{
-          display: 'grid', gridTemplateColumns: mobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: 0,
+        <div className="account-trust-grid" style={{
           background: '#fff', borderRadius: 16, border: '1px solid #EDE8E0',
           margin: '24px 0 0', padding: '20px 0',
         }}>
@@ -384,12 +370,9 @@ export default function AccountPage() {
             { icon: '🔒', title: 'Paiement sécurisé', sub: 'par plusieurs moyens' },
             { icon: '↩️', title: 'Satisfait ou remboursé', sub: 'sous 7 jours' },
             { icon: '💬', title: 'Service client disponible', sub: '7/7' },
-          ].map((t, i) => (
-            <div key={t.title} style={{
+          ].map((t) => (
+            <div key={t.title} className="account-trust-item" style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
-              padding: mobile ? '12px' : '0 16px',
-              borderRight: !mobile && i < 4 ? '1px solid #F0EBE0' : 'none',
-              borderBottom: mobile && i < 3 ? '1px solid #F0EBE0' : 'none',
             }}>
               <span style={{ fontSize: 24, marginBottom: 6 }}>{t.icon}</span>
               <p style={{ fontSize: 11, fontWeight: 700, color: '#1A1A1A', lineHeight: 1.3 }}>{t.title}</p>

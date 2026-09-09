@@ -25,7 +25,12 @@ export default function TopBar({
             <path d="M3 7h11v10H3zM14 10h4l3 3v4h-7" />
             <circle cx="7" cy="18" r="2" /><circle cx="17" cy="18" r="2" />
           </svg>
-          <span>{message}</span>
+          <div className="top-bar-marquee">
+            <div className="top-bar-marquee-track">
+              <span>{message}</span>
+              <span aria-hidden="true">{message}</span>
+            </div>
+          </div>
         </div>
         <div className="top-bar-right">
           <span>Besoin d&apos;aide&nbsp;? {phone}</span>
@@ -44,62 +49,119 @@ export default function TopBar({
       </div>
 
       <style jsx>{`
+        /* Mobile-first : base = mobile (une seule ligne compacte, façon
+           bandeau d'app native — téléphone et réseaux sociaux, redondants
+           avec le footer, ne sont réservés qu'au palier desktop où l'espace
+           ne coûte rien). Palier unique à 769px pour l'espacement desktop. */
         .top-bar-wrapper {
           background: #8f5922;
           color: #F4E8D8;
           font-family: var(--font-inter), Inter, sans-serif;
-          font-size: 0.78rem;
+          font-size: 0.72rem;
           padding: 8px 0;
         }
         .top-bar-container {
           max-width: 1280px;
           margin: 0 auto;
-          padding: 0 32px;
+          padding: 0 16px;
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          gap: 16px;
-          flex-wrap: wrap;
+          justify-content: flex-start;
+          gap: 8px;
         }
         .top-bar-left {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 7px;
+          min-width: 0;
+          flex: 1;
+        }
+        .top-bar-left svg {
+          flex-shrink: 0;
+        }
+        .top-bar-marquee {
+          flex: 1;
+          min-width: 0;
+          overflow: hidden;
+          mask-image: linear-gradient(to right, transparent, black 14px, black calc(100% - 14px), transparent);
+          -webkit-mask-image: linear-gradient(to right, transparent, black 14px, black calc(100% - 14px), transparent);
+        }
+        .top-bar-marquee-track {
+          display: inline-flex;
+          width: max-content;
+          white-space: nowrap;
+          animation: top-bar-scroll 14s linear infinite;
+        }
+        .top-bar-marquee-track span {
+          padding-right: 56px;
+        }
+        @keyframes top-bar-scroll {
+          from { transform: translateX(0); }
+          to { transform: translateX(-50%); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .top-bar-marquee-track {
+            animation: none;
+          }
+          .top-bar-marquee-track span:last-child {
+            display: none;
+          }
+          .top-bar-marquee-track span:first-child {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+            padding-right: 0;
+          }
         }
         .top-bar-right {
-          display: flex;
+          display: none;
           align-items: center;
-          gap: 22px;
+          gap: 12px;
         }
         .rs-icons {
           display: flex;
-          gap: 4px;
+          gap: 0;
           align-items: center;
         }
         .rs-link {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          min-width: 44px;
-          min-height: 44px;
+          min-width: 32px;
+          min-height: 32px;
           color: inherit;
           text-decoration: none;
         }
-        @media (max-width: 768px) {
+        @media (min-width: 769px) {
+          .top-bar-wrapper {
+            font-size: 0.78rem;
+          }
           .top-bar-container {
-            padding: 0 16px;
-            justify-content: center;
-            gap: 4px;
+            padding: 0 32px;
+            justify-content: space-between;
+            gap: 16px;
+          }
+          .top-bar-marquee {
+            flex: 0 1 auto;
+            mask-image: none;
+            -webkit-mask-image: none;
+          }
+          .top-bar-marquee-track {
+            animation: none;
+          }
+          .top-bar-marquee-track span:last-child {
+            display: none;
           }
           .top-bar-right {
-            gap: 12px;
+            display: flex;
+            gap: 22px;
           }
           .rs-icons {
-            gap: 0;
+            gap: 4px;
           }
           .rs-link {
-            min-width: 32px;
-            min-height: 32px;
+            min-width: 44px;
+            min-height: 44px;
           }
         }
       `}</style>

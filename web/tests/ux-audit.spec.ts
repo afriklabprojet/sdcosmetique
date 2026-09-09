@@ -239,15 +239,6 @@ async function checkOverflow(page: Page) {
   });
 }
 
-async function checkConsoleErrors(page: Page): Promise<string[]> {
-  const errors: string[] = [];
-  page.on('console', msg => {
-    if (msg.type() === 'error') errors.push(msg.text().slice(0, 100));
-  });
-  page.on('pageerror', err => errors.push(`JS Error: ${err.message.slice(0, 100)}`));
-  return errors;
-}
-
 // ── Structures de données du rapport ──────────────────────────
 interface PageAudit {
   route: string;
@@ -269,7 +260,7 @@ const auditResults: PageAudit[] = [];
 // ═══════════════════════════════════════════════════════════════
 test.describe('📸 Screenshots multi-viewport', () => {
   for (const p of PAGES) {
-    for (const [key, vp] of Object.entries(VIEWPORTS)) {
+    for (const vp of Object.values(VIEWPORTS)) {
       test(`${p.label} — ${vp.label}`, async ({ page }) => {
         await page.setViewportSize({ width: vp.width, height: vp.height });
         await page.goto(BASE + p.route, { waitUntil: 'networkidle', timeout: 15000 });

@@ -297,13 +297,14 @@ export default function ShopView({ products, categories }: Readonly<ShopViewProp
       </div>
 
       <style jsx>{`
+        /* Mobile-first : 2 colonnes par défaut, puis 3 dès la tablette, 4 en desktop. */
         .boutique-grid {
           display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 24px;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 14px;
         }
-        @media (max-width: 1024px) { .boutique-grid { grid-template-columns: repeat(3, 1fr); } }
-        @media (max-width: 640px)  { .boutique-grid { grid-template-columns: repeat(1, 1fr); gap: 16px; } }
+        @media (min-width: 641px)  { .boutique-grid { grid-template-columns: repeat(3, 1fr); gap: 24px; } }
+        @media (min-width: 1025px) { .boutique-grid { grid-template-columns: repeat(4, 1fr); } }
       `}</style>
     </div>
   );

@@ -4,6 +4,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import { Cart } from '@/shared/api/cart';
 import { sellableSlug, type MappedCart } from '@/shared/api/mappers/cart';
 import { CartItem, Product } from '@/shared/types/domain.type';
+import { toast } from '@/shared/ui/toast';
 
 const EMPTY: MappedCart = { items: [], subtotal: 0, discount: 0, total: 0, couponCode: null };
 
@@ -57,28 +58,42 @@ export function CartProvider({ children }: { readonly children: React.ReactNode 
   const addItem = useCallback((product: Product) => {
     void Cart.Item.add(sellableSlug(product), 1)
       .then(setCart)
-      .then(() => setIsOpen(true));
+      .then(() => setIsOpen(true))
+      .catch(() => {
+        toast.error("Impossible d'ajouter ce produit au panier. Vérifiez votre connexion.");
+      });
   }, []);
 
   const removeItem = useCallback((productId: string) => {
     const line = cart.items.find((item) => item.product.id === productId);
     if (line?.lineId == null) return;
-    void Cart.Item.remove(line.lineId).then(setCart);
+    void Cart.Item.remove(line.lineId).then(setCart).catch(() => {
+      toast.error('Impossible de retirer cet article. Vérifiez votre connexion.');
+    });
   }, [cart.items]);
 
   const updateQty = useCallback((productId: string, quantity: number) => {
     const line = cart.items.find((item) => item.product.id === productId);
     if (line?.lineId == null) return;
     if (quantity <= 0) {
-      void Cart.Item.remove(line.lineId).then(setCart);
+      void Cart.Item.remove(line.lineId).then(setCart).catch(() => {
+        toast.error('Impossible de retirer cet article. Vérifiez votre connexion.');
+      });
       return;
     }
-    void Cart.Item.update(line.lineId, quantity).then(setCart);
+    void Cart.Item.update(line.lineId, quantity).then(setCart).catch(() => {
+      toast.error('Impossible de mettre à jour la quantité. Vérifiez votre connexion.');
+    });
   }, [cart.items]);
 
   const clearCart = useCallback(() => {
     const lines = cart.items.filter((item) => item.lineId != null);
-    void Promise.all(lines.map((item) => Cart.Item.remove(item.lineId as number))).then(() => refresh());
+    void Promise.all(lines.map((item) => Cart.Item.remove(item.lineId as number)))
+      .then(() => refresh())
+      .catch(() => {
+        toast.error('Impossible de vider le panier. Vérifiez votre connexion.');
+        void refresh();
+      });
   }, [cart.items, refresh]);
 
   const applyCoupon = useCallback(async (code: string) => {

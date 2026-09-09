@@ -9,6 +9,8 @@
 
 import type { Product } from '@/shared/types/domain.type';
 import { BORDER, GOLD, TEXT } from '@/features/catalog/product-detail.constant';
+import { AddedCheckIcon, AddToCartPlusIcon } from '@/features/catalog/assets/product-card-icons';
+import { formatPrice } from '@/shared/format/price';
 
 interface StickyPurchaseProps {
   readonly product: Product;
@@ -19,10 +21,10 @@ interface StickyPurchaseProps {
 export default function StickyPurchase({ product, adding, addToCart }: StickyPurchaseProps) {
   return (
         <section
-          className="lg:hidden"
+          className="lg:hidden floating-bar-above-nav"
           aria-label="Acheter rapidement"
           style={{
-            position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100,
+            position: 'fixed', left: 0, right: 0, zIndex: 57,
             background: 'white', borderTop: `1px solid ${BORDER}`,
             padding: '10px 16px',
             display: 'flex', alignItems: 'center', gap: 12,
@@ -34,7 +36,7 @@ export default function StickyPurchase({ product, adding, addToCart }: StickyPur
               {product.name}
             </p>
             <p style={{ fontSize: 14, fontWeight: 800, color: GOLD, margin: 0 }}>
-              {product.price.toLocaleString('fr-FR')}&nbsp;FCFA
+              {formatPrice(product.price)}
             </p>
           </div>
           <button
@@ -43,6 +45,7 @@ export default function StickyPurchase({ product, adding, addToCart }: StickyPur
             aria-label="Ajouter au panier"
             style={{
               flexShrink: 0, minWidth: 152, height: 44,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               background: TEXT, color: '#fff',
               border: `1px solid ${TEXT}`, borderRadius: 0,
               fontSize: 11, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase',
@@ -52,7 +55,13 @@ export default function StickyPurchase({ product, adding, addToCart }: StickyPur
               padding: '0 16px',
             }}
           >
-            {adding ? '✓ Ajouté' : 'Ajouter au panier'}
+            <span style={{
+              display: 'flex', transform: adding ? 'scale(0.92) rotate(90deg)' : 'scale(1) rotate(0deg)',
+              transition: 'transform 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+            }}>
+              {adding ? <AddedCheckIcon /> : <AddToCartPlusIcon />}
+            </span>
+            {adding ? 'Ajouté' : 'Ajouter au panier'}
           </button>
         </section>
   );

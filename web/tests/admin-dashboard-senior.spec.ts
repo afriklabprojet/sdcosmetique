@@ -57,7 +57,7 @@ test.describe('Dashboard Admin Senior - SD Cosmetique', () => {
     test('should apply correct CSS custom properties', async ({ page }) => {
       // Vérifier que les variables CSS sont appliquées
       const sidebar = page.locator('.sidebar');
-      const goldPrimary = await sidebar.evaluate((el) => {
+      const goldPrimary = await sidebar.evaluate(() => {
         return getComputedStyle(document.documentElement).getPropertyValue('--gold-primary').trim();
       });
       

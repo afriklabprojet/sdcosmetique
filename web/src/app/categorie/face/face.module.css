@@ -20,16 +20,33 @@
 .heroInner {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 4rem 1.5rem 3rem;
+  padding: 1.5rem 1.25rem 1.75rem;
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  gap: 3rem;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
   align-items: center;
   min-height: 360px;
 }
 
+@media (min-width: 641px) {
+  .heroInner { padding: 1.75rem 1.25rem 2rem; }
+}
+
+@media (min-width: 1024px) {
+  .heroInner {
+    grid-template-columns: 1.4fr 1fr;
+    gap: 3rem;
+    padding: 4rem 1.5rem 3rem;
+  }
+}
+
 .heroContent {
+  order: 2;
   animation: fadeInUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+@media (min-width: 1024px) {
+  .heroContent { order: 0; }
 }
 
 .crumbs {
@@ -76,12 +93,16 @@
 
 .title {
   font-family: var(--font-heading);
-  font-size: clamp(2.75rem, 6vw, 4.5rem);
+  font-size: 2.15rem;
   line-height: 0.98;
   letter-spacing: -0.02em;
   color: var(--charcoal);
   font-weight: 500;
   margin: 0;
+}
+
+@media (min-width: 641px) {
+  .title { font-size: clamp(2.75rem, 6vw, 4.5rem); }
 }
 
 .titleAccent {
@@ -91,20 +112,28 @@
 }
 
 .lede {
-  margin-top: 1.5rem;
+  margin-top: 1rem;
   max-width: 32rem;
-  font-size: 1rem;
+  font-size: 0.9rem;
   line-height: 1.7;
   color: rgba(0, 0, 0, 0.62);
+}
+
+@media (min-width: 641px) {
+  .lede { margin-top: 1.5rem; font-size: 1rem; }
 }
 
 /* ─── CTA hero ─────────────────────────────────────── */
 .heroActions {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
-  margin-top: 2rem;
+  gap: 1rem;
+  margin-top: 1.5rem;
   flex-wrap: wrap;
+}
+
+@media (min-width: 641px) {
+  .heroActions { gap: 1.25rem; margin-top: 2rem; }
 }
 
 .heroBtn {
@@ -144,9 +173,13 @@
 
 .heroVisual {
   position: relative;
-  aspect-ratio: 4 / 5;
-  max-height: 420px;
-  border-radius: 2px;
+  /* Visuel d'abord, texte compact ensuite — le même schéma que le hero
+     d'accueil (carte image visible immédiatement, plutôt qu'un bloc de
+     texte plein écran qui repousse la photo hors du premier écran). */
+  order: 1;
+  aspect-ratio: 4 / 3;
+  max-height: 240px;
+  border-radius: 14px;
   overflow: hidden;
   box-shadow:
     0 30px 60px -20px rgba(143, 89, 34, 0.35),
@@ -154,6 +187,15 @@
   animation: fadeIn 1.2s ease-out 0.2s both;
   transform: translateY(0);
   transition: transform 0.6s ease, box-shadow 0.6s ease;
+}
+
+@media (min-width: 1024px) {
+  .heroVisual {
+    order: 0;
+    aspect-ratio: 4 / 5;
+    max-height: 420px;
+    border-radius: 2px;
+  }
 }
 
 .heroVisual:hover {
@@ -219,18 +261,27 @@
 .main {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 3rem 1.5rem 5rem;
+  padding: 2rem 1.25rem 4rem;
+}
+
+@media (min-width: 641px) {
+  .main { padding: 3rem 1.5rem 5rem; }
 }
 
 .toolbar {
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
+  align-items: stretch;
   justify-content: space-between;
-  gap: 2rem;
+  gap: 1.25rem;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   margin-bottom: 2.5rem;
   flex-wrap: wrap;
+}
+
+@media (min-width: 641px) {
+  .toolbar { flex-direction: row; align-items: flex-end; gap: 2rem; }
 }
 
 .toolbarLeft { flex: 1; min-width: 280px; }
@@ -247,8 +298,13 @@
 .toolbarRight {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 1.25rem;
   flex-shrink: 0;
+}
+
+@media (min-width: 641px) {
+  .toolbarRight { justify-content: flex-start; }
 }
 
 .count {
@@ -407,26 +463,6 @@
 .emptyBtn:hover {
   background: var(--gold);
   transform: translateY(-1px);
-}
-
-/* ─── RESPONSIVE ─────────────────────────────────────────── */
-@media (max-width: 1023px) {
-  .heroInner {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-    padding: 3rem 1.5rem 2.5rem;
-  }
-  .heroVisual {
-    max-height: 280px;
-    aspect-ratio: 16 / 10;
-  }
-}
-
-@media (max-width: 640px) {
-  .heroInner { padding: 2.5rem 1.25rem 2rem; }
-  .toolbar { flex-direction: column; align-items: stretch; gap: 1.25rem; }
-  .toolbarRight { justify-content: space-between; }
-  .main { padding: 2rem 1.25rem 4rem; }
 }
 
 /* ─── ANIMATIONS ─────────────────────────────────────────── */

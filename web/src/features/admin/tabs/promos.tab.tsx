@@ -2,22 +2,19 @@
 
 /* Onglet «promos» de la console d'administration. Extrait de `admin.view.tsx` (F-110). */
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import GlobalPromoCard from '@/features/admin/cards/global-promo.card';
 import { getSaveButtonText } from '@/features/admin/admin.util';
 import { Coupon } from '@/shared/api/admin';
 import { type PromoCode, type SiteConfig } from '@/features/site-config/site-config.type';
+import { formatPrice } from '@/shared/format/price';
 import { BG, SURFACE, SURFACE2, BORDER, GOLD, TEXT, TEXT2, TEXT3, GOLD2, S_ERR_T, S_SAVE_BG, S_SAVE_T } from '@/features/admin/admin.constant';
 
 interface PromosTabProps {
   readonly siteContent: SiteConfig;
-  readonly setSiteContent: React.Dispatch<React.SetStateAction<SiteConfig>>;
-  readonly saveConfigSection: (key: string, value: unknown) => Promise<void>;
-  readonly contentSaving: Record<string, boolean>;
-  readonly contentSaved: Record<string, boolean>;
 }
 
-export default function PromosTab({ siteContent, setSiteContent, saveConfigSection, contentSaving, contentSaved }: PromosTabProps) {
+export default function PromosTab({ siteContent }: PromosTabProps) {
             const [codes, setCodes] = useState<(PromoCode & { id?: string })[]>([]);
             const [codesSaving, setCodesSaving] = useState(false);
             const [codesSaved, setCodesSaved] = useState(false);
@@ -122,8 +119,8 @@ export default function PromosTab({ siteContent, setSiteContent, saveConfigSecti
                         <input type="checkbox" checked={c.active} onChange={e => updateCode(i, { active: e.target.checked })} />
                         <span>Actif</span>
                         <span style={{ marginLeft: '12px', color: TEXT3, fontSize: '11px' }}>
-                          Aperçu : {c.type === 'percent' ? `−${c.value}% sur le panier` : `−${c.value.toLocaleString('fr-FR')} FCFA`}
-                          {c.minSubtotal ? ` (min ${c.minSubtotal.toLocaleString('fr-FR')} FCFA)` : ''}
+                          Aperçu : {c.type === 'percent' ? `−${c.value}% sur le panier` : `−${formatPrice(c.value)}`}
+                          {c.minSubtotal ? ` (min ${formatPrice(c.minSubtotal)})` : ''}
                         </span>
                       </label>
                     </div>

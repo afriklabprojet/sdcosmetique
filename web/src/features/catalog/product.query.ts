@@ -1,9 +1,11 @@
 /*
- * Catalogue fetchers go to Laravel. formatPrice stays here so account and
- * admin tabs can import it without pulling fetchers.
+ * Catalogue fetchers go to Laravel.
  */
 import { Product as StorefrontProductApi } from '@/shared/api/catalog';
 import { Product, SkinTone } from '@/shared/types/domain.type';
+
+/** Ré-exporté pour ne pas casser les imports existants — l'implémentation vit dans shared/format/price.ts (aucune dépendance, contrairement à ce fichier). */
+export { formatPrice } from '@/shared/format/price';
 
 export interface FetchProductsOptions {
   category?:    string;
@@ -32,6 +34,3 @@ export async function fetchProductBySlug(slug: string): Promise<Product | null> 
   const result = await StorefrontProductApi.find(slug);
   return result?.product ?? null;
 }
-
-export const formatPrice = (price: number) =>
-  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(price);

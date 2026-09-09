@@ -10,6 +10,7 @@ import type { WelcomePopup } from '@/features/site-config/site-config.type';
 
 const CartDrawer = dynamic(() => import('@/features/cart/drawers/cart.drawer'), { ssr: false });
 const WelcomePopupModal = dynamic(() => import('@/features/marketing/welcome.modal'), { ssr: false });
+const ComparisonBar = dynamic(() => import('@/features/comparison/comparison-bar'), { ssr: false });
 
 interface ClientOnlyOverlaysProps {
   welcomePopup?: WelcomePopup;
@@ -19,6 +20,7 @@ export default function ClientOnlyOverlays({ welcomePopup }: Readonly<ClientOnly
   return (
     <>
       <CartDrawer />
+      <ComparisonBar />
       {welcomePopup?.enabled && <WelcomePopupModal config={welcomePopup} />}
     </>
   );

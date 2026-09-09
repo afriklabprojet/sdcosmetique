@@ -15,8 +15,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { NAV, navItemActive } from '@/shared/layout/navigation.constant';
+import { AnimatePresence } from 'framer-motion';
+import { NAV, navEntryActive } from '@/shared/layout/navigation.constant';
 import NavActions from '@/shared/layout/nav-actions.toolbar';
+import NavDropdown from '@/shared/layout/nav-dropdown';
 import MobileNavDrawer from '@/shared/layout/mobile-nav.drawer';
 import ProductSearch from '@/features/catalog/product-search.widget';
 
@@ -65,17 +67,13 @@ export default function Navbar({ logoUrl, logoCaption, siteName }: Readonly<{ lo
         transition: 'all 0.3s ease',
       }}
     >
-      <style>{`.nb-logo-text { display: flex; } @media (max-width: 767px) { .nb-logo-text { display: none; } }`}</style>
+      <style>{`.nb-logo-text { display: none; } @media (min-width: 768px) { .nb-logo-text { display: flex; } }`}</style>
       <div
         className="nav-bar"
         style={{
           maxWidth: 1280,
           margin: '0 auto',
-          padding: '14px 32px',
-          display: 'grid',
-          gridTemplateColumns: 'auto 1fr auto',
           alignItems: 'center',
-          gap: 32,
         }}
       >
         {/* LOGO */}
@@ -119,15 +117,16 @@ export default function Navbar({ logoUrl, logoCaption, siteName }: Readonly<{ lo
           className="nav-list"
           aria-label="Navigation principale"
           style={{
-            display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 28,
             fontFamily: 'var(--font-inter), Inter, sans-serif',
           }}
         >
           {NAV.map((it) => {
-            const active = navItemActive(it.href, pathname);
+            const active = navEntryActive(it, pathname);
+            if (it.children) {
+              return <NavDropdown key={it.label} entry={it} active={active} pathname={pathname} />;
+            }
             return (
               <Link
                 key={it.label}
@@ -164,24 +163,41 @@ export default function Navbar({ logoUrl, logoCaption, siteName }: Readonly<{ lo
       </div>
 
       <style jsx>{`
-        @media (max-width: 1100px) {
-          .nav-list { gap: 16px !important; }
+        /* Mobile-first : base = mobile/tablette/petit laptop — nav-list
+           masqué, hamburger visible (évite un menu qui déborde tant que la
+           largeur ne peut pas accueillir les 9 liens sans les compresser).
+           Un seul palier à 1280px (largeur du conteneur) fait apparaître le
+           menu complet, avec assez de place pour ne jamais chevaucher les
+           icônes d'action. */
+        .nav-bar {
+          display: flex;
+          justify-content: space-between;
+          gap: 16px;
+          padding: 10px 16px;
         }
-        @media (max-width: 900px) {
-          .nav-list { display: none !important; }
-          .nav-bar { 
-            display: flex !important; 
-            justify-content: space-between !important; 
-            gap: 16px !important; 
+        .nav-list {
+          display: none;
+        }
+        @media (min-width: 481px) {
+          .nav-bar { padding: 14px 32px; }
+        }
+        @media (min-width: 1280px) {
+          .nav-bar {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 24px;
           }
-        }
-        @media (max-width: 480px) {
-          .nav-bar { padding: 10px 16px !important; }
+          .nav-list {
+            display: flex;
+            gap: 20px;
+          }
         }
         @keyframes searchFade { from { opacity: 0; } to { opacity: 1; } }
       `}</style>
 
-      {menuOpen && <MobileNavDrawer pathname={pathname} close={() => setMenuOpen(false)} />}
+      <AnimatePresence>
+        {menuOpen && <MobileNavDrawer key="mobile-drawer" pathname={pathname} close={() => setMenuOpen(false)} />}
+      </AnimatePresence>
 
       {searchOpen && <ProductSearch close={() => setSearchOpen(false)} />}
     </header>

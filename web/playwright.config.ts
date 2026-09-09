@@ -57,7 +57,7 @@ export default defineConfig({
 
   /* Run standalone server before starting the tests */
   webServer: {
-    command: 'node .next/standalone/server.js',
+    command: 'rm -rf .next/standalone/.next/static .next/standalone/public && mkdir -p .next/standalone/.next/static .next/standalone/public && cp -R .next/static/. .next/standalone/.next/static/ && cp -R public/. .next/standalone/public/ && node .next/standalone/server.js',
     port: 3000,
     reuseExistingServer: !process.env.CI,
     timeout: 30000,

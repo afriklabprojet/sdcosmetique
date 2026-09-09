@@ -4,11 +4,15 @@ import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/features/cart/cart.store";
 import { WishlistProvider } from "@/features/wishlist/wishlist.store";
+import { ComparisonProvider } from "@/features/comparison/comparison.store";
 import { GlobalPromoProvider } from "@/features/promo/promo.store";
 import TopBar from "@/shared/layout/top-bar";
 import Navbar from "@/shared/layout/navbar";
+import BottomNav from "@/shared/layout/bottom-nav";
+import PageTransition from "@/shared/layout/page-transition";
 import TrackingScripts from "@/features/marketing/tracking-scripts";
 import ClientOnlyOverlays from "@/shared/layout/client-only-overlays";
+import { Toaster } from "@/shared/ui/toast";
 import { getSiteConfig } from "@/features/site-config/site-config.query";
 
 import PromoBannerBar from "@/features/promo/promo-banner";
@@ -94,6 +98,7 @@ export default async function RootLayout({
         <GlobalPromoProvider initialConfig={siteConfig.global_promo}>
         <CartProvider>
           <WishlistProvider>
+          <ComparisonProvider>
             <div id="site-chrome">
               {(siteConfig.marketing?.banners?.length > 0 || siteConfig.global_promo?.enabled) && (
                 <PromoBannerBar
@@ -111,10 +116,15 @@ export default async function RootLayout({
               <Navbar logoUrl={siteConfig.branding?.logoUrl || undefined} logoCaption={siteConfig.branding?.tagline || undefined} siteName={siteConfig.branding?.siteName || 'SD Cosmetique'} />
               <ClientOnlyOverlays welcomePopup={siteConfig.marketing?.welcomePopup} />
             </div>
-            <main id="main-content" className="flex-1" tabIndex={-1}>{children}</main>
+            <main id="main-content" className="flex-1 has-bottom-nav-space" tabIndex={-1}>
+              <PageTransition>{children}</PageTransition>
+            </main>
             <div id="site-footer">
               <Footer logoUrl={siteConfig.branding?.logoUrl || undefined} siteName={siteConfig.branding?.siteName || 'SD Cosmetique'} />
             </div>
+            <BottomNav />
+            <Toaster />
+          </ComparisonProvider>
           </WishlistProvider>
         </CartProvider>
         </GlobalPromoProvider>

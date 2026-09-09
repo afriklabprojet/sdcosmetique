@@ -129,25 +129,6 @@ export default function Sidebar({ items, totalPrice, shippingCost, discount, tot
           </>
         )}
       </div>
-
-      {/* Engagements */}
-      <div style={{ background: 'white', border: `1px solid ${CHECKOUT_PALETTE.border}`, borderRadius: '8px', padding: '16px 20px' }}>
-        <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: CHECKOUT_PALETTE.text, marginBottom: '14px' }}>Nos Engagements</p>
-        <div className="checkout-form-2col" style={{ gap: '14px' }}>
-          {[
-            { icon: '🛡️', l: 'Paiement',      s: '100% sécurisé' },
-            { icon: '🚚', l: 'Livraison rapide', s: 'et suivie' },
-            { icon: '✅', l: 'Produits',       s: 'authentiques' },
-            { icon: '↩️', l: 'Satisfait ou',   s: 'remboursé sous 7 jours' },
-          ].map(e => (
-            <div key={e.l} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '4px' }}>
-              <span style={{ fontSize: '22px' }}>{e.icon}</span>
-              <p style={{ fontSize: '11px', fontWeight: 700, color: CHECKOUT_PALETTE.text, lineHeight: 1.3 }}>{e.l}</p>
-              <p style={{ fontSize: '10px', color: CHECKOUT_PALETTE.textSubtle, lineHeight: 1.3 }}>{e.s}</p>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-export type CheckoutStep = 'cart' | 'delivery' | 'payment' | 'confirmation';
+export type CheckoutStep = 'cart' | 'delivery' | 'payment' | 'review' | 'confirmation';
 
 export interface DeliveryInfo {
   firstName: string;

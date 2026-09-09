@@ -13,7 +13,7 @@ import Link from 'next/link';
 import { Product } from '@/shared/types/domain.type';
 import { type EffectivePrice } from '@/features/promo/promo.util';
 import { PromoBadge } from '@/features/promo/badges/promo.badge';
-import { WishlistHeartIcon } from '@/features/catalog/assets/product-card-icons';
+import { WishlistHeartIcon, CompareIcon } from '@/features/catalog/assets/product-card-icons';
 
 interface ProductMediaProps {
   readonly product: Product;
@@ -23,6 +23,8 @@ interface ProductMediaProps {
   readonly interactiveHover: boolean;
   readonly inWishlist: boolean;
   readonly toggleWishlist: () => void;
+  readonly inComparison: boolean;
+  readonly toggleComparison: () => void;
 }
 
 export default function ProductMedia({
@@ -33,6 +35,8 @@ export default function ProductMedia({
   interactiveHover,
   inWishlist,
   toggleWishlist,
+  inComparison,
+  toggleComparison,
 }: ProductMediaProps) {
   const [imgFailed, setImgFailed] = useState(false);
   return (
@@ -141,6 +145,33 @@ export default function ProductMedia({
           aria-pressed={inWishlist}
         >
           <WishlistHeartIcon filled={inWishlist} />
+        </button>
+
+        {/* ── Bouton comparateur — toujours visible ── */}
+        <button
+          onClick={toggleComparison}
+          style={{
+            position: 'absolute',
+            top: 42,
+            right: 10,
+            zIndex: 3,
+            width: 26,
+            height: 26,
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.96)',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
+            transform: inComparison ? 'scale(1.12)' : 'scale(1)',
+            transition: 'transform 0.35s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease',
+          }}
+          aria-label="Ajouter au comparateur"
+          aria-pressed={inComparison}
+        >
+          <CompareIcon filled={inComparison} />
         </button>
       </div>
   );

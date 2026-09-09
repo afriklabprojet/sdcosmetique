@@ -187,16 +187,22 @@ const nextConfig: NextConfig = {
           },
           // Réduit les redirections HTTP → HTTPS
           { key: "X-DNS-Prefetch-Control", value: "on" },
-          // [SEC-02] Content-Security-Policy — Report-Only pour collecter sans bloquer.
-          // Passer en Content-Security-Policy (enforced) après validation des rapports.
+          // [SEC-02] Content-Security-Policy — reste en Report-Only : le GTM
+          // configuré en admin peut injecter n'importe quel tag tiers sans
+          // déploiement de code (Pinterest, Hotjar, etc.), donc aucune liste
+          // figée dans ce fichier ne peut garantir l'absence de blocage futur.
+          // Les origines ci-dessous couvrent tout ce que le code source charge
+          // aujourd'hui (GTM/gtag, Facebook Pixel, TikTok Pixel) ; passer en
+          // mode bloquant resterait un choix à surveiller en continu via
+          // /api/csp-report, pas un simple changement de nom de header.
           {
             key: "Content-Security-Policy-Report-Only",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https://images.unsplash.com" + (apiOrigin ? ` ${apiOrigin}` : ''),
-              `connect-src 'self'${apiOrigin ? ` ${apiOrigin}` : ''} https://graph.facebook.com https://api.resend.com`,
+              "img-src 'self' data: blob: https://images.unsplash.com https://www.googletagmanager.com https://www.facebook.com" + (apiOrigin ? ` ${apiOrigin}` : ''),
+              `connect-src 'self'${apiOrigin ? ` ${apiOrigin}` : ''} https://graph.facebook.com https://api.resend.com https://www.googletagmanager.com https://www.google-analytics.com https://www.facebook.com https://analytics.tiktok.com`,
               "font-src 'self' data:",
               "frame-ancestors 'none'",
               "object-src 'none'",

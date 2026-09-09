@@ -11,6 +11,7 @@
 
 import Link from 'next/link';
 import { useCart } from '@/features/cart/cart.store';
+import { useAuthStatus } from '@/shared/hooks/auth-status.hook';
 
 const iconBtn: React.CSSProperties = {
   background: 'transparent',
@@ -31,12 +32,13 @@ interface NavActionsProps {
 
 export default function NavActions({ menuOpen, openSearch, toggleMenu }: NavActionsProps) {
   const { totalItems: totalCount, openCart } = useCart();
+  const authenticated = useAuthStatus();
   return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 18, color: '#1A0E05' }}>
           <button aria-label="Recherche" style={iconBtn} onClick={openSearch}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
           </button>
-          <Link href="/connexion" aria-label="Compte" style={{ ...iconBtn, color: '#1A0E05' }}>
+          <Link href={authenticated ? '/compte' : '/connexion'} aria-label="Compte" style={{ ...iconBtn, color: '#1A0E05' }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" /></svg>
           </Link>
           <Link href="/wishlist" aria-label="Favoris" style={{ ...iconBtn, color: '#1A0E05' }}>
@@ -74,7 +76,7 @@ export default function NavActions({ menuOpen, openSearch, toggleMenu }: NavActi
 
           {/* Hamburger — mobile only */}
           <button
-            className="hamburger-btn hidden max-[900px]:inline-flex"
+            className="hamburger-btn inline-flex min-[1280px]:hidden"
             aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
             onClick={toggleMenu}
             style={{ background: 'transparent', border: 'none', cursor: 'pointer', alignItems: 'center', justifyContent: 'center', padding: 12, color: '#1A0E05' }}

@@ -34,7 +34,7 @@ export const DEFAULT_TOP_BAR: TopBarConfig = {
 };
 
 export const DEFAULT_HERO: HeroConfig = {
-  eyebrow: 'SOINS PREMIUM POUR TOUS LES TEINTS',
+  eyebrow: '',
   title: 'Révélez la beauté',
   titleAccent: 'naturelle de votre\u00a0teint',
   lead: "Des produits d'exception, formulés pour sublimer chaque type de peau.",

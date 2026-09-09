@@ -2,11 +2,12 @@
 
 /* Onglet «paiement» de la console d'administration. Extrait de `admin.view.tsx` (F-110). */
 
-import React from 'react';
+import React, { useState } from 'react';
 import ImageUpload from '@/shared/ui/image.input';
 import { getSaveButtonText } from '@/features/admin/admin.util';
 import { type SiteConfig } from '@/features/site-config/site-config.type';
-import { BG, SURFACE, GOLD, GOLD2, S_SAVE_BG, S_SAVE_T, GOLD_D3 } from '@/features/admin/admin.constant';
+import { BG, SURFACE, GOLD, GOLD2, S_SAVE_BG, S_SAVE_T, GOLD_D3, BORDER, TEXT2 } from '@/features/admin/admin.constant';
+import PaymentTransactionsPanel from '@/features/admin/tabs/payment-transactions.panel';
 
 interface PaymentTabProps {
   readonly siteContent: SiteConfig;
@@ -17,6 +18,7 @@ interface PaymentTabProps {
 }
 
 export default function PaymentTab({ siteContent, setSiteContent, saveConfigSection, contentSaving, contentSaved }: PaymentTabProps) {
+            const [subTab, setSubTab] = useState<'config' | 'transactions'>('config');
             const ALL_METHODS = [
               { id: 'orange_money',   label: 'Orange Money',      emoji: '🟠', color: '#FF6600', desc: "Orange Money Côte d'Ivoire" },
               { id: 'wave',           label: 'Wave',              emoji: '🔵', color: '#009EE3', desc: 'Wave Mobile Money' },
@@ -52,10 +54,25 @@ export default function PaymentTab({ siteContent, setSiteContent, saveConfigSect
             return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 <div>
-                  <h2 style={{ fontSize: '22px', fontWeight: 800, color: GOLD, margin: '0 0 4px' }}>💳 Moyens de Paiement</h2>
-                  <p style={{ color: '#8B7355', fontSize: '13px', margin: 0 }}>Activez/désactivez les logos et uploadez une image réelle pour chaque moyen de paiement.</p>
+                  <h2 style={{ fontSize: '22px', fontWeight: 800, color: GOLD, margin: '0 0 4px' }}>💳 Paiement</h2>
+                  <p style={{ color: '#8B7355', fontSize: '13px', margin: 0 }}>Moyens de paiement affichés au client, et suivi des transactions reçues.</p>
                 </div>
 
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {([
+                    { id: 'config', label: 'Configuration' },
+                    { id: 'transactions', label: 'Transactions' },
+                  ] as const).map(t => (
+                    <button key={t.id} onClick={() => setSubTab(t.id)}
+                      style={{ padding: '7px 14px', borderRadius: 8, border: `1px solid ${subTab === t.id ? GOLD : BORDER}`, background: subTab === t.id ? 'rgba(200,151,74,0.12)' : 'transparent', color: subTab === t.id ? GOLD : TEXT2, fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+
+                {subTab === 'transactions' && <PaymentTransactionsPanel />}
+
+                {subTab === 'config' && (<>
                 <div style={{ background: SURFACE, borderRadius: '14px', border: `1px solid ${GOLD_D3}`, overflow: 'hidden' }}>
                   {ALL_METHODS.map((m, i) => {
                     const enabled = active.includes(m.id);
@@ -141,6 +158,7 @@ export default function PaymentTab({ siteContent, setSiteContent, saveConfigSect
                     {getSaveButtonText(contentSaved.payment_methods_active, contentSaving.payment_methods_active)}
                   </button>
                 </div>
+                </>)}
               </div>
             );
 }

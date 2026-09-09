@@ -50,6 +50,27 @@ export function WishlistHeartIcon({ filled }: { readonly filled: boolean }) {
   );
 }
 
+/** Icône comparateur. Pleine (fond doré) quand le produit y est déjà. */
+export function CompareIcon({ filled }: { readonly filled: boolean }) {
+  return (
+    <svg
+      width="11"
+      height="11"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={filled ? 'var(--gold)' : '#7A6A5A'}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M9 3v18" />
+      <path d="M15 3v18" />
+      <path d="M4 8l-1.5 4L4 16" />
+      <path d="M20 8l1.5 4L20 16" />
+    </svg>
+  );
+}
+
 /** Coche affichee le temps de l'animation d'ajout au panier. */
 export function AddedCheckIcon() {
   return (

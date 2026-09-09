@@ -25,14 +25,18 @@ export namespace Password {
     });
   }
 
+  /**
+   * `current` est facultatif : un compte auto-créé sans mot de passe (§3, §12)
+   * peut en définir un premier sans en confirmer un qui n'existe pas.
+   */
   export async function update(input: {
-    current: string;
+    current?: string;
     next: string;
   }): Promise<void> {
     await apiRoot('/user/password', {
       method: 'PUT',
       body: JSON.stringify({
-        current_password: input.current,
+        ...(input.current ? { current_password: input.current } : {}),
         password: input.next,
         password_confirmation: input.next,
       }),

@@ -20,6 +20,10 @@ export type ReviewRow = Review & { productId?: string };
 export type ProductModalState = Partial<Product> & { _isNew?: boolean };
 export type Tab = 'dashboard' | 'commandes' | 'produits' | 'avis' | 'temoignages' | 'categories' | 'quiz' | 'clients' | 'contenu' | 'jeko' | 'newsletter' | 'livraison' | 'marketing' | 'branding' | 'promos' | 'faq' | 'hero' | 'legal' | 'paiement';
 export type NewsletterSub = { id: string; email: string; source: string | null; unsubscribed: boolean; created_at: string };
+export type ContactMessageRow = { id: string; name: string; email: string; subject: string | null; message: string; open: boolean; created_at: string };
+export type AdminPaymentRow = { id: string; orderReference: string | null; amount: number | null; currency: string | null; status: 'pending' | 'paid' | 'failed'; paidAt: string | null; failedAt: string | null; created_at: string };
+export type AdminPaymentNotificationRow = { id: string; gateway: string; reference: string; paymentAttemptId: string | null; failureReason: string | null; handledAt: string | null; done: boolean; payload?: Record<string, unknown>; created_at: string };
+export type AdminPageRow = { id: string; slug: string; title: string; content: string; publishedAt: string | null; created_at: string };
 export type EditableProduct = Product;
 
 /** Une ligne du tableau clients : agregat des commandes d'une meme adresse. */

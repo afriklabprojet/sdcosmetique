@@ -79,7 +79,6 @@ export interface Review {
 export enum PaymentGateway {
   NULL = 'null',
   JEKO = 'jeko',
-  CINETPAY = 'cinetpay',
 }
 
 export enum PaymentMethod {

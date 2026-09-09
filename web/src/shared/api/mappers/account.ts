@@ -26,6 +26,7 @@ export type StorefrontIdentity = {
   newsletter: boolean;
   points: number;
   createdAt: string;
+  hasPassword: boolean;
 };
 
 export function splitPersonName(name: string): { prenom: string; nom: string } {
@@ -60,6 +61,7 @@ export function mapSessionUser(user: LaravelSessionUser, account?: LaravelAccoun
     newsletter: true,
     points: 0,
     createdAt: user.created_at ?? new Date().toISOString(),
+    hasPassword: account?.has_password ?? true,
   };
 }
 

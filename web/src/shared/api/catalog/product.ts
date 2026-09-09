@@ -21,7 +21,9 @@ export namespace Product {
       if (options?.category) query.set('category', options.category);
       if (options?.bestseller || options?.featured) query.set('bestseller', '1');
       query.set('perPage', String(options?.perPage ?? 100));
-      const body = await api<Paginated<LaravelStorefrontProduct>>(`/products?${query}`);
+      const body = await api<Paginated<LaravelStorefrontProduct>>(`/products?${query}`, {
+        next: { revalidate: 300, tags: ['products'] },
+      } as RequestInit);
       return body.data.map(mapStorefrontProduct);
     } catch {
       return [];
@@ -33,7 +35,9 @@ export namespace Product {
       const body = await api<{
         data: LaravelStorefrontProduct;
         related?: LaravelStorefrontProduct[] | { data: LaravelStorefrontProduct[] };
-      }>(`/products/${encodeURIComponent(slug)}`);
+      }>(`/products/${encodeURIComponent(slug)}`, {
+        next: { revalidate: 300, tags: ['products'] },
+      } as RequestInit);
       return {
         product: mapStorefrontProduct(body.data),
         related: relatedList(body.related).map(mapStorefrontProduct),

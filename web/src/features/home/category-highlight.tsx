@@ -23,17 +23,17 @@ export default function CategoryHighlight({ categories }: Readonly<Props>) {
   return (
     <section className="relative z-10 bg-transparent p-0 -mt-2 sm:-mt-12 md:-mt-16 lg:-mt-20">
       <div className="w-[90%] mx-auto bg-white rounded-[20px] shadow-[0_14px_50px_rgba(0,0,0,0.08)] relative z-10 p-0 overflow-hidden">
-        <div className="flex w-full justify-evenly max-sm:justify-start max-sm:overflow-x-auto max-sm:snap-x max-sm:snap-mandatory scrollbar-none">
+        <div className="flex w-full justify-start overflow-x-auto snap-x snap-mandatory scrollbar-none sm:justify-evenly sm:overflow-visible sm:snap-none">
           {display.map((cat, idx) => (
             <Link
               key={cat.id}
               href={cat.href}
-              className={`flex flex-col items-center shrink-0 min-w-0 max-sm:min-w-[90px] max-sm:snap-start py-4 px-2.5 max-sm:py-3 max-sm:px-2 no-underline cursor-pointer group transition-colors duration-200 hover:bg-[#FDFAF6] max-sm:hover:bg-transparent ${
-                idx < display.length - 1 ? 'border-r border-[#F0EBE0] max-sm:border-r-0' : ''
+              className={`flex flex-col items-center shrink-0 min-w-[90px] snap-start py-3 px-2 no-underline cursor-pointer group transition-colors duration-200 hover:bg-transparent sm:min-w-0 sm:snap-align-none sm:py-4 sm:px-2.5 sm:hover:bg-[#FDFAF6] ${
+                idx < display.length - 1 ? 'sm:border-r sm:border-[#F0EBE0]' : ''
               }`}
             >
               {/* Ovale beige avec image produit */}
-              <div className="relative w-[80px] h-[95px] max-sm:w-[62px] max-sm:h-[74px] bg-[#F5EDE2] rounded-full overflow-hidden shrink-0 flex items-center justify-center">
+              <div className="relative w-[62px] h-[74px] sm:w-[80px] sm:h-[95px] bg-[#F5EDE2] rounded-full overflow-hidden shrink-0 flex items-center justify-center">
                 <Image
                   src={cat.image}
                   alt={cat.label}

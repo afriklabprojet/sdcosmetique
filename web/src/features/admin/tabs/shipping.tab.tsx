@@ -6,6 +6,8 @@ import React, { useEffect, useState } from 'react';
 import { getSaveButtonText } from '@/features/admin/admin.util';
 import { formatPrice } from '@/features/catalog/product.query';
 import { Delivery } from '@/shared/api/admin';
+import { apiErrorMessage } from '@/shared/api';
+import { toast } from '@/shared/ui/toast';
 import { type ShippingOption, type SiteConfig } from '@/features/site-config/site-config.type';
 import { BG, SURFACE, BORDER, GOLD, TEXT, TEXT2, TEXT3, TITLE, GOLD2, S_OK_BG, S_OK_T, S_SAVE_BG, S_SAVE_T } from '@/features/admin/admin.constant';
 
@@ -20,15 +22,24 @@ interface ShippingTabProps {
 export default function ShippingTab({ siteContent, setSiteContent, saveConfigSection, contentSaving, contentSaved }: ShippingTabProps) {
             const s = siteContent.shipping;
             const [opts, setOpts] = useState<ShippingOption[]>([]);
+            const [savingOpts, setSavingOpts] = useState(false);
             useEffect(() => {
               Delivery.list().then(setOpts).catch(() => setOpts([]));
             }, []);
             const save = async () => {
-              for (const opt of opts) {
-                await Delivery.save(opt, opt.id.startsWith('opt-'));
+              setSavingOpts(true);
+              try {
+                for (const opt of opts) {
+                  await Delivery.save(opt, opt.id.startsWith('opt-'));
+                }
+                const fresh = await Delivery.list();
+                setOpts(fresh);
+                await saveConfigSection('shipping', { ...siteContent.shipping, options: fresh });
+              } catch (err) {
+                toast.error(apiErrorMessage(err, "Erreur lors de l'enregistrement des options de livraison."));
+              } finally {
+                setSavingOpts(false);
               }
-              setOpts(await Delivery.list());
-              await saveConfigSection('shipping', { ...siteContent.shipping, options: opts });
             };
             const addOpt = () => {
               const newOpt: ShippingOption = { 
@@ -137,9 +148,9 @@ export default function ShippingTab({ siteContent, setSiteContent, saveConfigSec
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  <button onClick={save} disabled={contentSaving.shipping}
-                    style={{ background: contentSaved.shipping ? S_SAVE_BG : GOLD2, color: contentSaved.shipping ? S_SAVE_T : BG, border: 'none', borderRadius: '8px', padding: '10px 24px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
-                    {getSaveButtonText(contentSaved.shipping, contentSaving.shipping)}
+                  <button onClick={save} disabled={contentSaving.shipping || savingOpts}
+                    style={{ background: contentSaved.shipping ? S_SAVE_BG : GOLD2, color: contentSaved.shipping ? S_SAVE_T : BG, border: 'none', borderRadius: '8px', padding: '10px 24px', fontSize: '13px', fontWeight: 700, cursor: savingOpts ? 'wait' : 'pointer', opacity: savingOpts ? 0.7 : 1 }}>
+                    {savingOpts ? 'Enregistrement…' : getSaveButtonText(contentSaved.shipping, contentSaving.shipping)}
                   </button>
                 </div>
               </div>

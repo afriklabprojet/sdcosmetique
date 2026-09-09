@@ -8,7 +8,6 @@ type ProfileForm = { firstName: string; lastName: string; email: string; phone: 
 type PwdForm = { current: string; next: string; confirm: string };
 
 interface ProfileTabProps {
-  readonly mobile: boolean;
   readonly displayEmail: string;
   readonly displayPhone: string;
   readonly firstName: string;
@@ -22,12 +21,15 @@ interface ProfileTabProps {
   readonly setPwdForm: React.Dispatch<React.SetStateAction<PwdForm>>;
   readonly pwdMsg: Message;
   readonly setPwdMsg: (m: Message) => void;
+  /** §3/§7 — un compte auto-créé après une commande n'a pas encore de mot de passe. */
+  readonly hasPassword: boolean;
+  readonly onPasswordDefined: () => void;
 }
 
 export default function ProfileTab({
-  mobile, displayEmail, displayPhone, firstName, lastName,
+  displayEmail, displayPhone, firstName, lastName,
   profileForm, setProfileForm, profileSaving, profileMsg, saveProfileSection,
-  pwdForm, setPwdForm, pwdMsg, setPwdMsg,
+  pwdForm, setPwdForm, pwdMsg, setPwdMsg, hasPassword, onPasswordDefined,
 }: ProfileTabProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -39,7 +41,7 @@ export default function ProfileTab({
             {profileMsg.type === 'ok' ? '✅ ' : '❌ '}{profileMsg.text}
           </div>
         )}
-        <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: 16 }}>
+        <div className="dash-2col" style={{ gap: 16 }}>
           {[{ label: 'Prénom', key: 'firstName', placeholder: firstName || 'Votre prénom' }, { label: 'Nom', key: 'lastName', placeholder: lastName || 'Votre nom' }].map(f => (
             <div key={f.key}>
               <label htmlFor={`profile-${f.key}`} style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6B3D14', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{f.label}</label>
@@ -84,22 +86,35 @@ export default function ProfileTab({
         </button>
       </div>
 
-      {/* Changer mot de passe */}
+      {/* Sécurité — mot de passe */}
       <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #EDE8E0', padding: '24px 28px' }}>
-        <h2 style={{ fontSize: 14, fontWeight: 800, color: '#1A1A1A', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 20 }}>Changer le mot de passe</h2>
+        <h2 style={{ fontSize: 14, fontWeight: 800, color: '#1A1A1A', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 20 }}>
+          {hasPassword ? 'Changer le mot de passe' : 'Définir un mot de passe'}
+        </h2>
+        {!hasPassword && (
+          <p style={{ marginBottom: 16, fontSize: 13, color: '#6B5B4D', lineHeight: 1.5 }}>
+            Votre compte a été créé automatiquement après votre commande et n&apos;a pas encore de
+            mot de passe. Vous pouvez continuer à vous connecter avec un code reçu par e-mail, ou
+            définir un mot de passe ici.
+          </p>
+        )}
         {pwdMsg && (
           <div style={{ marginBottom: 16, padding: '10px 16px', borderRadius: 10, fontSize: 13, fontWeight: 500, background: pwdMsg.type === 'ok' ? '#ECFDF5' : '#FEF2F2', color: pwdMsg.type === 'ok' ? '#059669' : '#DC2626', border: `1px solid ${pwdMsg.type === 'ok' ? '#A7F3D0' : '#FECACA'}` }}>
             {pwdMsg.type === 'ok' ? '✅ ' : '❌ '}{pwdMsg.text}
           </div>
         )}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {[{ label: 'Mot de passe actuel', key: 'current' }, { label: 'Nouveau mot de passe', key: 'next' }, { label: 'Confirmer le nouveau mot de passe', key: 'confirm' }].map(f => (
+          {[
+            ...(hasPassword ? [{ label: 'Mot de passe actuel', key: 'current' as const }] : []),
+            { label: 'Nouveau mot de passe', key: 'next' as const },
+            { label: 'Confirmer le nouveau mot de passe', key: 'confirm' as const },
+          ].map(f => (
             <div key={f.key}>
               <label htmlFor={`pwd-${f.key}`} style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6B3D14', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{f.label}</label>
               <input
                 id={`pwd-${f.key}`}
                 type="password"
-                value={pwdForm[f.key as keyof typeof pwdForm]}
+                value={pwdForm[f.key]}
                 onChange={e => setPwdForm(p => ({ ...p, [f.key]: e.target.value }))}
                 style={{ width: '100%', padding: '10px 14px', border: '1px solid #EDE8E0', borderRadius: 10, fontSize: 13, color: '#1A1A1A', background: '#FAFAF8', outline: 'none', boxSizing: 'border-box' }}
               />
@@ -111,16 +126,17 @@ export default function ProfileTab({
             if (pwdForm.next !== pwdForm.confirm) { setPwdMsg({ type: 'err', text: 'Les mots de passe ne correspondent pas.' }); return; }
             if (pwdForm.next.length < 8) { setPwdMsg({ type: 'err', text: 'Le mot de passe doit contenir au moins 8 caractères.' }); return; }
             try {
-              await Password.update({ current: pwdForm.current, next: pwdForm.next });
-              setPwdMsg({ type: 'ok', text: 'Mot de passe modifié avec succès !' });
+              await Password.update({ current: hasPassword ? pwdForm.current : undefined, next: pwdForm.next });
+              setPwdMsg({ type: 'ok', text: hasPassword ? 'Mot de passe modifié avec succès !' : 'Mot de passe défini avec succès !' });
               setPwdForm({ current: '', next: '', confirm: '' });
+              if (!hasPassword) onPasswordDefined();
             } catch (err) {
               setPwdMsg({ type: 'err', text: apiErrorMessage(err, 'Erreur lors du changement de mot de passe.') });
             }
           }}
           style={{ marginTop: 20, padding: '11px 28px', background: '#3D1400', border: 'none', borderRadius: 10, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
         >
-          Mettre à jour le mot de passe
+          {hasPassword ? 'Mettre à jour le mot de passe' : 'Définir mon mot de passe'}
         </button>
       </div>
     </div>

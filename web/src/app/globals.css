@@ -301,3 +301,105 @@ button:not(:disabled):active,
 }
 /* Exceptions – boutons qui ne doivent pas scaler (overlays, thumbnails…) */
 [data-no-haptic]:active { transform: none !important; }
+
+/* ── Barre de navigation basse mobile ────────────────────────── */
+/* Réserve la place de bottom-nav.tsx (masquée dès 1280px, cf. son propre
+   style jsx) pour que le pied de page ne soit jamais recouvert. */
+.has-bottom-nav-space {
+  padding-bottom: calc(58px + env(safe-area-inset-bottom, 0px));
+}
+@media (min-width: 1280px) {
+  .has-bottom-nav-space {
+    padding-bottom: 0;
+  }
+}
+
+/* Toute barre fixe en bas d'écran (comparateur, achat rapide produit…) se
+   pose au-dessus de la nav basse mobile ; dès 1280px (nav basse masquée)
+   elle redescend au ras de l'écran. Un seul point de vérité pour ce
+   décalage — il a déjà fallu le corriger deux fois séparément. */
+.floating-bar-above-nav {
+  bottom: calc(58px + env(safe-area-inset-bottom, 0px));
+}
+@media (min-width: 1280px) {
+  .floating-bar-above-nav {
+    bottom: 0;
+  }
+}
+
+/* Empile en plus au-dessus de la barre d'achat rapide de la fiche produit
+   (StickyPurchase, ~64px) quand les deux peuvent coexister. */
+.floating-bar-stacked {
+  bottom: calc(58px + 64px + env(safe-area-inset-bottom, 0px));
+}
+@media (min-width: 1280px) {
+  .floating-bar-stacked {
+    bottom: 0;
+  }
+}
+
+/* ── Espace client (/compte) — mise en page mobile-first ───────
+   Remplace l'ancien découpage par JS (window.innerWidth mesuré après
+   hydratation), qui affichait la mise en page desktop une frame avant de
+   basculer en mobile (flash + CLS). Base = mobile, palier CSS à 901px. */
+.account-shell {
+  padding: 18px 12px 0;
+}
+.account-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
+.account-sidebar {
+  width: 100%;
+  flex-shrink: 0;
+}
+.account-trust-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+}
+.account-trust-item {
+  padding: 12px;
+}
+.account-trust-item:nth-child(1),
+.account-trust-item:nth-child(2),
+.account-trust-item:nth-child(3) {
+  border-bottom: 1px solid #F0EBE0;
+}
+@media (min-width: 901px) {
+  .account-shell { padding: 28px 40px 0; }
+  .account-layout { flex-direction: row; gap: 24px; }
+  .account-sidebar { width: 240px; }
+  .account-trust-grid { grid-template-columns: repeat(5, 1fr); }
+  .account-trust-item {
+    padding: 0 16px;
+    border-bottom: none !important;
+    border-right: 1px solid #F0EBE0;
+  }
+  .account-trust-item:nth-child(5) { border-right: none; }
+}
+
+/* Grilles réutilisées dans les onglets du compte (tableau de bord, etc.) :
+   1 colonne mobile → 2 colonnes (ou 1fr/280px) à partir de 901px. */
+.dash-row { display: grid; grid-template-columns: 1fr; }
+.dash-2col { display: grid; grid-template-columns: 1fr; }
+.dash-1to3 { display: grid; grid-template-columns: 1fr; }
+.dash-2to3 { display: grid; grid-template-columns: repeat(2, 1fr); }
+@media (min-width: 901px) {
+  .dash-row { grid-template-columns: 1fr 280px; }
+  .dash-2col { grid-template-columns: 1fr 1fr; }
+  .dash-1to3 { grid-template-columns: repeat(3, 1fr); }
+  .dash-2to3 { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Bouton CTA plein-largeur en mobile, largeur naturelle dès 901px
+   (états vides des onglets Favoris / Avis du compte). */
+.account-empty-cta {
+  width: 100%;
+  max-width: 320px;
+}
+@media (min-width: 901px) {
+  .account-empty-cta { width: auto; max-width: none; }
+}

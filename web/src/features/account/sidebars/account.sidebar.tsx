@@ -30,7 +30,6 @@ const NAV_ITEMS: { id: NavItem; label: string; icon: React.ReactNode; badge?: st
 ];
 
 interface AccountSidebarProps {
-  readonly mobile: boolean;
   readonly active: NavItem;
   readonly navigate: (tab: NavItem) => void;
   readonly initial: string;
@@ -42,11 +41,11 @@ interface AccountSidebarProps {
 }
 
 export default function AccountSidebar({
-  mobile, active, navigate, initial, displayName, displayEmail,
+  active, navigate, initial, displayName, displayEmail,
   userPoints, jekoConfig, logout,
 }: AccountSidebarProps) {
   return (
-          <aside style={{ width: mobile ? '100%' : 240, flexShrink: 0 }}>
+          <aside className="account-sidebar">
             <div style={{ background: '#fff', borderRadius: 20, border: '1px solid #EDE8E0', overflow: 'hidden', boxShadow: '0 2px 12px rgba(61,20,0,.05)' }}>
 
               {/* Avatar + nom */}

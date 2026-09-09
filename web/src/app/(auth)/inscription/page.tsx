@@ -2,12 +2,16 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { apiErrorMessage } from '@/shared/api';
 import { Account } from '@/shared/api/auth';
+import { useAuthStatus } from '@/shared/hooks/auth-status.hook';
 import styles from '../auth.module.css';
 
 export default function InscriptionPage() {
+  const router = useRouter();
+  const authenticated = useAuthStatus();
   const [showPwd, setShowPwd] = useState(false);
   const [form, setForm] = useState({
     prenom: '',
@@ -20,6 +24,10 @@ export default function InscriptionPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    if (authenticated && !success) router.replace('/compte');
+  }, [authenticated, success, router]);
 
   const changeField = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -86,7 +94,7 @@ export default function InscriptionPage() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <button
-                onClick={() => { globalThis.location.href = '/compte'; }}
+                onClick={() => router.push('/compte')}
                 style={{
                   width: '100%', padding: '12px 0', background: '#3D1400', border: 'none',
                   borderRadius: 10, color: '#fff', fontSize: '0.9rem', fontWeight: 700,

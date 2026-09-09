@@ -11,6 +11,7 @@ import { fetchAllReviews, deleteReview, approveReview } from '@/features/catalog
 
 import {
   Category,
+  ContactMessage,
   Customer,
   Metric,
   Newsletter,
@@ -22,11 +23,12 @@ import type { LaravelMetricsOverview } from '@/shared/api/types';
 import type { MappedOrder } from '@/shared/api/mappers/order';
 import { apiRoot } from '@/shared/api/client';
 import { fetchAdminSettings, patchAdminSetting } from '@/shared/api/settings';
-import type { AdminTabStatus, ClientRow } from '@/features/admin/admin.type';
+import type { AdminTabStatus, ClientRow, ContactMessageRow } from '@/features/admin/admin.type';
 import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
 import type { SiteConfig } from '@/features/site-config/site-config.type';
 import ImageUpload from '@/shared/ui/image.input';
 import ChipsInput from '@/shared/ui/chips.input';
+import { toast } from '@/shared/ui/toast';
 import { fetchAllTestimonialsAdmin, approveTestimonial, deleteTestimonial } from '@/features/testimonials/testimonial.repository';
 import type { TestimonialRow } from '@/features/testimonials/testimonial.repository';
 import type { CategoryRow } from '@/features/catalog/category.repository';
@@ -54,6 +56,8 @@ import CategoriesTab from '@/features/admin/tabs/categories.tab';
 import ClientsTab from '@/features/admin/tabs/clients.tab';
 import QuizTab from '@/features/admin/tabs/quiz.tab';
 import NewsletterTab from '@/features/admin/tabs/newsletter.tab';
+import MessagesTab from '@/features/admin/tabs/messages.tab';
+import PagesTab from '@/features/admin/tabs/pages.tab';
 import ShippingTab from '@/features/admin/tabs/shipping.tab';
 import ContentTab from '@/features/admin/tabs/content.tab';
 import LegalTab from '@/features/admin/tabs/legal.tab';
@@ -68,7 +72,7 @@ import JekoTab from '@/features/admin/tabs/jeko.tab';
 type OrderStatus = OrderDraft['status'];
 type ReviewRow = Review & { productId?: string };
 type ProductModalState = Partial<Product> & { _isNew?: boolean };
-type Tab = 'dashboard' | 'commandes' | 'produits' | 'avis' | 'temoignages' | 'categories' | 'quiz' | 'clients' | 'contenu' | 'jeko' | 'newsletter' | 'livraison' | 'marketing' | 'branding' | 'promos' | 'faq' | 'hero' | 'legal' | 'paiement';
+type Tab = 'dashboard' | 'commandes' | 'produits' | 'avis' | 'temoignages' | 'categories' | 'quiz' | 'clients' | 'contenu' | 'jeko' | 'newsletter' | 'messages' | 'livraison' | 'marketing' | 'branding' | 'promos' | 'faq' | 'hero' | 'legal' | 'paiement' | 'pages';
 type NewsletterSub = { id: string; email: string; source: string | null; unsubscribed: boolean; created_at: string };
 
 type ProductEditModalProps = {
@@ -500,9 +504,14 @@ export default function AdminPage() { // NOSONAR typescript:S3776
   const [newsletterSubs, setNewsletterSubs] = useState<NewsletterSub[]>([]);
   const [newsletterSearch, setNewsletterSearch] = useState('');
   const [newsletterFilter, setNewsletterFilter] = useState<'all' | 'active' | 'unsubscribed'>('all');
+  const [contactMessages, setContactMessages] = useState<ContactMessageRow[]>([]);
 
   const reloadNewsletter = () => {
     Newsletter.list().then(setNewsletterSubs).catch(() => setNewsletterSubs([]));
+  };
+
+  const reloadContactMessages = () => {
+    ContactMessage.list().then(setContactMessages).catch(() => setContactMessages([]));
   };
 
   const initAfterAuth = useCallback(async (user: { email?: string | null }) => {
@@ -510,20 +519,24 @@ export default function AdminPage() { // NOSONAR typescript:S3776
     setUserEmail(user.email ?? '');
     Order.list().then(setOrders).catch(() => setOrders([]));
     AdminProductApi.list().then(setEditableProducts).catch(() => setEditableProducts([]));
-    fetchAllReviews().then(rows => setReviews(rows as ReviewRow[]));
-    fetchAllTestimonialsAdmin().then(setTestimonials);
+    fetchAllReviews().then(rows => setReviews(rows as ReviewRow[])).catch(() => { setReviews([]); toast.error('Impossible de charger les avis.'); });
+    fetchAllTestimonialsAdmin().then(setTestimonials).catch(() => { setTestimonials([]); toast.error('Impossible de charger les témoignages.'); });
     Category.list().then(setCategories).catch(() => setCategories([]));
     Customer.list().then(setClients).catch(() => setClients([]));
     Metric.overview().then(setMetrics).catch(() => setMetrics(null));
-    fetchAllConcernsAdmin().then(setQuizConcerns);
-    fetchAllRoutinesAdmin().then(setQuizRoutines);
+    fetchAllConcernsAdmin().then(setQuizConcerns).catch(() => { setQuizConcerns([]); toast.error('Impossible de charger les préoccupations du quiz.'); });
+    fetchAllRoutinesAdmin().then(setQuizRoutines).catch(() => { setQuizRoutines([]); toast.error('Impossible de charger les routines du quiz.'); });
     Newsletter.list().then(setNewsletterSubs).catch(() => setNewsletterSubs([]));
-    getJekoSettings().then(s => { setJekoSettingsEdit(s); });
-    getJekoTiersConfig().then(setJekoTiersConf);
-    getJekoRewardsConfig().then(setJekoRewardsConf);
-    getJekoMembers().then(setJekoMembers);
-    getAllJekoTransactions().then(setJekoTxns);
-    getJekoStats().then(setJekoStats);
+    ContactMessage.list().then(setContactMessages).catch(() => setContactMessages([]));
+    getJekoSettings().then(s => { setJekoSettingsEdit(s); }).catch(() => { setJekoSettingsEdit(null); toast.error('Impossible de charger les réglages Jeko.'); });
+    getJekoTiersConfig().then(setJekoTiersConf).catch(() => { setJekoTiersConf([]); toast.error('Impossible de charger les paliers de fidélité Jeko.'); });
+    getJekoRewardsConfig().then(setJekoRewardsConf).catch(() => { setJekoRewardsConf([]); toast.error('Impossible de charger les récompenses Jeko.'); });
+    getJekoMembers().then(setJekoMembers).catch(() => { setJekoMembers([]); toast.error('Impossible de charger les membres Jeko.'); });
+    getAllJekoTransactions().then(setJekoTxns).catch(() => { setJekoTxns([]); toast.error('Impossible de charger les transactions Jeko.'); });
+    getJekoStats().then(setJekoStats).catch(() => {
+      setJekoStats({ totalMembers: 0, totalPointsDistributed: 0, totalRedemptions: 0 });
+      toast.error('Impossible de charger les statistiques Jeko.');
+    });
     void applySiteConfigRows(setSiteContent);
    
   }, []);
@@ -596,15 +609,18 @@ export default function AdminPage() { // NOSONAR typescript:S3776
     shortDescription: '', description: '', usage: '', inStock: true, stockQty: 0, lowStockThreshold: 5, newArrival: false, bestseller: false,
   });
   const saveModal = async (draft: ProductModalState) => {
-    if (!draft?.name?.trim() || !draft?.slug?.trim() || !draft?.category) return;
+    const name = draft?.name?.trim();
+    const slug = draft?.slug?.trim();
+    const category = draft?.category;
+    if (!name || !slug || !category) return;
     const validImages = draft.images?.filter((u: string) => u?.trim()) ?? [];
     if (validImages.length === 0) return;
     const { _isNew, ...rest } = draft;
     const p: Product = {
       id: rest.id ?? `p${Date.now()}`,
-      name: rest.name!.trim(),
-      slug: rest.slug!.trim(),
-      category: rest.category!,
+      name,
+      slug,
+      category,
       price: rest.price ?? 0,
       originalPrice: rest.originalPrice,
       images: validImages,
@@ -1083,6 +1099,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               { id: 'quiz',        label: 'Quiz Teint',     desc: 'Diagnostic type de peau',      icon: '🎯', status: 'normal' },
               { id: 'faq',         label: 'FAQ',            desc: 'Questions / Réponses',         icon: '❔', status: 'normal' },
               { id: 'legal',       label: 'Pages légales',  desc: 'CGV, Confidentialité, Contact', icon: '📄', status: 'normal' },
+              { id: 'pages',       label: 'Pages libres',   desc: 'Pages additionnelles sans déploiement', icon: '📃', status: 'normal' },
             ] as { id: Tab; label: string; desc: string; icon: string; status: AdminTabStatus }[]).map(item => {
               const active = tab === item.id;
               const bgColor = active ? 'linear-gradient(90deg, rgba(212,162,90,0.18) 0%, rgba(212,162,90,0.08) 100%)' : 'transparent';
@@ -1104,6 +1121,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               { id: 'clients',    label: 'Clients',    desc: 'Base de données clients',       icon: '👤', status: 'normal' },
               { id: 'jeko',       label: 'Fidélité',   desc: 'Points SDZ, paliers, cadeaux', icon: '✦',  status: 'premium' },
               { id: 'newsletter', label: 'Newsletter', desc: 'Abonnés & campagnes email',     icon: '✉',  status: 'normal' },
+              { id: 'messages',   label: 'Messages',   desc: 'Formulaire de contact',         icon: '💬', status: contactMessages.some(m => m.open) ? 'warning' : 'normal' },
             ] as { id: Tab; label: string; desc: string; icon: string; status: AdminTabStatus }[]).map(item => {
               const active = tab === item.id;
               let bgColor = active ? 'linear-gradient(90deg, rgba(212,162,90,0.18) 0%, rgba(212,162,90,0.08) 100%)' : 'transparent';
@@ -1117,6 +1135,9 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                     <span style={{ fontSize: '12px', fontWeight: active ? 700 : 600, lineHeight: 1.3 }}>{item.label}</span>
                     <span style={{ fontSize: '10px', color: active ? 'rgba(247,239,229,0.55)' : '#6B5A3E', fontWeight: 400, lineHeight: 1.3 }}>{item.desc}</span>
                   </span>
+                  {item.id === 'messages' && contactMessages.some(m => m.open) && (
+                    <span style={{ fontSize: '11px', background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#FEF3C7', padding: '3px 8px', borderRadius: '99px', fontWeight: 700, boxShadow: '0 2px 4px rgba(245,158,11,0.3)' }}>{contactMessages.filter(m => m.open).length}</span>
+                  )}
                   {item.status === 'premium' && (
                     <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'linear-gradient(135deg, #FFD700, #FFC107)', boxShadow: '0 0 8px rgba(255,215,0,0.5)', flexShrink: 0 }} />
                   )}
@@ -1245,6 +1266,10 @@ export default function AdminPage() { // NOSONAR typescript:S3776
           {/* ─── NEWSLETTER TAB ─── */}
           {tab === 'newsletter' && <NewsletterTab siteContent={siteContent} setSiteContent={setSiteContent} saveConfigSection={saveConfigSection} contentSaving={contentSaving} contentSaved={contentSaved} newsletterSubs={newsletterSubs} newsletterSearch={newsletterSearch} newsletterFilter={newsletterFilter} setNewsletterSearch={setNewsletterSearch} setNewsletterFilter={setNewsletterFilter} reloadNewsletter={reloadNewsletter} />}
 
+          {tab === 'messages' && <MessagesTab contactMessages={contactMessages} reloadContactMessages={reloadContactMessages} />}
+
+          {tab === 'pages' && <PagesTab />}
+
           {/* ─── LIVRAISON TAB ─── */}
           {tab === 'livraison' && <ShippingTab siteContent={siteContent} setSiteContent={setSiteContent} saveConfigSection={saveConfigSection} contentSaving={contentSaving} contentSaved={contentSaved} />}
 
@@ -1258,10 +1283,10 @@ export default function AdminPage() { // NOSONAR typescript:S3776
           {tab === 'faq' && <FaqTab siteContent={siteContent} saveConfigSection={saveConfigSection} contentSaving={contentSaving} contentSaved={contentSaved} addFaqCat={addFaqCat} addFaqItem={addFaqItem} removeFaqCat={removeFaqCat} removeFaqItem={removeFaqItem} updateFaqCatTitle={updateFaqCatTitle} updateFaqItem={updateFaqItem} />}
 
           {/* ─── HERO TAB ─── */}
-          {tab === 'hero' && <HeroTab siteContent={siteContent} setSiteContent={setSiteContent} saveConfigSection={saveConfigSection} contentSaving={contentSaving} contentSaved={contentSaved} categories={categories} heroSectionBlock={heroSectionBlock} />}
+          {tab === 'hero' && <HeroTab siteContent={siteContent} setSiteContent={setSiteContent} saveConfigSection={saveConfigSection} contentSaving={contentSaving} contentSaved={contentSaved} heroSectionBlock={heroSectionBlock} />}
 
           {/* ─── PROMOS TAB ─── */}
-          {tab === 'promos' && <PromosTab siteContent={siteContent} setSiteContent={setSiteContent} saveConfigSection={saveConfigSection} contentSaving={contentSaving} contentSaved={contentSaved} />}
+          {tab === 'promos' && <PromosTab siteContent={siteContent} />}
 
           {/* ─── BRANDING TAB ─── */}
           {tab === 'branding' && <BrandingTab siteContent={siteContent} setSiteContent={setSiteContent} saveConfigSection={saveConfigSection} contentSaving={contentSaving} contentSaved={contentSaved} />}

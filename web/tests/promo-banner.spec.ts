@@ -14,7 +14,6 @@ test.describe('Bannière promotion globale', () => {
 
     // Chercher le header banner promo global (role=banner avec aria-label="Promotion en cours")
     const promoBanner = page.locator('[role="banner"][aria-label="Promotion en cours"]');
-    const marketingBanner = page.locator('[role="banner"]').first();
 
     const promoVisible = await promoBanner.isVisible().catch(() => false);
     console.log(`\n🎯 Bannière promo globale visible : ${promoVisible}`);

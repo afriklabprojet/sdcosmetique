@@ -12,11 +12,11 @@ import {
   type JekoConfig, type JekoReward, type JekoTransaction,
 } from '@/features/loyalty/jeko.constant';
 import { getTierGradient, getTransactionIcon, jekoNextLabel } from '@/features/account/account.util';
+import { formatPrice } from '@/shared/format/price';
 
 type Message = { type: 'ok' | 'err'; text: string } | null;
 
 interface LoyaltyTabProps {
-  readonly mobile: boolean;
   readonly displayEmail: string;
   readonly memberName: string;
   readonly userPoints: number;
@@ -30,7 +30,7 @@ interface LoyaltyTabProps {
 }
 
 export default function LoyaltyTab({
-  mobile, displayEmail, memberName, userPoints, jekoHistory, jekoConfig,
+  displayEmail, memberName, userPoints, jekoHistory, jekoConfig,
   redeemingReward, setRedeemingReward, redeemMsg, setRedeemMsg, redeemReward,
 }: LoyaltyTabProps) {
   const tier = resolveJekoTier(userPoints, jekoConfig.tiers);
@@ -154,7 +154,7 @@ export default function LoyaltyTab({
                           {userPoints.toLocaleString('fr-FR')}
                           <span style={{ fontSize: 16, fontWeight: 500, opacity: .6, marginLeft: 6 }}>pts</span>
                         </p>
-                        <p style={{ fontSize: 10, opacity: .5, marginTop: 4 }}>≈ {(userPoints * 10).toLocaleString('fr-FR')} FCFA de réduction</p>
+                        <p style={{ fontSize: 10, opacity: .5, marginTop: 4 }}>≈ {formatPrice(userPoints * 10)} de réduction</p>
                       </div>
 
                       {/* Ligne basse */}
@@ -218,7 +218,7 @@ export default function LoyaltyTab({
                     <p style={{ fontSize: 12, fontWeight: 800, color: '#1A1A1A', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>
                       Récompenses disponibles
                     </p>
-                    <div style={{ display: 'grid', gridTemplateColumns: mobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: 12 }}>
+                    <div className="dash-2to3" style={{ gap: 12 }}>
                       {jekoConfig.rewards.filter(r => r.active !== false).map(r => {
                         const unlocked = userPoints >= r.pts;
                         return (
@@ -259,7 +259,7 @@ export default function LoyaltyTab({
                     <p style={{ fontSize: 12, fontWeight: 800, color: '#1A1A1A', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>
                       Comment gagner des Jeko ?
                     </p>
-                    <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: 10 }}>
+                    <div className="dash-2col" style={{ gap: 10 }}>
                       {[
                         { icon: '🛍️', title: 'Chaque achat', desc: '10 pts pour 1 000 FCFA dépensés' },
                         { icon: '🎉', title: 'Inscription', desc: '20 pts offerts à la bienvenue' },

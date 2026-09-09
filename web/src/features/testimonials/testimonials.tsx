@@ -55,7 +55,7 @@ export default function Testimonials({
   return (
     <section ref={sectionRef} style={{ background: 'var(--white)', padding: 'var(--space-section) 24px' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <div className="testi-outer" style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: '40px', alignItems: 'start' }}>
+        <div className="testi-outer" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '40px', alignItems: 'start' }}>
 
           {/* Colonne gauche : titre + bouton */}
           <div className={`reveal${visible ? ' visible' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -78,7 +78,7 @@ export default function Testimonials({
           </div>
 
           {/* Colonne droite : 3 cartes */}
-          <div className={`testi-grid reveal-stagger${visible ? ' visible' : ''}`} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+          <div className={`testi-grid reveal-stagger${visible ? ' visible' : ''}`} style={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: '16px' }}>
             {display.map((t, i) => (
               <article key={`${t.name}-${i}`} className="testi-card" style={{
                 background: '#FFFFFF', borderRadius: '10px', padding: '20px',
@@ -110,9 +110,14 @@ export default function Testimonials({
         </div>
       </div>
       <style jsx>{`
-        @media (max-width: 900px) {
-          .testi-outer { grid-template-columns: 1fr !important; }
-          .testi-grid { grid-template-columns: 1fr !important; }
+        /* Mobile-first : 1 colonne par défaut, 2 dès la tablette, puis la
+           mise en page à sidebar (titre + 3 cartes) en desktop. */
+        @media (min-width: 640px) {
+          .testi-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+        @media (min-width: 901px) {
+          .testi-outer { grid-template-columns: 200px 1fr !important; }
+          .testi-grid { grid-template-columns: repeat(3, 1fr) !important; }
         }
       `}</style>
     </section>

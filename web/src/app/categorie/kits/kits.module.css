@@ -11,10 +11,18 @@
 .hero {
   position: relative;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  min-height: 380px;
-  max-height: 440px;
+  grid-template-columns: 1fr;
+  min-height: auto;
+  max-height: none;
   overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  .hero {
+    grid-template-columns: 1fr 1fr;
+    min-height: 380px;
+    max-height: 440px;
+  }
 }
 
 /* PANEL gauche : contenu sur fond sombre */
@@ -25,25 +33,42 @@
     linear-gradient(135deg, #1a1a1a 0%, #2a1f15 100%);
   display: flex;
   align-items: center;
-  padding: 2.75rem 3rem;
+  order: 2;
+  padding: 2rem 1.25rem;
   color: white;
   overflow: hidden;
+}
+
+@media (min-width: 641px) {
+  .heroLeft { padding: 2.5rem 1.75rem; }
+}
+
+@media (min-width: 1024px) {
+  .heroLeft { order: 0; padding: 2.75rem 3rem; }
 }
 
 /* Numéro géant filigrane en arrière-plan */
 .heroBigNum {
   position: absolute;
   top: 50%;
-  right: -1rem;
+  right: -0.5rem;
   transform: translateY(-50%);
   font-family: var(--font-heading);
   font-style: italic;
-  font-size: 14rem;
+  font-size: 9rem;
   line-height: 1;
   color: rgba(143, 89, 34, 0.07);
   user-select: none;
   pointer-events: none;
   z-index: 1;
+}
+
+@media (min-width: 641px) {
+  .heroBigNum { font-size: 11rem; }
+}
+
+@media (min-width: 1024px) {
+  .heroBigNum { font-size: 14rem; right: -1rem; }
 }
 
 .heroLeftInner {
@@ -121,10 +146,14 @@
 /* Mini-stats sous lede */
 .heroStats {
   display: flex;
-  gap: 2rem;
+  gap: 1.25rem;
   margin-top: 1.5rem;
   padding-top: 1.25rem;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+@media (min-width: 641px) {
+  .heroStats { gap: 2rem; }
 }
 
 .stat {
@@ -135,9 +164,13 @@
 
 .statNum {
   font-family: var(--font-heading);
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   color: var(--gold-pale);
   font-weight: 500;
+}
+
+@media (min-width: 641px) {
+  .statNum { font-size: 1.25rem; }
 }
 
 .statLabel {
@@ -182,7 +215,13 @@
 /* PANEL droit : image */
 .heroRight {
   position: relative;
+  order: 1;
+  height: 240px;
   overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  .heroRight { order: 0; height: auto; }
 }
 
 .heroRight img {
@@ -191,17 +230,25 @@
   animation: fadeIn 1.2s ease-out 0.2s both;
 }
 
-/* Filet doré entre les deux panneaux */
+/* Filet doré entre les deux panneaux — desktop seulement (les panneaux sont
+   empilés, pas côte à côte, avant le palier split-screen). */
 .heroDivider {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 1px;
-  height: 100%;
-  background: linear-gradient(180deg, transparent, var(--gold), transparent);
-  opacity: 0.5;
-  z-index: 5;
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .heroDivider {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(180deg, transparent, var(--gold), transparent);
+    opacity: 0.5;
+    z-index: 5;
+  }
 }
 
 /* ─── CATÉGORIES nav ─────────────────────────────────────── */
@@ -250,18 +297,27 @@
 .main {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 3.5rem 1.5rem 5rem;
+  padding: 2.5rem 1.25rem 4rem;
+}
+
+@media (min-width: 641px) {
+  .main { padding: 3.5rem 1.5rem 5rem; }
 }
 
 .toolbar {
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
+  align-items: stretch;
   justify-content: space-between;
-  gap: 2rem;
+  gap: 1.25rem;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   margin-bottom: 2.5rem;
   flex-wrap: wrap;
+}
+
+@media (min-width: 641px) {
+  .toolbar { flex-direction: row; align-items: flex-end; gap: 2rem; }
 }
 
 .toolbarLeft { flex: 1; min-width: 280px; }
@@ -278,8 +334,13 @@
 .toolbarRight {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 1.25rem;
   flex-shrink: 0;
+}
+
+@media (min-width: 641px) {
+  .toolbarRight { justify-content: flex-start; }
 }
 
 .count {
@@ -440,34 +501,6 @@
   transform: translateY(-1px);
 }
 
-/* ─── RESPONSIVE ─────────────────────────────────────────── */
-@media (max-width: 1023px) {
-  .hero {
-    grid-template-columns: 1fr;
-    min-height: auto;
-    max-height: none;
-  }
-  .heroLeft {
-    padding: 2.5rem 1.75rem;
-    order: 2;
-  }
-  .heroRight {
-    height: 240px;
-    order: 1;
-  }
-  .heroDivider { display: none; }
-  .heroBigNum { font-size: 11rem; right: -0.5rem; }
-}
-
-@media (max-width: 640px) {
-  .heroLeft { padding: 2rem 1.25rem; }
-  .heroBigNum { font-size: 9rem; }
-  .heroStats { gap: 1.25rem; }
-  .statNum { font-size: 1.1rem; }
-  .toolbar { flex-direction: column; align-items: stretch; gap: 1.25rem; }
-  .toolbarRight { justify-content: space-between; }
-  .main { padding: 2.5rem 1.25rem 4rem; }
-}
 
 /* ─── ANIMATIONS ─────────────────────────────────────────── */
 @keyframes fadeInUp {

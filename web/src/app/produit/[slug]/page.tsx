@@ -90,7 +90,6 @@ export default async function ProductPage({ params }: PageProps) {
         related={related}
         reviews={reviews}
         trustItems={siteConfig.product_trust}
-        paymentBadges={siteConfig.payment_badges}
         toneImages={{
           noir:        siteConfig.hero_teint_noir?.image        || '',
           marron:      siteConfig.hero_teint_marron?.image      || '',

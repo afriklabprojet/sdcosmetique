@@ -102,20 +102,26 @@ export default function CategoryClient({ initialProducts, slug, categoryRow, all
 
   return (
     <div>
-      {/* Hero banner */}
-      <div className="relative h-80 lg:h-[26rem] overflow-hidden flex items-center" style={{ background: 'linear-gradient(135deg, #fbf7f0 0%, #fff 55%, #f4eadb 100%)' }}>
-        <Image
-          src={categoryImage}
-          alt={heroConfig?.title || category.label}
-          fill
-          priority
-          sizes="100vw"
-          className="object-contain object-right opacity-90"
-        />
-        {/* Dégradé overlay — fort à gauche, transparent à droite */}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(95deg, rgba(255,255,255,0.99) 0%, rgba(255,255,255,0.93) 36%, rgba(255,255,255,0.38) 65%, rgba(255,255,255,0.02) 100%)' }} />
+      {/* Hero banner — mobile : image en carte visible puis texte compact en
+          dessous (empilés) ; desktop : texte superposé sur l'image avec le
+          fondu d'origine (même case de grille, voir <style jsx>). Le fondu
+          large ne fonctionne que sur un canevas large : sur mobile il
+          effaçait entièrement l'image, d'où deux traitements distincts. */}
+      <div className="hero-cat-grid" style={{ background: 'linear-gradient(135deg, #fbf7f0 0%, #fff 55%, #f4eadb 100%)' }}>
+        <div className="hero-cat-imgwrap">
+          <Image
+            src={categoryImage}
+            alt={heroConfig?.title || category.label}
+            fill
+            priority
+            sizes="100vw"
+            className="hero-cat-img"
+          />
+          {/* Dégradé overlay — fort à gauche, transparent à droite (desktop uniquement) */}
+          <div className="hero-cat-overlay" style={{ background: 'linear-gradient(95deg, rgba(255,255,255,0.99) 0%, rgba(255,255,255,0.93) 36%, rgba(255,255,255,0.38) 65%, rgba(255,255,255,0.02) 100%)' }} />
+        </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+        <div className="hero-cat-content relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           {/* Fil d'Ariane */}
           <nav className="flex items-center gap-2 mb-5" aria-label="Fil d'Ariane">
             <Link href="/" className="text-xs tracking-widest uppercase transition-opacity hover:opacity-60" style={{ color: 'var(--gold)', fontSize: '0.62rem' }}>Accueil</Link>
@@ -132,7 +138,7 @@ export default function CategoryClient({ initialProducts, slug, categoryRow, all
           )}
 
           {/* Titre principal */}
-          <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight" style={{ fontFamily: 'var(--font-heading)', color: 'var(--charcoal)' }}>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight" style={{ fontFamily: 'var(--font-heading)', color: 'var(--charcoal)' }}>
             {heroConfig?.title || category.label}
             {heroConfig?.titleAccent && (
               <>
@@ -162,6 +168,65 @@ export default function CategoryClient({ initialProducts, slug, categoryRow, all
           </a>
         </div>
       </div>
+
+      <style jsx>{`
+        .hero-cat-grid {
+          position: relative;
+          overflow: hidden;
+          display: grid;
+          grid-template-rows: auto auto;
+        }
+        .hero-cat-imgwrap {
+          position: relative;
+          width: calc(100% - 32px);
+          aspect-ratio: 4 / 3;
+          overflow: hidden;
+          border-radius: 16px;
+          margin: 16px 16px 0;
+          box-shadow: 0 16px 40px -18px rgba(143, 89, 34, 0.35);
+        }
+        .hero-cat-img {
+          object-fit: cover;
+          object-position: center;
+        }
+        .hero-cat-overlay {
+          display: none;
+        }
+        .hero-cat-content {
+          padding: 20px 0 32px;
+        }
+        @media (min-width: 1024px) {
+          .hero-cat-grid {
+            grid-template-rows: 26rem;
+            grid-template-columns: 1fr;
+          }
+          .hero-cat-imgwrap {
+            grid-row: 1;
+            grid-column: 1;
+            width: 100%;
+            aspect-ratio: auto;
+            border-radius: 0;
+            margin: 0;
+            box-shadow: none;
+          }
+          .hero-cat-img {
+            object-fit: contain;
+            object-position: right center;
+            opacity: 0.9;
+          }
+          .hero-cat-overlay {
+            display: block;
+            position: absolute;
+            inset: 0;
+          }
+          .hero-cat-content {
+            grid-row: 1;
+            grid-column: 1;
+            align-self: center;
+            padding: 0;
+          }
+        }
+      `}</style>
 
       {/* Content */}
       <div id="catalogue" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -230,7 +295,7 @@ export default function CategoryClient({ initialProducts, slug, categoryRow, all
 
         {/* Products grid */}
         {products.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
             {products.map(product => (
               <ProductCard key={product.id} product={product} />
             ))}

@@ -1,26 +1,16 @@
 'use client';
 
 /*
- * Carte d'achat de la fiche produit : prix, teint, quantite, boutons, badges
- * de paiement. Extrait de `views/product.view.tsx` (F-112). `PayBadge` la suit
- * — c'est le seul endroit qui l'affiche.
+ * Carte d'achat de la fiche produit : prix, teint, quantite, boutons.
+ * Extrait de `views/product.view.tsx` (F-112).
  */
 
 import { formatPrice } from '@/features/catalog/product.query';
+import { CURRENCY_LABEL } from '@/shared/format/price';
 import type { Product, SkinTone } from '@/shared/types/domain.type';
-import type { PaymentBadge } from '@/features/site-config/site-config.type';
 import { BORDER, TEXT, TEXT_MUTED } from '@/features/catalog/product-detail.constant';
 import TonePicker from '@/features/catalog/selects/product-tone.select';
-
-function PayBadge({ label, bg, text = 'white' }: { readonly label: string; readonly bg: string; readonly text?: string }) {
-  return (
-    <div style={{ width: 44, height: 28, borderRadius: 5, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2px 3px' }}>
-      <span style={{ fontSize: '6px', fontWeight: 900, color: text, textAlign: 'center', lineHeight: 1.2, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-        {label}
-      </span>
-    </div>
-  );
-}
+import { AddedCheckIcon, AddToCartPlusIcon } from '@/features/catalog/assets/product-card-icons';
 
 interface PurchaseCardProps {
   readonly product: Product;
@@ -28,7 +18,6 @@ interface PurchaseCardProps {
   readonly selectTone: (t: SkinTone) => void;
   readonly qty: number;
   readonly changeQuantity: (q: number) => void;
-  readonly payments: PaymentBadge[];
   readonly addProductToCart: () => void;
   readonly buyNow: () => void;
   readonly adding: boolean;
@@ -43,16 +32,17 @@ interface PurchaseCardProps {
  * seul proprietaire possible ; ce sont les props qui cessent d'etre des setters
  * pour devenir des affordances, et le bornage de la quantite remonte avec elle.
  */
-export default function PurchaseCard({ product, selectedTone, selectTone, qty, changeQuantity, payments, addProductToCart, buyNow, adding, discount, customToneImages }: PurchaseCardProps) {
+export default function PurchaseCard({ product, selectedTone, selectTone, qty, changeQuantity, addProductToCart, buyNow, adding, discount, customToneImages }: PurchaseCardProps) {
+  const savings = product.originalPrice ? product.originalPrice - product.price : 0;
   return (
-    <div style={{ background: 'white', border: `1px solid ${BORDER}`, borderRadius: 8, padding: '20px 18px' }}>
+    <div style={{ background: 'white', border: `1px solid ${BORDER}`, borderRadius: 10, padding: '20px 18px', boxShadow: '0 12px 32px -12px rgba(26,14,5,0.14)' }}>
 
       {/* Prix */}
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
         <span style={{ fontSize: 28, fontWeight: 800, color: TEXT, fontFamily: 'Georgia,serif' }}>
           {product.price.toLocaleString('fr-FR')}
         </span>
-        <span style={{ fontSize: 14, fontWeight: 700, color: TEXT_MUTED }}>FCFA</span>
+        <span style={{ fontSize: 14, fontWeight: 700, color: TEXT_MUTED }}>{CURRENCY_LABEL}</span>
         {product.originalPrice && (
           <span style={{ fontSize: 13, textDecoration: 'line-through', color: TEXT_MUTED, marginLeft: 4 }}>
             {formatPrice(product.originalPrice)}
@@ -64,6 +54,12 @@ export default function PurchaseCard({ product, selectedTone, selectTone, qty, c
           </span>
         )}
       </div>
+      {savings > 0 && (
+        <p style={{ fontSize: 12, fontWeight: 600, color: '#3F7A5C', margin: '4px 0 16px' }}>
+          Vous économisez {formatPrice(savings)}
+        </p>
+      )}
+      {savings === 0 && <div style={{ marginBottom: 16 }} />}
 
       {/* Sélecteur de teint */}
       {product.skinTones.length > 0 && (
@@ -95,6 +91,10 @@ export default function PurchaseCard({ product, selectedTone, selectTone, qty, c
           width: '100%',
           height: 48,
           marginBottom: 10,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 10,
           background: adding ? TEXT : 'transparent',
           color: adding ? '#fff' : TEXT,
           border: `1px solid ${TEXT}`,
@@ -108,7 +108,13 @@ export default function PurchaseCard({ product, selectedTone, selectTone, qty, c
         onMouseEnter={(e) => { if (!adding) { e.currentTarget.style.background = TEXT; e.currentTarget.style.color = '#fff'; } }}
         onMouseLeave={(e) => { if (!adding) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = TEXT; } }}
       >
-        {adding ? '✓ Ajouté' : 'Ajouter au panier'}
+        <span style={{
+          display: 'flex', transform: adding ? 'scale(0.92) rotate(90deg)' : 'scale(1) rotate(0deg)',
+          transition: 'transform 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+        }}>
+          {adding ? <AddedCheckIcon /> : <AddToCartPlusIcon />}
+        </span>
+        {adding ? 'Ajouté' : 'Ajouter au panier'}
       </button>
 
       {/* Bouton Acheter maintenant — minimaliste */}
@@ -134,17 +140,19 @@ export default function PurchaseCard({ product, selectedTone, selectTone, qty, c
         Acheter maintenant
       </button>
 
-      {/* Badges paiement */}
-      {payments.length > 0 && (
-        <div>
-          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: TEXT_MUTED, marginBottom: 8, textAlign: 'center' }}>
-            Paiement sécurisé
-          </p>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
-            {payments.map((p) => <PayBadge key={p.label} label={p.label} bg={p.bg} text={p.text} />)}
+      {/* Réassurance — répétée au point de décision, pas seulement plus bas sur la page */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '12px 0', marginBottom: 14, borderTop: `1px solid ${BORDER}`, borderBottom: `1px solid ${BORDER}` }}>
+        {[
+          { icon: <path d="M1 3h13v10H1zM14 8h4l3 3v5h-7V8z" />, viewBox: '0 0 24 16', label: 'Livraison en 24–48h à Abidjan' },
+          { icon: <><polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 .49-4" /></>, viewBox: '0 0 24 24', label: 'Retour gratuit sous 7 jours' },
+          { icon: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />, viewBox: '0 0 24 24', label: 'Paiement 100% sécurisé' },
+        ].map((row) => (
+          <div key={row.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <svg width="15" height="15" viewBox={row.viewBox} fill="none" stroke="#3F7A5C" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>{row.icon}</svg>
+            <span style={{ fontSize: 12, color: TEXT }}>{row.label}</span>
           </div>
-        </div>
-      )}
+        ))}
+      </div>
     </div>
   );
 }

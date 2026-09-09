@@ -124,6 +124,7 @@ export type LaravelAdminProductWrite = {
   published_at?: string | null;
   images?: string[];
   bestseller?: boolean;
+  new_arrival?: boolean;
   skin_tones?: string[];
   badges?: string[];
 };
@@ -236,6 +237,60 @@ export type LaravelNewsletterSub = {
   created_at: string;
 };
 
+export type LaravelAdminPayment = {
+  id: number;
+  order_reference: string | null;
+  amount: number | null;
+  currency: string | null;
+  status: 'pending' | 'paid' | 'failed';
+  paid_at: string | null;
+  failed_at: string | null;
+  created_at: string;
+};
+
+export type LaravelAdminPaymentNotification = {
+  id: number;
+  gateway: string;
+  reference: string;
+  payment_attempt_id: number | null;
+  failure_reason: string | null;
+  handled_at: string | null;
+  done: boolean;
+  payload?: Record<string, unknown>;
+  created_at: string;
+};
+
+export type LaravelPageTranslation = { locale: string; field: string; value: string | null };
+
+export type LaravelPage = {
+  slug: string;
+  title: string;
+  content: string | null;
+  published_at: string | null;
+};
+
+export type LaravelAdminPage = {
+  id: number;
+  slug: string;
+  title: string;
+  content: string | null;
+  published_at: string | null;
+  translations: LaravelPageTranslation[];
+  created_at: string;
+  updated_at: string;
+};
+
+export type LaravelContactMessage = {
+  id: number;
+  name: string;
+  email: string;
+  subject: string | null;
+  message: string;
+  handled_at: string | null;
+  open: boolean;
+  created_at: string;
+};
+
 export type LaravelSessionUser = {
   id: number;
   name: string;
@@ -253,6 +308,7 @@ export type LaravelAccount = {
   email: string;
   phone: string | null;
   email_verified_at: string | null;
+  has_password: boolean;
 };
 
 export type LaravelAddress = {

@@ -10,14 +10,6 @@ export async function fetchSiteConfigSection<K extends keyof SiteConfig>(
   return fetchPublicSetting(section);
 }
 
-export function formatConfigPrice(amount: number): string {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'XOF',
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
 export function calculateShippingCost(
   orderTotal: number,
   shippingOptionId: string,
