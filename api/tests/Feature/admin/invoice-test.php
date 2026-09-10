@@ -9,6 +9,7 @@ use App\Modules\Invoicing\Models\Invoice;
 use App\Modules\Orders\Models\Delivery\Method;
 use App\Modules\Orders\Models\Order;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Http;
 
 it('guards invoice endpoints', function (): void {
     $order = Order::factory()->paid()->create();
@@ -88,6 +89,12 @@ it('dispatches the confirmation email job and marks it pending when an admin sen
 
 it('dispatches exactly one confirmation email job when a payment settles, never a duplicate', function (): void {
     Bus::fake();
+    Http::fake([
+        'https://api.jeko.africa/*' => Http::response([
+            'id' => 'jeko-request-invoice-123',
+            'redirectUrl' => 'https://pay.jeko.africa/abc',
+        ], 200),
+    ]);
 
     $parent = Product::factory()->parentProduct()->create();
     $child = Product::factory()->child($parent)->create(['regular_price' => 100, 'sale_price' => null, 'stock' => 3]);
