@@ -57,3 +57,32 @@ it('lets an admin list every setting and update a row', function (): void {
 
     expect(Setting::query()->find('hero')?->value)->toBe(['title' => 'New']);
 });
+
+it('sanitizes legal page bodyHtml — rendered as raw HTML on the storefront (§audit)', function (): void {
+    Setting::factory()->create(['key' => 'legal_cgv', 'value' => ['title' => 'CGV', 'bodyHtml' => '']]);
+    $this->actingAs(admin());
+
+    $this->patchJson('/v1/admin/settings/legal_cgv', [
+        'value' => [
+            'title' => 'CGV',
+            'bodyHtml' => '<p>Article 1</p><script>alert(document.cookie)</script><img src=x onerror=alert(1)>',
+        ],
+    ])->assertOk();
+
+    $stored = Setting::query()->find('legal_cgv')?->value['bodyHtml'];
+    expect($stored)->toContain('<p>Article 1</p>')
+        ->and($stored)->not->toContain('<script')
+        ->and($stored)->not->toContain('onerror');
+});
+
+it('leaves non-HTML setting keys untouched by the legal sanitizer allowlist', function (): void {
+    Setting::factory()->create(['key' => 'branding', 'value' => ['siteName' => 'SD']]);
+    $this->actingAs(admin());
+
+    $this->patchJson('/v1/admin/settings/branding', [
+        'value' => ['siteName' => 'SD <strong>Cosmétique</strong>'],
+    ])->assertOk();
+
+    // Pas dans l'allowlist HTML_FIELDS : la valeur passe telle quelle, non "nettoyée".
+    expect(Setting::query()->find('branding')?->value['siteName'])->toBe('SD <strong>Cosmétique</strong>');
+});

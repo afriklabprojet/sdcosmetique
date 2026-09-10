@@ -38,6 +38,13 @@ export default function ConfirmationPage() {
       ?? order?.orderNumber;
     if (!ref) return;
 
+    // Commande invité : l'e-mail sert de second facteur côté API (la
+    // référence seule, courte et séquentielle, ne suffit plus — §audit).
+    // Disponible ici puisque c'est le même navigateur qui vient de passer
+    // la commande ; sans lui, l'API refuse (comportement attendu pour un
+    // tiers qui ne ferait que deviner la référence).
+    const email = getLastOrder()?.delivery.email;
+
     let cancelled = false;
     let attempts = 0;
     // Le webhook du fournisseur de paiement peut arriver après le chargement
@@ -47,7 +54,7 @@ export default function ConfirmationPage() {
     const POLL_INTERVAL_MS = 6000;
 
     const check = () => {
-      Order.read(ref)
+      Order.read(ref, email)
         .then((placed) => {
           if (cancelled) return;
           if (placed.paymentStatus === 'paid') {

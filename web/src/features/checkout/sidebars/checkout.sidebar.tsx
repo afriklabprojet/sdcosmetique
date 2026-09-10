@@ -60,7 +60,7 @@ export default function Sidebar({ items, totalPrice, shippingCost, discount, tot
             return (
               <div key={item.product.id} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{ width: '60px', height: '60px', borderRadius: '6px', overflow: 'hidden', flexShrink: 0, background: '#F5EDE5', border: `1px solid ${CHECKOUT_PALETTE.border}` }}>
-                  <Image src={item.product.images[0] ?? '/placeholder.png'} alt={item.product.name} width={60} height={60} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <Image src={item.product.images[0] ?? '/products/serum.svg'} alt={item.product.name} width={60} height={60} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontSize: '13px', fontWeight: 600, color: CHECKOUT_PALETTE.text, marginBottom: '3px', lineHeight: 1.3 }}>{item.product.name}</p>

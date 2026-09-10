@@ -69,7 +69,7 @@ export default function CartStep({ next }: CartStepProps) {
                 border: `1px solid ${CHECKOUT_PALETTE.border}`
               }}>
                 <Image
-                  src={item.product.images?.[0] || '/placeholder.jpg'}
+                  src={item.product.images?.[0] || '/products/serum.svg'}
                   alt={item.product.name}
                   width={72}
                   height={72}

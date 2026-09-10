@@ -23,3 +23,10 @@ Artisan::command('orders:prune-drafts', function (): void {
 
 Schedule::command('orders:prune-drafts')->daily();
 Schedule::command(ReconcilePaymentsCommand::class)->everyFifteenMinutes()->withoutOverlapping();
+
+// Aucun worker persistant sur cet hébergement mutualisé : le cron qui
+// déclenche `schedule:run` chaque minute (à configurer côté serveur) traite
+// la file en continu par petites rafales au lieu d'un `queue:work` démon.
+Schedule::command('queue:work --stop-when-empty --max-time=55 --tries=3')
+    ->everyMinute()
+    ->withoutOverlapping();

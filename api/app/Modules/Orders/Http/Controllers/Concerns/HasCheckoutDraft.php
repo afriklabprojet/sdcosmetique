@@ -7,7 +7,6 @@ namespace App\Modules\Orders\Http\Controllers\Concerns;
 use App\Modules\Orders\Http\Resources\OrderResource;
 use App\Modules\Orders\Models\Order;
 use App\Modules\Shopping\Domain\Session;
-use App\Modules\Shopping\Models\Cart;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

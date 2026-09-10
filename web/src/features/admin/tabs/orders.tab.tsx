@@ -21,6 +21,8 @@ interface OrdersTabProps {
   changeStatus: (orderNumber: string, status: OrderStatus) => void;
   /** Encaissement d'une commande payee a la livraison. */
   markPaid: (orderNumber: string) => void;
+  /** Rembourse une commande deja payee — seul chemin pour passer de "Payee" a "Remboursee". */
+  markRefunded: (orderNumber: string) => void;
   thStyle: React.CSSProperties;
   tdStyle: React.CSSProperties;
 }
@@ -38,7 +40,7 @@ const PAYMENT_STATUS_LABELS: Record<string, { label: string; color: string }> = 
 /* Meme lecture que ProductsTab : recherche, statut filtre et page ne sortaient
  * de l'onglet que pour y revenir sous forme de liste paginee. */
 export function OrdersTab({
-  orders, openDetail, changeStatus, markPaid, thStyle, tdStyle
+  orders, openDetail, changeStatus, markPaid, markRefunded, thStyle, tdStyle
 }: Readonly<OrdersTabProps>) {
   const [orderSearchTerm, setOrderSearchTerm] = useState('');
   const [orderStatusFilter, setOrderStatusFilter] = useState('');
@@ -123,7 +125,7 @@ export function OrdersTab({
                               background: `${meta.color}15`, color: meta.color, border: `1px solid ${meta.color}30`,
                               whiteSpace: 'nowrap',
                             }}>{meta.label}</span>
-                            {ps !== 'paid' && (
+                            {(ps === 'pending' || ps === 'processing' || ps === 'failed') && (
                               <button
                                 type="button"
                                 onClick={() => markPaid(o.orderNumber)}
@@ -135,6 +137,20 @@ export function OrdersTab({
                                 }}
                               >
                                 Encaisser
+                              </button>
+                            )}
+                            {ps === 'paid' && (
+                              <button
+                                type="button"
+                                onClick={() => { if (confirm(`Rembourser la commande ${o.orderNumber} ?`)) markRefunded(o.orderNumber); }}
+                                title="Marquer cette commande comme remboursée"
+                                style={{
+                                  background: 'none', border: `1px solid ${BORDER2}`, borderRadius: '6px',
+                                  color: TEXT3, fontSize: '10px', padding: '2px 6px', cursor: 'pointer',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                Rembourser
                               </button>
                             )}
                           </div>

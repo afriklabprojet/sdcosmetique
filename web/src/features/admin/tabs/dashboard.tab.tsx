@@ -20,6 +20,10 @@ interface DashboardTabProps {
   reviews: ReviewRow[];
   totalRevenue: number;
   revenueThisMonth: number;
+  /** Commandes passées mais jamais payées (paniers abandonnés, paiements échoués). */
+  unpaidOrders: number;
+  /** Supprime définitivement toutes les commandes non payées — action du widget ci-dessous. */
+  discardUnpaidOrders: () => void;
   ordersInProgress: number;
   recentOrders: OrderDraft[];
   last7Days: { label: string; value: number }[];
@@ -30,10 +34,11 @@ interface DashboardTabProps {
   tdStyle: React.CSSProperties;
 }
 
-export function DashboardTab({ 
-  orders, editableProducts, reviews, totalRevenue, revenueThisMonth, 
-  ordersInProgress, recentOrders, last7Days, maxDay, 
-  navigate, openDetail, thStyle, tdStyle 
+export function DashboardTab({
+  orders, editableProducts, reviews, totalRevenue, revenueThisMonth,
+  unpaidOrders, discardUnpaidOrders,
+  ordersInProgress, recentOrders, last7Days, maxDay,
+  navigate, openDetail, thStyle, tdStyle
 }: Readonly<DashboardTabProps>) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -80,6 +85,30 @@ export function DashboardTab({
             </div>
           </div>
         ))}
+
+        {/* Non payées — seul widget avec une action : nettoyer les commandes jamais payées. */}
+        <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '18px', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: `linear-gradient(90deg, ${S_ERR_T}55, ${S_ERR_T}22)` }} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <span style={{ fontSize: '10px', color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>Non payées</span>
+            <span style={{ fontSize: '16px', opacity: .7 }}>✕</span>
+          </div>
+          <div style={{ fontSize: '24px', fontWeight: 700, color: TITLE, letterSpacing: '-0.02em', marginBottom: '4px' }}>{unpaidOrders}</div>
+          <div style={{ fontSize: '11px', color: TEXT3, marginBottom: '12px' }}>{unpaidOrders > 0 ? 'Paniers abandonnés, paiements échoués' : 'Aucune à nettoyer ✓'}</div>
+          <button
+            type="button"
+            onClick={discardUnpaidOrders}
+            disabled={unpaidOrders === 0}
+            style={{
+              width: '100%', fontSize: '11px', fontWeight: 600, padding: '7px', borderRadius: '6px',
+              border: `1px solid ${unpaidOrders > 0 ? S_ERR_T : BORDER2}`, background: 'none',
+              color: unpaidOrders > 0 ? S_ERR_T : TEXT3, cursor: unpaidOrders > 0 ? 'pointer' : 'not-allowed',
+              opacity: unpaidOrders > 0 ? 1 : 0.5,
+            }}
+          >
+            Supprimer les commandes non payées
+          </button>
+        </div>
       </div>
 
       {/* Chart + Recent orders */}

@@ -21,8 +21,8 @@ import {
 } from '@/shared/api/admin';
 import type { LaravelMetricsOverview } from '@/shared/api/types';
 import type { MappedOrder } from '@/shared/api/mappers/order';
-import { apiRoot } from '@/shared/api/client';
-import { fetchAdminSettings, patchAdminSetting } from '@/shared/api/settings';
+import { apiRoot, apiErrorMessage } from '@/shared/api/client';
+import { fetchAdminSettings, fetchAdminSetting, patchAdminSetting } from '@/shared/api/settings';
 import type { AdminTabStatus, ClientRow, ContactMessageRow } from '@/features/admin/admin.type';
 import { DEFAULT_SITE_CONFIG } from '@/features/site-config/site-config.constant';
 import type { SiteConfig } from '@/features/site-config/site-config.type';
@@ -66,13 +66,16 @@ import HeroTab from '@/features/admin/tabs/hero.tab';
 import PromosTab from '@/features/admin/tabs/promos.tab';
 import BrandingTab from '@/features/admin/tabs/branding.tab';
 import PaymentTab from '@/features/admin/tabs/payment.tab';
+import InvoiceSettingsTab from '@/features/admin/tabs/invoice-settings.tab';
+import MarketingBulkTab from '@/features/admin/tabs/marketing-bulk.tab';
+import MaintenanceTab from '@/features/admin/tabs/maintenance.tab';
 import MarketingTab from '@/features/admin/tabs/marketing.tab';
 import JekoTab from '@/features/admin/tabs/jeko.tab';
 
 type OrderStatus = OrderDraft['status'];
 type ReviewRow = Review & { productId?: string };
 type ProductModalState = Partial<Product> & { _isNew?: boolean };
-type Tab = 'dashboard' | 'commandes' | 'produits' | 'avis' | 'temoignages' | 'categories' | 'quiz' | 'clients' | 'contenu' | 'jeko' | 'newsletter' | 'messages' | 'livraison' | 'marketing' | 'branding' | 'promos' | 'faq' | 'hero' | 'legal' | 'paiement' | 'pages';
+type Tab = 'dashboard' | 'commandes' | 'produits' | 'avis' | 'temoignages' | 'categories' | 'quiz' | 'clients' | 'contenu' | 'jeko' | 'newsletter' | 'messages' | 'livraison' | 'marketing' | 'marketing-bulk' | 'branding' | 'promos' | 'faq' | 'hero' | 'legal' | 'paiement' | 'pages' | 'facturation' | 'maintenance';
 type NewsletterSub = { id: string; email: string; source: string | null; unsubscribed: boolean; created_at: string };
 
 type ProductEditModalProps = {
@@ -467,6 +470,8 @@ export default function AdminPage() { // NOSONAR typescript:S3776
   const [clientSearch, setClientSearch] = useState('');
   const [clientPage, setClientPage] = useState(1);
   const [orderDetail, setOrderDetail] = useState<OrderDraft | null>(null);
+  const [invoiceStatus, setInvoiceStatus] = useState<{ orderId: string; status: Order.InvoiceStatus } | null>(null);
+  const [invoiceSending, setInvoiceSending] = useState(false);
   const [testimonials, setTestimonials] = useState<TestimonialRow[]>([]);
   const [testiSearch, setTestiSearch] = useState('');
   const [categories, setCategories] = useState<CategoryRow[]>([]);
@@ -505,6 +510,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
   const [newsletterSearch, setNewsletterSearch] = useState('');
   const [newsletterFilter, setNewsletterFilter] = useState<'all' | 'active' | 'unsubscribed'>('all');
   const [contactMessages, setContactMessages] = useState<ContactMessageRow[]>([]);
+  const [maintenanceEnabled, setMaintenanceEnabled] = useState(false);
 
   const reloadNewsletter = () => {
     Newsletter.list().then(setNewsletterSubs).catch(() => setNewsletterSubs([]));
@@ -512,6 +518,12 @@ export default function AdminPage() { // NOSONAR typescript:S3776
 
   const reloadContactMessages = () => {
     ContactMessage.list().then(setContactMessages).catch(() => setContactMessages([]));
+  };
+
+  const reloadMaintenance = () => {
+    fetchAdminSetting('maintenance')
+      .then((value) => setMaintenanceEnabled(Boolean(value && typeof value === 'object' && (value as { enabled?: unknown }).enabled === true)))
+      .catch(() => {});
   };
 
   const initAfterAuth = useCallback(async (user: { email?: string | null }) => {
@@ -528,6 +540,9 @@ export default function AdminPage() { // NOSONAR typescript:S3776
     fetchAllRoutinesAdmin().then(setQuizRoutines).catch(() => { setQuizRoutines([]); toast.error('Impossible de charger les routines du quiz.'); });
     Newsletter.list().then(setNewsletterSubs).catch(() => setNewsletterSubs([]));
     ContactMessage.list().then(setContactMessages).catch(() => setContactMessages([]));
+    fetchAdminSetting('maintenance')
+      .then((value) => setMaintenanceEnabled(Boolean(value && typeof value === 'object' && (value as { enabled?: unknown }).enabled === true)))
+      .catch(() => {});
     getJekoSettings().then(s => { setJekoSettingsEdit(s); }).catch(() => { setJekoSettingsEdit(null); toast.error('Impossible de charger les réglages Jeko.'); });
     getJekoTiersConfig().then(setJekoTiersConf).catch(() => { setJekoTiersConf([]); toast.error('Impossible de charger les paliers de fidélité Jeko.'); });
     getJekoRewardsConfig().then(setJekoRewardsConf).catch(() => { setJekoRewardsConf([]); toast.error('Impossible de charger les récompenses Jeko.'); });
@@ -576,6 +591,36 @@ export default function AdminPage() { // NOSONAR typescript:S3776
     }
   };
 
+  const markOrderRefunded = async (orderNumber: string) => {
+    const previousOrders = orders;
+    const current = orders.find(o => o.orderNumber === orderNumber);
+    if (!current) return;
+    setOrders(prev => prev.map(o => o.orderNumber === orderNumber
+      ? { ...o, paymentStatus: 'refunded' as const }
+      : o));
+    try {
+      await Order.markRefunded(current);
+    } catch (err) {
+      setOrders(previousOrders);
+      toast.error(apiErrorMessage(err, 'Erreur lors du remboursement de la commande.'));
+    }
+  };
+
+  /** Widget « Non payées » du tableau de bord (F-?) : nettoyage en un clic des
+   * commandes passées mais jamais payées (paniers abandonnés, paiements
+   * échoués) — n'affecte jamais une commande déjà payée. */
+  const discardUnpaidOrders = async () => {
+    if (!confirm('Supprimer définitivement toutes les commandes non payées ? Cette action est irréversible.')) return;
+    try {
+      const { deleted } = await Order.discardUnpaid();
+      setOrders(await Order.list());
+      Metric.overview().then(setMetrics).catch(() => {});
+      toast.success(`${deleted} commande(s) non payée(s) supprimée(s).`);
+    } catch (err) {
+      toast.error(apiErrorMessage(err, 'Erreur lors de la suppression des commandes non payées.'));
+    }
+  };
+
   const changeStatus = async (orderNumber: string, status: OrderStatus) => {
     const previousOrders = orders;
     const current = orders.find(o => o.orderNumber === orderNumber);
@@ -585,6 +630,39 @@ export default function AdminPage() { // NOSONAR typescript:S3776
       if (current) await Order.patch(current, status);
     } catch {
       setOrders(previousOrders);
+    }
+  };
+
+  const orderDetailId = orderDetail ? (orderDetail as MappedOrder).id : null;
+
+  useEffect(() => {
+    if (!orderDetailId) return;
+    let cancelled = false;
+    Order.invoiceStatus({ id: orderDetailId } as MappedOrder)
+      .then((status) => {
+        if (!cancelled) setInvoiceStatus({ orderId: orderDetailId, status });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [orderDetailId]);
+
+  const currentInvoiceStatus = invoiceStatus?.orderId === orderDetailId ? invoiceStatus.status : null;
+
+  const sendInvoice = async () => {
+    if (!orderDetail) return;
+    setInvoiceSending(true);
+    try {
+      const orderId = (orderDetail as MappedOrder).id;
+      await Order.sendInvoiceEmail(orderDetail as MappedOrder);
+      toast.success('Reçu envoyé au client.');
+      const status = await Order.invoiceStatus(orderDetail as MappedOrder);
+      setInvoiceStatus({ orderId, status });
+    } catch (err) {
+      toast.error(apiErrorMessage(err, "Erreur lors de l'envoi du reçu."));
+    } finally {
+      setInvoiceSending(false);
     }
   };
 
@@ -750,7 +828,8 @@ export default function AdminPage() { // NOSONAR typescript:S3776
     [orders, editableProducts, reviews],
   );
   const totalRevenue = metrics?.revenue.last_30_days ?? computedDashboard.totalRevenue;
-  const revenueThisMonth = computedDashboard.revenueThisMonth;
+  const revenueThisMonth = metrics?.revenue.this_month ?? computedDashboard.revenueThisMonth;
+  const unpaidOrders = metrics?.unpaid_orders ?? orders.filter(o => o.paymentStatus !== 'paid').length;
   const ordersInProgress = computedDashboard.ordersInProgress;
   const recentOrders = computedDashboard.recentOrders;
   
@@ -1121,7 +1200,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               { id: 'clients',    label: 'Clients',    desc: 'Base de données clients',       icon: '👤', status: 'normal' },
               { id: 'jeko',       label: 'Fidélité',   desc: 'Points SDZ, paliers, cadeaux', icon: '✦',  status: 'premium' },
               { id: 'newsletter', label: 'Newsletter', desc: 'Abonnés & campagnes email',     icon: '✉',  status: 'normal' },
-              { id: 'messages',   label: 'Messages',   desc: 'Formulaire de contact',         icon: '💬', status: contactMessages.some(m => m.open) ? 'warning' : 'normal' },
+              { id: 'messages',   label: 'Messages',   desc: 'Contact & messages individuels',         icon: '💬', status: contactMessages.some(m => m.open) ? 'warning' : 'normal' },
             ] as { id: Tab; label: string; desc: string; icon: string; status: AdminTabStatus }[]).map(item => {
               const active = tab === item.id;
               let bgColor = active ? 'linear-gradient(90deg, rgba(212,162,90,0.18) 0%, rgba(212,162,90,0.08) 100%)' : 'transparent';
@@ -1148,10 +1227,13 @@ export default function AdminPage() { // NOSONAR typescript:S3776
             <div style={{ fontSize: '9px', color: '#8B7355', letterSpacing: '0.15em', textTransform: 'uppercase', padding: '0 12px 5px', margin: '16px 0 10px', fontWeight: 700, borderBottom: '1px solid rgba(139,115,85,0.18)' }}>BOUTIQUE</div>
             {([
               { id: 'marketing', label: 'Marketing',   desc: 'Bannières & sections promo', icon: '📣', status: 'important' },
+              { id: 'marketing-bulk', label: 'Marketing Bulk', desc: 'Campagnes e-mail groupées', icon: '📧', status: 'normal' },
               { id: 'promos',    label: 'Codes promo', desc: 'Réductions & coupons',       icon: '🎟️', status: 'normal' },
               { id: 'livraison', label: 'Livraison',   desc: 'Zones, frais, délais',       icon: '🚚', status: 'normal' },
               { id: 'branding',  label: 'Branding',    desc: 'Couleurs, logo, police',     icon: '🎨', status: 'normal' },
               { id: 'paiement',  label: 'Paiement',   desc: 'Moyens de paiement visibles', icon: '💳', status: 'normal' },
+              { id: 'facturation', label: 'Détails de la facture', desc: 'Coordonnées affichées sur les reçus PDF', icon: '🧾', status: 'normal' },
+              { id: 'maintenance', label: 'Maintenance', desc: 'Bloquer temporairement le site', icon: '🚧', status: maintenanceEnabled ? 'alert' : 'normal' },
             ] as { id: Tab; label: string; desc: string; icon: string; status: AdminTabStatus }[]).map(item => {
               const active = tab === item.id;
               let bgColor = active ? 'linear-gradient(90deg, rgba(212,162,90,0.18) 0%, rgba(212,162,90,0.08) 100%)' : 'transparent';
@@ -1167,6 +1249,9 @@ export default function AdminPage() { // NOSONAR typescript:S3776
                   </span>
                   {item.status === 'important' && (
                     <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'linear-gradient(135deg, #10B981, #059669)', boxShadow: '0 0 8px rgba(16,185,129,0.5)', flexShrink: 0 }} />
+                  )}
+                  {item.id === 'maintenance' && maintenanceEnabled && (
+                    <span style={{ fontSize: '9px', background: 'linear-gradient(135deg, #DC2626, #B91C1C)', color: '#FEE2E2', padding: '3px 7px', borderRadius: '99px', fontWeight: 700, flexShrink: 0 }}>ACTIF</span>
                   )}
                 </button>
               );
@@ -1202,6 +1287,17 @@ export default function AdminPage() { // NOSONAR typescript:S3776
         {/* ── MAIN ── */}
         <main className="admin-main" style={{ flex: 1, overflowY: 'auto', padding: '32px', background: 'linear-gradient(180deg, #0F0C08 0%, #1A1410 100%)' }}>
 
+          {maintenanceEnabled && tab !== 'maintenance' && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', background: 'rgba(239,68,68,0.12)', border: '1px solid #EF4444', borderRadius: '10px', padding: '12px 16px', marginBottom: '20px' }}>
+              <span style={{ fontSize: '12px', color: '#FCA5A5', fontWeight: 600 }}>
+                🔴 Le site est actuellement en maintenance — les visiteurs voient une page d&apos;attente.
+              </span>
+              <button onClick={() => setTab('maintenance')} style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid #EF4444', background: 'transparent', color: '#FCA5A5', fontSize: '11px', fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>
+                Gérer
+              </button>
+            </div>
+          )}
+
           {/* ─── DASHBOARD TAB ─── */}
           {tab === 'dashboard' && (
             <DashboardTab
@@ -1210,6 +1306,8 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               reviews={reviews}
               totalRevenue={totalRevenue}
               revenueThisMonth={revenueThisMonth}
+              unpaidOrders={unpaidOrders}
+              discardUnpaidOrders={discardUnpaidOrders}
               ordersInProgress={ordersInProgress}
               recentOrders={recentOrders}
               last7Days={last7Days}
@@ -1228,6 +1326,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               openDetail={setOrderDetail}
               changeStatus={changeStatus}
               markPaid={markOrderPaid}
+              markRefunded={markOrderRefunded}
               thStyle={thStyle}
               tdStyle={tdStyle}
             />
@@ -1294,8 +1393,17 @@ export default function AdminPage() { // NOSONAR typescript:S3776
           {/* ─── PAIEMENT TAB ─── */}
           {tab === 'paiement' && <PaymentTab siteContent={siteContent} setSiteContent={setSiteContent} saveConfigSection={saveConfigSection} contentSaving={contentSaving} contentSaved={contentSaved} />}
 
+          {/* ─── DÉTAILS DE LA FACTURE TAB ─── */}
+          {tab === 'facturation' && <InvoiceSettingsTab />}
+
+          {/* ─── MAINTENANCE TAB ─── */}
+          {tab === 'maintenance' && <MaintenanceTab onSaved={reloadMaintenance} />}
+
           {/* ─── MARKETING TAB ─── */}
           {tab === 'marketing' && <MarketingTab siteContent={siteContent} setSiteContent={setSiteContent} saveConfigSection={saveConfigSection} contentSaving={contentSaving} contentSaved={contentSaved} mktSubTab={mktSubTab} setMktSubTab={setMktSubTab} />}
+
+          {/* ─── MARKETING BULK TAB ─── */}
+          {tab === 'marketing-bulk' && <MarketingBulkTab />}
 
           {/* ─── JEKO TAB ─── */}
           {tab === 'jeko' && <JekoTab jekoSubTab={jekoSubTab} setJekoSubTab={setJekoSubTab} jekoTiersConf={jekoTiersConf} jekoRewardsConf={jekoRewardsConf} jekoMembers={jekoMembers} jekoTxns={jekoTxns} jekoStats={jekoStats} jekoSettingsEdit={jekoSettingsEdit} setJekoSettingsEdit={setJekoSettingsEdit} jekoMemberSearch={jekoMemberSearch} setJekoMemberSearch={setJekoMemberSearch} jekoMemberTxns={jekoMemberTxns} setJekoMemberTxns={setJekoMemberTxns} jekoConfSaving={jekoConfSaving} jekoConfMsg={jekoConfMsg} jekoGetTierLabel={jekoGetTierLabel} jekoSaveSettings={jekoSaveSettings} loadMemberTxns={loadMemberTxns} setJekoAdjModal={setJekoAdjModal} setJekoAdjMsg={setJekoAdjMsg} setJekoRewardEdit={setJekoRewardEdit} setJekoTierEdit={setJekoTierEdit} />}
@@ -1318,6 +1426,39 @@ export default function AdminPage() { // NOSONAR typescript:S3776
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               <StatusBadge status={orderDetail.status} />
               <span style={{ color: TEXT3, fontSize: '12px' }}>{PAYMENT_LABELS[orderDetail.paymentMethod] ?? orderDetail.paymentMethod}</span>
+            </div>
+            <div style={{ background: SURFACE2, borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <p style={{ color: TEXT2, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Reçu / Facture</p>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <button type="button" onClick={() => window.open(Order.invoiceViewUrl(orderDetail as MappedOrder), '_blank')}
+                  style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', background: 'transparent', color: TEXT, border: `1px solid ${BORDER3}` }}>
+                  Voir le reçu
+                </button>
+                <button type="button" onClick={() => window.open(Order.invoiceDownloadUrl(orderDetail as MappedOrder), '_blank')}
+                  style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', background: 'transparent', color: TEXT, border: `1px solid ${BORDER3}` }}>
+                  Télécharger PDF
+                </button>
+                <button type="button" onClick={() => window.open(Order.invoiceViewUrl(orderDetail as MappedOrder), '_blank')}
+                  style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', background: 'transparent', color: TEXT, border: `1px solid ${BORDER3}` }}>
+                  Imprimer
+                </button>
+                <button type="button" onClick={sendInvoice} disabled={invoiceSending}
+                  style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: invoiceSending ? 'default' : 'pointer', opacity: invoiceSending ? 0.6 : 1, background: GOLD, color: '#1a1a1a', border: 'none' }}>
+                  {invoiceSending ? 'Envoi…' : currentInvoiceStatus?.email_status === 'sent' ? 'Renvoyer le reçu' : 'Envoyer par e-mail'}
+                </button>
+              </div>
+              {currentInvoiceStatus && (
+                <p style={{ color: TEXT3, fontSize: '11px' }}>
+                  {currentInvoiceStatus.number} —{' '}
+                  {currentInvoiceStatus.email_status === 'sent' && currentInvoiceStatus.email_sent_at
+                    ? `envoyé le ${formatOrderDate(currentInvoiceStatus.email_sent_at)}`
+                    : currentInvoiceStatus.email_status === 'pending'
+                      ? 'envoi en cours'
+                      : currentInvoiceStatus.email_status === 'failed'
+                        ? "échec de l'envoi"
+                        : 'pas encore envoyé'}
+                </p>
+              )}
             </div>
             <div style={{ background: SURFACE2, borderRadius: '8px', padding: '14px' }}>
               <p style={{ color: TEXT2, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>Livraison</p>

@@ -79,14 +79,14 @@ export default async function RootLayout({
 }>) {
   const siteConfig = await getSiteConfig();
   return (
-    <html lang="fr" data-scroll-behavior="smooth" className={`h-full ${playfair.variable} ${inter.variable}`}>
+    <html lang="fr" data-scroll-behavior="smooth" className={`h-full ${playfair.variable} ${inter.variable}`} suppressHydrationWarning>
       <head>
         {/* ── Préchargement connexions tierces (LCP + tracking) ──────────── */}
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://connect.facebook.net" />
         <link rel="dns-prefetch" href="https://analytics.tiktok.com" />
       </head>
-      <body className="min-h-full flex flex-col" style={{ fontFamily: 'var(--font-inter), sans-serif', overflowX: 'hidden' }}>
+      <body className="min-h-full flex flex-col" style={{ fontFamily: 'var(--font-inter), sans-serif', overflowX: 'hidden' }} suppressHydrationWarning>
         {/* Lien d'évitement pour lecteurs d'écran */}
         <a
           href="#main-content"

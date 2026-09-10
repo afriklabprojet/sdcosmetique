@@ -3,6 +3,7 @@
 /* Onglet «clients» de la console d'administration. Extrait de `admin.view.tsx` (F-110). */
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import Pagination from '@/features/admin/pagination';
 import { type ClientRow } from '@/features/admin/admin.type';
 import { formatPrice } from '@/features/catalog/product.query';
@@ -20,6 +21,7 @@ interface ClientsTabProps {
 }
 
 export default function ClientsTab({ clients, filteredClients, pagedClients, clientPage, clientPageCount, clientSearch, setClientPage, setClientSearch }: ClientsTabProps) {
+  const router = useRouter();
   return (
             <div className="space-y-4">
               <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -47,10 +49,11 @@ export default function ClientsTab({ clients, filteredClients, pagedClients, cli
                         </thead>
                         <tbody>
                           {pagedClients.map(c => (
-                            <tr key={c.email} style={{ transition: 'background .15s' }}
+                            <tr key={c.id} onClick={() => router.push(`/admin/clients/${c.id}`)}
+                              style={{ transition: 'background .15s', cursor: 'pointer' }}
                               onMouseEnter={e => (e.currentTarget.style.background = SURFACE2)}
                               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-                              <td style={{ ...tdStyle, fontWeight: 600 }}>{c.name}</td>
+                              <td style={{ ...tdStyle, fontWeight: 600, color: GOLD, textDecoration: 'underline' }}>{c.name}</td>
                               <td style={{ ...tdStyle, color: INFO_C }}>{c.email}</td>
                               <td style={{ ...tdStyle, textAlign: 'center', fontWeight: 600, color: TEXT }}>{c.orders}</td>
                               <td style={{ ...tdStyle, fontWeight: 600, color: GOLD }}>{formatPrice(c.total)}</td>

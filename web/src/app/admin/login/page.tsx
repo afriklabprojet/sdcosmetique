@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ApiError, api, apiRoot, type LaravelAdminSession } from '@/shared/api';
 import { fetchSiteConfigSection } from '@/features/site-config/site-config.util';
 import styles from './admin-login.module.css';
@@ -17,6 +17,7 @@ function loginFailureMessage(err: unknown, fallback: string): string {
 }
 
 function AdminLoginContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -61,7 +62,7 @@ function AdminLoginContent() {
         throw new Error(loginFailureMessage(err, 'Session administrateur indisponible.'));
       }
 
-      globalThis.location.href = '/admin';
+      router.push('/admin');
     } catch (err) {
       setLoading(false);
       setError(err instanceof Error ? err.message : 'Erreur de connexion au serveur.');

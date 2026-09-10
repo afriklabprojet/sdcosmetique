@@ -12,12 +12,16 @@ import type { OrderDraft } from '@/features/orders/order.store';
 import type { EditableProduct, ReviewRow } from '@/features/admin/admin.type';
 
 export function calculateDashboardMetrics(orders: OrderDraft[], _editableProducts: EditableProduct[], _reviews: ReviewRow[]) {
-  const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+  // Le chiffre d'affaires ne compte que l'argent réellement encaissé : une
+  // commande passée mais jamais payée (ou remboursée depuis) ne doit jamais
+  // gonfler ces totaux.
+  const paidOrders = orders.filter(order => order.paymentStatus === 'paid');
+  const totalRevenue = paidOrders.reduce((sum, order) => sum + order.total, 0);
   const currentDate = new Date();
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
-  
-  const revenueThisMonth = orders
+
+  const revenueThisMonth = paidOrders
     .filter(order => {
       const orderDate = new Date(order.date);
       return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear;

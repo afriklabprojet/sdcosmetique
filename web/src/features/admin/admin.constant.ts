@@ -54,6 +54,7 @@ export const STATUS_OPTIONS: { value: OrderStatus; label: string; bg: string; co
   { value: 'processing', label: 'En cours',     bg: S_INFO_BG, color: S_INFO_T },
   { value: 'shipped',    label: 'Expédiée',     bg: S_WARN_BG, color: S_WARN_T },
   { value: 'delivered',  label: 'Livrée',       bg: S_OK_BG,   color: S_OK_T   },
+  { value: 'cancelled',  label: 'Annulée',      bg: S_ERR_BG,  color: S_ERR_T  },
 ];
 
 export const PAYMENT_LABELS: Record<string, string> = {

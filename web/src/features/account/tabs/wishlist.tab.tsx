@@ -27,7 +27,7 @@ export default function WishlistTab({ wishlistItems, removeFromWishlist }: Wishl
                     {wishlistItems.map(product => (
                       <div key={product.id} style={{ background: '#fff', borderRadius: 16, border: '1px solid #EDE8E0', overflow: 'hidden' }}>
                         <div style={{ position: 'relative', height: 180, background: '#FAF8F5' }}>
-                          <Image src={product.images[0]} alt={product.name} fill style={{ objectFit: 'cover' }}
+                          <Image src={product.images[0] ?? '/products/serum.svg'} alt={product.name} fill style={{ objectFit: 'cover' }}
                             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                           />
                           <button

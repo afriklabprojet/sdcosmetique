@@ -9,6 +9,7 @@ use App\Modules\Catalog\Http\Requests\Admin\ProductRequest;
 use App\Modules\Catalog\Http\Resources\Admin\ProductResource;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\Tone;
+use App\Shared\Html\HtmlSanitizer;
 use App\Shared\Translations\TranslationSync;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -45,6 +46,9 @@ class ProductController extends Controller
         if (! array_key_exists('published_at', $attributes) || $attributes['published_at'] === null) {
             $attributes['published_at'] = now();
         }
+        if (array_key_exists('description', $attributes) && $attributes['description'] !== null) {
+            $attributes['description'] = HtmlSanitizer::clean($attributes['description']);
+        }
 
         $product = Product::create($attributes);
 
@@ -79,7 +83,11 @@ class ProductController extends Controller
     {
         $this->authorize('update', $product);
 
-        $product->update($request->safe()->except(['translations', 'images']));
+        $attributes = $request->safe()->except(['translations', 'images']);
+        if (array_key_exists('description', $attributes) && $attributes['description'] !== null) {
+            $attributes['description'] = HtmlSanitizer::clean($attributes['description']);
+        }
+        $product->update($attributes);
 
         TranslationSync::apply($product, $request->validated('translations', []));
         if ($request->has('images')) {

@@ -24,6 +24,15 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
         ]);
+        // Déploiement derrière le reverse proxy de l'hébergeur (Hostinger) —
+        // sans ça, `$request->ip()` renvoie l'IP du proxy pour TOUT le monde
+        // (un seul "utilisateur" pour le rate limiting) et `$request->secure()`
+        // peut se tromper sur le schéma réel. `'*'` fait confiance à
+        // n'importe quel proxy immédiat : acceptable seulement parce que le
+        // serveur d'origine n'est pas censé être joignable en direct depuis
+        // l'extérieur — si un CDN/proxy supplémentaire (ex. Cloudflare)
+        // s'ajoute un jour devant, restreindre à ses plages IP publiées.
+        $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

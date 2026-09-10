@@ -57,6 +57,8 @@ class OrderResource extends JsonResource
             ])->values(),
             'placed_at' => $this->placed_at,
             'paid_at' => $this->paid_at,
+            'cancelled_at' => $this->cancelled_at,
+            'refunded_at' => $this->refunded_at,
         ];
     }
 

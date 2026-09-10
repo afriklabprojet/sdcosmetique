@@ -188,6 +188,8 @@ export type LaravelOrder = {
   }[];
   placed_at: string | null;
   paid_at: string | null;
+  cancelled_at: string | null;
+  refunded_at: string | null;
 };
 
 export type LaravelCustomer = {
@@ -199,6 +201,71 @@ export type LaravelCustomer = {
   total_value: number;
   created_at: string;
   updated_at: string;
+};
+
+export type LaravelCustomerDetail = {
+  id: number;
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  whatsapp: string | null;
+  address: { line: string; city: string | null; country: string | null } | null;
+  orders_count: number;
+  total_value: number;
+  average_basket: number;
+  first_order_at: string | null;
+  last_order_at: string | null;
+  last_order: { reference: string; total: number; status: string; placed_at: string } | null;
+  created_at: string;
+};
+
+export type LaravelCustomerMessage = {
+  id: number;
+  client_id: number;
+  client_name: string | null;
+  channel: string;
+  subject: string;
+  body: string;
+  recipient_email: string;
+  status: 'pending' | 'sent' | 'failed';
+  error: string | null;
+  sent_by: string | null;
+  sent_at: string | null;
+  created_at: string;
+};
+
+export type MarketingAudienceType = 'all' | 'ordered' | 'never_ordered' | 'active' | 'inactive' | 'manual';
+export type MarketingCampaignStatus = 'draft' | 'scheduled' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
+
+export type LaravelMarketingCampaign = {
+  id: number;
+  name: string;
+  subject: string;
+  sender_name: string;
+  sender_email: string;
+  content: string;
+  audience_type: MarketingAudienceType;
+  audience_client_ids: number[] | null;
+  status: MarketingCampaignStatus;
+  sendable: boolean;
+  recipients_count: number;
+  sent_count: number;
+  failed_count: number;
+  created_by: string | null;
+  scheduled_at: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+};
+
+export type LaravelMarketingCampaignRecipient = {
+  id: number;
+  client_id: number;
+  client_name: string | null;
+  email: string;
+  status: 'pending' | 'sent' | 'failed' | 'skipped_unsubscribed';
+  error: string | null;
+  sent_at: string | null;
 };
 
 export type LaravelCoupon = {
@@ -339,12 +406,14 @@ export type LaravelAddressWrite = {
 export type LaravelMetricsOverview = {
   revenue: {
     today: number;
+    this_month: number;
     last_7_days: number;
     last_30_days: number;
     currency: string;
   };
   orders_per_day: { date: string; count: number }[];
   low_stock: { id: number; title: string; sku: string | null; stock: number; product: string | null }[];
+  unpaid_orders: number;
   pending_payments: number;
   unhandled_notifications: number;
 };

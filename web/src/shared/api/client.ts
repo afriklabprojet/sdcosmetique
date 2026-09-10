@@ -126,6 +126,16 @@ export function api<T>(path: string, init?: RequestInit): Promise<T> {
   return request<T>(path, init, false);
 }
 
+/**
+ * Absolute URL for direct browser navigation (`window.open`, `<a href>`) —
+ * for binary responses like a PDF, where a `fetch()` + blob round-trip would
+ * just add complexity. The session cookie rides along automatically on a
+ * real navigation, unlike a fetch call.
+ */
+export function apiUrl(path: string): string {
+  return resolveUrl(path, false);
+}
+
 /** Call a path on the Laravel origin (`/login`, `/sanctum/csrf-cookie`, …). */
 export function apiRoot<T>(path: string, init?: RequestInit): Promise<T> {
   return request<T>(path, init, true);

@@ -154,7 +154,7 @@ export default function ProductDetail({ product, related, reviews, trustItems, t
 
           {/* Col 2 – Main image */}
           <div style={{ position: 'relative', borderRadius: 6, overflow: 'hidden', background: 'white', aspectRatio: '1/1' }}>
-            <Image src={product.images[mainImg]} alt={product.name} fill priority
+            <Image src={product.images[mainImg] ?? '/products/serum.svg'} alt={product.name} fill priority
               sizes="(max-width:1280px) 35vw,450px"
               style={{ objectFit: 'cover' }} />
             {product.bestseller && (
@@ -195,7 +195,7 @@ export default function ProductDetail({ product, related, reviews, trustItems, t
 
           {/* Main image */}
           <div style={{ position: 'relative', borderRadius: 6, overflow: 'hidden', background: 'white', aspectRatio: '1/1' }}>
-            <Image src={product.images[mainImg]} alt={product.name} fill priority sizes="100vw" style={{ objectFit: 'cover' }} />
+            <Image src={product.images[mainImg] ?? '/products/serum.svg'} alt={product.name} fill priority sizes="100vw" style={{ objectFit: 'cover' }} />
             {product.bestseller && (
               <div style={{ position: 'absolute', top: 14, right: 14, width: 64, height: 64, borderRadius: '50%', background: DARK, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                 <span style={{ fontSize: 7, fontWeight: 900, color: 'white', lineHeight: 1 }}>BEST</span>

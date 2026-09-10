@@ -45,6 +45,7 @@ use Illuminate\Support\Str;
     'shipped_at',
     'delivered_at',
     'cancelled_at',
+    'refunded_at',
 ])]
 class Order extends Model
 {
@@ -244,6 +245,52 @@ class Order extends Model
         });
     }
 
+    /**
+     * Le seul « chemin de remboursement » qu'attend `cancel()` (§ ci-dessus) :
+     * une commande payée ne peut pas redevenir « non payée » d'un coup, elle
+     * passe par un remboursement explicite. N'affecte pas l'avancement
+     * logistique (`status()`) — une commande livrée puis remboursée reste
+     * "livrée" pour la logistique, seul le règlement change.
+     */
+    public function refund(): void
+    {
+        if ($this->refunded_at !== null) {
+            return;
+        }
+
+        if ($this->paid_at === null) {
+            throw new DomainException('Only a paid order can be refunded.');
+        }
+
+        $this->forceFill(['refunded_at' => now()])->save();
+    }
+
+    /**
+     * Supprime définitivement une commande jamais payée (panier abandonné,
+     * paiement échoué...). Restaure le stock réservé à la commande si elle
+     * n'a pas déjà été annulée (sinon double restauration). Ne s'applique
+     * jamais à une commande payée : c'est le garde-fou qui protège l'historique
+     * des transactions réelles.
+     */
+    public function discard(): void
+    {
+        if ($this->paid_at !== null) {
+            throw new DomainException('A paid order cannot be deleted.');
+        }
+
+        DB::transaction(function (): void {
+            if ($this->cancelled_at === null) {
+                foreach ($this->items as $item) {
+                    $item->product->restore($item->quantity);
+                }
+
+                CouponRedemption::query()->where('order_id', $this->id)->delete();
+            }
+
+            $this->delete();
+        });
+    }
+
     public function adjust(AdjustmentType $type, Money $amount, string $label): Order\Adjustment
     {
         if ($this->paid_at !== null) {
@@ -298,6 +345,7 @@ class Order extends Model
             'shipped_at' => 'datetime',
             'delivered_at' => 'datetime',
             'cancelled_at' => 'datetime',
+            'refunded_at' => 'datetime',
         ];
     }
 
@@ -305,8 +353,48 @@ class Order extends Model
     {
         static::creating(function (Order $order): void {
             if ($order->reference === null || $order->reference === '') {
-                $order->reference = strtoupper(Str::ulid()->toString());
+                // Simple placeholder tant que la commande n'est qu'un panier en cours de
+                // checkout — jamais montré au client (aucune vue du panier ne l'affiche),
+                // et remplacé par le vrai numéro structuré dans Checkout::commit() au
+                // moment où la commande est réellement passée. Évite que des paniers
+                // abandonnés (très majoritaires) ne consomment des numéros de la séquence
+                // et n'y créent des trous visibles.
+                $order->reference = self::draftPlaceholderReference();
             }
         });
+    }
+
+    private static function draftPlaceholderReference(): string
+    {
+        do {
+            $reference = 'DRAFT-'.Str::upper(Str::random(12));
+        } while (self::query()->where('reference', $reference)->exists());
+
+        return $reference;
+    }
+
+    /**
+     * Numéro de commande définitif — attribué une seule fois, au moment où
+     * la commande est réellement passée (`Checkout::commit()`), jamais à la
+     * création du panier. Format « CMD-2026-000123 » : court, séquentiel,
+     * lisible et dictable au support client. Même mécanique de compteur
+     * verrouillé par année que la numérotation des factures
+     * (`Invoice::forOrder()`) — sûre même sous commandes concurrentes.
+     */
+    public static function nextStructuredReference(): string
+    {
+        $year = (int) now()->year;
+
+        OrderNumberCounter::query()->createOrFirst(['year' => $year], ['last_number' => 0]);
+
+        $next = DB::transaction(function () use ($year): int {
+            $counter = OrderNumberCounter::query()->where('year', $year)->lockForUpdate()->first();
+            $next = $counter->last_number + 1;
+            $counter->update(['last_number' => $next]);
+
+            return $next;
+        });
+
+        return sprintf('CMD-%d-%06d', $year, $next);
     }
 }

@@ -25,6 +25,7 @@ export function toLaravelOrderStatus(
 }
 
 function paymentStatus(dto: LaravelOrder): PaymentStatus {
+  if (dto.refunded_at) return 'refunded';
   if (dto.paid_at) return 'paid';
   if (dto.status === 'cancelled') return 'failed';
   return 'pending';

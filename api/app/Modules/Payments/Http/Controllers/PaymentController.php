@@ -19,7 +19,8 @@ class PaymentController extends Controller
 
     public function store(StorePaymentRequest $request, Order $order): JsonResponse
     {
-        $this->authorize('view', $order);
+        $email = $request->input('email');
+        $this->authorize('view', [$order, is_string($email) ? $email : null]);
 
         if ($order->placed_at === null) {
             return response()->json(['message' => 'The order has not been placed.'], 422);

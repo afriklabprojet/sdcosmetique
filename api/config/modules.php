@@ -6,8 +6,10 @@ use App\Modules\Accounts\Providers\ModuleServiceProvider as AccountsServiceProvi
 use App\Modules\Catalog\Providers\ModuleServiceProvider as CatalogServiceProvider;
 use App\Modules\Content\Providers\ModuleServiceProvider as ContentServiceProvider;
 use App\Modules\Identity\Providers\ModuleServiceProvider as IdentityServiceProvider;
+use App\Modules\Invoicing\Providers\ModuleServiceProvider as InvoicingServiceProvider;
 use App\Modules\Leads\Providers\ModuleServiceProvider as LeadsServiceProvider;
 use App\Modules\Loyalty\Providers\ModuleServiceProvider as LoyaltyServiceProvider;
+use App\Modules\Messaging\Providers\ModuleServiceProvider as MessagingServiceProvider;
 use App\Modules\Orders\Providers\ModuleServiceProvider as OrdersServiceProvider;
 use App\Modules\Payments\Providers\ModuleServiceProvider as PaymentsServiceProvider;
 use App\Modules\Quiz\Providers\ModuleServiceProvider as QuizServiceProvider;
@@ -26,6 +28,8 @@ return [
         ShoppingServiceProvider::class,
         OrdersServiceProvider::class,
         PaymentsServiceProvider::class,
+        InvoicingServiceProvider::class,
+        MessagingServiceProvider::class,
         SettingsServiceProvider::class,
         TestimonialsServiceProvider::class,
         ReviewsServiceProvider::class,

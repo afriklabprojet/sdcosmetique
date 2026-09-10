@@ -21,7 +21,7 @@ function Stars() {
 function AvatarImg({ src, name }: Readonly<{ src: string; name: string }>) {
   const [failed, setFailed] = React.useState(false);
   const initial = name.charAt(0).toUpperCase();
-  if (failed) {
+  if (!src || failed) {
     return (
       <div style={{
         width: 52, height: 52, borderRadius: '50%', flexShrink: 0,
@@ -45,7 +45,7 @@ export default function Testimonials({
   // Uniquement les vrais avis clients approuvés — aucun fallback éditorial
   const display: { name: string; text: string; avatar: string }[] =
     rows && rows.length > 0
-      ? rows.map(r => ({ name: r.name, text: r.text, avatar: r.avatar_url || '/placeholder-avatar.jpg' }))
+      ? rows.map(r => ({ name: r.name, text: r.text, avatar: r.avatar_url || '' }))
       : [];
 
   const { ref: sectionRef, visible } = useReveal<HTMLElement>(0.1);

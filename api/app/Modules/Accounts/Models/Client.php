@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Table('clients')]
-#[Fillable(['user_id', 'phone', 'shipping_id', 'billing_id'])]
+#[Fillable(['user_id', 'phone', 'whatsapp', 'marketing_opt_in', 'shipping_id', 'billing_id'])]
 class Client extends Model
 {
     /** @use HasFactory<ClientFactory> */
@@ -65,5 +65,15 @@ class Client extends Model
     protected static function newFactory(): ClientFactory
     {
         return ClientFactory::new();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'marketing_opt_in' => 'boolean',
+        ];
     }
 }

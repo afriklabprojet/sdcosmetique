@@ -158,7 +158,7 @@ export default function CheckoutPage() {
         return;
       }
 
-      const payment = await Order.initiate(placed.orderNumber, paymentMethod);
+      const payment = await Order.initiate(placed.orderNumber, paymentMethod, placed.delivery.email);
       if (!payment.redirect_url) {
         throw new Error("Le paiement n'a pas pu être initié.");
       }

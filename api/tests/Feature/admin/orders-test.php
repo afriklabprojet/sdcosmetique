@@ -82,3 +82,72 @@ it('rejects adjusting a paid order', function (): void {
         'label' => 'Late discount',
     ])->assertStatus(422);
 });
+
+it('refunds a paid order', function (): void {
+    $order = Order::factory()->paid()->create();
+
+    $this->actingAs(admin());
+
+    $this->patchJson('/v1/admin/orders/'.$order->id, ['status' => 'refunded'])
+        ->assertOk();
+
+    expect($order->fresh()->refunded_at)->not->toBeNull();
+});
+
+it('rejects refunding an order that was never paid', function (): void {
+    $order = Order::factory()->placed()->create();
+
+    $this->actingAs(admin());
+
+    $this->patchJson('/v1/admin/orders/'.$order->id, ['status' => 'refunded'])
+        ->assertStatus(422);
+});
+
+it('deletes a single unpaid order', function (): void {
+    $order = Order::factory()->placed()->create();
+
+    $this->actingAs(admin());
+
+    $this->deleteJson('/v1/admin/orders/'.$order->id)->assertNoContent();
+
+    expect(Order::find($order->id))->toBeNull();
+});
+
+it('refuses to delete a paid order', function (): void {
+    $order = Order::factory()->paid()->create();
+
+    $this->actingAs(admin());
+
+    $this->deleteJson('/v1/admin/orders/'.$order->id)->assertStatus(422);
+
+    expect(Order::find($order->id))->not->toBeNull();
+});
+
+it('bulk-deletes every unpaid order but leaves paid ones untouched', function (): void {
+    $unpaidA = Order::factory()->placed()->create();
+    $unpaidB = Order::factory()->placed()->create();
+    $paid = Order::factory()->paid()->create();
+
+    $this->actingAs(admin());
+
+    $this->deleteJson('/v1/admin/orders/unpaid')
+        ->assertOk()
+        ->assertJsonPath('deleted', 2);
+
+    expect(Order::find($unpaidA->id))->toBeNull()
+        ->and(Order::find($unpaidB->id))->toBeNull()
+        ->and(Order::find($paid->id))->not->toBeNull();
+});
+
+it('exposes accurate paid-only revenue and an unpaid order count in the dashboard metrics', function (): void {
+    Order::factory()->paid()->create(['total' => 10000, 'paid_at' => now()]);
+    Order::factory()->placed()->create(['total' => 99999]);
+    Order::factory()->placed()->create(['total' => 88888]);
+
+    $this->actingAs(admin());
+
+    $this->getJson('/v1/admin/metrics/overview')
+        ->assertOk()
+        ->assertJsonPath('revenue.this_month', 10000)
+        ->assertJsonPath('unpaid_orders', 2);
+});

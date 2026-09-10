@@ -78,7 +78,7 @@ it('masks guest order PII on the public order endpoint', function (): void {
         ],
     ]);
 
-    $this->getJson('/v1/orders/'.$order->reference)
+    $this->getJson('/v1/orders/'.$order->reference.'?email=fatou.traore@gmail.com')
         ->assertOk()
         ->assertJsonPath('data.email', 'f**********e@gmail.com')
         ->assertJsonPath('data.destination.recipient', 'Fatou T.')
@@ -86,6 +86,30 @@ it('masks guest order PII on the public order endpoint', function (): void {
         ->assertJsonPath('data.destination.country', 'CI')
         ->assertJsonMissingPath('data.destination.line_1')
         ->assertJsonMissingPath('data.destination.phone');
+});
+
+it('refuses a guest order lookup without the matching e-mail — closes reference enumeration (§audit)', function (): void {
+    $order = Order::factory()->placed()->create([
+        'client_id' => null,
+        'email' => 'fatou.traore@gmail.com',
+    ]);
+
+    $this->getJson('/v1/orders/'.$order->reference)->assertForbidden();
+    $this->getJson('/v1/orders/'.$order->reference.'?email=wrong@example.com')->assertForbidden();
+    $this->getJson('/v1/orders/'.$order->reference.'?email=FATOU.TRAORE@gmail.com')->assertOk();
+});
+
+it('refuses to let a stranger initiate payment on someone else\'s guest order by guessing its reference (§audit)', function (): void {
+    $method = Method::factory()->create(['amount' => 0, 'cost' => 0]);
+    $order = Order::factory()->placed()->create([
+        'client_id' => null,
+        'email' => 'victime@example.com',
+        'gateway' => 'null',
+        'delivery_method_id' => $method->id,
+    ]);
+
+    $this->postJson('/v1/orders/'.$order->reference.'/payments', ['payment_method' => 'wave'])->assertForbidden();
+    $this->postJson('/v1/orders/'.$order->reference.'/payments', ['payment_method' => 'wave', 'email' => 'attaquant@example.com'])->assertForbidden();
 });
 
 it('reveals full PII to the authenticated order owner', function (): void {

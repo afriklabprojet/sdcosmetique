@@ -50,12 +50,14 @@ class MetricsController extends Controller
         return response()->json([
             'revenue' => [
                 'today' => (int) (clone $paid)->whereDate('paid_at', today())->sum('total'),
+                'this_month' => (int) (clone $paid)->whereYear('paid_at', now()->year)->whereMonth('paid_at', now()->month)->sum('total'),
                 'last_7_days' => (int) (clone $paid)->where('paid_at', '>=', now()->subDays(7))->sum('total'),
                 'last_30_days' => (int) (clone $paid)->where('paid_at', '>=', now()->subDays(30))->sum('total'),
                 'currency' => 'XOF',
             ],
             'orders_per_day' => $ordersPerDay,
             'low_stock' => $lowStock,
+            'unpaid_orders' => Order::query()->whereNotNull('placed_at')->whereNull('paid_at')->count(),
             'pending_payments' => Payment::query()
                 ->whereNull('paid_at')
                 ->whereNull('failed_at')

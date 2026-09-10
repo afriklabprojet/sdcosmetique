@@ -4,12 +4,17 @@ declare(strict_types=1);
 
 namespace App\Modules\Orders\Enums;
 
+use ArchTech\Enums\InvokableCases;
+use ArchTech\Enums\Names;
+use ArchTech\Enums\Options;
+use ArchTech\Enums\Values;
+
 enum OrderStatus: string
 {
-    use \ArchTech\Enums\InvokableCases;
-    use \ArchTech\Enums\Names;
-    use \ArchTech\Enums\Options;
-    use \ArchTech\Enums\Values;
+    use InvokableCases;
+    use Names;
+    use Options;
+    use Values;
 
     case Draft = 'draft';
     case Placed = 'placed';
@@ -17,4 +22,5 @@ enum OrderStatus: string
     case Shipped = 'shipped';
     case Delivered = 'delivered';
     case Cancelled = 'cancelled';
+    case Refunded = 'refunded';
 }

@@ -3,6 +3,8 @@ export { Order } from './order';
 export { Product } from './product';
 export { Category } from './category';
 export { Customer } from './customer';
+export { CustomerMessage } from './customer-message';
+export { MarketingCampaign } from './marketing-campaign';
 export { Newsletter } from './newsletter';
 export { ContactMessage } from './contact-message';
 export { Payment, PaymentNotification } from './payment';

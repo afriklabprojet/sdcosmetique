@@ -16,6 +16,8 @@ use App\Shared\Money;
 use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
@@ -56,6 +58,7 @@ class OrderController extends Controller
                 OrderStatus::Shipped => $order->ship(),
                 OrderStatus::Delivered => $order->deliver(),
                 OrderStatus::Cancelled => $order->cancel((string) $request->validated('reason', '')),
+                OrderStatus::Refunded => $order->refund(),
                 default => abort(422, 'Cannot transition to '.$status->value),
             };
         } catch (DomainException $e) {
@@ -81,5 +84,41 @@ class OrderController extends Controller
         }
 
         return OrderResource::make($order->refresh())->response();
+    }
+
+    public function destroy(Order $order): Response
+    {
+        $this->authorize('delete', $order);
+
+        try {
+            $order->discard();
+        } catch (DomainException $e) {
+            abort(422, $e->getMessage());
+        }
+
+        return response()->noContent();
+    }
+
+    /**
+     * Supprime en une fois toutes les commandes jamais payées — l'action du
+     * widget « Non payées » du tableau de bord, pour ne pas faire boucler le
+     * front sur une suppression par commande.
+     */
+    public function destroyUnpaid(Request $request): JsonResponse
+    {
+        abort_unless((bool) $request->user()?->administrator(), 403);
+
+        $orders = Order::query()
+            ->whereNotNull('placed_at')
+            ->whereNull('paid_at')
+            ->get();
+
+        DB::transaction(function () use ($orders): void {
+            foreach ($orders as $order) {
+                $order->discard();
+            }
+        });
+
+        return response()->json(['deleted' => $orders->count()]);
     }
 }

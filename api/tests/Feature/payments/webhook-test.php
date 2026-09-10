@@ -139,6 +139,7 @@ it('settles a placed order through a signed webhook and ignores replay', functio
 
     $payment = $this->postJson('/v1/orders/'.$reference.'/payments', [
         'payment_method' => 'wave',
+        'email' => 'guest@example.com',
     ])->assertCreated();
     $attemptReference = $payment->json('data.reference');
 
@@ -206,7 +207,7 @@ it('settles a placed order through a null terminal webhook', function (): void {
     $placed = $this->postJson('/v1/orders')->assertCreated();
     $reference = $placed->json('data.reference');
 
-    $payment = $this->postJson('/v1/orders/'.$reference.'/payments')->assertCreated();
+    $payment = $this->postJson('/v1/orders/'.$reference.'/payments', ['email' => 'guest@example.com'])->assertCreated();
     $attemptReference = $payment->json('data.reference');
 
     $payload = json_encode([

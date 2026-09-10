@@ -46,7 +46,6 @@ class Method extends Model
         ];
     }
 
-
     protected static function newFactory(): DeliveryMethodFactory
     {
         return DeliveryMethodFactory::new();

@@ -106,6 +106,7 @@ class Checkout
             $cart->clear();
 
             $this->order->forceFill([
+                'reference' => Order::nextStructuredReference(),
                 'placed_at' => now(),
                 'cart_id' => null,
             ])->save();

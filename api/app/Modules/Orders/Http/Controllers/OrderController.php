@@ -37,7 +37,8 @@ class OrderController extends Controller
 
     public function show(Request $request, Order $order): JsonResponse
     {
-        $this->authorize('view', $order);
+        $email = $request->input('email');
+        $this->authorize('view', [$order, is_string($email) ? $email : null]);
 
         return (new OrderResource($order))->response();
     }

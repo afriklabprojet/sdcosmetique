@@ -55,7 +55,6 @@ class Delivery extends Model
         ];
     }
 
-
     protected static function newFactory(): DeliveryFactory
     {
         return DeliveryFactory::new();

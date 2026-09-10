@@ -34,14 +34,16 @@ export default function CategoryHighlight({ categories }: Readonly<Props>) {
             >
               {/* Ovale beige avec image produit */}
               <div className="relative w-[62px] h-[74px] sm:w-[80px] sm:h-[95px] bg-[#F5EDE2] rounded-full overflow-hidden shrink-0 flex items-center justify-center">
-                <Image
-                  src={cat.image}
-                  alt={cat.label}
-                  fill
-                  sizes="80px"
-                  className="object-cover object-top transition-transform duration-400 ease-out group-hover:scale-105"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                />
+                {cat.image && (
+                  <Image
+                    src={cat.image}
+                    alt={cat.label}
+                    fill
+                    sizes="80px"
+                    className="object-cover object-top transition-transform duration-400 ease-out group-hover:scale-105"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                )}
               </div>
 
               {/* Textes */}

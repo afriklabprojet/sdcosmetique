@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Payments\Models\Payment;
 
+use App\Jobs\SendOrderInvoiceEmailJob;
 use Database\Factories\Payments\NotificationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -64,6 +65,10 @@ class Notification extends Model
                 'handled_at' => now(),
                 'failure_reason' => null,
             ])->save();
+
+            // Après le commit seulement : un job en file ne doit jamais voir
+            // un paiement qui pourrait encore être annulé par un rollback.
+            SendOrderInvoiceEmailJob::dispatch($payment->order->id)->afterCommit();
         });
     }
 

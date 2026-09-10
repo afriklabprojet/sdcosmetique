@@ -142,6 +142,38 @@ class SettingsSeeder extends Seeder
                 'is_public' => true,
                 'value' => [],
             ],
+            'invoice_details' => [
+                'is_public' => false,
+                'value' => [
+                    'logoUrl' => '/logo.svg',
+                    'businessName' => 'SD Cosmétique',
+                    'legalName' => '',
+                    'phone' => '+225 07 49 49 49 49',
+                    'phoneSecondary' => '',
+                    'whatsapp' => '',
+                    'email' => 'contact@sdcosmetique.ci',
+                    'website' => 'https://sdcosmetique.ci',
+                    'address' => '',
+                    'city' => '',
+                    'country' => "Côte d'Ivoire",
+                    'rccm' => '',
+                    'taxId' => '',
+                    'footerText' => '',
+                    'terms' => '',
+                    'thankYouMessage' => "Merci pour votre confiance.\nSD COSMETIQUE – Prenez soin de votre peau.",
+                ],
+            ],
+            'maintenance' => [
+                // Public : la page web (middleware) doit pouvoir la lire sans être
+                // authentifiée. Ne contient jamais de secret — le lien d'aperçu
+                // développeur repose sur une variable d'environnement côté web
+                // (MAINTENANCE_BYPASS_SECRET), jamais exposée ici.
+                'is_public' => true,
+                'value' => [
+                    'enabled' => false,
+                    'message' => "Nous effectuons une mise à jour du site.\nMerci de repasser dans quelques instants.",
+                ],
+            ],
             'jeko' => [
                 'is_public' => false,
                 'value' => [

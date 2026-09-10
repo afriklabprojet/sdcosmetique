@@ -74,6 +74,32 @@ it('performs the product lifecycle', function (): void {
     expect(Product::query()->count())->toBe(0);
 });
 
+it('sanitizes the product description — rendered as raw HTML on the storefront (§audit)', function (): void {
+    $category = Category::factory()->create();
+    $this->actingAs(admin());
+
+    $id = $this->postJson('/v1/admin/products', [
+        'category_id' => $category->id,
+        'slug' => 'produit-xss',
+        'title' => 'Produit test',
+        'regular_price' => 5000,
+        'description' => '<p>Douceur</p><script>alert(document.cookie)</script><img src=x onerror=alert(1)>',
+    ])->assertCreated()->json('data.id');
+
+    $stored = Product::find($id)->description;
+    expect($stored)->toContain('<p>Douceur</p>')
+        ->and($stored)->not->toContain('<script')
+        ->and($stored)->not->toContain('onerror');
+
+    $this->putJson('/v1/admin/products/'.$id, [
+        'description' => '<p onclick="steal()">Mise à jour</p>',
+    ])->assertOk();
+
+    $updated = Product::find($id)->fresh()->description;
+    expect($updated)->not->toContain('onclick')
+        ->and($updated)->toContain('Mise à jour');
+});
+
 it('never marks a freshly created product as "new" unless the admin asks for it', function (): void {
     $category = Category::factory()->create();
 

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Mail\AccountReadyMail;
+use App\Mail\OrderConfirmationMail;
 use App\Models\User;
 use App\Modules\Accounts\Models\Client;
 use App\Modules\Catalog\Models\Product;
@@ -49,7 +50,7 @@ function placeGuestOrderAndPay(string $email, array $delivery = []): string
     $placed = test()->postJson('/v1/orders')->assertCreated();
     $reference = $placed->json('data.reference');
 
-    $payment = test()->postJson('/v1/orders/'.$reference.'/payments', ['payment_method' => 'wave'])->assertCreated();
+    $payment = test()->postJson('/v1/orders/'.$reference.'/payments', ['payment_method' => 'wave', 'email' => $email])->assertCreated();
     $attemptReference = $payment->json('data.reference');
 
     $payload = json_encode(['reference' => $attemptReference, 'status' => 'PAID'], JSON_THROW_ON_ERROR);
@@ -119,7 +120,7 @@ it('does not create an account when the payment fails', function (): void {
     $placed = $this->postJson('/v1/orders')->assertCreated();
     $reference = $placed->json('data.reference');
 
-    $payment = $this->postJson('/v1/orders/'.$reference.'/payments', ['payment_method' => 'wave'])->assertCreated();
+    $payment = $this->postJson('/v1/orders/'.$reference.'/payments', ['payment_method' => 'wave', 'email' => 'echec@example.com'])->assertCreated();
     $attemptReference = $payment->json('data.reference');
 
     $payload = json_encode(['reference' => $attemptReference, 'status' => 'ERROR'], JSON_THROW_ON_ERROR);
@@ -153,7 +154,10 @@ it('attaches a new order to an existing client instead of creating a duplicate',
         ->and($existingUser->fresh()->name)->toBe('Client Fidèle') // pas écrasé
         ->and($existingClient->fresh()->phone)->toBe('0711111111'); // pas écrasé non plus
 
-    Mail::assertNothingSent(); // pas de mail "bienvenue" pour un compte déjà existant
+    // Pas de mail "bienvenue" pour un compte déjà existant, mais la
+    // confirmation de commande part bien (§2) — les deux sont indépendants.
+    Mail::assertNotSent(AccountReadyMail::class);
+    Mail::assertSent(OrderConfirmationMail::class);
 });
 
 it('links a new order to an existing client even when that client had no phone yet', function (): void {
