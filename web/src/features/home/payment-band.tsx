@@ -1,16 +1,10 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { fetchPublicSetting } from '@/shared/api/settings';
+import { PAYMENT_METHODS } from '@/shared/types/domain.type';
 
-/*
- * Fallbacks SVG — affichés tant qu'aucun vrai logo (fichier officiel de la
- * marque) n'est configuré dans Admin → Paiements → `payment_images`. Ce ne
- * sont pas des logos officiels : dessiner un logo de marque déposée pixel
- * pour pixel demande le kit d'assets fourni par chaque fournisseur (Orange
- * Money, Wave, MTN, Moov Africa, Djamo publient tous un press kit). Pour un
- * rendu réellement officiel, uploader ces fichiers via l'admin — le composant
- * bascule automatiquement sur l'image dès qu'elle existe (voir plus bas).
- */
+/* Les images locales servent de valeurs par défaut. Une image configurée dans
+ * Admin → Paiements → `payment_images` reste prioritaire. */
 const LABELS: Record<string, string> = {
   orange_money: 'Orange Money',
   wave: 'Wave',
@@ -72,6 +66,9 @@ const SVG_FALLBACKS: Record<string, React.ReactNode> = {
 };
 
 const ALL_LOGO_IDS = ['orange_money', 'wave', 'mtn_momo', 'moov_money', 'djamo', 'visa_mastercard'];
+const DEFAULT_IMAGES = Object.fromEntries(
+  PAYMENT_METHODS.map(({ id, icon }) => [id, icon]),
+) as Record<string, string>;
 
 export default function PaymentBand() {
   const [active, setActive] = useState<string[]>(ALL_LOGO_IDS);
@@ -111,7 +108,7 @@ export default function PaymentBand() {
             icône seule), grille avec libellé dès que la largeur le permet. */}
         <div className="payment-badges-row">
           {ALL_LOGO_IDS.filter(id => active.includes(id)).map(id => {
-            const imgUrl = images[id];
+            const imgUrl = images[id] || DEFAULT_IMAGES[id];
             if (imgUrl) {
               return (
                 <div key={id} className="payment-badge payment-badge--image">

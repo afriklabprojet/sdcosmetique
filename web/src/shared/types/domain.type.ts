@@ -91,9 +91,9 @@ export enum PaymentMethod {
 }
 
 export const PAYMENT_METHODS: { id: PaymentMethod; label: string; icon: string }[] = [
-  { id: PaymentMethod.ORANGE_MONEY, label: 'Orange Money', icon: '/icons/orange-money.svg' },
-  { id: PaymentMethod.WAVE,         label: 'Wave',         icon: '/icons/wave.svg' },
-  { id: PaymentMethod.MTN_MOMO,     label: 'MTN MoMo',     icon: '/icons/mtn.svg' },
-  { id: PaymentMethod.MOOV_MONEY,   label: 'Moov Money',   icon: '/icons/moov.svg' },
-  { id: PaymentMethod.DJAMO,        label: 'Djamo',        icon: '/icons/djamo.svg' },
+  { id: PaymentMethod.ORANGE_MONEY, label: 'Orange Money', icon: '/icons/orange-money.png' },
+  { id: PaymentMethod.WAVE,         label: 'Wave',         icon: '/icons/wave.png' },
+  { id: PaymentMethod.MTN_MOMO,     label: 'MTN MoMo',     icon: '/icons/mtn.png' },
+  { id: PaymentMethod.MOOV_MONEY,   label: 'Moov Money',   icon: '/icons/moov.png' },
+  { id: PaymentMethod.DJAMO,        label: 'Djamo',        icon: '/djamo.png' },
 ];

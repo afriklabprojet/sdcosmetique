@@ -1,22 +1,13 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { PaymentMethod } from '@/shared/types/domain.type';
+import { PAYMENT_METHODS, PaymentMethod } from '@/shared/types/domain.type';
 import { CHECKOUT_PALETTE, CHECKOUT_INPUT_STYLE } from '@/features/checkout/checkout.constant';
 import { fetchPublicSetting } from '@/shared/api/settings';
 
-/*
- * Repli tant que le logo officiel (Admin → Paiements → `payment_images`) n'a
- * pas encore été chargé — même logique que `PaymentBand` sur l'accueil.
- */
-const FALLBACK_LOGOS: Record<PaymentMethod, React.ReactNode> = {
-  [PaymentMethod.ORANGE_MONEY]: <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, borderRadius: '50%', background: '#FF6600', color: '#fff', fontSize: '9px', fontWeight: 800, letterSpacing: '-0.02em', flexShrink: 0 }}>OM</span>,
-  [PaymentMethod.WAVE]: <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, borderRadius: '50%', background: '#1A9BE6', color: '#fff', fontSize: '9px', fontWeight: 800, letterSpacing: '-0.02em', flexShrink: 0 }}>W</span>,
-  [PaymentMethod.MTN_MOMO]: <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, borderRadius: '50%', background: '#FFCC00', color: '#1A1A1A', fontSize: '8px', fontWeight: 800, letterSpacing: '-0.02em', flexShrink: 0 }}>MTN</span>,
-  [PaymentMethod.MOOV_MONEY]: <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, borderRadius: '50%', background: '#00A651', color: '#fff', fontSize: '8px', fontWeight: 800, letterSpacing: '-0.02em', flexShrink: 0 }}>MOOV</span>,
-  [PaymentMethod.DJAMO]: <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, borderRadius: '50%', background: '#6C3CE1', color: '#fff', fontSize: '8px', fontWeight: 800, letterSpacing: '-0.02em', flexShrink: 0 }}>DJA</span>,
-  [PaymentMethod.CASH_ON_DELIVERY]: null,
-};
+const DEFAULT_IMAGES = Object.fromEntries(
+  PAYMENT_METHODS.map(({ id, icon }) => [id, icon]),
+) as Partial<Record<PaymentMethod, string>>;
 
 const MOBILE_METHODS: { id: PaymentMethod; label: string; badge?: string }[] = [
   { id: PaymentMethod.ORANGE_MONEY, label: 'Orange Money' },
@@ -75,20 +66,15 @@ export default function PaymentStep({ paymentMethod, selectMethod, placeOrder, p
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, 76px)', gap: '8px' }}>
             {visibleMobile.map(m => {
               const selected = paymentMethod === m.id;
-              const imgUrl = images[m.id];
+              const imgUrl = images[m.id] || DEFAULT_IMAGES[m.id];
               return (
                 <div key={m.id} role="radio" aria-checked={selected} aria-label={m.label} tabIndex={0}
                   onClick={() => selectMethod(m.id)}
                   onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); selectMethod(m.id); } }}
                   style={{ position: 'relative', width: '76px', height: '76px', padding: '4px', border: `1.5px solid ${selected ? CHECKOUT_PALETTE.accent : CHECKOUT_PALETTE.border}`, borderRadius: '10px', cursor: 'pointer', background: selected ? CHECKOUT_PALETTE.rowBackground : 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px', textAlign: 'center', transition: 'border-color .15s' }}>
-                  {imgUrl ? (
+                  {imgUrl && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={imgUrl} alt={m.label} style={{ maxWidth: '64px', maxHeight: '38px', objectFit: 'contain' }} />
-                  ) : (
-                    <>
-                      {FALLBACK_LOGOS[m.id]}
-                      <span style={{ fontSize: '9px', fontWeight: 600, color: CHECKOUT_PALETTE.text, lineHeight: 1.1 }}>{m.label}</span>
-                    </>
                   )}
                   {m.badge && (
                     <span className="checkout-payment-badge" style={{ position: 'absolute', top: '-7px', right: '0', fontSize: '6.5px', fontWeight: 700, padding: '2px 4px', background: CHECKOUT_PALETTE.accent, color: 'white', borderRadius: '99px', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>{m.badge}</span>
