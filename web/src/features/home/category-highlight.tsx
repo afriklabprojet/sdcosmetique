@@ -23,24 +23,24 @@ export default function CategoryHighlight({ categories }: Readonly<Props>) {
   return (
     <section className="relative z-10 bg-transparent p-0 -mt-2 sm:-mt-12 md:-mt-16 lg:-mt-20">
       <div className="w-[90%] mx-auto bg-white rounded-[20px] shadow-[0_14px_50px_rgba(0,0,0,0.08)] relative z-10 p-0 overflow-hidden">
-        <div className="flex w-full justify-start overflow-x-auto snap-x snap-mandatory scrollbar-none sm:justify-evenly sm:overflow-visible sm:snap-none">
+        <div className="flex w-full overflow-x-auto snap-x snap-mandatory scrollbar-none sm:grid sm:grid-flow-col sm:auto-cols-fr sm:overflow-visible sm:snap-none">
           {display.map((cat, idx) => (
             <Link
               key={cat.id}
               href={cat.href}
-              className={`flex flex-col items-center shrink-0 min-w-[90px] snap-start py-3 px-2 no-underline cursor-pointer group transition-colors duration-200 hover:bg-transparent sm:min-w-0 sm:snap-align-none sm:py-4 sm:px-2.5 sm:hover:bg-[#FDFAF6] ${
+              className={`flex w-[108px] flex-col items-center justify-center shrink-0 snap-start py-3 px-2 no-underline cursor-pointer group transition-colors duration-200 hover:bg-transparent sm:w-full sm:min-w-0 sm:snap-align-none sm:py-4 sm:px-2.5 sm:hover:bg-[#FDFAF6] ${
                 idx < display.length - 1 ? 'sm:border-r sm:border-[#F0EBE0]' : ''
               }`}
             >
               {/* Ovale beige avec image produit */}
-              <div className="relative w-[62px] h-[74px] sm:w-[80px] sm:h-[95px] bg-[#F5EDE2] rounded-full overflow-hidden shrink-0 flex items-center justify-center">
+              <div className="relative w-[68px] h-[76px] sm:w-[86px] sm:h-[96px] bg-[#F5EDE2] rounded-full overflow-hidden shrink-0 flex items-center justify-center">
                 {cat.image && (
                   <Image
                     src={cat.image}
                     alt={cat.label}
                     fill
-                    sizes="80px"
-                    className="object-cover object-top transition-transform duration-400 ease-out group-hover:scale-105"
+                    sizes="(min-width: 640px) 86px, 68px"
+                    className="object-contain p-1.5 transition-transform duration-400 ease-out group-hover:scale-105"
                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                   />
                 )}
