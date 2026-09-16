@@ -12,7 +12,7 @@ final class ThrottlePasswordResetRequests
 {
     public function handle(Request $request, Closure $next): mixed
     {
-        if (! $request->routeIs('password.email')) {
+        if (! $request->routeIs('password.email', 'password.update')) {
             return $next($request);
         }
 

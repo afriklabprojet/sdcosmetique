@@ -158,7 +158,12 @@ export default function CheckoutPage() {
         return;
       }
 
-      const payment = await Order.initiate(placed.orderNumber, paymentMethod, placed.delivery.email);
+      // `placed.delivery.email` vient de la réponse `POST /orders`, qui masque
+      // l'e-mail pour tout visiteur non connecté (OrderResource::maskEmail) —
+      // l'envoyer ici ferait échouer le second facteur invité côté serveur
+      // (hash_equals contre l'e-mail réel). `delivery.email` est la saisie
+      // locale, jamais masquée.
+      const payment = await Order.initiate(placed.orderNumber, paymentMethod, delivery.email);
       if (!payment.redirect_url) {
         throw new Error("Le paiement n'a pas pu être initié.");
       }
