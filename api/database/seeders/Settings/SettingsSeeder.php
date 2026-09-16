@@ -174,6 +174,17 @@ class SettingsSeeder extends Seeder
                     'message' => "Nous effectuons une mise à jour du site.\nMerci de repasser dans quelques instants.",
                 ],
             ],
+            'pos_discount_limits' => [
+                // Interne : lu par App\Modules\Pos\Domain\DiscountPolicy pour
+                // plafonner les remises en caisse selon le palier de l'admin
+                // (§8/§22 du module Caisse). null = illimité.
+                'is_public' => false,
+                'value' => [
+                    'cashier' => 10,
+                    'manager' => 30,
+                    'super_admin' => null,
+                ],
+            ],
             'jeko' => [
                 'is_public' => false,
                 'value' => [

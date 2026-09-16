@@ -21,6 +21,13 @@ use App\Modules\Orders\Http\Controllers\Admin\DeliveryMethodController;
 use App\Modules\Orders\Http\Controllers\Admin\OrderController;
 use App\Modules\Payments\Http\Controllers\Admin\NotificationController;
 use App\Modules\Payments\Http\Controllers\Admin\PaymentController;
+use App\Modules\Pos\Http\Controllers\Admin\CashRegisterController;
+use App\Modules\Pos\Http\Controllers\Admin\ProductSearchController as PosProductSearchController;
+use App\Modules\Pos\Http\Controllers\Admin\ReportController as PosReportController;
+use App\Modules\Pos\Http\Controllers\Admin\SaleController as PosSaleController;
+use App\Modules\Pos\Http\Controllers\Admin\SaleCsvExportController;
+use App\Modules\Pos\Http\Controllers\Admin\SalePdfExportController;
+use App\Modules\Pos\Http\Controllers\Admin\SaleReceiptController;
 use App\Modules\Quiz\Http\Controllers\Admin\QuestionController as QuizQuestionController;
 use App\Modules\Quiz\Http\Controllers\Admin\SubmissionController as QuizSubmissionController;
 use App\Modules\Reviews\Http\Controllers\Admin\ReviewController;
@@ -119,4 +126,28 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
     Route::get('loyalty/accounts', [LoyaltyAccountController::class, 'index'])->name('loyalty.accounts.index');
     Route::get('loyalty/entries', [LoyaltyEntryController::class, 'index'])->name('loyalty.entries.index');
     Route::post('loyalty/adjustments', [LoyaltyAdjustmentController::class, 'store'])->name('loyalty.adjustments.store');
+
+    // Module Caisse / POS — réutilise Product, Order, Payment existants (voir AGENTS.md).
+    Route::prefix('pos')->name('pos.')->group(function (): void {
+        Route::get('products', [PosProductSearchController::class, 'index'])->name('products.index');
+        Route::get('products/barcode/{barcode}', [PosProductSearchController::class, 'byBarcode'])->name('products.barcode');
+
+        Route::get('registers', [CashRegisterController::class, 'index'])->name('registers.index');
+        Route::get('sessions/current', [CashRegisterController::class, 'current'])->name('sessions.current');
+        Route::post('sessions/open', [CashRegisterController::class, 'open'])->name('sessions.open');
+        Route::post('sessions/{session}/close', [CashRegisterController::class, 'close'])->name('sessions.close');
+
+        Route::get('sales', [PosSaleController::class, 'index'])->name('sales.index');
+        Route::get('sales/export/pdf', [SalePdfExportController::class, 'index'])->name('sales.export.pdf');
+        Route::get('sales/export/csv', [SaleCsvExportController::class, 'index'])->name('sales.export.csv');
+        Route::post('sales', [PosSaleController::class, 'store'])->name('sales.store');
+        Route::get('sales/{order}', [PosSaleController::class, 'show'])->name('sales.show');
+        Route::get('sales/{order}/receipt', [SaleReceiptController::class, 'show'])->name('sales.receipt.show');
+        Route::get('sales/{order}/receipt/pdf', [SaleReceiptController::class, 'pdf'])->name('sales.receipt.pdf');
+        Route::post('sales/{order}/refund', [PosSaleController::class, 'refund'])->name('sales.refund');
+        Route::delete('sales/{order}', [PosSaleController::class, 'destroy'])->name('sales.destroy');
+
+        Route::get('reports/daily', [PosReportController::class, 'daily'])->name('reports.daily');
+        Route::get('reports/summary', [PosReportController::class, 'summary'])->name('reports.summary');
+    });
 });

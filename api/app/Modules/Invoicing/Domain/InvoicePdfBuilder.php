@@ -7,7 +7,8 @@ namespace App\Modules\Invoicing\Domain;
 use App\Modules\Invoicing\Models\Invoice;
 use App\Modules\Orders\Enums\AdjustmentType;
 use App\Modules\Orders\Models\Order;
-use App\Modules\Settings\Models\Setting;
+use App\Shared\Branding\ShopProfile;
+use App\Shared\Money;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Barryvdh\DomPDF\PDF as DomPdf;
 
@@ -28,6 +29,7 @@ class InvoicePdfBuilder
         'moov_money' => 'Moov Money',
         'djamo' => 'Djamo',
         'jeko' => 'Jeko',
+        'pos' => 'Paiement en caisse',
         'null' => 'Non spécifié',
     ];
 
@@ -55,7 +57,7 @@ class InvoicePdfBuilder
      */
     public static function formatMoney(int $amount): string
     {
-        return number_format($amount, 0, ',', "\u{00A0}").' FCFA';
+        return (new Money($amount))->format();
     }
 
     public function render(Order $order): DomPdf
@@ -73,7 +75,7 @@ class InvoicePdfBuilder
      */
     private function data(Order $order, Invoice $invoice): array
     {
-        $shop = Setting::query()->where('key', 'invoice_details')->value('value') ?? [];
+        $shop = ShopProfile::current();
 
         $destination = is_array($order->destination) ? $order->destination : [];
         $shippingAdjustment = $order->adjustments->firstWhere('type', AdjustmentType::Shipping);
@@ -89,24 +91,7 @@ class InvoicePdfBuilder
         $dueAmount = max(0, $order->total->value - $paidAmount);
 
         return [
-            'shop' => [
-                'logoUrl' => $shop['logoUrl'] ?? null,
-                'businessName' => $shop['businessName'] ?? 'SD Cosmétique',
-                'legalName' => $shop['legalName'] ?? '',
-                'phone' => $shop['phone'] ?? '',
-                'phoneSecondary' => $shop['phoneSecondary'] ?? '',
-                'whatsapp' => $shop['whatsapp'] ?? '',
-                'email' => $shop['email'] ?? '',
-                'website' => $shop['website'] ?? '',
-                'address' => $shop['address'] ?? '',
-                'city' => $shop['city'] ?? '',
-                'country' => $shop['country'] ?? '',
-                'rccm' => $shop['rccm'] ?? '',
-                'taxId' => $shop['taxId'] ?? '',
-                'footerText' => $shop['footerText'] ?? '',
-                'terms' => $shop['terms'] ?? '',
-                'thankYouMessage' => $shop['thankYouMessage'] ?? '',
-            ],
+            'shop' => $shop,
             'invoice' => [
                 'number' => $invoice->number,
                 'issuedAt' => $invoice->issued_at,

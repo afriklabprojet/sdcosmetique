@@ -13,3 +13,4 @@ export { Coupon } from './coupon';
 export { Delivery } from './delivery';
 export { Metric } from './metric';
 export { Media } from './media';
+export { Pos } from './pos';

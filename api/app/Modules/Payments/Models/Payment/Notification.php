@@ -57,14 +57,23 @@ class Notification extends Model
         DB::transaction(function () use ($attempt): void {
             $payment = $attempt->payment;
             $attempt->confirm();
-            $payment->confirm();
-            $payment->order->pay($payment->settlement());
-            $payment->order->linker()->attach();
 
             $this->forceFill([
                 'handled_at' => now(),
                 'failure_reason' => null,
             ])->save();
+
+            // Paiement fractionné (caisse) : d'autres tentatives du même
+            // paiement peuvent être encore en attente (ex. espèces déjà
+            // confirmées, Jeko pas encore notifié) — ne régler la commande
+            // que lorsque plus aucune ne l'est.
+            if (! $payment->fullySettled()) {
+                return;
+            }
+
+            $payment->confirm();
+            $payment->order->pay($payment->settlement());
+            $payment->order->linker()->attach();
 
             // Après le commit seulement : un job en file ne doit jamais voir
             // un paiement qui pourrait encore être annulé par un rollback.

@@ -5,10 +5,25 @@ import { mapOrder, type MappedOrder } from '@/shared/api/mappers/order';
 import type { LaravelCustomer, LaravelCustomerDetail, LaravelOrder } from '@/shared/api/types';
 import type { ClientDetail, ClientRow } from '@/features/admin/admin.type';
 
+export type CustomerSearchResult = { id: number; name: string; email: string; phone: string | null };
+
 export namespace Customer {
   export async function list(): Promise<ClientRow[]> {
     const body = await api<Paginated<LaravelCustomer>>('/admin/customers?perPage=100');
     return body.data.map(mapCustomer);
+  }
+
+  /** Recherche serveur (nom, e-mail, téléphone) — sélecteur client de la caisse (§7), pas de liste complète chargée côté navigateur. */
+  export async function search(q: string): Promise<CustomerSearchResult[]> {
+    const params = new URLSearchParams({ perPage: '10' });
+    if (q.trim()) params.set('q', q.trim());
+    const body = await api<Paginated<LaravelCustomer>>(`/admin/customers?${params.toString()}`);
+    return body.data.map((dto) => ({
+      id: dto.id,
+      name: dto.name ?? dto.email ?? `Client #${dto.id}`,
+      email: dto.email ?? '',
+      phone: dto.phone,
+    }));
   }
 
   /** Fiche client complète (§4). */

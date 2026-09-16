@@ -1,0 +1,61 @@
+/*
+ * Feuille de style dédiée à l'impression du reçu — seule exception aux
+ * styles inline utilisés partout ailleurs dans ce projet : `@media print`
+ * et `@page` ne peuvent pas s'exprimer via des objets style React.
+ * Fond toujours clair, y compris depuis l'admin en thème sombre (§28).
+ */
+
+.receipt-print-root {
+  background: #FFFFFF;
+  color: #1A1A1A;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .receipt-print-area,
+  .receipt-print-area * {
+    visibility: visible;
+  }
+
+  .receipt-print-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+
+  .receipt-no-print {
+    display: none !important;
+  }
+
+  @page {
+    margin: 6mm;
+  }
+}
+
+.receipt-thermal.receipt-58mm {
+  width: 58mm;
+  max-width: 100%;
+}
+
+.receipt-thermal.receipt-80mm {
+  width: 80mm;
+  max-width: 100%;
+}
+
+@media print {
+  .receipt-thermal.receipt-58mm {
+    width: 58mm;
+  }
+
+  .receipt-thermal.receipt-80mm {
+    width: 80mm;
+  }
+
+  .receipt-a4 {
+    width: 210mm;
+  }
+}

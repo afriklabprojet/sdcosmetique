@@ -9,6 +9,7 @@ use App\Modules\Orders\Http\Controllers\Checkout\ReviewController;
 use App\Modules\Orders\Http\Controllers\CheckoutController;
 use App\Modules\Orders\Http\Controllers\DeliveryMethodController;
 use App\Modules\Orders\Http\Controllers\OrderController;
+use App\Modules\Orders\Http\Controllers\ReceiptController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('checkout', CheckoutController::class)->name('checkout');
@@ -20,4 +21,13 @@ Route::get('delivery-methods', DeliveryMethodController::class)->name('delivery-
 Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
 Route::get('orders/{order:reference}', [OrderController::class, 'show'])
     ->where('order', '[A-Za-z0-9-]+')
+    ->middleware('throttle:order-lookup')
     ->name('orders.show');
+Route::get('orders/{order:reference}/receipt', [ReceiptController::class, 'show'])
+    ->where('order', '[A-Za-z0-9-]+')
+    ->middleware('signed')
+    ->name('orders.receipt.show');
+Route::get('orders/{order:reference}/receipt/pdf', [ReceiptController::class, 'pdf'])
+    ->where('order', '[A-Za-z0-9-]+')
+    ->middleware('signed')
+    ->name('orders.receipt.pdf');

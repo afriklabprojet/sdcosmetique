@@ -12,7 +12,9 @@ use Illuminate\Support\Facades\Route;
  * ce sont, comme elles, des points d'entrée d'authentification et non des
  * ressources de l'API applicative.
  */
-Route::post('login/check', LoginCheckController::class)->name('login.check');
+Route::middleware('throttle:login-check')
+    ->post('login/check', LoginCheckController::class)
+    ->name('login.check');
 
 Route::middleware('throttle:otp-request')
     ->post('login/otp', [OtpLoginController::class, 'request'])

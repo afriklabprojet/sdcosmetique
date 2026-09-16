@@ -31,4 +31,20 @@ class AdminFactory extends Factory
             'revoked_at' => now(),
         ]);
     }
+
+    public function cashier(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'role' => 'cashier',
+            'root_at' => null,
+        ]);
+    }
+
+    public function manager(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'role' => 'manager',
+            'root_at' => null,
+        ]);
+    }
 }

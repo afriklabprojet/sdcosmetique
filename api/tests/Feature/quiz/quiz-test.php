@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\User;
+use App\Modules\Accounts\Models\Client;
 use App\Modules\Quiz\Enums\QuestionType;
 use App\Modules\Quiz\Models\Option;
 use App\Modules\Quiz\Models\Question;
@@ -56,10 +57,38 @@ it('stores a submission and returns matching recommendations', function (): void
 
     expect($response->json('data.recommendations.0.slug'))->toBe($product->slug)
         ->and(Submission::query()->count())->toBe(1);
+});
 
-    $this->getJson('/v1/quiz-submissions/'.$response->json('data.id'))
-        ->assertOk()
-        ->assertJsonPath('data.email', 'awa@example.com');
+it('never exposes a quiz submission — containing PII — to an anonymous request, not even the one who just created it', function (): void {
+    $question = Question::factory()->create(['slug' => 'skin_concern']);
+    Option::factory()->create(['question_id' => $question->id, 'value_code' => 'taches']);
+
+    $response = $this->postJson('/v1/quiz-submissions', [
+        'email' => 'awa@example.com',
+        'first_name' => 'Awa',
+        'phone' => '0700000000',
+        'answers' => [['question' => 'skin_concern', 'option' => 'taches']],
+    ])->assertCreated();
+
+    $this->getJson('/v1/quiz-submissions/'.$response->json('data.id'))->assertForbidden();
+});
+
+it('prevents one client from reading another client\'s quiz submission', function (): void {
+    $owner = User::factory()->create();
+    $ownerClient = Client::factory()->for($owner)->create();
+    $submission = Submission::factory()->create(['client_id' => $ownerClient->id]);
+
+    $stranger = User::factory()->create();
+    Client::factory()->for($stranger)->create();
+    $this->actingAs($stranger)->getJson('/v1/quiz-submissions/'.$submission->id)->assertForbidden();
+
+    $this->actingAs($owner)->getJson('/v1/quiz-submissions/'.$submission->id)->assertOk();
+});
+
+it('lets an admin read any quiz submission', function (): void {
+    $submission = Submission::factory()->create();
+
+    $this->actingAs(admin())->getJson('/v1/quiz-submissions/'.$submission->id)->assertOk();
 });
 
 it('rejects unknown answers', function (): void {

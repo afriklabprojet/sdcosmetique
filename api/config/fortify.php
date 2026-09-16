@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Shared\Http\Middleware\ThrottlePasswordResetRequests;
 use Laravel\Fortify\Features;
 
 return [
@@ -103,7 +104,10 @@ return [
     |
     */
 
-    'middleware' => ['web'],
+    'middleware' => [
+        'web',
+        ThrottlePasswordResetRequests::class,
+    ],
 
     /*
     |--------------------------------------------------------------------------

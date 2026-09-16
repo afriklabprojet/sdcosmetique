@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'gateway',
     'reference',
     'amount',
+    'received_amount',
     'currency',
     'redirect_url',
     'request_payload',
@@ -95,6 +96,7 @@ class Attempt extends Model
     {
         return [
             'amount' => MoneyCast::class,
+            'received_amount' => MoneyCast::class,
             'request_payload' => 'array',
             'initiated_at' => 'datetime',
             'confirmed_at' => 'datetime',

@@ -94,6 +94,40 @@ it('refunds a paid order', function (): void {
     expect($order->fresh()->refunded_at)->not->toBeNull();
 });
 
+it('refuses to refund a POS sale through the generic order status endpoint — bypasses the cashier-tier restriction otherwise (VULN-03)', function (): void {
+    $order = Order::factory()->paid()->create(['channel' => 'pos']);
+
+    $this->actingAs(admin());
+
+    $this->patchJson('/v1/admin/orders/'.$order->id, ['status' => 'refunded'])
+        ->assertStatus(422);
+
+    expect($order->fresh()->refunded_at)->toBeNull();
+});
+
+it('refuses every generic mutation path for a POS sale (VULN-03)', function (): void {
+    $order = Order::factory()->placed()->create(['channel' => 'pos']);
+
+    $this->actingAs(admin());
+
+    $this->patchJson('/v1/admin/orders/'.$order->id, ['status' => 'paid'])
+        ->assertStatus(422);
+
+    $this->postJson('/v1/admin/orders/'.$order->id.'/adjustments', [
+        'type' => 'shipping',
+        'amount' => 500,
+        'label' => 'Generic adjustment bypass',
+    ])->assertStatus(422);
+
+    $this->deleteJson('/v1/admin/orders/'.$order->id)->assertStatus(422);
+
+    $order->refresh();
+
+    expect($order->exists)->toBeTrue()
+        ->and($order->paid_at)->toBeNull()
+        ->and($order->adjustments()->count())->toBe(0);
+});
+
 it('rejects refunding an order that was never paid', function (): void {
     $order = Order::factory()->placed()->create();
 
@@ -127,6 +161,7 @@ it('bulk-deletes every unpaid order but leaves paid ones untouched', function ()
     $unpaidA = Order::factory()->placed()->create();
     $unpaidB = Order::factory()->placed()->create();
     $paid = Order::factory()->paid()->create();
+    $pendingPosSale = Order::factory()->placed()->create(['channel' => 'pos']);
 
     $this->actingAs(admin());
 
@@ -136,7 +171,8 @@ it('bulk-deletes every unpaid order but leaves paid ones untouched', function ()
 
     expect(Order::find($unpaidA->id))->toBeNull()
         ->and(Order::find($unpaidB->id))->toBeNull()
-        ->and(Order::find($paid->id))->not->toBeNull();
+        ->and(Order::find($paid->id))->not->toBeNull()
+        ->and(Order::find($pendingPosSale->id))->not->toBeNull();
 });
 
 it('exposes accurate paid-only revenue and an unpaid order count in the dashboard metrics', function (): void {

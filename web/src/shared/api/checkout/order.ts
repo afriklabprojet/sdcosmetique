@@ -3,6 +3,7 @@ import { api, unwrapData } from '@/shared/api/client';
 import { mapOrder, type MappedOrder } from '@/shared/api/mappers/order';
 import type { LaravelOrder, LaravelPaymentInit } from '@/shared/api/types';
 import type { PaymentMethod } from '@/shared/types/domain.type';
+import type { ReceiptData } from '@/features/receipt/receipt.type';
 
 export namespace Order {
   export async function commit(): Promise<MappedOrder> {
@@ -27,5 +28,16 @@ export namespace Order {
     const qs = email ? `?email=${encodeURIComponent(email)}` : '';
     const body = await api<{ data: LaravelOrder }>(`/orders/${encodeURIComponent(reference)}${qs}`);
     return mapOrder(unwrapData(body));
+  }
+
+  /**
+   * Reçu public (§14) — protégé par une URL signée Laravel (`signature`
+   * fournie par le lien/QR du reçu), pas par l'e-mail : une vente caisse lie
+   * quasi systématiquement un compte dès qu'un e-mail est saisi, ce qui
+   * rendrait le second facteur « référence + e-mail » inutilisable ici.
+   */
+  export async function receipt(reference: string, signature: string): Promise<ReceiptData> {
+    const body = await api<{ data: ReceiptData }>(`/orders/${encodeURIComponent(reference)}/receipt?signature=${encodeURIComponent(signature)}`);
+    return unwrapData(body);
   }
 }

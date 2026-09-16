@@ -75,14 +75,17 @@ const nextConfig: NextConfig = {
     // Cache CDN 1 an (31 536 000 s) — évite re-optimisation
     minimumCacheTTL: 31536000,
     dangerouslyAllowSVG: true,
-    dangerouslyAllowLocalIP: true,
+    dangerouslyAllowLocalIP: process.env.NODE_ENV !== 'production',
     contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
-      { protocol: "http", hostname: "localhost", port: "8000", pathname: "/**" },
-      { protocol: "http", hostname: "127.0.0.1", port: "8000", pathname: "/**" },
-      { protocol: "http", hostname: "localhost", pathname: "/**" },
-      { protocol: "http", hostname: "127.0.0.1", pathname: "/**" },
+      ...(process.env.NODE_ENV !== 'production' ? [
+        { protocol: "http" as const, hostname: "localhost", port: "8000", pathname: "/**" },
+        { protocol: "http" as const, hostname: "127.0.0.1", port: "8000", pathname: "/**" },
+        { protocol: "http" as const, hostname: "localhost", pathname: "/**" },
+        { protocol: "http" as const, hostname: "127.0.0.1", pathname: "/**" },
+      ] : []),
       ...(() => {
         if (!apiOrigin) return [];
         try {

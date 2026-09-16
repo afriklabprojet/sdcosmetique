@@ -18,9 +18,21 @@ class CustomerController extends Controller
     {
         $this->authorize('viewAny', Client::class);
 
+        $term = trim((string) $request->string('q'));
+
         $clients = Client::query()
             ->with('user')
             ->withCount('orders')
+            ->when($term !== '', function ($query) use ($term): void {
+                // Recherche rapide (sélecteur client de la caisse, §7) — nom/e-mail
+                // du compte ou téléphone du client, insensible à la casse.
+                $query->where(function ($builder) use ($term): void {
+                    $builder->whereHas('user', function ($userQuery) use ($term): void {
+                        $userQuery->where('name', 'like', "%{$term}%")
+                            ->orWhere('email', 'like', "%{$term}%");
+                    })->orWhere('phone', 'like', "%{$term}%");
+                });
+            })
             ->latest()
             ->paginate(perPage: min((int) $request->integer('perPage', 20), 100));
 

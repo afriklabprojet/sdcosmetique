@@ -83,10 +83,13 @@ class ClientLinker
         /** @var Client $client */
         $client = $user->client()->create(['phone' => $destination['phone'] ?? null]);
 
-        // `addresses.phone` est obligatoire alors que celui de la destination
-        // d'une commande ne l'est pas — ne créer l'adresse que si on a de quoi
-        // remplir ce champ, sinon le téléphone reste seulement sur le client.
-        if ($destination !== [] && ! empty($destination['phone'])) {
+        // `addresses` a plusieurs colonnes obligatoires (last_name, line_1,
+        // city, phone) — une destination web en a toujours autant, mais une
+        // vente caisse (§7) ne renseigne parfois qu'un nom et un téléphone
+        // pour un client de passage : ne créer l'adresse que si elle est
+        // réellement complète, sinon le téléphone reste seulement sur le
+        // client (déjà fait ci-dessus).
+        if (! empty($destination['last_name']) && ! empty($destination['line_1']) && ! empty($destination['city']) && ! empty($destination['phone'])) {
             $client->addresses()->create($destination);
         }
 

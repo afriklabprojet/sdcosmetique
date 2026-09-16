@@ -44,6 +44,7 @@ class OrderController extends Controller
     public function update(UpdateOrderStatusRequest $request, Order $order): JsonResponse
     {
         $this->authorize('update', $order);
+        $this->rejectPosMutation($order);
 
         $status = OrderStatus::from($request->validated('status'));
 
@@ -71,6 +72,7 @@ class OrderController extends Controller
     public function storeAdjustment(StoreAdjustmentRequest $request, Order $order): JsonResponse
     {
         $this->authorize('update', $order);
+        $this->rejectPosMutation($order);
 
         try {
             $order->adjust(
@@ -89,6 +91,7 @@ class OrderController extends Controller
     public function destroy(Order $order): Response
     {
         $this->authorize('delete', $order);
+        $this->rejectPosMutation($order);
 
         try {
             $order->discard();
@@ -111,6 +114,9 @@ class OrderController extends Controller
         $orders = Order::query()
             ->whereNotNull('placed_at')
             ->whereNull('paid_at')
+            ->where(fn ($query) => $query
+                ->whereNull('channel')
+                ->orWhere('channel', '!=', 'pos'))
             ->get();
 
         DB::transaction(function () use ($orders): void {
@@ -120,5 +126,14 @@ class OrderController extends Controller
         });
 
         return response()->json(['deleted' => $orders->count()]);
+    }
+
+    private function rejectPosMutation(Order $order): void
+    {
+        abort_if(
+            $order->pos(),
+            422,
+            'Une vente caisse se modifie uniquement via les endpoints POS dédiés.',
+        );
     }
 }

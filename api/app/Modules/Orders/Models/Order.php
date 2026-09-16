@@ -40,6 +40,10 @@ use Illuminate\Support\Str;
     'total',
     'destination',
     'note',
+    'channel',
+    'cash_register_session_id',
+    'served_by',
+    'idempotency_key',
     'placed_at',
     'paid_at',
     'shipped_at',
@@ -98,6 +102,18 @@ class Order extends Model
     public function delivery(): HasOne
     {
         return $this->hasOne(Delivery::class);
+    }
+
+    /**
+     * `Order` reste un module de « cœur » : il ne connaît ni `Pos` ni
+     * `Identity` (voir le test d'architecture qui interdit déjà l'inverse
+     * pour `Payments`). D'où l'absence de relations `cashRegisterSession()`/
+     * `servedBy()` ici — `CashRegisterSession::orders()` et une requête
+     * directe sur `Admin`/`Payment` côté module `Pos` couvrent ce besoin.
+     */
+    public function pos(): bool
+    {
+        return $this->channel === 'pos';
     }
 
     public function repoint(Cart $survivor): void

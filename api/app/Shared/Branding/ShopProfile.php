@@ -34,7 +34,10 @@ class ShopProfile
             'address' => $shop['address'] ?? '',
             'city' => $shop['city'] ?? '',
             'country' => $shop['country'] ?? '',
+            'rccm' => $shop['rccm'] ?? '',
+            'taxId' => $shop['taxId'] ?? '',
             'footerText' => $shop['footerText'] ?? '',
+            'terms' => $shop['terms'] ?? '',
             'thankYouMessage' => $shop['thankYouMessage'] ?? '',
         ];
     }

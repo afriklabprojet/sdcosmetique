@@ -77,6 +77,22 @@ class Payment extends Model
         );
     }
 
+    /**
+     * Vrai seulement si aucune tentative n'est encore réellement en suspens.
+     * Ignore volontairement les tentatives déjà résolues (échouées/expirées) —
+     * seule une tentative ni confirmée, ni échouée, ni expirée doit encore
+     * bloquer le règlement (paiement fractionné caisse : espèces déjà
+     * confirmées + Jeko encore en attente du webhook).
+     */
+    public function fullySettled(): bool
+    {
+        return ! $this->attempts()
+            ->whereNull('confirmed_at')
+            ->whereNull('failed_at')
+            ->whereNull('expired_at')
+            ->exists();
+    }
+
     public function status(): PaymentStatus
     {
         if ($this->paid_at !== null) {

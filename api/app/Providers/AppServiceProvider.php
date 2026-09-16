@@ -48,5 +48,35 @@ class AppServiceProvider extends ServiceProvider
                 Limit::perMinutes(10, 8)->by('otp-verify-email:'.$email),
             ];
         });
+
+        // `login/check` révèle volontairement si un e-mail est inscrit
+        // (§LoginCheckController) — sans limite, il permet un scan massif de
+        // comptes existants (VULN-04).
+        RateLimiter::for('login-check', function (Request $request): array {
+            $email = Str::lower(trim((string) $request->input('email', '')));
+
+            return [
+                Limit::perMinute(20)->by('login-check-ip:'.($request->ip() ?? 'unknown')),
+                Limit::perMinutes(10, 5)->by('login-check-email:'.$email),
+            ];
+        });
+
+        // Réinitialisation de mot de passe (Fortify) — sans limite, permet
+        // le spam d'e-mails de reset et l'essai en boucle du code (VULN-04).
+        RateLimiter::for('password-reset', function (Request $request): array {
+            $email = Str::lower(trim((string) $request->input('email', '')));
+
+            return [
+                Limit::perMinute(20)->by('password-reset-ip:'.($request->ip() ?? 'unknown')),
+                Limit::perMinutes(10, 5)->by('password-reset-email:'.$email),
+            ];
+        });
+
+        // Consultation publique d'une commande invité — la référence est
+        // désormais courte et séquentielle (§OrderPolicy), seul l'e-mail sert
+        // de second facteur ; sans limite, elle reste énumérable (VULN-04).
+        RateLimiter::for('order-lookup', function (Request $request): Limit {
+            return Limit::perMinute(20)->by($request->ip() ?? 'order-lookup');
+        });
     }
 }

@@ -23,6 +23,22 @@ final readonly class Money implements Stringable
         return (string) $this->value;
     }
 
+    /**
+     * "15 000 FCFA" — jamais "15000FCFA". Espace insécable comme séparateur
+     * de milliers pour qu'il ne se coupe jamais en fin de ligne (PDF, ticket).
+     * Seule XOF est utilisée dans ce projet (§24) ; les autres devises
+     * retombent sur ce même format plutôt que d'échouer.
+     */
+    public function format(): string
+    {
+        $suffix = match ($this->currency) {
+            'XOF' => 'FCFA',
+            default => $this->currency,
+        };
+
+        return number_format($this->value, 0, ',', "\u{00A0}").' '.$suffix;
+    }
+
     public function add(self $other): self
     {
         $this->assertSameCurrency($other);

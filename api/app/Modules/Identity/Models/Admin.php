@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Identity\Models;
 
 use App\Models\User;
+use App\Modules\Identity\Enums\AdminRole;
 use Database\Factories\Identity\AdminFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -40,6 +41,16 @@ class Admin extends Model
     public function root(): bool
     {
         return $this->root_at !== null;
+    }
+
+    /** Palier de permission (§22) — un root est toujours traité comme SuperAdmin. */
+    public function tier(): AdminRole
+    {
+        if ($this->root()) {
+            return AdminRole::SuperAdmin;
+        }
+
+        return AdminRole::fromColumn($this->role);
     }
 
     protected static function newFactory(): AdminFactory
