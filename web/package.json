@@ -17,6 +17,7 @@
   "scripts": {
     "dev": "NODE_OPTIONS='--dns-result-order=ipv4first' next dev --webpack",
     "build": "next build --webpack",
+    "postbuild": "node bin/prepare-standalone.mjs",
     "start": "next start -p ${PORT:-3000}",
     "lint": "eslint",
     "test": "playwright test",
@@ -25,6 +26,7 @@
     "test:sidebar": "playwright test tests/admin-sidebar.spec.ts"
   },
   "dependencies": {
+    "@swc/helpers": "0.5.23",
     "@zxing/browser": "^0.2.1",
     "@zxing/library": "^0.23.0",
     "framer-motion": "^12.43.0",
