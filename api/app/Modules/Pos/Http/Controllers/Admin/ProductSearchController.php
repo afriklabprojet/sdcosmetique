@@ -6,13 +6,14 @@ namespace App\Modules\Pos\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Catalog\Models\Product;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
  * Recherche produit dédiée à l'écran de caisse (§4-§5) : ne renvoie que les
- * variantes réellement vendables (produits enfants avec un prix), jamais le
- * catalogue complet côté navigateur. Réutilise directement le modèle
+ * produits réellement vendables (variante, ou produit autonome tarifé), jamais
+ * un parent qui exige le choix d'une variante. Réutilise directement le modèle
  * `Product` existant — aucune duplication du catalogue.
  */
 class ProductSearchController extends Controller
@@ -21,10 +22,7 @@ class ProductSearchController extends Controller
     {
         $term = trim((string) $request->string('q'));
 
-        $query = Product::query()
-            ->whereNotNull('parent_id')
-            ->whereNotNull('regular_price')
-            ->with('parent:id,title');
+        $query = $this->sellableProducts()->with('parent:id,title');
 
         if ($term !== '') {
             // Le nom affiché au comptoir (`payload()` ci-dessous) vient du
@@ -54,9 +52,7 @@ class ProductSearchController extends Controller
     /** Scan code-barres physique (le scanner se comporte comme un clavier) — le SKU sert de code scannable, pas de colonne dédiée à dupliquer. */
     public function byBarcode(string $barcode): JsonResponse
     {
-        $product = Product::query()
-            ->whereNotNull('parent_id')
-            ->whereNotNull('regular_price')
+        $product = $this->sellableProducts()
             ->where('sku', $barcode)
             ->with('parent:id,title')
             ->first();
@@ -66,6 +62,16 @@ class ProductSearchController extends Controller
         }
 
         return response()->json(['data' => $this->payload($product)]);
+    }
+
+    /** @return Builder<Product> */
+    private function sellableProducts(): Builder
+    {
+        return Product::query()
+            ->whereNotNull('regular_price')
+            ->where(fn (Builder $query): Builder => $query
+                ->whereNotNull('parent_id')
+                ->orWhereDoesntHave('children'));
     }
 
     /**

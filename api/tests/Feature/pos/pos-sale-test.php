@@ -372,7 +372,10 @@ it('closes a session and computes expected cash from confirmed cash tenders only
 
 it('finds a product by its parent title, not just the variant row title', function (): void {
     $admin = admin();
-    $parent = Product::factory()->parentProduct()->create(['title' => 'Sérum Éclat Intense']);
+    $parent = Product::factory()->parentProduct()->create([
+        'title' => 'Sérum Éclat Intense',
+        'regular_price' => 9_000,
+    ]);
     $child = Product::factory()->child($parent)->create(['title' => 'variante interne sans intérêt', 'regular_price' => 9_000, 'sale_price' => null]);
 
     $response = $this->actingAs($admin)
@@ -380,7 +383,43 @@ it('finds a product by its parent title, not just the variant row title', functi
         ->assertOk();
 
     expect(collect($response->json('data'))->pluck('id'))->toContain($child->id)
+        ->not->toContain($parent->id)
         ->and($response->json('data.0.title'))->toBe('Sérum Éclat Intense');
+});
+
+it('finds and sells a priced standalone product without variants', function (): void {
+    $admin = admin();
+    $product = Product::factory()->parentProduct()->create([
+        'title' => 'Crème visage autonome',
+        'sku' => 'SDC-AUTONOME-47',
+        'regular_price' => 7_500,
+        'sale_price' => null,
+        'stock' => 3,
+    ]);
+
+    $search = $this->actingAs($admin)
+        ->getJson('/v1/admin/pos/products?q=autonome')
+        ->assertOk();
+
+    expect(collect($search->json('data'))->pluck('id'))->toContain($product->id);
+
+    $this->actingAs($admin)
+        ->getJson('/v1/admin/pos/products/barcode/SDC-AUTONOME-47')
+        ->assertOk()
+        ->assertJsonPath('data.id', $product->id);
+
+    $session = openPosSession($admin, CashRegister::factory()->create());
+
+    $this->actingAs($admin)->postJson('/v1/admin/pos/sales', [
+        'cash_register_session_id' => $session['id'],
+        'items' => [['product_id' => $product->id, 'quantity' => 1]],
+        'tenders' => [['method' => 'cash', 'amount' => 7_500]],
+        'idempotency_key' => 'standalone-product-sale',
+    ])->assertCreated()
+        ->assertJsonPath('data.status', 'paid')
+        ->assertJsonPath('data.total', 7_500);
+
+    expect($product->refresh()->stock)->toBe(2);
 });
 
 it('finds a product by its SKU used as scannable barcode', function (): void {
