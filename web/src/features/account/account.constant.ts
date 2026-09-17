@@ -1,3 +1,5 @@
+import type { MappedOrder } from '@/shared/api/mappers/order';
+
 /*
  * Vocabulaire et tables de correspondance de l'espace client. Extraits de
  * `app/compte/page.tsx` (F-111) : plusieurs onglets les lisent depuis la
@@ -12,6 +14,7 @@ export type DisplayOrder = {
   date: string;
   total: string;
   status: string;
+  source: MappedOrder;
 };
 
 export type Address = {

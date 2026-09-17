@@ -37,12 +37,14 @@ import ReviewsTab from '@/features/account/tabs/reviews.tab';
 import LoyaltyTab from '@/features/account/tabs/loyalty.tab';
 import NewsletterTab from '@/features/account/tabs/newsletter.tab';
 import SettingsTab from '@/features/account/tabs/settings.tab';
+import OrderDetailDialog from '@/features/account/order-detail.dialog';
 
 export default function AccountPage() {
   const router = useRouter();
   const [active, setActive] = useState<NavItem>('dashboard');
   const [user, setUser] = useState<StorefrontIdentity | null>(null);
   const [orders, setOrders] = useState<MappedOrder[]>([]);
+  const [selectedOrder, setSelectedOrder] = useState<MappedOrder | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Profil form
@@ -144,6 +146,7 @@ export default function AccountPage() {
     date: formatOrderDate(o.date),
     total: formatPrice(o.total),
     status: STATUS_MAP[o.status] ?? o.status,
+    source: o,
   }));
 
   const saveProfileSection = async () => {
@@ -272,6 +275,7 @@ export default function AccountPage() {
               <DashboardTab
                 navigate={setActive}
                 ordersForDisplay={ordersForDisplay}
+                onOpenOrderDetail={setSelectedOrder}
                 displayName={displayName}
                 displayEmail={displayEmail}
                 displayPhone={displayPhone}
@@ -284,7 +288,7 @@ export default function AccountPage() {
               />
             )}
 
-            {active === 'commandes' && <OrdersTab ordersForDisplay={ordersForDisplay} />}
+            {active === 'commandes' && <OrdersTab ordersForDisplay={ordersForDisplay} onOpenDetail={setSelectedOrder} />}
 
             {active === 'profil' && (
               <ProfileTab
@@ -382,6 +386,7 @@ export default function AccountPage() {
         </div>
 
       </div>
+      {selectedOrder && <OrderDetailDialog order={selectedOrder} onClose={() => setSelectedOrder(null)} />}
     </div>
   );
 }

@@ -54,7 +54,7 @@ export default function ConfirmationPage() {
     const POLL_INTERVAL_MS = 6000;
 
     const check = () => {
-      Order.read(ref, email)
+      Order.reconcile(ref, email)
         .then((placed) => {
           if (cancelled) return;
           if (placed.paymentStatus === 'paid') {

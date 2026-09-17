@@ -7,9 +7,10 @@ import { STATUS_CONFIG, type DisplayOrder } from '@/features/account/account.con
 
 interface OrdersTabProps {
   readonly ordersForDisplay: DisplayOrder[];
+  readonly onOpenDetail: (order: DisplayOrder['source']) => void;
 }
 
-export default function OrdersTab({ ordersForDisplay }: OrdersTabProps) {
+export default function OrdersTab({ ordersForDisplay, onOpenDetail }: OrdersTabProps) {
   return (
               <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #EDE8E0', overflow: 'hidden' }}>
                 <div style={{ padding: '18px 24px', borderBottom: '1px solid #F5F0E8' }}>
@@ -49,7 +50,7 @@ export default function OrdersTab({ ordersForDisplay }: OrdersTabProps) {
                             </td>
                             <td style={{ padding: '13px 20px', fontSize: 13, fontWeight: 700, color: '#1A1A1A' }}>{order.total}</td>
                             <td style={{ padding: '13px 20px' }}>
-                              <button style={{
+                              <button type="button" onClick={() => onOpenDetail(order.source)} aria-label={`Détails de la commande ${order.id}`} style={{
                                 padding: '6px 16px', background: '#FAF8F5', border: '1px solid #EDE8E0',
                                 borderRadius: 8, fontSize: 12, fontWeight: 600, color: '#6B3D14', cursor: 'pointer',
                               }}>Détails</button>

@@ -2,12 +2,16 @@
 
 declare(strict_types=1);
 
+use App\Jobs\SendOrderInvoiceEmailJob;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Orders\Models\Delivery\Method;
 use App\Modules\Orders\Models\Order;
 use App\Modules\Payments\Models\Payment;
+use App\Modules\Payments\Models\Payment\Attempt;
 use App\Modules\Shopping\Models\Cart;
 use App\Shared\Money;
+use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Http;
 
 it('expires a stale payment attempt and restores stock', function (): void {
     $parent = Product::factory()->parentProduct()->create();
@@ -41,4 +45,46 @@ it('expires a stale payment attempt and restores stock', function (): void {
     expect($attempt->fresh()->expired_at)->not->toBeNull()
         ->and($order->fresh()->cancelled_at)->not->toBeNull()
         ->and($child->fresh()->stock)->toBe(2);
+});
+
+it('reconciles a paid Jeko request from the return page and dispatches one invoice email', function (): void {
+    Bus::fake();
+    Http::fake([
+        'https://api.jeko.africa/partner_api/payment_requests/jeko-request-paid' => Http::response([
+            'id' => 'jeko-request-paid',
+            'status' => 'success',
+        ]),
+    ]);
+
+    $order = Order::factory()->placed()->create([
+        'email' => 'cliente@example.com',
+        'gateway' => 'jeko',
+    ]);
+    $payment = Payment::factory()->create([
+        'order_id' => $order->id,
+        'amount' => $order->total->value,
+        'currency' => $order->currency,
+    ]);
+    Attempt::factory()->create([
+        'payment_id' => $payment->id,
+        'gateway' => 'jeko',
+        'amount' => $order->total->value,
+        'currency' => $order->currency,
+        'request_payload' => ['jeko_request_id' => 'jeko-request-paid'],
+    ]);
+
+    $this->postJson('/v1/orders/'.$order->reference.'/payment-reconciliations', [
+        'email' => 'cliente@example.com',
+    ])->assertOk()
+        ->assertJsonPath('data.status', 'paid')
+        ->assertJsonPath('data.paid_at', fn ($value): bool => is_string($value) && $value !== '');
+
+    $this->actingAs($order->fresh()->client->user)
+        ->postJson('/v1/orders/'.$order->reference.'/payment-reconciliations')
+        ->assertOk()
+        ->assertJsonPath('data.status', 'paid');
+
+    expect($order->fresh()->status()->value)->toBe('paid')
+        ->and($payment->fresh()->paid_at)->not->toBeNull();
+    Bus::assertDispatchedTimes(SendOrderInvoiceEmailJob::class, 1);
 });

@@ -3,13 +3,16 @@
 declare(strict_types=1);
 
 use App\Jobs\SendOrderInvoiceEmailJob;
+use App\Mail\OrderConfirmationMail;
 use App\Models\User;
 use App\Modules\Catalog\Models\Product;
+use App\Modules\Invoicing\Domain\InvoicePdfBuilder;
 use App\Modules\Invoicing\Models\Invoice;
 use App\Modules\Orders\Models\Delivery\Method;
 use App\Modules\Orders\Models\Order;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 
 it('guards invoice endpoints', function (): void {
     $order = Order::factory()->paid()->create();
@@ -87,6 +90,34 @@ it('dispatches the confirmation email job and marks it pending when an admin sen
     expect(Invoice::query()->where('order_id', $order->id)->value('email_status'))->toBe('pending');
 });
 
+it('sends the confirmation email with the generated invoice PDF attached', function (): void {
+    Mail::fake();
+    $order = Order::factory()->paid()->create(['email' => 'facture@example.com']);
+
+    (new SendOrderInvoiceEmailJob($order->id))->handle(app(InvoicePdfBuilder::class));
+
+    Mail::assertSent(OrderConfirmationMail::class, function (OrderConfirmationMail $mail) use ($order): bool {
+        $attachment = $mail->attachments()[0] ?? null;
+
+        if ($attachment === null) {
+            return false;
+        }
+
+        $pdfContent = $attachment->attachWith(
+            fn (): null => null,
+            fn (callable $data): string => $data(),
+        );
+
+        return $mail->hasTo('facture@example.com')
+            && $mail->order->is($order)
+            && $attachment->as === 'Facture-SD-COSMETIQUE-'.$mail->invoiceNumber.'.pdf'
+            && $attachment->mime === 'application/pdf'
+            && str_starts_with($pdfContent, '%PDF-');
+    });
+
+    expect(Invoice::query()->where('order_id', $order->id)->value('email_status'))->toBe(Invoice::STATUS_SENT);
+});
+
 it('dispatches exactly one confirmation email job when a payment settles, never a duplicate', function (): void {
     Bus::fake();
     Http::fake([
@@ -119,7 +150,7 @@ it('dispatches exactly one confirmation email job when a payment settles, never 
 
     // Le webhook peut être rejoué (le PSP retente) — un seul job doit partir.
     for ($i = 0; $i < 2; $i++) {
-        $this->call('POST', '/webhooks/jeko', [], [], [], [
+        $this->call('POST', '/webhooks/jeko-pay', [], [], [], [
             'CONTENT_TYPE' => 'application/json',
             'HTTP_ACCEPT' => 'application/json',
             'HTTP_JEKO_SIGNATURE' => $signature,

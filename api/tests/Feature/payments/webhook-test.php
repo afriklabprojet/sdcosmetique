@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Jobs\SendOrderInvoiceEmailJob;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Orders\Models\Delivery\Method;
 use App\Modules\Orders\Models\Order;
@@ -9,6 +10,7 @@ use App\Modules\Payments\Gateways\JekoTerminal;
 use App\Modules\Payments\Models\Payment;
 use App\Modules\Payments\Models\Payment\Attempt;
 use App\Modules\Payments\Models\Payment\Notification;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
 
 it('rejects a local Jeko redirect fallback before calling the provider', function (): void {
@@ -107,6 +109,7 @@ it('marks the attempt failed when Jeko rejects payment initiation', function ():
 });
 
 it('settles a placed order through a signed webhook and ignores replay', function (): void {
+    Bus::fake();
     Http::fake([
         'https://api.jeko.africa/*' => Http::response([
             'id' => 'jeko-request-webhook-123',
@@ -166,7 +169,16 @@ it('settles a placed order through a signed webhook and ignores replay', functio
     )->assertOk()->assertJsonPath('status', 'settled');
 
     expect(Attempt::query()->where('reference', $attemptReference)->first()?->confirmed_at)->not->toBeNull()
-        ->and(Notification::query()->where('reference', $attemptReference)->first()?->handled_at)->not->toBeNull();
+        ->and(Notification::query()->where('reference', $attemptReference)->first()?->handled_at)->not->toBeNull()
+        ->and(Order::query()->where('reference', $reference)->first()?->status()->value)->toBe('paid');
+
+    $this->actingAs(admin())
+        ->getJson('/v1/admin/orders?perPage=100')
+        ->assertOk()
+        ->assertJsonPath('data.0.reference', $reference)
+        ->assertJsonPath('data.0.status', 'paid');
+
+    Bus::assertDispatchedTimes(SendOrderInvoiceEmailJob::class, 1);
 
     $this->call(
         'POST',
@@ -181,6 +193,8 @@ it('settles a placed order through a signed webhook and ignores replay', functio
         ],
         $payload,
     )->assertOk()->assertJsonPath('status', 'replayed');
+
+    Bus::assertDispatchedTimes(SendOrderInvoiceEmailJob::class, 1);
 });
 
 it('settles a placed order through a null terminal webhook', function (): void {

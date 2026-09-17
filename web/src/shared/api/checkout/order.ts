@@ -30,6 +30,14 @@ export namespace Order {
     return mapOrder(unwrapData(body));
   }
 
+  export async function reconcile(reference: string, email?: string): Promise<MappedOrder> {
+    const body = await api<{ data: LaravelOrder }>(
+      `/orders/${encodeURIComponent(reference)}/payment-reconciliations`,
+      { method: 'POST', body: JSON.stringify({ email }) },
+    );
+    return mapOrder(unwrapData(body));
+  }
+
   /**
    * Reçu public (§14) — protégé par une URL signée Laravel (`signature`
    * fournie par le lien/QR du reçu), pas par l'e-mail : une vente caisse lie

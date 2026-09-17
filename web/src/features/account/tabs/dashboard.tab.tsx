@@ -13,6 +13,7 @@ import { STATUS_CONFIG, type DisplayOrder, type NavItem } from '@/features/accou
 interface DashboardTabProps {
   readonly navigate: (tab: NavItem) => void;
   readonly ordersForDisplay: DisplayOrder[];
+  readonly onOpenOrderDetail: (order: DisplayOrder['source']) => void;
   readonly displayName: string;
   readonly displayEmail: string;
   readonly displayPhone: string;
@@ -25,7 +26,7 @@ interface DashboardTabProps {
 }
 
 export default function DashboardTab({
-  navigate, ordersForDisplay, displayName, displayEmail, displayPhone,
+  navigate, ordersForDisplay, onOpenOrderDetail, displayName, displayEmail, displayPhone,
   createdAt, wishlistItems, userPoints, jekoConfig, compteHeroBg, parrainageHeroBg,
 }: DashboardTabProps) {
   return (
@@ -190,7 +191,7 @@ export default function DashboardTab({
                                 </td>
                                 <td style={{ padding: '11px 14px', fontSize: 12, fontWeight: 700, color: '#1A1A1A', whiteSpace: 'nowrap' }}>{order.total}</td>
                                 <td style={{ padding: '11px 14px' }}>
-                                  <button style={{
+                                  <button type="button" onClick={() => onOpenOrderDetail(order.source)} aria-label={`Détails de la commande ${order.id}`} style={{
                                     padding: '4px 12px', background: '#FAF8F5', border: '1px solid #EDE8E0',
                                     borderRadius: 7, fontSize: 11, fontWeight: 600, color: '#6B3D14', cursor: 'pointer',
                                   }}>Détails</button>
