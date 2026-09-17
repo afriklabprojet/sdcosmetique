@@ -153,7 +153,7 @@ it('settles a placed order through a signed webhook and ignores replay', functio
 
     $this->call(
         'POST',
-        '/webhooks/jeko',
+        '/webhooks/jeko-pay',
         [],
         [],
         [],
@@ -170,7 +170,7 @@ it('settles a placed order through a signed webhook and ignores replay', functio
 
     $this->call(
         'POST',
-        '/webhooks/jeko',
+        '/webhooks/jeko-pay',
         [],
         [],
         [],

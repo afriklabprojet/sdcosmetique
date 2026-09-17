@@ -12,6 +12,8 @@ use App\Modules\Loyalty\Enums\LoyaltyReason;
 use App\Modules\Loyalty\Models\Account;
 use App\Modules\Loyalty\Models\WebhookLog;
 use App\Modules\Orders\Models\Order;
+use App\Modules\Payments\Models\Payment\Attempt;
+use App\Modules\Payments\Models\Payment\Notification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -64,10 +66,49 @@ class JekoPayNotificationController extends Controller
             return response()->json(['status' => 'recorded']);
         }
 
+        $this->settlePayment($payload);
         $this->credit($payload, $reference);
         $log->settle();
 
         return response()->json(['status' => 'settled']);
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    private function settlePayment(array $payload): void
+    {
+        $reference = (string) (
+            $payload['transactionDetails']['reference']
+            ?? $payload['reference']
+            ?? $payload['paymentRequest']['reference']
+            ?? ''
+        );
+
+        if ($reference === '') {
+            return;
+        }
+
+        $attempt = Attempt::query()->where('reference', $reference)->first();
+
+        if ($attempt === null) {
+            return;
+        }
+
+        $notification = Notification::query()->firstOrCreate(
+            ['gateway' => 'jeko', 'reference' => $reference],
+            ['payment_attempt_id' => $attempt->id, 'payload' => $payload],
+        );
+
+        if ($notification->done()) {
+            return;
+        }
+
+        $notification->forceFill([
+            'payment_attempt_id' => $attempt->id,
+            'payload' => $payload,
+        ])->save();
+        $notification->settle();
     }
 
     /**
