@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Pos\Queries;
 
+use App\Modules\Identity\Enums\AdminRole;
 use App\Modules\Orders\Models\Order;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -17,8 +18,13 @@ final class PosSaleIndex
     public function filtered(Request $request): Builder
     {
         $query = Order::query()->where('channel', 'pos')->whereNotNull('placed_at');
+        $admin = $request->user()?->admin;
 
-        if ($request->filled('served_by')) {
+        abort_unless($admin !== null, 403);
+
+        if ($admin->tier() === AdminRole::Cashier) {
+            $query->where('served_by', $admin->id);
+        } elseif ($request->filled('served_by')) {
             $query->where('served_by', $request->integer('served_by'));
         }
 

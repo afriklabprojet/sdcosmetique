@@ -19,6 +19,23 @@ export type PosRegister = {
   has_open_session: boolean;
 };
 
+export type PosCashier = {
+  id: number;
+  name: string;
+  email: string;
+  active: boolean;
+  has_open_session: boolean;
+  created_at: string;
+};
+
+export type PosCashierInput = {
+  name: string;
+  email: string;
+  password?: string;
+  password_confirmation?: string;
+  active?: boolean;
+};
+
 export type PosSession = {
   id: number;
   cash_register_id: number;
@@ -135,6 +152,31 @@ export type PosSalesSummary = {
 };
 
 export namespace Pos {
+  export async function cashiers(): Promise<PosCashier[]> {
+    const body = await api<{ data: PosCashier[] }>('/admin/pos/cashiers');
+    return body.data;
+  }
+
+  export async function createCashier(input: PosCashierInput): Promise<PosCashier> {
+    const body = await api<{ data: PosCashier }>('/admin/pos/cashiers', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    });
+    return body.data;
+  }
+
+  export async function updateCashier(id: number, input: PosCashierInput): Promise<PosCashier> {
+    const body = await api<{ data: PosCashier }>(`/admin/pos/cashiers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(input),
+    });
+    return body.data;
+  }
+
+  export async function deactivateCashier(id: number): Promise<void> {
+    await api(`/admin/pos/cashiers/${id}`, { method: 'DELETE' });
+  }
+
   export async function searchProducts(q: string): Promise<PosProduct[]> {
     const params = new URLSearchParams({ perPage: '24' });
     if (q.trim()) params.set('q', q.trim());

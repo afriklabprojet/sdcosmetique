@@ -39,6 +39,53 @@ it('reports today/week/month/all-time totals for the sales widgets', function ()
         ->and($response->json('data.all_time.revenue'))->toBe(12_000);
 });
 
+it('limits a cashier sales history to their own sales', function (): void {
+    $cashier = admin(['role' => 'cashier', 'root_at' => null]);
+    $otherCashier = admin(['role' => 'cashier', 'root_at' => null]);
+    $cashier->forceFill(['name' => 'Awa Caissière'])->save();
+    $otherCashier->forceFill(['name' => 'Mariam Caissière'])->save();
+
+    completePosSale($cashier, CashRegister::factory()->create(), 5_000, 'cashier-own-sale');
+    completePosSale($otherCashier, CashRegister::factory()->create(), 7_000, 'other-cashier-sale');
+
+    $response = $this->actingAs($cashier)
+        ->getJson('/v1/admin/pos/sales?served_by='.$otherCashier->admin->id)
+        ->assertOk();
+
+    expect(collect($response->json('data'))->pluck('cashier'))
+        ->toContain($cashier->name)
+        ->not->toContain($otherCashier->name);
+
+    $summary = $this->actingAs($cashier)
+        ->getJson('/v1/admin/pos/reports/summary')
+        ->assertOk();
+
+    expect($summary->json('data.all_time.sales_count'))->toBe(1)
+        ->and($summary->json('data.all_time.revenue'))->toBe(5_000);
+
+    $daily = $this->actingAs($cashier)
+        ->getJson('/v1/admin/pos/reports/daily')
+        ->assertOk();
+
+    expect($daily->json('data.sales_count'))->toBe(1)
+        ->and($daily->json('data.revenue'))->toBe(5_000)
+        ->and($daily->json('data.by_payment_method.cash'))->toBe(5_000);
+
+    $csv = $this->actingAs($cashier)
+        ->get('/v1/admin/pos/sales/export/csv')
+        ->assertOk()
+        ->streamedContent();
+
+    expect($csv)->toContain('Awa Caissière')
+        ->not->toContain('Mariam Caissière');
+
+    $administrator = admin();
+    $allSales = $this->actingAs($administrator)->getJson('/v1/admin/pos/sales')->assertOk();
+
+    expect(collect($allSales->json('data'))->pluck('cashier'))
+        ->toContain('Awa Caissière', 'Mariam Caissière');
+});
+
 it('exports the sales history as a downloadable PDF', function (): void {
     $admin = admin();
     $register = CashRegister::factory()->create();

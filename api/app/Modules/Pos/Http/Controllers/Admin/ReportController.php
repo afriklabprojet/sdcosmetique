@@ -5,19 +5,22 @@ declare(strict_types=1);
 namespace App\Modules\Pos\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Identity\Enums\AdminRole;
 use App\Modules\Orders\Models\Order;
 use App\Modules\Payments\Models\Payment\Attempt;
 use App\Modules\Pos\Enums\PosTenderMethod;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
 /** Dashboard caisse (§34) — chiffres du jour, calculés à la volée sur les ventes déjà en base (pas de table agrégée à maintenir). */
 class ReportController extends Controller
 {
-    public function daily(): JsonResponse
+    public function daily(Request $request): JsonResponse
     {
-        $today = Order::query()
-            ->where('channel', 'pos')
+        $cashierId = $this->cashierId($request);
+        $today = $this->orders($cashierId)
             ->whereNotNull('paid_at')
             ->whereDate('paid_at', Carbon::today());
 
@@ -29,10 +32,9 @@ class ReportController extends Controller
                 'revenue' => $revenue,
                 'sales_count' => $count,
                 'average_ticket' => $count > 0 ? intdiv($revenue, $count) : 0,
-                'by_hour' => $this->byHour(),
-                'by_payment_method' => $this->byPaymentMethod(),
-                'refunds_today' => Order::query()
-                    ->where('channel', 'pos')
+                'by_hour' => $this->byHour($cashierId),
+                'by_payment_method' => $this->byPaymentMethod($cashierId),
+                'refunds_today' => $this->orders($cashierId)
                     ->whereDate('refunded_at', Carbon::today())
                     ->count(),
             ],
@@ -40,22 +42,24 @@ class ReportController extends Controller
     }
 
     /** Widgets « Ventes Aujourd'hui / Cette semaine / Ce mois / Total cumulé » de l'historique caisse (§20). */
-    public function summary(): JsonResponse
+    public function summary(Request $request): JsonResponse
     {
+        $cashierId = $this->cashierId($request);
+
         return response()->json(['data' => [
-            'today' => $this->totalsSince(Carbon::today()),
-            'week' => $this->totalsSince(Carbon::today()->startOfWeek()),
-            'month' => $this->totalsSince(Carbon::today()->startOfMonth()),
-            'all_time' => $this->totalsSince(null),
+            'today' => $this->totalsSince(Carbon::today(), $cashierId),
+            'week' => $this->totalsSince(Carbon::today()->startOfWeek(), $cashierId),
+            'month' => $this->totalsSince(Carbon::today()->startOfMonth(), $cashierId),
+            'all_time' => $this->totalsSince(null, $cashierId),
         ]]);
     }
 
     /**
      * @return array{revenue: int, sales_count: int}
      */
-    private function totalsSince(?Carbon $since): array
+    private function totalsSince(?Carbon $since, ?int $cashierId): array
     {
-        $query = Order::query()->where('channel', 'pos')->whereNotNull('paid_at');
+        $query = $this->orders($cashierId)->whereNotNull('paid_at');
 
         if ($since !== null) {
             $query->where('paid_at', '>=', $since);
@@ -70,10 +74,9 @@ class ReportController extends Controller
     /**
      * @return array<int, array{hour: int, count: int}>
      */
-    private function byHour(): array
+    private function byHour(?int $cashierId): array
     {
-        $orders = Order::query()
-            ->where('channel', 'pos')
+        $orders = $this->orders($cashierId)
             ->whereNotNull('paid_at')
             ->whereDate('paid_at', Carbon::today())
             ->pluck('paid_at');
@@ -93,13 +96,24 @@ class ReportController extends Controller
     /**
      * @return array<string, int>
      */
-    private function byPaymentMethod(): array
+    private function byPaymentMethod(?int $cashierId): array
     {
-        $rows = Attempt::query()
+        $query = Attempt::query()
             ->selectRaw('payment_attempts.gateway, sum(payment_attempts.amount) as total')
             ->whereNotNull('confirmed_at')
             ->whereDate('confirmed_at', Carbon::today())
-            ->where('gateway', 'like', 'pos_%')
+            ->where('gateway', 'like', 'pos_%');
+
+        if ($cashierId !== null) {
+            $query->whereIn('payment_id', function ($payments) use ($cashierId): void {
+                $payments->select('payments.id')
+                    ->from('payments')
+                    ->join('orders', 'orders.id', '=', 'payments.order_id')
+                    ->where('orders.served_by', $cashierId);
+            });
+        }
+
+        $rows = $query
             ->groupBy('payment_attempts.gateway')
             ->pluck('total', 'gateway');
 
@@ -110,5 +124,21 @@ class ReportController extends Controller
         }
 
         return $totals;
+    }
+
+    /** @return Builder<Order> */
+    private function orders(?int $cashierId): Builder
+    {
+        return Order::query()
+            ->where('channel', 'pos')
+            ->when($cashierId !== null, fn (Builder $query): Builder => $query->where('served_by', $cashierId));
+    }
+
+    private function cashierId(Request $request): ?int
+    {
+        $admin = $request->user()?->admin;
+        abort_unless($admin !== null, 403);
+
+        return $admin->tier() === AdminRole::Cashier ? $admin->id : null;
     }
 }

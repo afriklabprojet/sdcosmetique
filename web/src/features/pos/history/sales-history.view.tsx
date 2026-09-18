@@ -21,6 +21,7 @@ export default function SalesHistoryView() {
   const router = useRouter();
   const [checking, setChecking] = useState(true);
   const [canRefund, setCanRefund] = useState(false);
+  const [cashierName, setCashierName] = useState<string | null>(null);
 
   const [sales, setSales] = useState<PosSale[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +31,10 @@ export default function SalesHistoryView() {
 
   useEffect(() => {
     Session.fetch()
-      .then((s) => setCanRefund(s.admin.role !== 'cashier'))
+      .then((s) => {
+        setCanRefund(s.admin.role !== 'cashier');
+        if (s.admin.role === 'cashier') setCashierName(s.user.name);
+      })
       .catch(() => router.replace('/admin/login'))
       .finally(() => setChecking(false));
   }, [router]);
@@ -57,7 +61,9 @@ export default function SalesHistoryView() {
   return (
     <div style={{ minHeight: '100vh', background: BG, padding: '24px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
-        <h1 style={{ fontSize: '20px', fontWeight: 700, color: TEXT, margin: 0 }}>Historique des ventes caisse</h1>
+        <h1 style={{ fontSize: '20px', fontWeight: 700, color: TEXT, margin: 0 }}>
+          {cashierName ? `Mes ventes — ${cashierName}` : 'Historique des ventes caisse'}
+        </h1>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <button type="button" onClick={() => window.open(Pos.salesExportUrl('pdf', filters), '_blank')}
             style={{ padding: '10px 16px', border: `1px solid ${BORDER2}`, borderRadius: '8px', background: 'none', color: TEXT, fontSize: '13px', cursor: 'pointer' }}>

@@ -7,11 +7,13 @@ import { toast } from '@/shared/ui/toast';
 import { BG, SURFACE, BORDER, BORDER2, GOLD, TEXT, TEXT2, TEXT3 } from '@/features/admin/admin.constant';
 
 type Props = {
+  operatorName: string;
   onOpened: () => void;
+  onSwitchCashier: () => void;
 };
 
 /** Écran « ouvrir la caisse » (§13) — obligatoire avant toute vente. */
-export default function OpenSessionScreen({ onOpened }: Readonly<Props>) {
+export default function OpenSessionScreen({ operatorName, onOpened, onSwitchCashier }: Readonly<Props>) {
   const [registers, setRegisters] = useState<PosRegister[]>([]);
   const [registerId, setRegisterId] = useState<number | null>(null);
   const [opening, setOpening] = useState('0');
@@ -48,6 +50,15 @@ export default function OpenSessionScreen({ onOpened }: Readonly<Props>) {
       <div style={{ width: '100%', maxWidth: '420px', background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: '16px', padding: '32px' }}>
         <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: GOLD, marginBottom: '8px' }}>Module Caisse</p>
         <h1 style={{ fontSize: '22px', fontWeight: 700, color: TEXT, margin: '0 0 24px' }}>Ouvrir la caisse</h1>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', padding: '12px', marginBottom: '20px', border: `1px solid ${BORDER}`, borderRadius: '8px' }}>
+          <div>
+            <span style={{ display: 'block', color: TEXT3, fontSize: '10px', textTransform: 'uppercase' }}>Caissière identifiée</span>
+            <strong style={{ color: TEXT, fontSize: '13px' }}>{operatorName}</strong>
+          </div>
+          <button type="button" onClick={onSwitchCashier} style={{ padding: '8px 10px', border: `1px solid ${BORDER2}`, borderRadius: '6px', background: 'none', color: TEXT2, fontSize: '11px', cursor: 'pointer' }}>
+            Changer
+          </button>
+        </div>
 
         {loading ? (
           <p style={{ color: TEXT2, fontSize: '13px' }}>Chargement des caisses…</p>

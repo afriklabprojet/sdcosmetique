@@ -19,9 +19,14 @@ async function mockPosApi(page: Page) {
 
     if (pathname === '/v1/admin/session') {
       await route.fulfill({ json: {
-        user: { id: 1, name: 'Admin SD', email: 'admin@sdcosmetique.ci' },
-        admin: { role: 'admin', root: true },
+        user: { id: 1, name: 'Awa Caissière', email: 'awa.caisse@sdcosmetique.ci' },
+        admin: { role: 'cashier', root: false },
       } });
+      return;
+    }
+
+    if (pathname === '/logout') {
+      await route.fulfill({ status: 204 });
       return;
     }
 
@@ -64,6 +69,23 @@ async function mockPosApi(page: Page) {
         totals_by_method: {},
         opened_at: '2026-09-17T08:00:00Z',
         closed_at: null,
+      } } });
+      return;
+    }
+
+    if (pathname === '/v1/admin/pos/sessions/10/close') {
+      sessionOpen = false;
+      await route.fulfill({ json: { data: {
+        id: 10,
+        cash_register_id: 1,
+        status: 'closed',
+        opening_balance: 0,
+        expected_cash: 0,
+        actual_cash: 0,
+        difference: 0,
+        totals_by_method: {},
+        opened_at: '2026-09-17T08:00:00Z',
+        closed_at: '2026-09-17T09:00:00Z',
       } } });
       return;
     }
@@ -134,6 +156,7 @@ test('the admin can open the register and complete a cash sale', async ({ page }
   await page.goto('/admin/pos');
 
   await expect(page.getByRole('heading', { name: 'Ouvrir la caisse' })).toBeVisible();
+  await expect(page.getByText('Awa Caissière')).toBeVisible();
   await expect(page.getByRole('combobox')).toHaveValue('1');
   await page.getByRole('button', { name: 'OUVRIR LA CAISSE' }).click();
 
@@ -153,4 +176,69 @@ test('the admin can open the register and complete a cash sale', async ({ page }
     items: [{ product_id: 47, quantity: 1 }],
     tenders: [{ method: 'cash', amount: 7_500, received: 7_500 }],
   });
+});
+
+test('switching cashier closes the register before returning to identification', async ({ page }) => {
+  await mockPosApi(page);
+  await page.goto('/admin/pos');
+  await page.getByRole('button', { name: 'OUVRIR LA CAISSE' }).click();
+
+  await expect(page.getByText('Caissière connectée')).toBeVisible();
+  await expect(page.getByText('Awa Caissière')).toBeVisible();
+  await page.getByRole('button', { name: 'Changer de caissière' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Résumé de caisse' })).toBeVisible();
+  await page.getByRole('button', { name: 'FERMER LA CAISSE', exact: true }).click();
+
+  await expect(page).toHaveURL(/\/admin\/login\?next=%2Fadmin%2Fpos|\/admin\/login\?next=\/admin\/pos/);
+});
+
+test('an administrator can create an individual cashier account', async ({ page }) => {
+  const cashiers: Array<Record<string, unknown>> = [];
+
+  await page.route(apiOrigin, async (route) => {
+    const request = route.request();
+    const pathname = new URL(request.url()).pathname;
+
+    if (pathname === '/sanctum/csrf-cookie') {
+      await route.fulfill({ status: 204 });
+      return;
+    }
+
+    if (pathname === '/v1/admin/session') {
+      await route.fulfill({ json: {
+        user: { id: 1, name: 'Administrateur SD', email: 'admin@sdcosmetique.ci' },
+        admin: { role: 'admin', root: true },
+      } });
+      return;
+    }
+
+    if (pathname === '/v1/admin/pos/cashiers' && request.method() === 'GET') {
+      await route.fulfill({ json: { data: cashiers } });
+      return;
+    }
+
+    if (pathname === '/v1/admin/pos/cashiers' && request.method() === 'POST') {
+      const input = request.postDataJSON() as { name: string; email: string };
+      const cashier = { id: 2, ...input, active: true, has_open_session: false, created_at: '2026-09-18T08:00:00Z' };
+      cashiers.push(cashier);
+      await route.fulfill({ status: 201, json: { data: cashier } });
+      return;
+    }
+
+    await route.fulfill({ status: 404, json: { message: `Unmocked path: ${pathname}` } });
+  });
+
+  await page.goto('/admin/pos/cashiers');
+  await expect(page.getByRole('heading', { name: 'Équipe de caisse' })).toBeVisible();
+
+  await page.getByLabel('Nom complet').fill('Awa Caissière');
+  await page.getByLabel('Email personnel').fill('awa.caisse@sdcosmetique.ci');
+  await page.getByLabel('Mot de passe', { exact: true }).fill('MotDePasse!2026');
+  await page.getByLabel('Confirmer le mot de passe').fill('MotDePasse!2026');
+  await page.getByRole('button', { name: 'Créer le compte' }).click();
+
+  await expect(page.getByText('Awa Caissière')).toBeVisible();
+  await expect(page.getByText('awa.caisse@sdcosmetique.ci')).toBeVisible();
+  await expect(page.getByText('Active', { exact: true })).toBeVisible();
 });

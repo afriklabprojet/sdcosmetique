@@ -129,6 +129,26 @@ it('streams a PDF receipt in thermal and A4 formats for a POS sale', function ()
     }
 });
 
+it('prevents a cashier from reading another cashier sale or receipt', function (): void {
+    $owner = admin(['role' => 'cashier', 'root_at' => null]);
+    $intruder = admin(['role' => 'cashier', 'root_at' => null]);
+    $session = openReceiptTestSession($owner, CashRegister::factory()->create());
+    $product = Product::factory()->child()->create(['regular_price' => 5_000, 'sale_price' => null, 'stock' => 5]);
+
+    $sale = $this->actingAs($owner)->postJson('/v1/admin/pos/sales', [
+        'cash_register_session_id' => $session['id'],
+        'items' => [['product_id' => $product->id, 'quantity' => 1]],
+        'tenders' => [['method' => 'cash', 'amount' => 5_000]],
+        'idempotency_key' => 'private-cashier-receipt',
+    ])->assertCreated();
+
+    $orderId = $sale->json('data.id');
+
+    $this->actingAs($intruder)->getJson("/v1/admin/pos/sales/{$orderId}")->assertNotFound();
+    $this->actingAs($intruder)->getJson("/v1/admin/pos/sales/{$orderId}/receipt")->assertNotFound();
+    $this->actingAs($intruder)->get("/v1/admin/pos/sales/{$orderId}/receipt/pdf")->assertNotFound();
+});
+
 it('exposes a public receipt only via a validly signed URL — never by guessing the reference', function (): void {
     $order = Order::factory()->paid()->create();
 

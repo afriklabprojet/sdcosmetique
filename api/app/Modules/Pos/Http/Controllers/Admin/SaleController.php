@@ -67,9 +67,10 @@ class SaleController extends Controller
         return PosSaleResource::make($order)->response()->setStatusCode(201);
     }
 
-    public function show(Order $order): JsonResponse
+    public function show(Request $request, Order $order): JsonResponse
     {
         abort_unless($order->pos(), 404);
+        $this->authorizeRead($request, $order);
 
         return PosSaleResource::make($order)->response();
     }
@@ -118,5 +119,12 @@ class SaleController extends Controller
         ], request: $request);
 
         return response()->json(['data' => ['status' => 'cancelled']]);
+    }
+
+    private function authorizeRead(Request $request, Order $order): void
+    {
+        $admin = $request->user()?->admin;
+        abort_unless($admin !== null, 403);
+        abort_unless($order->served_by === $admin->id || $admin->tier() !== AdminRole::Cashier, 404);
     }
 }

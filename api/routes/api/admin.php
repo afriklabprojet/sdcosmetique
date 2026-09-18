@@ -21,6 +21,7 @@ use App\Modules\Orders\Http\Controllers\Admin\DeliveryMethodController;
 use App\Modules\Orders\Http\Controllers\Admin\OrderController;
 use App\Modules\Payments\Http\Controllers\Admin\NotificationController;
 use App\Modules\Payments\Http\Controllers\Admin\PaymentController;
+use App\Modules\Pos\Http\Controllers\Admin\CashierController;
 use App\Modules\Pos\Http\Controllers\Admin\CashRegisterController;
 use App\Modules\Pos\Http\Controllers\Admin\ProductSearchController as PosProductSearchController;
 use App\Modules\Pos\Http\Controllers\Admin\ReportController as PosReportController;
@@ -129,6 +130,8 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
 
     // Module Caisse / POS — réutilise Product, Order, Payment existants (voir AGENTS.md).
     Route::prefix('pos')->name('pos.')->group(function (): void {
+        Route::apiResource('cashiers', CashierController::class)->only(['index', 'store', 'update', 'destroy']);
+
         Route::get('products', [PosProductSearchController::class, 'index'])->name('products.index');
         Route::get('products/barcode/{barcode}', [PosProductSearchController::class, 'byBarcode'])->name('products.barcode');
 

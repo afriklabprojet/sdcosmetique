@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Session, Pos } from '@/shared/api/admin';
 import type { PosSession, PosProduct, PosSale, PosDailyReport, JekoNetwork } from '@/shared/api/admin/pos';
-import { ApiError, apiErrorMessage } from '@/shared/api/client';
+import { ApiError, apiErrorMessage, apiRoot, resetCsrf } from '@/shared/api/client';
 import { toast } from '@/shared/ui/toast';
 import { formatPrice } from '@/shared/format/price';
 import type { CartLine, CustomerSelection, DiscountInput, TenderLine } from '@/features/pos/pos.type';
@@ -30,6 +30,8 @@ export default function PosView() {
   const [checking, setChecking] = useState(true);
   const [role, setRole] = useState<string>('super_admin');
   const [operatorId, setOperatorId] = useState<number | null>(null);
+  const [operatorName, setOperatorName] = useState('');
+  const [switchAfterClose, setSwitchAfterClose] = useState(false);
 
   const [session, setSession] = useState<PosSession | null>(null);
   const [loadingSession, setLoadingSession] = useState(true);
@@ -62,6 +64,7 @@ export default function PosView() {
       .then((s) => {
         setRole(s.admin.role);
         setOperatorId(s.user.id);
+        setOperatorName(s.user.name);
       })
       .catch(() => router.replace('/admin/login'))
       .finally(() => setChecking(false));
@@ -115,6 +118,22 @@ export default function PosView() {
     Pos.dailyReport().then(setReport).catch(() => undefined);
   }, []);
 
+  const logoutCashier = async () => {
+    await apiRoot('/logout', { method: 'POST' }).catch(() => undefined);
+    resetCsrf();
+    router.replace('/admin/login?next=/admin/pos');
+  };
+
+  const switchCashier = () => {
+    if (session) {
+      setSwitchAfterClose(true);
+      setShowClose(true);
+      return;
+    }
+
+    void logoutCashier();
+  };
+
   const confirmPayment = async (tenders: TenderLine[], jekoNetwork?: JekoNetwork) => {
     if (!session || operatorId === null) return;
     setSaleBusy(true);
@@ -165,7 +184,7 @@ export default function PosView() {
   }
 
   if (!session) {
-    return <OpenSessionScreen onOpened={refreshSession} />;
+    return <OpenSessionScreen operatorName={operatorName} onOpened={refreshSession} onSwitchCashier={switchCashier} />;
   }
 
   const total = cartTotal(lines, discount);
@@ -185,6 +204,10 @@ export default function PosView() {
           )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ padding: '7px 10px', borderLeft: `1px solid ${BORDER}`, color: TEXT2, fontSize: '12px' }}>
+            <span style={{ display: 'block', color: TEXT3, fontSize: '9px', textTransform: 'uppercase' }}>Caissière connectée</span>
+            <strong style={{ color: TEXT }}>{operatorName}</strong>
+          </div>
           {queuedCount > 0 && (
             <button
               type="button"
@@ -198,10 +221,15 @@ export default function PosView() {
           <Link href="/admin/pos/history" style={{ padding: '10px 16px', border: `1px solid ${BORDER2}`, borderRadius: '8px', color: TEXT, fontSize: '13px', textDecoration: 'none' }}>
             Historique
           </Link>
-          <Link href="/admin" style={{ padding: '10px 16px', border: `1px solid ${BORDER2}`, borderRadius: '8px', color: TEXT2, fontSize: '13px', textDecoration: 'none' }}>
-            ← Dashboard
-          </Link>
-          <button type="button" onClick={() => setShowClose(true)} style={{ padding: '10px 16px', border: 'none', borderRadius: '8px', background: '#4A1D1D', color: '#FCA5A5', fontSize: '13px', cursor: 'pointer', fontWeight: 600 }}>
+          <button type="button" onClick={switchCashier} style={{ padding: '10px 16px', border: `1px solid ${BORDER2}`, borderRadius: '8px', background: 'none', color: TEXT2, fontSize: '13px', cursor: 'pointer' }}>
+            Changer de caissière
+          </button>
+          {role !== 'cashier' && (
+            <Link href="/admin" style={{ padding: '10px 16px', border: `1px solid ${BORDER2}`, borderRadius: '8px', color: TEXT2, fontSize: '13px', textDecoration: 'none' }}>
+              ← Dashboard
+            </Link>
+          )}
+          <button type="button" onClick={() => { setSwitchAfterClose(false); setShowClose(true); }} style={{ padding: '10px 16px', border: 'none', borderRadius: '8px', background: '#4A1D1D', color: '#FCA5A5', fontSize: '13px', cursor: 'pointer', fontWeight: 600 }}>
             Fermer la caisse
           </button>
         </div>
@@ -239,8 +267,12 @@ export default function PosView() {
       {showClose && (
         <CloseSessionModal
           session={session}
-          onCancel={() => setShowClose(false)}
-          onClosed={() => { setShowClose(false); refreshSession(); }}
+          onCancel={() => { setShowClose(false); setSwitchAfterClose(false); }}
+          onClosed={() => {
+            setShowClose(false);
+            if (switchAfterClose) void logoutCashier();
+            else refreshSession();
+          }}
         />
       )}
     </div>

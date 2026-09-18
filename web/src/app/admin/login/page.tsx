@@ -29,6 +29,7 @@ function AdminLoginContent() {
   );
   const [loading, setLoading] = useState(false);
   const [loginBg, setLoginBg] = useState('/hero/generated-skincare-hero-2.jpg');
+  const isPosLogin = searchParams.get('next') === '/admin/pos';
 
   useEffect(() => {
     fetchSiteConfigSection('branding').then((b) => {
@@ -62,7 +63,7 @@ function AdminLoginContent() {
         throw new Error(loginFailureMessage(err, 'Session administrateur indisponible.'));
       }
 
-      router.push('/admin');
+      router.push(isPosLogin ? '/admin/pos' : '/admin');
     } catch (err) {
       setLoading(false);
       setError(err instanceof Error ? err.message : 'Erreur de connexion au serveur.');
@@ -119,22 +120,21 @@ function AdminLoginContent() {
             </div>
             <span className={styles.logoName}>SD Cosmetique</span>
           </div>
-          <span className={styles.rightBadge}>Espace admin</span>
+          <span className={styles.rightBadge}>{isPosLogin ? 'Point de vente' : 'Espace admin'}</span>
         </div>
 
         <h2 className={styles.formHeading}>
-          Connexion<br />
-          <span>administrateur</span>
+          {isPosLogin ? 'Identification' : 'Connexion'}<br />
+          <span>{isPosLogin ? 'caissière' : 'administrateur'}</span>
         </h2>
         <p className={styles.formSub}>
-          Gérez produits, commandes et<br />
-          l&apos;expérience client SD Cosmetique.
+          {isPosLogin ? <>Connectez-vous avec votre compte personnel<br />pour ouvrir votre caisse.</> : <>Gérez produits, commandes et<br />l&apos;expérience client SD Cosmetique.</>}
         </p>
 
         <form onSubmit={submitForm} noValidate>
           <div className={styles.field}>
             <label className={styles.label} htmlFor="admin-email">
-              Email administrateur
+              {isPosLogin ? 'Email de la caissière' : 'Email administrateur'}
             </label>
             <div className={styles.inputWrap}>
               <input
@@ -186,7 +186,7 @@ function AdminLoginContent() {
             className={styles.btn}
           >
             <span className={styles.btnInner}>
-              {loading ? 'Connexion en cours…' : 'Accéder au dashboard'}
+              {loading ? 'Connexion en cours…' : isPosLogin ? 'S’identifier et ouvrir la caisse' : 'Accéder au dashboard'}
             </span>
           </button>
         </form>

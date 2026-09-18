@@ -559,6 +559,10 @@ export default function AdminPage() { // NOSONAR typescript:S3776
   useEffect(() => {
     Session.fetch()
       .then((session) => {
+        if (session.admin.role === 'cashier') {
+          router.replace('/admin/pos');
+          return;
+        }
         void initAfterAuth({ email: session.user.email });
       })
       .catch(() => {
@@ -1170,7 +1174,7 @@ export default function AdminPage() { // NOSONAR typescript:S3776
             })}
 
             <div style={{ fontSize: '9px', color: '#8B7355', letterSpacing: '0.15em', textTransform: 'uppercase', padding: '0 12px 5px', margin: '16px 0 10px', fontWeight: 700, borderBottom: '1px solid rgba(139,115,85,0.18)' }}>CAISSE</div>
-            <button onClick={() => router.push('/admin/pos')}
+            <button onClick={() => router.push('/admin/login?next=/admin/pos')}
               style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderRadius: '10px', fontSize: '13px', textAlign: 'left', cursor: 'pointer', border: 'none', marginBottom: '4px', background: 'transparent', color: '#C4A574', fontWeight: 500 }}>
               <span style={{ fontSize: '15px', color: '#A8956B' }}>🧮</span>
               <span style={{ flex: 1 }}>Point de vente</span>
@@ -1181,6 +1185,14 @@ export default function AdminPage() { // NOSONAR typescript:S3776
               <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1px' }}>
                 <span style={{ fontSize: '12px', fontWeight: 600, lineHeight: 1.3 }}>Historique des ventes</span>
                 <span style={{ fontSize: '10px', color: '#6B5A3E', fontWeight: 400, lineHeight: 1.3 }}>Ventes en caisse, remboursements</span>
+              </span>
+            </button>
+            <button onClick={() => router.push('/admin/pos/cashiers')}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '11px', padding: '9px 14px', borderRadius: '10px', textAlign: 'left', cursor: 'pointer', border: 'none', marginBottom: '4px', background: 'transparent', color: '#C4A574' }}>
+              <span style={{ fontSize: '16px', color: '#A8956B', flexShrink: 0 }}>●</span>
+              <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, lineHeight: 1.3 }}>Équipe de caisse</span>
+                <span style={{ fontSize: '10px', color: '#6B5A3E', fontWeight: 400, lineHeight: 1.3 }}>Comptes et accès personnels</span>
               </span>
             </button>
 
